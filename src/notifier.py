@@ -52,7 +52,7 @@ class TelegramNotifier:
         lines.extend(
             [
                 "",
-                f"<a href='{html.escape(report_url)}'>View Full Diff Report</a>",
+                f'<a href="{report_url}">View Full Diff Report</a>',
             ]
         )
 

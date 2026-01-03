@@ -86,12 +86,12 @@ class ReportGenerator:
         output_path = date_dir / "index.html"
         output_path.write_text(html)
 
-        # Save metadata with timestamp
+        # Save metadata with timestamp (human-readable format)
         meta_path = date_dir / "meta.json"
         meta_path.write_text(
             json.dumps(
                 {
-                    "timestamp": report_time.isoformat(),
+                    "timestamp": report_time.strftime("%b %d, %Y %H:%M UTC"),
                     "count": len(changed_pages),
                 }
             )
