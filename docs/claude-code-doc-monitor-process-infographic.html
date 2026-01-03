@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Code Doc Monitor Process - Infographic</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .header {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 { font-size: 1.25rem; font-weight: 600; }
+        .export-btn {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: background 0.2s;
+        }
+        .export-btn:hover { background: rgba(255,255,255,0.3); }
+        #container { flex: 1; padding: 2rem; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Claude Code Documentation Monitor - Process Flow</h1>
+        <button class="export-btn" onclick="exportSVG()">Export as SVG</button>
+    </div>
+    <div id="container"></div>
+
+    <script src="https://unpkg.com/@antv/infographic@latest/dist/infographic.min.js"></script>
+    <script>
+        const svgTextCache = new Map();
+        const pendingRequests = new Map();
+
+        AntVInfographic.registerResourceLoader(async (config) => {
+            const { data, scene } = config;
+
+            try {
+                const key = `${scene}::${data}`;
+                let svgText;
+
+                if (svgTextCache.has(key)) {
+                    svgText = svgTextCache.get(key);
+                }
+                else if (pendingRequests.has(key)) {
+                    svgText = await pendingRequests.get(key);
+                }
+                else {
+                    const fetchPromise = (async () => {
+                        try {
+                            let url;
+
+                            if (scene === 'icon') {
+                                url = `https://api.iconify.design/${data}.svg`;
+                            } else if (scene === 'illus') {
+                                url = `https://raw.githubusercontent.com/balazser/undraw-svg-collection/refs/heads/main/svgs/${data}.svg`;
+                            } else return null;
+
+                            if (!url) return null;
+
+                            const response = await fetch(url, { referrerPolicy: 'no-referrer' });
+
+                            if (!response.ok) {
+                                console.error(`HTTP ${response.status}: Failed to load ${url}`);
+                                return null;
+                            }
+
+                            const text = await response.text();
+
+                            if (!text || !text.trim().startsWith('<svg')) {
+                                console.error(`Invalid SVG content from ${url}`);
+                                return null;
+                            }
+
+                            svgTextCache.set(key, text);
+                            return text;
+                        } catch (fetchError) {
+                            console.error(`Failed to fetch resource ${key}:`, fetchError);
+                            return null;
+                        }
+                    })();
+
+                    pendingRequests.set(key, fetchPromise);
+
+                    try {
+                        svgText = await fetchPromise;
+                    } catch (error) {
+                        pendingRequests.delete(key);
+                        console.error(`Error loading resource ${key}:`, error);
+                        return null;
+                    } finally {
+                        pendingRequests.delete(key);
+                    }
+                }
+
+                if (!svgText) {
+                    return null;
+                }
+
+                const resource = AntVInfographic.loadSVGResource(svgText);
+
+                if (!resource) {
+                    console.error(`loadSVGResource returned null for ${key}`);
+                    svgTextCache.delete(key);
+                    return null;
+                }
+
+                return resource;
+            } catch (error) {
+                console.error('Unexpected error in resource loader:', error);
+                return null;
+            }
+        });
+
+        const syntax = `infographic sequence-snake-steps-compact-card
+data
+  title Claude Code Doc Monitor Pipeline
+  desc Automated documentation change detection, reporting, and notification system
+  items
+    - label Trigger
+      desc GitHub Actions hourly cron or manual dispatch
+      icon mdi/clock-start
+    - label Fetch
+      desc Async HTTP downloads 49 markdown pages
+      icon mdi/cloud-download
+    - label Compare
+      desc Differ compares with stored docs
+      icon mdi/file-compare
+    - label Detect
+      desc Changes found? Yes: continue, No: wait
+      icon mdi/help-circle-outline
+    - label Generate
+      desc Reporter creates HTML diff reports
+      icon mdi/file-document-edit
+    - label Accumulate
+      desc Add batch to daily report with timestamp
+      icon mdi/layers-plus
+    - label Notify
+      desc Send Telegram notification
+      icon mdi/telegram
+    - label Deploy
+      desc Push to GitHub Pages
+      icon mdi/rocket-launch
+theme
+  palette #3b82f6 #0ea5e9 #10b981 #f97316 #8b5cf6 #ec4899 #6366f1 #14b8a6`;
+
+        const infographic = new AntVInfographic.Infographic({
+            container: '#container',
+            width: '100%',
+            height: '100%',
+        });
+
+        infographic.render(syntax);
+
+        document.fonts?.ready.then(() => {
+            infographic.render(syntax);
+        }).catch(() => {});
+
+        async function exportSVG() {
+            try {
+                const svgDataUrl = await infographic.toDataURL({ type: 'svg' });
+                const link = document.createElement('a');
+                link.download = 'claude-code-doc-monitor-process.svg';
+                link.href = svgDataUrl;
+                link.click();
+            } catch (e) {
+                console.error('Export failed:', e);
+                alert('Export failed. Please try again.');
+            }
+        }
+    </script>
+</body>
+</html>
