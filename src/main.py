@@ -3,7 +3,7 @@
 import asyncio
 import logging
 from dataclasses import dataclass, field
-from datetime import date
+from datetime import UTC, datetime
 from pathlib import Path
 
 import click
@@ -56,11 +56,11 @@ class DocMonitor:
         self,
         pages: list[str],
         generate_reports: bool = False,
-        report_date: date | None = None,
+        report_time: datetime | None = None,
     ) -> RunResult:
         """Run the monitoring process."""
         result = RunResult(total_pages=len(pages))
-        report_date = report_date or date.today()
+        report_time = report_time or datetime.now(UTC)
 
         async with DocumentFetcher(
             base_url=self.config.source_base_url,
@@ -92,11 +92,11 @@ class DocMonitor:
                 self.save_content(fetch_result.page_slug, fetch_result.content)
 
         if generate_reports and result.diffs:
-            self._generate_reports(result.diffs, report_date)
+            self._generate_reports(result.diffs, report_time)
 
         return result
 
-    def _generate_reports(self, diffs: list[DiffResult], report_date: date) -> None:
+    def _generate_reports(self, diffs: list[DiffResult], report_time: datetime) -> None:
         """Generate HTML reports for changed pages."""
         reporter = ReportGenerator(
             self.config.reports_dir,
@@ -105,9 +105,9 @@ class DocMonitor:
         )
 
         for diff in diffs:
-            reporter.generate_page_diff(diff, report_date)
+            reporter.generate_page_diff(diff, report_time)
 
-        reporter.generate_daily_index(diffs, report_date)
+        reporter.generate_daily_index(diffs, report_time)
         reporter.update_main_index()
 
 
@@ -168,6 +168,7 @@ def cli(
         # Send notification
         if config.telegram.is_configured and not no_notify and result.diffs:
             console.print("\nSending Telegram notification...")
+            now = datetime.now(UTC)
             notifier = TelegramNotifier(
                 config.telegram.bot_token,
                 config.telegram.chat_id,
@@ -176,11 +177,9 @@ def cli(
                 config.reports_dir,
                 templates_dir,
                 config.github_pages_url,
-            ).get_report_url(date.today())
+            ).get_report_url(now)
 
-            success = asyncio.run(
-                notifier.send_notification(result.diffs, date.today(), report_url)
-            )
+            success = asyncio.run(notifier.send_notification(result.diffs, now.date(), report_url))
             if success:
                 console.print("[green]Notification sent![/green]")
             else:

@@ -1,6 +1,6 @@
 """Tests for reporter module."""
 
-from datetime import date
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
@@ -93,7 +93,7 @@ class TestReportGenerator:
         sample_diff: DiffResult,
     ) -> None:
         generator = ReportGenerator(reports_dir, templates_dir)
-        report_date = date(2026, 1, 3)
+        report_date = datetime(2026, 1, 3, 14, 30, 0, tzinfo=UTC)
 
         path = generator.generate_page_diff(sample_diff, report_date)
 
@@ -112,7 +112,7 @@ class TestReportGenerator:
         sample_diff: DiffResult,
     ) -> None:
         generator = ReportGenerator(reports_dir, templates_dir)
-        report_date = date(2026, 1, 3)
+        report_date = datetime(2026, 1, 3, 14, 30, 0, tzinfo=UTC)
 
         # First generate a page diff
         generator.generate_page_diff(sample_diff, report_date)
@@ -135,7 +135,7 @@ class TestReportGenerator:
         generator = ReportGenerator(reports_dir, templates_dir)
 
         # Create a report for a date
-        report_date = date(2026, 1, 3)
+        report_date = datetime(2026, 1, 3, 14, 30, 0, tzinfo=UTC)
         generator.generate_page_diff(sample_diff, report_date)
         generator.generate_daily_index([sample_diff], report_date)
 
@@ -155,7 +155,7 @@ class TestReportGenerator:
         sample_diff: DiffResult,
     ) -> None:
         generator = ReportGenerator(reports_dir, templates_dir)
-        report_date = date(2026, 1, 3)
+        report_date = datetime(2026, 1, 3, 14, 30, 0, tzinfo=UTC)
 
         generator.generate_page_diff(sample_diff, report_date)
 
@@ -173,7 +173,7 @@ class TestReportGenerator:
             templates_dir,
             base_url="https://user.github.io/repo",
         )
-        report_date = date(2026, 1, 3)
+        report_date = datetime(2026, 1, 3, 14, 30, 0, tzinfo=UTC)
 
         url = generator.get_report_url(report_date)
         assert url == "https://user.github.io/repo/2026/01/03/"
@@ -184,7 +184,7 @@ class TestReportGenerator:
         templates_dir: Path,
     ) -> None:
         generator = ReportGenerator(reports_dir, templates_dir)
-        report_date = date(2026, 1, 3)
+        report_date = datetime(2026, 1, 3, 14, 30, 0, tzinfo=UTC)
 
         url = generator.get_report_url(report_date)
         assert url == "2026/01/03/"
@@ -195,7 +195,7 @@ class TestReportGenerator:
         templates_dir: Path,
     ) -> None:
         generator = ReportGenerator(reports_dir, templates_dir)
-        report_date = date(2026, 1, 3)
+        report_date = datetime(2026, 1, 3, 14, 30, 0, tzinfo=UTC)
 
         diff1 = DiffResult(
             page_slug="page1",
