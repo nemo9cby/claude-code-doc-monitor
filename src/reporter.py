@@ -60,39 +60,54 @@ class ReportGenerator:
         diffs: list[DiffResult],
         report_time: datetime,
     ) -> Path:
-        """Generate daily index page listing all changed pages."""
+        """Generate daily index page listing all changed pages, accumulating multiple runs."""
         date_dir = self._get_date_dir(report_time)
         date_dir.mkdir(parents=True, exist_ok=True)
 
-        changed_pages = [
-            {
-                "slug": d.page_slug,
-                "summary": d.summary,
-                "added": d.added_lines,
-                "removed": d.removed_lines,
-            }
-            for d in diffs
-            if d.has_changes
-        ]
+        # Load existing batches from meta.json if it exists
+        meta_path = date_dir / "meta.json"
+        if meta_path.exists():
+            meta = json.loads(meta_path.read_text())
+            batches = meta.get("batches", [])
+        else:
+            batches = []
+
+        # Create new batch for this run
+        new_batch = {
+            "timestamp": report_time.strftime("%H:%M UTC"),
+            "pages": [
+                {
+                    "slug": d.page_slug,
+                    "summary": d.summary,
+                    "added": d.added_lines,
+                    "removed": d.removed_lines,
+                }
+                for d in diffs
+                if d.has_changes
+            ],
+        }
+        batches.append(new_batch)
+
+        # Calculate totals
+        total_changes = sum(len(b["pages"]) for b in batches)
 
         template = self._env.get_template("daily_index.html")
         html = template.render(
             date=report_time.strftime("%Y-%m-%d"),
-            timestamp=report_time.strftime("%Y-%m-%d %H:%M:%S UTC"),
-            changed_pages=changed_pages,
-            total_changes=len(changed_pages),
+            batches=batches,
+            total_changes=total_changes,
         )
 
         output_path = date_dir / "index.html"
         output_path.write_text(html)
 
-        # Save metadata with timestamp (human-readable format)
-        meta_path = date_dir / "meta.json"
+        # Save metadata with all batches
         meta_path.write_text(
             json.dumps(
                 {
                     "timestamp": report_time.strftime("%b %d, %Y %H:%M UTC"),
-                    "count": len(changed_pages),
+                    "count": total_changes,
+                    "batches": batches,
                 }
             )
         )

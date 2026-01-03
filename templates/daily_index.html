@@ -12,6 +12,7 @@
             --accent: #0f3460;
             --add-text: #4ade80;
             --del-text: #f87171;
+            --time-color: #60a5fa;
         }
         @media (prefers-color-scheme: light) {
             :root {
@@ -21,6 +22,7 @@
                 --accent: #e0e0e0;
                 --add-text: #155724;
                 --del-text: #721c24;
+                --time-color: #2563eb;
             }
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -35,12 +37,21 @@
         header { margin-bottom: 2rem; }
         h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
         .meta { color: #888; }
+        .batch { margin-bottom: 2rem; }
+        .batch-header {
+            color: var(--time-color);
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--accent);
+        }
         .page-list { list-style: none; }
         .page-item {
             background: var(--card-bg);
             padding: 1rem;
             border-radius: 8px;
-            margin-bottom: 0.75rem;
+            margin-bottom: 0.5rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -63,21 +74,26 @@
         <a href="../../../index.html" class="back-link">&larr; All reports</a>
 
         <header>
-            <h1>Changes Detected</h1>
-            <p class="meta">{{ timestamp }} &bull; {{ total_changes }} page{% if total_changes != 1 %}s{% endif %} changed</p>
+            <h1>Changes on {{ date }}</h1>
+            <p class="meta">{{ total_changes }} total change{% if total_changes != 1 %}s{% endif %} in {{ batches|length }} run{% if batches|length != 1 %}s{% endif %}</p>
         </header>
 
-        <ul class="page-list">
-            {% for page in changed_pages %}
-            <li class="page-item">
-                <a href="{{ page.slug }}.html" class="page-link">{{ page.slug }}.md</a>
-                <span class="page-summary">
-                    {% if page.added > 0 %}<span class="added">+{{ page.added }}</span>{% endif %}
-                    {% if page.removed > 0 %}<span class="removed">-{{ page.removed }}</span>{% endif %}
-                </span>
-            </li>
-            {% endfor %}
-        </ul>
+        {% for batch in batches %}
+        <div class="batch">
+            <div class="batch-header">{{ batch.timestamp }}</div>
+            <ul class="page-list">
+                {% for page in batch.pages %}
+                <li class="page-item">
+                    <a href="{{ page.slug }}.html" class="page-link">{{ page.slug }}.md</a>
+                    <span class="page-summary">
+                        {% if page.added > 0 %}<span class="added">+{{ page.added }}</span>{% endif %}
+                        {% if page.removed > 0 %}<span class="removed">-{{ page.removed }}</span>{% endif %}
+                    </span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endfor %}
     </div>
 </body>
 </html>

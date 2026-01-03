@@ -58,11 +58,17 @@ def templates_dir(tmp_path: Path) -> Path:
 <head><title>{{ date }} - Daily Report</title></head>
 <body>
 <h1>Changes for {{ date }}</h1>
+<p>{{ total_changes }} changes in {{ batches|length }} runs</p>
+{% for batch in batches %}
+<div class="batch">
+<h2>{{ batch.timestamp }}</h2>
 <ul>
-{% for page in changed_pages %}
+{% for page in batch.pages %}
 <li><a href="{{ page.slug }}.html">{{ page.slug }}</a>: {{ page.summary }}</li>
 {% endfor %}
 </ul>
+</div>
+{% endfor %}
 </body>
 </html>
 """)
