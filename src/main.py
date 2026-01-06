@@ -7,6 +7,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import click
+from dotenv import load_dotenv
 from rich.console import Console
 from rich.logging import RichHandler
 
@@ -157,6 +158,8 @@ def cli(
     no_reports: bool,
 ) -> None:
     """Monitor Claude Code documentation for updates."""
+    # Load .env file for local development
+    load_dotenv()
     setup_logging(verbose)
 
     try:
