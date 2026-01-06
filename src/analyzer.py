@@ -122,14 +122,19 @@ Focus on implications for developers. Be concise and insightful."""
                         {"role": "user", "content": prompt},
                     ],
                     "temperature": 0.3,
-                    "max_tokens": 500,
+                    "max_tokens": 4000,  # Higher limit for thinking models
                     "only": ["z-ai"],  # Use z-ai provider
                 },
-                timeout=30.0,
+                timeout=120.0,  # Longer timeout for thinking models
             )
             response.raise_for_status()
             data = response.json()
-            return data["choices"][0]["message"]["content"]
+            message = data["choices"][0]["message"]
+            # Handle thinking models: prefer content, fall back to reasoning
+            content = message.get("content", "")
+            if not content and "reasoning" in message:
+                content = message["reasoning"]
+            return content
 
     def _parse_response(self, response_text: str, page_slug: str) -> AnalysisResult:
         """Parse LLM response into AnalysisResult."""
