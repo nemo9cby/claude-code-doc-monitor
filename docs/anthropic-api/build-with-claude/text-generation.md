@@ -29,15 +29,15 @@ Claude has a broad range of text-based capabilities, including but not limited t
 Dive into practical examples and hands-on tutorials with our collection of Jupyter notebooks.
 
 <CardGroup cols={3}>
-  <Card title="PDF Upload & Summarization" icon="file" href="https://github.com/anthropics/anthropic-cookbook/blob/main/misc/pdf_upload_summarization.ipynb">
+  <Card title="PDF Upload & Summarization" icon="file" href="https://platform.claude.com/cookbook/misc-pdf-upload-summarization">
     Learn how to upload PDFs and have Claude summarize their content, making it easy to digest long documents.
   </Card>
-  
-  <Card title="Tool Use & Function Calling" icon="wrench" href="https://github.com/anthropics/anthropic-cookbook/tree/main/tool_use">
+
+  <Card title="Tool Use & Function Calling" icon="wrench" href="https://platform.claude.com/cookbook/tool-use-calculator-tool">
     Discover how to extend Claude's capabilities by integrating external tools and functions into your workflows.
   </Card>
-  
-  <Card title="Embeddings with VoyageAI" icon="chart-scatter" href="https://github.com/anthropics/anthropic-cookbook/blob/main/third_party/VoyageAI/how_to_create_embeddings.md">
+
+  <Card title="Embeddings with VoyageAI" icon="chart-scatter" href="https://platform.claude.com/cookbook/capabilities-contextual-embeddings-guide">
     Explore how to create and use embeddings with VoyageAI for advanced text similarity and search tasks.
   </Card>
 </CardGroup>
