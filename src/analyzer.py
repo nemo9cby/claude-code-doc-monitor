@@ -123,9 +123,6 @@ Focus on implications for developers. Be concise and insightful."""
                     ],
                     "temperature": 0.3,
                     "max_tokens": 500,
-                    "provider": {
-                        "only": ["GMICloud"],  # Only use GMICloud provider for z-ai models
-                    },
                 },
                 timeout=30.0,
             )
