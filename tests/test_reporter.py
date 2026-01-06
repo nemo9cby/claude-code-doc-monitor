@@ -233,3 +233,35 @@ class TestReportGenerator:
         content = index_path.read_text()
         assert "page1" in content
         assert "page2" in content
+
+    def test_generate_page_diff_nested_path(
+        self,
+        reports_dir: Path,
+        templates_dir: Path,
+    ) -> None:
+        """Test that nested page slugs create proper directory structure."""
+        generator = ReportGenerator(reports_dir, templates_dir)
+        report_date = datetime(2026, 1, 6, 14, 30, 0, tzinfo=UTC)
+
+        # Create diff with nested page slug like Anthropic API docs
+        diff = DiffResult(
+            page_slug="about-claude/models/overview",
+            has_changes=True,
+            old_content="old",
+            new_content="new",
+            unified_diff="diff",
+            html_diff="html",
+            added_lines=1,
+            removed_lines=0,
+            summary="+1 lines",
+        )
+
+        path = generator.generate_page_diff(diff, report_date)
+
+        assert path.exists()
+        assert path.name == "overview.html"
+        # Should create nested directory structure
+        expected_dir = reports_dir / "2026" / "01" / "06" / "about-claude" / "models"
+        assert expected_dir.exists()
+        assert expected_dir.is_dir()
+        assert (expected_dir / "overview.html").exists()

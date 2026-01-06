@@ -64,6 +64,8 @@ class ReportGenerator:
         )
 
         output_path = date_dir / f"{diff.page_slug}.html"
+        # Create parent directories for nested page slugs (e.g., about-claude/models/overview)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
         output_path.write_text(html)
         return output_path
 
