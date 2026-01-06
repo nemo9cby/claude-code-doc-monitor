@@ -146,7 +146,7 @@ class ReportGenerator:
         template = self._env.get_template("daily_index.html")
         html = template.render(
             date=report_time.strftime("%Y-%m-%d"),
-            batches=batches,
+            batches=list(reversed(batches)),  # Most recent first
             total_changes=total_changes,
         )
 
