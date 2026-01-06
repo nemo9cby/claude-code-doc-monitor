@@ -50,9 +50,18 @@ class ReportGenerator:
         date_dir = self._get_date_dir(report_time)
         date_dir.mkdir(parents=True, exist_ok=True)
 
+        # Calculate relative path back to daily index based on nesting depth
+        # source_id/page_slug.html -> ../index.html
+        # source_id/nested/page.html -> ../../index.html
+        source_id = diff.source_id or "unknown"
+        depth = diff.page_slug.count("/") + 1  # +1 for source_id prefix
+        back_to_index = "../" * depth + "index.html"
+
         template = self._env.get_template("page_diff.html")
         html = template.render(
             page_slug=diff.page_slug,
+            source_id=source_id,
+            source_name=diff.source_name or source_id,
             summary=diff.summary,
             html_diff=diff.html_diff,
             unified_diff=diff.unified_diff,
@@ -61,10 +70,11 @@ class ReportGenerator:
             date=report_time.strftime("%Y-%m-%d"),
             timestamp=report_time.strftime("%Y-%m-%d %H:%M:%S UTC"),
             analysis=analysis,
+            back_to_index=back_to_index,
         )
 
-        output_path = date_dir / f"{diff.page_slug}.html"
-        # Create parent directories for nested page slugs (e.g., about-claude/models/overview)
+        # Organize by source: date_dir/source_id/page_slug.html
+        output_path = date_dir / source_id / f"{diff.page_slug}.html"
         output_path.parent.mkdir(parents=True, exist_ok=True)
         output_path.write_text(html)
         return output_path
@@ -95,25 +105,43 @@ class ReportGenerator:
                 return None
             return {"analysis": analysis.analysis}
 
-        # Create new batch for this run
-        new_batch = {
-            "timestamp": report_time.strftime("%H:%M UTC"),
-            "pages": [
+        # Create new batch for this run, grouped by source
+        pages_by_source: dict[str, list[dict]] = {}
+        for d in diffs:
+            if not d.has_changes:
+                continue
+            source_id = d.source_id or "unknown"
+            source_name = d.source_name or source_id
+            if source_id not in pages_by_source:
+                pages_by_source[source_id] = []
+            pages_by_source[source_id].append(
                 {
                     "slug": d.page_slug,
+                    "source_id": source_id,
+                    "source_name": source_name,
                     "summary": d.summary,
                     "added": d.added_lines,
                     "removed": d.removed_lines,
                     "analysis": serialize_analysis(analysis_map.get(d.page_slug)),
                 }
-                for d in diffs
-                if d.has_changes
-            ],
+            )
+
+        # Build sources list with their pages
+        sources = [
+            {"id": src_id, "name": pages[0]["source_name"], "pages": pages}
+            for src_id, pages in pages_by_source.items()
+        ]
+
+        new_batch = {
+            "timestamp": report_time.strftime("%H:%M UTC"),
+            "sources": sources,
+            # Keep flat pages list for backward compatibility and totals
+            "pages": [p for pages in pages_by_source.values() for p in pages],
         }
         batches.append(new_batch)
 
         # Calculate totals
-        total_changes = sum(len(b["pages"]) for b in batches)
+        total_changes = sum(len(b.get("pages", [])) for b in batches)
 
         template = self._env.get_template("daily_index.html")
         html = template.render(

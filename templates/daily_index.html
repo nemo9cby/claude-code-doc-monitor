@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ date }} - Claude Code Docs Changes</title>
+    <title>{{ date }} - Documentation Changes</title>
     <style>
         :root {
             --bg-color: #1a1a2e;
@@ -73,6 +73,15 @@
             color: #888;
             margin-top: 0.25rem;
         }
+        .source-section {
+            margin-bottom: 1.5rem;
+        }
+        .source-header {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: #8b5cf6;
+        }
     </style>
 </head>
 <body>
@@ -87,11 +96,35 @@
         {% for batch in batches %}
         <div class="batch">
             <div class="batch-header">{{ batch.timestamp }}</div>
+            {% if batch.sources %}
+            {% for source in batch.sources %}
+            <div class="source-section">
+                <h3 class="source-header">📚 {{ source.name }}</h3>
+                <ul class="page-list">
+                    {% for page in source.pages %}
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="{{ page.source_id }}/{{ page.slug }}.html" class="page-link">{{ page.slug }}.md</a>
+                            {% if page.analysis and page.analysis.analysis %}
+                            <p class="page-analysis">{{ page.analysis.analysis.split('\n')[0][:100] }}</p>
+                            {% endif %}
+                        </div>
+                        <span class="page-summary">
+                            {% if page.added > 0 %}<span class="added">+{{ page.added }}</span>{% endif %}
+                            {% if page.removed > 0 %}<span class="removed">-{{ page.removed }}</span>{% endif %}
+                        </span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endfor %}
+            {% else %}
+            {# Backward compatibility for old batches without sources #}
             <ul class="page-list">
                 {% for page in batch.pages %}
                 <li class="page-item">
                     <div class="page-item-content">
-                        <a href="{{ page.slug }}.html" class="page-link">{{ page.slug }}.md</a>
+                        <a href="{{ page.source_id|default('unknown') }}/{{ page.slug }}.html" class="page-link">{{ page.slug }}.md</a>
                         {% if page.analysis and page.analysis.analysis %}
                         <p class="page-analysis">{{ page.analysis.analysis.split('\n')[0][:100] }}</p>
                         {% endif %}
@@ -103,6 +136,7 @@
                 </li>
                 {% endfor %}
             </ul>
+            {% endif %}
         </div>
         {% endfor %}
     </div>

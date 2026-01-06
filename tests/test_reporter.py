@@ -44,6 +44,7 @@ def templates_dir(tmp_path: Path) -> Path:
 <html>
 <head><title>{{ page_slug }} - Diff</title></head>
 <body>
+<a href="{{ back_to_index }}" class="back-link">Back to daily report</a>
 <h1>{{ page_slug }}</h1>
 <p>{{ summary }}</p>
 <div class="diff">{{ html_diff | safe }}</div>
@@ -254,14 +255,48 @@ class TestReportGenerator:
             added_lines=1,
             removed_lines=0,
             summary="+1 lines",
+            source_id="anthropic-api",
+            source_name="Anthropic API",
         )
 
         path = generator.generate_page_diff(diff, report_date)
 
         assert path.exists()
         assert path.name == "overview.html"
-        # Should create nested directory structure
-        expected_dir = reports_dir / "2026" / "01" / "06" / "about-claude" / "models"
+        # Should create nested directory structure: date/source_id/page_path/
+        expected_dir = (
+            reports_dir / "2026" / "01" / "06" / "anthropic-api" / "about-claude" / "models"
+        )
         assert expected_dir.exists()
         assert expected_dir.is_dir()
         assert (expected_dir / "overview.html").exists()
+
+    def test_generate_page_diff_back_link(
+        self,
+        reports_dir: Path,
+        templates_dir: Path,
+    ) -> None:
+        """Test that back to index link is correct for nested paths."""
+        generator = ReportGenerator(reports_dir, templates_dir)
+        report_date = datetime(2026, 1, 6, 14, 30, 0, tzinfo=UTC)
+
+        # Nested path: source_id/nested/page.html -> ../../index.html
+        diff = DiffResult(
+            page_slug="api/messages",
+            has_changes=True,
+            old_content="old",
+            new_content="new",
+            unified_diff="diff",
+            html_diff="html",
+            added_lines=1,
+            removed_lines=0,
+            summary="+1 lines",
+            source_id="anthropic-api",
+            source_name="Anthropic API",
+        )
+
+        path = generator.generate_page_diff(diff, report_date)
+        content = path.read_text()
+
+        # For anthropic-api/api/messages.html, back link should be ../../index.html
+        assert '../../index.html"' in content

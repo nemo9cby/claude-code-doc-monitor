@@ -240,5 +240,6 @@ class TestDocMonitor:
             / f"{utc_today.day:02d}"
         )
         assert report_dir.exists()
-        assert (report_dir / "overview.html").exists()
+        # Reports are now organized by source_id
+        assert (report_dir / mock_source.id / "overview.html").exists()
         assert (report_dir / "index.html").exists()
