@@ -35,7 +35,7 @@ class AnalyzerConfig:
     """Configuration for LLM diff analyzer."""
 
     enabled: bool = True
-    model: str = "openai/gpt-4o-mini"
+    model: str = "z-ai/glm-4.7"
     base_url: str = "https://openrouter.ai/api/v1"
     api_key: str | None = None
 
@@ -111,7 +111,7 @@ def load_config(config_path: Path) -> Config:
 
     analyzer = AnalyzerConfig(
         enabled=analyzer_data.get("enabled", True),
-        model=analyzer_data.get("model", "openai/gpt-4o-mini"),
+        model=analyzer_data.get("model", "z-ai/glm-4.7"),
         base_url=analyzer_data.get("base_url", "https://openrouter.ai/api/v1"),
         api_key=os.environ.get("OPENROUTER_API_KEY"),
     )

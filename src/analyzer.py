@@ -23,7 +23,7 @@ class AnalysisResult:
 class DiffAnalyzer:
     """Analyzes diffs using LLM via OpenRouter API."""
 
-    DEFAULT_MODEL = "openai/gpt-4o-mini"
+    DEFAULT_MODEL = "z-ai/glm-4.7"
     DEFAULT_BASE_URL = "https://openrouter.ai/api/v1"
 
     def __init__(
@@ -124,7 +124,7 @@ Focus on implications for developers. Be concise and insightful."""
                     "temperature": 0.3,
                     "max_tokens": 500,
                     "provider": {
-                        "ignore": ["Chutes"],  # Avoid unreliable providers
+                        "only": ["z-ai"],  # Only use z-ai provider
                     },
                 },
                 timeout=30.0,
