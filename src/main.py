@@ -10,6 +10,7 @@ import click
 from rich.console import Console
 from rich.logging import RichHandler
 
+from src.analyzer import AnalysisResult, DiffAnalyzer
 from src.config import Config, load_config, load_pages
 from src.differ import DiffResult, DocumentDiffer
 from src.fetcher import DocumentFetcher
@@ -28,6 +29,7 @@ class RunResult:
     changed_pages: int = 0
     failed_pages: int = 0
     diffs: list[DiffResult] = field(default_factory=list)
+    analyses: list[AnalysisResult] = field(default_factory=list)
     errors: list[str] = field(default_factory=list)
 
 
@@ -38,6 +40,11 @@ class DocMonitor:
         self.config = config
         self.templates_dir = templates_dir
         self.differ = DocumentDiffer()
+        self.analyzer = DiffAnalyzer(
+            api_key=config.analyzer.api_key,
+            model=config.analyzer.model,
+            base_url=config.analyzer.base_url,
+        )
 
     def load_stored_content(self, page_slug: str) -> str | None:
         """Load previously stored content for a page."""
@@ -91,12 +98,21 @@ class DocMonitor:
                 result.diffs.append(diff)
                 self.save_content(fetch_result.page_slug, fetch_result.content)
 
+        # Analyze diffs with LLM
+        if result.diffs and self.analyzer.enabled:
+            result.analyses = await self.analyzer.analyze_all(result.diffs)
+
         if generate_reports and result.diffs:
-            self._generate_reports(result.diffs, report_time)
+            self._generate_reports(result.diffs, result.analyses, report_time)
 
         return result
 
-    def _generate_reports(self, diffs: list[DiffResult], report_time: datetime) -> None:
+    def _generate_reports(
+        self,
+        diffs: list[DiffResult],
+        analyses: list[AnalysisResult],
+        report_time: datetime,
+    ) -> None:
         """Generate HTML reports for changed pages."""
         reporter = ReportGenerator(
             self.config.reports_dir,
@@ -104,10 +120,14 @@ class DocMonitor:
             self.config.github_pages_url,
         )
 
-        for diff in diffs:
-            reporter.generate_page_diff(diff, report_time)
+        # Create a mapping of page_slug -> analysis for easy lookup
+        analysis_map = {a.page_slug: a for a in analyses}
 
-        reporter.generate_daily_index(diffs, report_time)
+        for diff in diffs:
+            analysis = analysis_map.get(diff.page_slug)
+            reporter.generate_page_diff(diff, report_time, analysis)
+
+        reporter.generate_daily_index(diffs, report_time, analyses)
         reporter.update_main_index()
 
 
@@ -157,8 +177,14 @@ def cli(
 
         if result.diffs:
             console.print("\n[bold]Changed pages:[/bold]")
+            analysis_map = {a.page_slug: a for a in result.analyses}
             for diff in result.diffs:
                 console.print(f"  • {diff.page_slug}: {diff.summary}")
+                if diff.page_slug in analysis_map:
+                    analysis = analysis_map[diff.page_slug]
+                    # Show first line of analysis
+                    first_line = analysis.analysis.split("\n")[0][:100] if analysis.analysis else ""
+                    console.print(f"    [dim]{first_line}[/dim]")
 
         if result.errors:
             console.print("\n[bold red]Errors:[/bold red]")
@@ -179,7 +205,9 @@ def cli(
                 config.github_pages_url,
             ).get_report_url(now)
 
-            success = asyncio.run(notifier.send_notification(result.diffs, now.date(), report_url))
+            success = asyncio.run(
+                notifier.send_notification(result.diffs, now.date(), report_url, result.analyses)
+            )
             if success:
                 console.print("[green]Notification sent![/green]")
             else:

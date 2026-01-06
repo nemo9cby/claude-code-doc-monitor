@@ -1,12 +1,18 @@
 """HTML report generator using Jinja2 templates."""
 
+from __future__ import annotations
+
 import json
 from datetime import datetime
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from jinja2 import Environment, FileSystemLoader
 
 from src.differ import DiffResult
+
+if TYPE_CHECKING:
+    from src.analyzer import AnalysisResult
 
 
 class ReportGenerator:
@@ -34,7 +40,12 @@ class ReportGenerator:
             / f"{report_time.day:02d}"
         )
 
-    def generate_page_diff(self, diff: DiffResult, report_time: datetime) -> Path:
+    def generate_page_diff(
+        self,
+        diff: DiffResult,
+        report_time: datetime,
+        analysis: AnalysisResult | None = None,
+    ) -> Path:
         """Generate HTML page for a single diff."""
         date_dir = self._get_date_dir(report_time)
         date_dir.mkdir(parents=True, exist_ok=True)
@@ -49,6 +60,7 @@ class ReportGenerator:
             removed_lines=diff.removed_lines,
             date=report_time.strftime("%Y-%m-%d"),
             timestamp=report_time.strftime("%Y-%m-%d %H:%M:%S UTC"),
+            analysis=analysis,
         )
 
         output_path = date_dir / f"{diff.page_slug}.html"
@@ -59,6 +71,7 @@ class ReportGenerator:
         self,
         diffs: list[DiffResult],
         report_time: datetime,
+        analyses: list[AnalysisResult] | None = None,
     ) -> Path:
         """Generate daily index page listing all changed pages, accumulating multiple runs."""
         date_dir = self._get_date_dir(report_time)
@@ -72,6 +85,14 @@ class ReportGenerator:
         else:
             batches = []
 
+        # Create analysis map for lookup
+        analysis_map = {a.page_slug: a for a in (analyses or [])}
+
+        def serialize_analysis(analysis: AnalysisResult | None) -> dict | None:
+            if analysis is None:
+                return None
+            return {"analysis": analysis.analysis}
+
         # Create new batch for this run
         new_batch = {
             "timestamp": report_time.strftime("%H:%M UTC"),
@@ -81,6 +102,7 @@ class ReportGenerator:
                     "summary": d.summary,
                     "added": d.added_lines,
                     "removed": d.removed_lines,
+                    "analysis": serialize_analysis(analysis_map.get(d.page_slug)),
                 }
                 for d in diffs
                 if d.has_changes

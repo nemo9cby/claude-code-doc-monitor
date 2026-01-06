@@ -1,6 +1,6 @@
 """Tests for main orchestrator module."""
 
-from datetime import date
+from datetime import UTC, datetime
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -23,6 +23,9 @@ def mock_config(tmp_path: Path) -> MagicMock:
     config.fetcher.timeout = 10
     config.fetcher.retry_count = 1
     config.telegram.is_configured = False
+    config.analyzer.api_key = None  # Disable analyzer for tests
+    config.analyzer.model = "openai/gpt-4o-mini"
+    config.analyzer.base_url = "https://openrouter.ai/api/v1"
     config.github_pages_url = "https://user.github.io/repo"
     config.get_markdown_url = lambda slug: f"https://example.com/docs/en/{slug}.md"
     return config
@@ -198,13 +201,13 @@ class TestDocMonitor:
         result = await monitor.run(["overview"], generate_reports=True)
 
         assert result.changed_pages == 1
-        # Check reports were generated
-        today = date.today()
+        # Check reports were generated (use UTC date since code uses datetime.now(UTC))
+        utc_today = datetime.now(UTC).date()
         report_dir = (
             mock_config.reports_dir
-            / f"{today.year:04d}"
-            / f"{today.month:02d}"
-            / f"{today.day:02d}"
+            / f"{utc_today.year:04d}"
+            / f"{utc_today.month:02d}"
+            / f"{utc_today.day:02d}"
         )
         assert report_dir.exists()
         assert (report_dir / "overview.html").exists()

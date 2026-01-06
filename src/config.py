@@ -31,6 +31,20 @@ class TelegramConfig:
 
 
 @dataclass
+class AnalyzerConfig:
+    """Configuration for LLM diff analyzer."""
+
+    enabled: bool = True
+    model: str = "openai/gpt-4o-mini"
+    base_url: str = "https://openrouter.ai/api/v1"
+    api_key: str | None = None
+
+    @property
+    def is_configured(self) -> bool:
+        return self.enabled and self.api_key is not None
+
+
+@dataclass
 class Config:
     """Main configuration container."""
 
@@ -40,6 +54,7 @@ class Config:
     reports_dir: Path
     fetcher: FetcherConfig = field(default_factory=FetcherConfig)
     telegram: TelegramConfig = field(default_factory=TelegramConfig)
+    analyzer: AnalyzerConfig = field(default_factory=AnalyzerConfig)
     github_pages_url: str = ""
 
     def get_markdown_url(self, page_slug: str) -> str:
@@ -69,6 +84,7 @@ def load_config(config_path: Path) -> Config:
     storage = data.get("storage", {})
     fetcher_data = data.get("fetcher", {})
     telegram_data = data.get("telegram", {})
+    analyzer_data = data.get("analyzer", {})
     reports_data = data.get("reports", {})
 
     fetcher = FetcherConfig(
@@ -84,6 +100,13 @@ def load_config(config_path: Path) -> Config:
         chat_id=os.environ.get("TELEGRAM_CHAT_ID"),
     )
 
+    analyzer = AnalyzerConfig(
+        enabled=analyzer_data.get("enabled", True),
+        model=analyzer_data.get("model", "openai/gpt-4o-mini"),
+        base_url=analyzer_data.get("base_url", "https://openrouter.ai/api/v1"),
+        api_key=os.environ.get("OPENROUTER_API_KEY"),
+    )
+
     return Config(
         source_base_url=source.get("base_url", "https://code.claude.com/docs"),
         source_language=source.get("language", "en"),
@@ -91,5 +114,6 @@ def load_config(config_path: Path) -> Config:
         reports_dir=Path(storage.get("reports_dir", "reports")),
         fetcher=fetcher,
         telegram=telegram,
+        analyzer=analyzer,
         github_pages_url=reports_data.get("github_pages_url", ""),
     )
