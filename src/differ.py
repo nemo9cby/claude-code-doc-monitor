@@ -19,6 +19,8 @@ class DiffResult:
     added_lines: int
     removed_lines: int
     summary: str
+    source_id: str | None = None
+    source_name: str | None = None
 
 
 class DocumentDiffer:

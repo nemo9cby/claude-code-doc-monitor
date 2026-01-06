@@ -33,6 +33,12 @@ def e2e_config():
 
 
 @pytest.fixture
+def e2e_source(e2e_config):
+    """Get the test source from config."""
+    return e2e_config.sources[0]  # First source is our test source
+
+
+@pytest.fixture
 def e2e_pages():
     """Load E2E test pages list."""
     return load_pages(TEST_PAGES_PATH)
@@ -49,12 +55,13 @@ class TestFullPipeline:
         content_server: ContentServer,
         test_output_dir: Path,
         e2e_config,
+        e2e_source,
         e2e_pages,
     ):
         """Test: First run fetches pages and stores them as baseline."""
         content_server.set_version("v1")
 
-        monitor = DocMonitor(e2e_config, TEMPLATES_DIR)
+        monitor = DocMonitor(e2e_source, e2e_config, TEMPLATES_DIR)
         result = await monitor.run(e2e_pages, generate_reports=False)
 
         # All pages should be detected as changed (new pages)
@@ -73,12 +80,13 @@ class TestFullPipeline:
         test_http_server: str,
         content_server: ContentServer,
         e2e_config,
+        e2e_source,
         e2e_pages,
     ):
         """Test: Second run with same content detects no changes."""
         content_server.set_version("v1")  # Same version
 
-        monitor = DocMonitor(e2e_config, TEMPLATES_DIR)
+        monitor = DocMonitor(e2e_source, e2e_config, TEMPLATES_DIR)
         result = await monitor.run(e2e_pages, generate_reports=False)
 
         assert result.changed_pages == 0
@@ -91,12 +99,13 @@ class TestFullPipeline:
         content_server: ContentServer,
         test_output_dir: Path,
         e2e_config,
+        e2e_source,
         e2e_pages,
     ):
         """Test: Third run with v2 content detects changes and generates reports."""
         content_server.set_version("v2")  # Switch to updated content
 
-        monitor = DocMonitor(e2e_config, TEMPLATES_DIR)
+        monitor = DocMonitor(e2e_source, e2e_config, TEMPLATES_DIR)
         result = await monitor.run(e2e_pages, generate_reports=True)
 
         # Should detect changes
@@ -126,6 +135,7 @@ class TestFullPipeline:
         test_http_server: str,
         content_server: ContentServer,
         e2e_config,
+        e2e_source,
         e2e_pages,
     ):
         """Test: LLM analysis runs when API key is configured."""
@@ -135,7 +145,7 @@ class TestFullPipeline:
         # Switch back to v1 to create a change (v2 -> v1)
         content_server.set_version("v1")
 
-        monitor = DocMonitor(e2e_config, TEMPLATES_DIR)
+        monitor = DocMonitor(e2e_source, e2e_config, TEMPLATES_DIR)
         result = await monitor.run(e2e_pages, generate_reports=False)
 
         # Should have analyses (since v2 was saved in test_03, switching to v1 causes changes)
@@ -154,6 +164,7 @@ class TestFullPipeline:
         content_server: ContentServer,
         test_output_dir: Path,
         e2e_config,
+        e2e_source,
         e2e_pages,
     ):
         """Test: Sends real Telegram notification (requires credentials)."""
@@ -163,7 +174,7 @@ class TestFullPipeline:
         # Switch to v2 to create another change (v1 -> v2)
         content_server.set_version("v2")
 
-        monitor = DocMonitor(e2e_config, TEMPLATES_DIR)
+        monitor = DocMonitor(e2e_source, e2e_config, TEMPLATES_DIR)
         result = await monitor.run(e2e_pages, generate_reports=True)
 
         # Should have changes to notify about
@@ -182,8 +193,11 @@ class TestFullPipeline:
             e2e_config.github_pages_url,
         )
 
+        # Wrap in SourceRunResult list for new notifier API
+        source_results = [result]
+
         success = await notifier.send_notification(
-            result.diffs,
+            source_results,
             now.date(),
             reporter.get_report_url(now),
             result.analyses,

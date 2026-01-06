@@ -16,6 +16,8 @@ class AnalysisResult:
 
     page_slug: str
     analysis: str  # Markdown-formatted analysis text
+    source_id: str | None = None
+    source_name: str | None = None
 
 
 class DiffAnalyzer:

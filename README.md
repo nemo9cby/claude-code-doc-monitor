@@ -1,6 +1,13 @@
-# Claude Code Documentation Monitor
+# Documentation Monitor
 
-Monitor Claude Code documentation for updates with Telegram notifications and GitHub Pages diff reports.
+Monitor Anthropic documentation (Claude Code and API docs) for updates with Telegram notifications and GitHub Pages diff reports.
+
+## Supported Documentation Sources
+
+| Source | URL | Description |
+|--------|-----|-------------|
+| Claude Code | `code.claude.com/docs` | Claude Code CLI documentation |
+| Anthropic API | `platform.claude.com/docs` | Anthropic API/SDK documentation |
 
 ## Setup
 
@@ -22,11 +29,15 @@ OPENROUTER_API_KEY=your_api_key  # For LLM analysis
 ## Usage
 
 ```bash
-# Run the monitor
+# Monitor all sources
 python -m src.main
 
-# Or use the CLI
-doc-monitor
+# Monitor specific source only
+python -m src.main --source claude-code
+python -m src.main --source anthropic-api
+
+# Skip notifications (for testing)
+python -m src.main --no-notify
 ```
 
 ## Testing
@@ -43,8 +54,8 @@ The E2E tests use a **completely isolated environment** to avoid impacting produ
 
 | Resource | Production | E2E Test |
 |----------|------------|----------|
-| Source URL | `https://code.claude.com/docs` | `http://localhost:8765/test-docs` |
-| Docs Storage | `docs/en/` | `tests/e2e/.test_output/docs/test/` |
+| Source URL | Real docs sites | `http://localhost:8765/test-docs` |
+| Docs Storage | `docs/{source}/` | `tests/e2e/.test_output/docs/test/` |
 | Reports | `reports/` | `tests/e2e/.test_output/reports/` |
 
 #### Running E2E Tests
@@ -68,13 +79,6 @@ PRESERVE_E2E_OUTPUT=1 pytest tests/e2e/ -v -m "e2e"
 4. **test_04**: LLM analysis runs (requires `OPENROUTER_API_KEY`)
 5. **test_05**: Real Telegram notification sent (requires Telegram credentials)
 
-#### Inspecting E2E Results
-
-After running with `PRESERVE_E2E_OUTPUT=1`, view reports at:
-```
-tests/e2e/.test_output/reports/YYYY/MM/DD/index.html
-```
-
 ### All Tests
 
 ```bash
@@ -87,25 +91,52 @@ ruff check --fix . && ruff format . && pytest -xvs
 ```
 src/
 ├── main.py       # CLI and orchestration
+├── config.py     # Multi-source configuration
 ├── fetcher.py    # Async HTTP fetcher
 ├── differ.py     # Diff generation
 ├── analyzer.py   # LLM-powered diff analysis
 ├── reporter.py   # HTML report generation
-├── notifier.py   # Telegram notifications
-└── config.py     # Configuration loading
+└── notifier.py   # Telegram notifications
 
 config/
-├── config.yaml      # Production config
-├── pages.yaml       # Pages to monitor
-├── test_config.yaml # E2E test config
-└── test_pages.yaml  # E2E test pages
+├── config.yaml              # Main config with sources
+└── pages/
+    ├── claude-code.yaml     # Claude Code pages
+    └── anthropic-api.yaml   # Anthropic API pages
+
+docs/
+├── claude-code/             # Stored Claude Code docs
+└── anthropic-api/           # Stored Anthropic API docs
 ```
+
+## Adding a New Documentation Source
+
+1. Add source to `config/config.yaml`:
+```yaml
+sources:
+  my-new-source:
+    name: "My New Source"
+    base_url: "https://example.com/docs"
+    language: "en"
+    docs_dir: "docs/my-new-source"
+    pages_file: "config/pages/my-new-source.yaml"
+```
+
+2. Create pages file at `config/pages/my-new-source.yaml`:
+```yaml
+pages:
+  - intro
+  - getting-started
+  - api-reference
+```
+
+3. The monitor will fetch `{base_url}/{language}/{page}.md` for each page.
 
 ## GitHub Actions
 
 The monitor runs hourly via `.github/workflows/monitor.yml` and:
-1. Fetches all configured documentation pages
+1. Fetches all configured documentation pages from all sources
 2. Compares with previously stored versions
 3. Generates HTML diff reports (published to GitHub Pages)
-4. Sends Telegram notification if changes detected
+4. Sends Telegram notification if changes detected (grouped by source)
 5. Commits updated docs and reports

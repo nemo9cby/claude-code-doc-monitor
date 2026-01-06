@@ -1,4 +1,4 @@
-"""Configuration loader for Claude Code doc monitor."""
+"""Configuration loader for documentation monitor."""
 
 import os
 from dataclasses import dataclass, field
@@ -45,20 +45,30 @@ class AnalyzerConfig:
 
 
 @dataclass
-class Config:
-    """Main configuration container."""
+class SourceConfig:
+    """Configuration for a documentation source."""
 
-    source_base_url: str
-    source_language: str
+    id: str
+    name: str
+    base_url: str
+    language: str
     docs_dir: Path
+    pages_file: Path
+
+    def get_markdown_url(self, page_slug: str) -> str:
+        return f"{self.base_url}/{self.language}/{page_slug}.md"
+
+
+@dataclass
+class Config:
+    """Main configuration container with multiple sources."""
+
+    sources: list[SourceConfig]
     reports_dir: Path
     fetcher: FetcherConfig = field(default_factory=FetcherConfig)
     telegram: TelegramConfig = field(default_factory=TelegramConfig)
     analyzer: AnalyzerConfig = field(default_factory=AnalyzerConfig)
     github_pages_url: str = ""
-
-    def get_markdown_url(self, page_slug: str) -> str:
-        return f"{self.source_base_url}/{self.source_language}/{page_slug}.md"
 
 
 def load_pages(pages_path: Path) -> list[str]:
@@ -80,12 +90,11 @@ def load_config(config_path: Path) -> Config:
     with open(config_path) as f:
         data = yaml.safe_load(f)
 
-    source = data.get("source", {})
-    storage = data.get("storage", {})
     fetcher_data = data.get("fetcher", {})
     telegram_data = data.get("telegram", {})
     analyzer_data = data.get("analyzer", {})
     reports_data = data.get("reports", {})
+    sources_data = data.get("sources", {})
 
     fetcher = FetcherConfig(
         concurrency=fetcher_data.get("concurrency", 5),
@@ -107,11 +116,23 @@ def load_config(config_path: Path) -> Config:
         api_key=os.environ.get("OPENROUTER_API_KEY"),
     )
 
+    # Load sources
+    sources = []
+    for source_id, source_data in sources_data.items():
+        sources.append(
+            SourceConfig(
+                id=source_id,
+                name=source_data.get("name", source_id),
+                base_url=source_data.get("base_url", ""),
+                language=source_data.get("language", "en"),
+                docs_dir=Path(source_data.get("docs_dir", f"docs/{source_id}")),
+                pages_file=Path(source_data.get("pages_file", f"config/pages/{source_id}.yaml")),
+            )
+        )
+
     return Config(
-        source_base_url=source.get("base_url", "https://code.claude.com/docs"),
-        source_language=source.get("language", "en"),
-        docs_dir=Path(storage.get("docs_dir", "docs/en")),
-        reports_dir=Path(storage.get("reports_dir", "reports")),
+        sources=sources,
+        reports_dir=Path(reports_data.get("base_dir", "reports")),
         fetcher=fetcher,
         telegram=telegram,
         analyzer=analyzer,

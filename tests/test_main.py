@@ -6,29 +6,35 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+from src.config import AnalyzerConfig, Config, FetcherConfig, SourceConfig, TelegramConfig
 from src.fetcher import FetchResult
 from src.main import DocMonitor
 
 
 @pytest.fixture
-def mock_config(tmp_path: Path) -> MagicMock:
+def mock_source(tmp_path: Path) -> SourceConfig:
+    """Create a mock source config."""
+    return SourceConfig(
+        id="test-source",
+        name="Test Source",
+        base_url="https://example.com/docs",
+        language="en",
+        docs_dir=tmp_path / "docs" / "test",
+        pages_file=Path("config/pages/test.yaml"),
+    )
+
+
+@pytest.fixture
+def mock_config(tmp_path: Path) -> Config:
     """Create a mock config."""
-    config = MagicMock()
-    config.source_base_url = "https://example.com/docs"
-    config.source_language = "en"
-    config.docs_dir = tmp_path / "docs" / "en"
-    config.reports_dir = tmp_path / "reports"
-    config.fetcher.concurrency = 2
-    config.fetcher.delay = 0.0
-    config.fetcher.timeout = 10
-    config.fetcher.retry_count = 1
-    config.telegram.is_configured = False
-    config.analyzer.api_key = None  # Disable analyzer for tests
-    config.analyzer.model = "openai/gpt-4o-mini"
-    config.analyzer.base_url = "https://openrouter.ai/api/v1"
-    config.github_pages_url = "https://user.github.io/repo"
-    config.get_markdown_url = lambda slug: f"https://example.com/docs/en/{slug}.md"
-    return config
+    return Config(
+        sources=[],  # Will be set per test if needed
+        reports_dir=tmp_path / "reports",
+        fetcher=FetcherConfig(concurrency=2, delay=0.0, timeout=10, retry_count=1),
+        telegram=TelegramConfig(enabled=False),
+        analyzer=AnalyzerConfig(enabled=False, api_key=None),
+        github_pages_url="https://user.github.io/repo",
+    )
 
 
 @pytest.fixture
@@ -47,16 +53,20 @@ def templates_dir(tmp_path: Path) -> Path:
 
 
 class TestDocMonitor:
-    def test_init(self, mock_config: MagicMock, templates_dir: Path) -> None:
-        monitor = DocMonitor(mock_config, templates_dir)
+    def test_init(
+        self, mock_source: SourceConfig, mock_config: Config, templates_dir: Path
+    ) -> None:
+        monitor = DocMonitor(mock_source, mock_config, templates_dir)
+        assert monitor.source == mock_source
         assert monitor.config == mock_config
 
     async def test_load_stored_content_no_file(
         self,
-        mock_config: MagicMock,
+        mock_source: SourceConfig,
+        mock_config: Config,
         templates_dir: Path,
     ) -> None:
-        monitor = DocMonitor(mock_config, templates_dir)
+        monitor = DocMonitor(mock_source, mock_config, templates_dir)
 
         content = monitor.load_stored_content("nonexistent")
 
@@ -64,39 +74,55 @@ class TestDocMonitor:
 
     async def test_load_stored_content_exists(
         self,
-        mock_config: MagicMock,
+        mock_source: SourceConfig,
+        mock_config: Config,
         templates_dir: Path,
     ) -> None:
-        mock_config.docs_dir.mkdir(parents=True)
-        (mock_config.docs_dir / "overview.md").write_text("# Overview")
+        mock_source.docs_dir.mkdir(parents=True)
+        (mock_source.docs_dir / "overview.md").write_text("# Overview")
 
-        monitor = DocMonitor(mock_config, templates_dir)
+        monitor = DocMonitor(mock_source, mock_config, templates_dir)
         content = monitor.load_stored_content("overview")
 
         assert content == "# Overview"
 
     async def test_save_content(
         self,
-        mock_config: MagicMock,
+        mock_source: SourceConfig,
+        mock_config: Config,
         templates_dir: Path,
     ) -> None:
-        monitor = DocMonitor(mock_config, templates_dir)
+        monitor = DocMonitor(mock_source, mock_config, templates_dir)
 
         monitor.save_content("overview", "# New Content")
 
-        saved = (mock_config.docs_dir / "overview.md").read_text()
+        saved = (mock_source.docs_dir / "overview.md").read_text()
         assert saved == "# New Content"
+
+    async def test_save_content_nested_path(
+        self,
+        mock_source: SourceConfig,
+        mock_config: Config,
+        templates_dir: Path,
+    ) -> None:
+        monitor = DocMonitor(mock_source, mock_config, templates_dir)
+
+        monitor.save_content("api/messages", "# API Messages")
+
+        saved = (mock_source.docs_dir / "api" / "messages.md").read_text()
+        assert saved == "# API Messages"
 
     @patch("src.main.DocumentFetcher")
     async def test_run_no_changes(
         self,
         mock_fetcher_class: MagicMock,
-        mock_config: MagicMock,
+        mock_source: SourceConfig,
+        mock_config: Config,
         templates_dir: Path,
     ) -> None:
         # Set up existing content
-        mock_config.docs_dir.mkdir(parents=True)
-        (mock_config.docs_dir / "overview.md").write_text("# Overview")
+        mock_source.docs_dir.mkdir(parents=True)
+        (mock_source.docs_dir / "overview.md").write_text("# Overview")
 
         # Mock fetcher to return same content
         mock_fetcher = AsyncMock()
@@ -105,7 +131,7 @@ class TestDocMonitor:
         mock_fetcher.__aexit__ = AsyncMock(return_value=None)
         mock_fetcher_class.return_value = mock_fetcher
 
-        monitor = DocMonitor(mock_config, templates_dir)
+        monitor = DocMonitor(mock_source, mock_config, templates_dir)
         result = await monitor.run(["overview"])
 
         assert result.total_pages == 1
@@ -116,12 +142,13 @@ class TestDocMonitor:
     async def test_run_with_changes(
         self,
         mock_fetcher_class: MagicMock,
-        mock_config: MagicMock,
+        mock_source: SourceConfig,
+        mock_config: Config,
         templates_dir: Path,
     ) -> None:
         # Set up existing content
-        mock_config.docs_dir.mkdir(parents=True)
-        (mock_config.docs_dir / "overview.md").write_text("# Old Overview")
+        mock_source.docs_dir.mkdir(parents=True)
+        (mock_source.docs_dir / "overview.md").write_text("# Old Overview")
 
         # Mock fetcher to return new content
         mock_fetcher = AsyncMock()
@@ -130,7 +157,7 @@ class TestDocMonitor:
         mock_fetcher.__aexit__ = AsyncMock(return_value=None)
         mock_fetcher_class.return_value = mock_fetcher
 
-        monitor = DocMonitor(mock_config, templates_dir)
+        monitor = DocMonitor(mock_source, mock_config, templates_dir)
         result = await monitor.run(["overview"])
 
         assert result.total_pages == 1
@@ -142,7 +169,8 @@ class TestDocMonitor:
     async def test_run_with_fetch_error(
         self,
         mock_fetcher_class: MagicMock,
-        mock_config: MagicMock,
+        mock_source: SourceConfig,
+        mock_config: Config,
         templates_dir: Path,
     ) -> None:
         mock_fetcher = AsyncMock()
@@ -151,7 +179,7 @@ class TestDocMonitor:
         mock_fetcher.__aexit__ = AsyncMock(return_value=None)
         mock_fetcher_class.return_value = mock_fetcher
 
-        monitor = DocMonitor(mock_config, templates_dir)
+        monitor = DocMonitor(mock_source, mock_config, templates_dir)
         result = await monitor.run(["overview"])
 
         assert result.failed_pages == 1
@@ -161,11 +189,12 @@ class TestDocMonitor:
     async def test_run_new_page(
         self,
         mock_fetcher_class: MagicMock,
-        mock_config: MagicMock,
+        mock_source: SourceConfig,
+        mock_config: Config,
         templates_dir: Path,
     ) -> None:
         # No existing content
-        mock_config.docs_dir.mkdir(parents=True)
+        mock_source.docs_dir.mkdir(parents=True)
 
         mock_fetcher = AsyncMock()
         mock_fetcher.fetch_all.return_value = [FetchResult("new-page", "# New Page", 200)]
@@ -173,23 +202,24 @@ class TestDocMonitor:
         mock_fetcher.__aexit__ = AsyncMock(return_value=None)
         mock_fetcher_class.return_value = mock_fetcher
 
-        monitor = DocMonitor(mock_config, templates_dir)
+        monitor = DocMonitor(mock_source, mock_config, templates_dir)
         result = await monitor.run(["new-page"])
 
         assert result.changed_pages == 1
         # New page should be saved
-        assert (mock_config.docs_dir / "new-page.md").exists()
+        assert (mock_source.docs_dir / "new-page.md").exists()
 
     @patch("src.main.DocumentFetcher")
     async def test_run_generates_reports_on_changes(
         self,
         mock_fetcher_class: MagicMock,
-        mock_config: MagicMock,
+        mock_source: SourceConfig,
+        mock_config: Config,
         templates_dir: Path,
     ) -> None:
-        mock_config.docs_dir.mkdir(parents=True)
+        mock_source.docs_dir.mkdir(parents=True)
         mock_config.reports_dir.mkdir(parents=True)
-        (mock_config.docs_dir / "overview.md").write_text("# Old")
+        (mock_source.docs_dir / "overview.md").write_text("# Old")
 
         mock_fetcher = AsyncMock()
         mock_fetcher.fetch_all.return_value = [FetchResult("overview", "# New", 200)]
@@ -197,7 +227,7 @@ class TestDocMonitor:
         mock_fetcher.__aexit__ = AsyncMock(return_value=None)
         mock_fetcher_class.return_value = mock_fetcher
 
-        monitor = DocMonitor(mock_config, templates_dir)
+        monitor = DocMonitor(mock_source, mock_config, templates_dir)
         result = await monitor.run(["overview"], generate_reports=True)
 
         assert result.changed_pages == 1

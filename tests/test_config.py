@@ -4,7 +4,13 @@ from pathlib import Path
 
 import pytest
 
-from src.config import Config, FetcherConfig, TelegramConfig, load_config, load_pages
+from src.config import (
+    FetcherConfig,
+    SourceConfig,
+    TelegramConfig,
+    load_config,
+    load_pages,
+)
 
 
 @pytest.fixture
@@ -15,13 +21,13 @@ def config_dir(tmp_path: Path) -> Path:
 
     config_yaml = config_path / "config.yaml"
     config_yaml.write_text("""
-source:
-  base_url: "https://example.com/docs"
-  language: "en"
-
-storage:
-  docs_dir: "docs/en"
-  reports_dir: "reports"
+sources:
+  test-source:
+    name: "Test Source"
+    base_url: "https://example.com/docs"
+    language: "en"
+    docs_dir: "docs/test"
+    pages_file: "config/pages/test.yaml"
 
 telegram:
   enabled: true
@@ -33,6 +39,7 @@ fetcher:
   retry_count: 2
 
 reports:
+  base_dir: "reports"
   github_pages_url: "https://user.github.io/repo"
 """)
 
@@ -70,9 +77,13 @@ class TestLoadConfig:
 
         config = load_config(config_dir / "config.yaml")
 
-        assert config.source_base_url == "https://example.com/docs"
-        assert config.source_language == "en"
-        assert config.docs_dir == Path("docs/en")
+        assert len(config.sources) == 1
+        source = config.sources[0]
+        assert source.id == "test-source"
+        assert source.name == "Test Source"
+        assert source.base_url == "https://example.com/docs"
+        assert source.language == "en"
+        assert source.docs_dir == Path("docs/test")
         assert config.reports_dir == Path("reports")
         assert config.fetcher.concurrency == 3
         assert config.fetcher.delay == 0.2
@@ -133,16 +144,27 @@ class TestTelegramConfig:
         assert config.is_configured is False
 
 
-class TestConfig:
+class TestSourceConfig:
     def test_get_markdown_url(self) -> None:
-        config = Config(
-            source_base_url="https://code.claude.com/docs",
-            source_language="en",
-            docs_dir=Path("docs/en"),
-            reports_dir=Path("reports"),
-            fetcher=FetcherConfig(),
-            telegram=TelegramConfig(),
-            github_pages_url="",
+        source = SourceConfig(
+            id="test",
+            name="Test Source",
+            base_url="https://code.claude.com/docs",
+            language="en",
+            docs_dir=Path("docs/test"),
+            pages_file=Path("config/pages/test.yaml"),
         )
-        url = config.get_markdown_url("overview")
+        url = source.get_markdown_url("overview")
         assert url == "https://code.claude.com/docs/en/overview.md"
+
+    def test_get_markdown_url_nested_path(self) -> None:
+        source = SourceConfig(
+            id="api",
+            name="API Docs",
+            base_url="https://platform.claude.com/docs",
+            language="en",
+            docs_dir=Path("docs/api"),
+            pages_file=Path("config/pages/api.yaml"),
+        )
+        url = source.get_markdown_url("api/messages")
+        assert url == "https://platform.claude.com/docs/en/api/messages.md"

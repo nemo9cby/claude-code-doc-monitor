@@ -12,7 +12,7 @@ from rich.console import Console
 from rich.logging import RichHandler
 
 from src.analyzer import AnalysisResult, DiffAnalyzer
-from src.config import Config, load_config, load_pages
+from src.config import Config, SourceConfig, load_config, load_pages
 from src.differ import DiffResult, DocumentDiffer
 from src.fetcher import DocumentFetcher
 from src.notifier import TelegramNotifier
@@ -23,9 +23,11 @@ console = Console()
 
 
 @dataclass
-class RunResult:
-    """Result of a monitoring run."""
+class SourceRunResult:
+    """Result of monitoring a single source."""
 
+    source_id: str
+    source_name: str
     total_pages: int = 0
     changed_pages: int = 0
     failed_pages: int = 0
@@ -34,10 +36,53 @@ class RunResult:
     errors: list[str] = field(default_factory=list)
 
 
-class DocMonitor:
-    """Main orchestrator for documentation monitoring."""
+@dataclass
+class RunResult:
+    """Result of a complete monitoring run across all sources."""
 
-    def __init__(self, config: Config, templates_dir: Path) -> None:
+    source_results: list[SourceRunResult] = field(default_factory=list)
+
+    @property
+    def total_pages(self) -> int:
+        return sum(r.total_pages for r in self.source_results)
+
+    @property
+    def changed_pages(self) -> int:
+        return sum(r.changed_pages for r in self.source_results)
+
+    @property
+    def failed_pages(self) -> int:
+        return sum(r.failed_pages for r in self.source_results)
+
+    @property
+    def all_diffs(self) -> list[DiffResult]:
+        diffs = []
+        for r in self.source_results:
+            diffs.extend(r.diffs)
+        return diffs
+
+    @property
+    def all_analyses(self) -> list[AnalysisResult]:
+        analyses = []
+        for r in self.source_results:
+            analyses.extend(r.analyses)
+        return analyses
+
+    @property
+    def has_changes(self) -> bool:
+        return self.changed_pages > 0
+
+
+class DocMonitor:
+    """Monitor for a single documentation source."""
+
+    def __init__(
+        self,
+        source: SourceConfig,
+        config: Config,
+        templates_dir: Path,
+    ) -> None:
+        self.source = source
         self.config = config
         self.templates_dir = templates_dir
         self.differ = DocumentDiffer()
@@ -49,15 +94,17 @@ class DocMonitor:
 
     def load_stored_content(self, page_slug: str) -> str | None:
         """Load previously stored content for a page."""
-        path = self.config.docs_dir / f"{page_slug}.md"
+        path = self.source.docs_dir / f"{page_slug}.md"
         if path.exists():
             return path.read_text()
         return None
 
     def save_content(self, page_slug: str, content: str) -> None:
         """Save page content to storage."""
-        self.config.docs_dir.mkdir(parents=True, exist_ok=True)
-        path = self.config.docs_dir / f"{page_slug}.md"
+        self.source.docs_dir.mkdir(parents=True, exist_ok=True)
+        path = self.source.docs_dir / f"{page_slug}.md"
+        # Create parent directories for nested paths (e.g., api/messages)
+        path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(content)
 
     async def run(
@@ -65,14 +112,18 @@ class DocMonitor:
         pages: list[str],
         generate_reports: bool = False,
         report_time: datetime | None = None,
-    ) -> RunResult:
-        """Run the monitoring process."""
-        result = RunResult(total_pages=len(pages))
+    ) -> SourceRunResult:
+        """Run the monitoring process for this source."""
+        result = SourceRunResult(
+            source_id=self.source.id,
+            source_name=self.source.name,
+            total_pages=len(pages),
+        )
         report_time = report_time or datetime.now(UTC)
 
         async with DocumentFetcher(
-            base_url=self.config.source_base_url,
-            language=self.config.source_language,
+            base_url=self.source.base_url,
+            language=self.source.language,
             timeout=self.config.fetcher.timeout,
         ) as fetcher:
             fetch_results = await fetcher.fetch_all(
@@ -96,12 +147,19 @@ class DocMonitor:
 
             if diff.has_changes:
                 result.changed_pages += 1
+                # Tag diff with source info
+                diff.source_id = self.source.id
+                diff.source_name = self.source.name
                 result.diffs.append(diff)
                 self.save_content(fetch_result.page_slug, fetch_result.content)
 
         # Analyze diffs with LLM
         if result.diffs and self.analyzer.enabled:
             result.analyses = await self.analyzer.analyze_all(result.diffs)
+            # Tag analyses with source info
+            for analysis in result.analyses:
+                analysis.source_id = self.source.id
+                analysis.source_name = self.source.name
 
         if generate_reports and result.diffs:
             self._generate_reports(result.diffs, result.analyses, report_time)
@@ -144,58 +202,80 @@ def setup_logging(verbose: bool = False) -> None:
 
 @click.command()
 @click.option("--config", "config_path", default="config/config.yaml", help="Config file path")
-@click.option("--pages", "pages_path", default="config/pages.yaml", help="Pages file path")
 @click.option("--templates", "templates_path", default="templates", help="Templates directory")
 @click.option("--verbose", "-v", is_flag=True, help="Enable verbose output")
 @click.option("--no-notify", is_flag=True, help="Skip Telegram notification")
 @click.option("--no-reports", is_flag=True, help="Skip report generation")
+@click.option("--source", "source_filter", default=None, help="Only monitor specific source ID")
 def cli(
     config_path: str,
-    pages_path: str,
     templates_path: str,
     verbose: bool,
     no_notify: bool,
     no_reports: bool,
+    source_filter: str | None,
 ) -> None:
-    """Monitor Claude Code documentation for updates."""
+    """Monitor documentation sources for updates."""
     # Load .env file for local development
     load_dotenv()
     setup_logging(verbose)
 
     try:
         config = load_config(Path(config_path))
-        pages = load_pages(Path(pages_path))
         templates_dir = Path(templates_path)
 
-        console.print("[bold]Claude Code Doc Monitor[/bold]")
-        console.print(f"Monitoring {len(pages)} pages...")
+        # Filter sources if requested
+        sources = config.sources
+        if source_filter:
+            sources = [s for s in sources if s.id == source_filter]
+            if not sources:
+                console.print(f"[red]Error: Source '{source_filter}' not found[/red]")
+                raise SystemExit(1)
 
-        monitor = DocMonitor(config, templates_dir)
-        result = asyncio.run(monitor.run(pages, generate_reports=not no_reports))
+        console.print("[bold]Documentation Monitor[/bold]")
+        console.print(f"Monitoring {len(sources)} source(s)...")
 
-        console.print("\n[bold]Results:[/bold]")
+        result = RunResult()
+
+        for source in sources:
+            console.print(f"\n[bold cyan]Source: {source.name}[/bold cyan]")
+
+            # Load pages for this source
+            pages = load_pages(source.pages_file)
+            console.print(f"  Checking {len(pages)} pages...")
+
+            monitor = DocMonitor(source, config, templates_dir)
+            source_result = asyncio.run(monitor.run(pages, generate_reports=not no_reports))
+            result.source_results.append(source_result)
+
+            console.print(f"  Changed: {source_result.changed_pages}")
+            console.print(f"  Failed: {source_result.failed_pages}")
+
+            if source_result.diffs:
+                analysis_map = {a.page_slug: a for a in source_result.analyses}
+                for diff in source_result.diffs:
+                    console.print(f"    • {diff.page_slug}: {diff.summary}")
+                    if diff.page_slug in analysis_map:
+                        analysis = analysis_map[diff.page_slug]
+                        first_line = (
+                            analysis.analysis.split("\n")[0][:80] if analysis.analysis else ""
+                        )
+                        console.print(f"      [dim]{first_line}[/dim]")
+
+            if source_result.errors:
+                for error in source_result.errors[:5]:  # Show first 5 errors
+                    console.print(f"    [red]✗ {error}[/red]")
+                if len(source_result.errors) > 5:
+                    console.print(f"    [red]... and {len(source_result.errors) - 5} more[/red]")
+
+        # Summary
+        console.print("\n[bold]Summary:[/bold]")
         console.print(f"  Total pages: {result.total_pages}")
         console.print(f"  Changed: {result.changed_pages}")
         console.print(f"  Failed: {result.failed_pages}")
 
-        if result.diffs:
-            console.print("\n[bold]Changed pages:[/bold]")
-            analysis_map = {a.page_slug: a for a in result.analyses}
-            for diff in result.diffs:
-                console.print(f"  • {diff.page_slug}: {diff.summary}")
-                if diff.page_slug in analysis_map:
-                    analysis = analysis_map[diff.page_slug]
-                    # Show first line of analysis
-                    first_line = analysis.analysis.split("\n")[0][:100] if analysis.analysis else ""
-                    console.print(f"    [dim]{first_line}[/dim]")
-
-        if result.errors:
-            console.print("\n[bold red]Errors:[/bold red]")
-            for error in result.errors:
-                console.print(f"  • {error}")
-
         # Send notification
-        if config.telegram.is_configured and not no_notify and result.diffs:
+        if config.telegram.is_configured and not no_notify and result.has_changes:
             console.print("\nSending Telegram notification...")
             now = datetime.now(UTC)
             notifier = TelegramNotifier(
@@ -209,7 +289,9 @@ def cli(
             ).get_report_url(now)
 
             success = asyncio.run(
-                notifier.send_notification(result.diffs, now.date(), report_url, result.analyses)
+                notifier.send_notification(
+                    result.source_results, now.date(), report_url, result.all_analyses
+                )
             )
             if success:
                 console.print("[green]Notification sent![/green]")
