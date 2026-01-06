@@ -123,6 +123,7 @@ Focus on implications for developers. Be concise and insightful."""
                     ],
                     "temperature": 0.3,
                     "max_tokens": 500,
+                    "only": ["z-ai"],  # Use z-ai provider
                 },
                 timeout=30.0,
             )
