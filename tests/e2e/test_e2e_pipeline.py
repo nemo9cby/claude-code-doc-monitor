@@ -1,0 +1,192 @@
+"""E2E tests for the complete documentation monitoring pipeline."""
+
+from __future__ import annotations
+
+from datetime import UTC, datetime
+from pathlib import Path
+from typing import TYPE_CHECKING
+
+import pytest
+from dotenv import load_dotenv
+
+from src.config import load_config, load_pages
+from src.main import DocMonitor
+from src.notifier import TelegramNotifier
+from src.reporter import ReportGenerator
+
+if TYPE_CHECKING:
+    from tests.e2e.conftest import ContentServer
+
+# Load .env for real credentials (must be after imports but before tests run)
+load_dotenv()
+
+# Config paths
+TEST_CONFIG_PATH = Path("config/test_config.yaml")
+TEST_PAGES_PATH = Path("config/test_pages.yaml")
+TEMPLATES_DIR = Path("templates")
+
+
+@pytest.fixture
+def e2e_config():
+    """Load E2E test configuration."""
+    return load_config(TEST_CONFIG_PATH)
+
+
+@pytest.fixture
+def e2e_pages():
+    """Load E2E test pages list."""
+    return load_pages(TEST_PAGES_PATH)
+
+
+@pytest.mark.e2e
+class TestFullPipeline:
+    """E2E tests for the complete documentation monitoring pipeline."""
+
+    @pytest.mark.asyncio
+    async def test_01_initial_fetch_stores_baseline(
+        self,
+        test_http_server: str,
+        content_server: ContentServer,
+        test_output_dir: Path,
+        e2e_config,
+        e2e_pages,
+    ):
+        """Test: First run fetches pages and stores them as baseline."""
+        content_server.set_version("v1")
+
+        monitor = DocMonitor(e2e_config, TEMPLATES_DIR)
+        result = await monitor.run(e2e_pages, generate_reports=False)
+
+        # All pages should be detected as changed (new pages)
+        assert result.total_pages == len(e2e_pages)
+        assert result.changed_pages == len(e2e_pages)
+        assert result.failed_pages == 0
+
+        # Verify docs were stored in isolated directory
+        for slug in e2e_pages:
+            stored_file = test_output_dir / "docs" / "test" / f"{slug}.md"
+            assert stored_file.exists(), f"Doc not stored: {slug}"
+
+    @pytest.mark.asyncio
+    async def test_02_second_run_no_changes(
+        self,
+        test_http_server: str,
+        content_server: ContentServer,
+        e2e_config,
+        e2e_pages,
+    ):
+        """Test: Second run with same content detects no changes."""
+        content_server.set_version("v1")  # Same version
+
+        monitor = DocMonitor(e2e_config, TEMPLATES_DIR)
+        result = await monitor.run(e2e_pages, generate_reports=False)
+
+        assert result.changed_pages == 0
+        assert len(result.diffs) == 0
+
+    @pytest.mark.asyncio
+    async def test_03_detects_changes_and_generates_reports(
+        self,
+        test_http_server: str,
+        content_server: ContentServer,
+        test_output_dir: Path,
+        e2e_config,
+        e2e_pages,
+    ):
+        """Test: Third run with v2 content detects changes and generates reports."""
+        content_server.set_version("v2")  # Switch to updated content
+
+        monitor = DocMonitor(e2e_config, TEMPLATES_DIR)
+        result = await monitor.run(e2e_pages, generate_reports=True)
+
+        # Should detect changes
+        assert result.changed_pages > 0
+        assert len(result.diffs) > 0
+
+        # Verify diffs have content
+        for diff in result.diffs:
+            assert diff.has_changes
+            assert diff.added_lines > 0 or diff.removed_lines > 0
+
+        # Verify reports generated in isolated directory
+        reports_dir = test_output_dir / "reports"
+        assert reports_dir.exists()
+
+        # Should have date-based subdirectories
+        today = datetime.now(UTC).date()
+        date_dir = reports_dir / f"{today.year:04d}" / f"{today.month:02d}" / f"{today.day:02d}"
+        assert date_dir.exists(), f"Date directory not created: {date_dir}"
+
+        # Should have index.html
+        assert (date_dir / "index.html").exists()
+
+    @pytest.mark.asyncio
+    async def test_04_llm_analysis_runs(
+        self,
+        test_http_server: str,
+        content_server: ContentServer,
+        e2e_config,
+        e2e_pages,
+    ):
+        """Test: LLM analysis runs when API key is configured."""
+        if not e2e_config.analyzer.api_key:
+            pytest.skip("OPENROUTER_API_KEY not configured")
+
+        # Switch back to v1 to create a change (v2 -> v1)
+        content_server.set_version("v1")
+
+        monitor = DocMonitor(e2e_config, TEMPLATES_DIR)
+        result = await monitor.run(e2e_pages, generate_reports=False)
+
+        # Should have analyses (since v2 was saved in test_03, switching to v1 causes changes)
+        assert len(result.analyses) > 0
+
+        for analysis in result.analyses:
+            assert analysis.analysis, f"Empty analysis for {analysis.page_slug}"
+            # Should contain meaningful content
+            assert len(analysis.analysis) > 50
+
+    @pytest.mark.asyncio
+    @pytest.mark.real_telegram
+    async def test_05_sends_real_telegram_notification(
+        self,
+        test_http_server: str,
+        content_server: ContentServer,
+        test_output_dir: Path,
+        e2e_config,
+        e2e_pages,
+    ):
+        """Test: Sends real Telegram notification (requires credentials)."""
+        if not e2e_config.telegram.is_configured:
+            pytest.skip("Telegram not configured (missing TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID)")
+
+        # Switch to v2 to create another change (v1 -> v2)
+        content_server.set_version("v2")
+
+        monitor = DocMonitor(e2e_config, TEMPLATES_DIR)
+        result = await monitor.run(e2e_pages, generate_reports=True)
+
+        # Should have changes to notify about
+        assert result.changed_pages > 0
+
+        # Send real notification
+        notifier = TelegramNotifier(
+            e2e_config.telegram.bot_token,
+            e2e_config.telegram.chat_id,
+        )
+
+        now = datetime.now(UTC)
+        reporter = ReportGenerator(
+            e2e_config.reports_dir,
+            TEMPLATES_DIR,
+            e2e_config.github_pages_url,
+        )
+
+        success = await notifier.send_notification(
+            result.diffs,
+            now.date(),
+            reporter.get_report_url(now),
+            result.analyses,
+        )
+
+        assert success is True, "Telegram notification failed"
