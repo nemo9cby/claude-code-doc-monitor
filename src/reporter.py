@@ -6,8 +6,12 @@ import json
 from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING
+from zoneinfo import ZoneInfo
 
 from jinja2 import Environment, FileSystemLoader
+
+# Use US Eastern Time for display
+EST = ZoneInfo("America/New_York")
 
 from src.differ import DiffResult
 
@@ -68,7 +72,7 @@ class ReportGenerator:
             added_lines=diff.added_lines,
             removed_lines=diff.removed_lines,
             date=report_time.strftime("%Y-%m-%d"),
-            timestamp=report_time.strftime("%Y-%m-%d %H:%M:%S UTC"),
+            timestamp=report_time.astimezone(EST).strftime("%Y-%m-%d %H:%M:%S EST"),
             analysis=analysis,
             back_to_index=back_to_index,
         )
@@ -133,7 +137,7 @@ class ReportGenerator:
         ]
 
         new_batch = {
-            "timestamp": report_time.strftime("%H:%M UTC"),
+            "timestamp": report_time.astimezone(EST).strftime("%H:%M EST"),
             "sources": sources,
             # Keep flat pages list for backward compatibility and totals
             "pages": [p for pages in pages_by_source.values() for p in pages],
@@ -157,7 +161,7 @@ class ReportGenerator:
         meta_path.write_text(
             json.dumps(
                 {
-                    "timestamp": report_time.strftime("%b %d, %Y %H:%M UTC"),
+                    "timestamp": report_time.astimezone(EST).strftime("%b %d, %Y %H:%M EST"),
                     "count": total_changes,
                     "batches": batches,
                 }
