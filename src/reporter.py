@@ -73,7 +73,7 @@ class ReportGenerator:
             unified_diff=diff.unified_diff,
             added_lines=diff.added_lines,
             removed_lines=diff.removed_lines,
-            date=report_time.strftime("%Y-%m-%d"),
+            date=report_time.astimezone(EST).strftime("%Y-%m-%d"),
             timestamp=report_time.astimezone(EST).strftime("%Y-%m-%d %H:%M:%S EST"),
             analysis=analysis,
             back_to_index=back_to_index,
@@ -154,7 +154,7 @@ class ReportGenerator:
 
         template = self._env.get_template("daily_index.html")
         html = template.render(
-            date=report_time.strftime("%Y-%m-%d"),
+            date=report_time.astimezone(EST).strftime("%Y-%m-%d"),
             batches=list(reversed(batches)),  # Most recent first
             total_changes=total_changes,
         )
