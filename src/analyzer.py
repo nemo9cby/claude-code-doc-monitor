@@ -130,9 +130,13 @@ Focus on implications for developers. Be concise and insightful."""
             response.raise_for_status()
             data = response.json()
             message = data["choices"][0]["message"]
+            logger.debug(f"API response message keys: {message.keys()}")
+            logger.debug(f"API response content: {repr(message.get('content', ''))[:100]}")
+            logger.debug(f"API response reasoning: {repr(message.get('reasoning', ''))[:100]}")
             # Handle thinking models: prefer content, fall back to reasoning
             content = message.get("content", "")
             if not content and "reasoning" in message:
+                logger.info("Using reasoning field as content was empty")
                 content = message["reasoning"]
             return content
 
