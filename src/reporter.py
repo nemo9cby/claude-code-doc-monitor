@@ -36,12 +36,14 @@ class ReportGenerator:
         )
 
     def _get_date_dir(self, report_time: datetime) -> Path:
-        """Get the directory path for a specific date."""
+        """Get the directory path for a specific date (in EST)."""
+        # Convert to EST for consistent date folder naming
+        est_time = report_time.astimezone(EST)
         return (
             self.reports_dir
-            / f"{report_time.year:04d}"
-            / f"{report_time.month:02d}"
-            / f"{report_time.day:02d}"
+            / f"{est_time.year:04d}"
+            / f"{est_time.month:02d}"
+            / f"{est_time.day:02d}"
         )
 
     def generate_page_diff(
