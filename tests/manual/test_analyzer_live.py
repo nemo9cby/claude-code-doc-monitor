@@ -4,7 +4,7 @@ This test exercises the actual OpenRouter API for manual verification.
 """
 
 import os
-import asyncio
+
 import pytest
 
 from src.analyzer import DiffAnalyzer
@@ -47,4 +47,3 @@ async def test_live_analyzer_roundtrip():
     assert result.page_slug == diff.page_slug
     assert isinstance(result.analysis, str)
     assert len(result.analysis) > 0
-

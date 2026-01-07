@@ -187,20 +187,6 @@ class TestDiffAnalyzer:
         assert sample_diff.unified_diff in prompt
         assert "markdown" in prompt.lower()
 
-    def test_parse_response(self, analyzer: DiffAnalyzer):
-        response_text = "**Summary**: Test change\n\n**Impact**: Low"
-
-        result = analyzer._parse_response(response_text, "test-page")
-
-        assert result.page_slug == "test-page"
-        assert result.analysis == response_text
-
-    def test_parse_response_empty(self, analyzer: DiffAnalyzer):
-        result = analyzer._parse_response("", "test-page")
-
-        assert result.page_slug == "test-page"
-        assert result.analysis == ""
-
     @pytest.mark.asyncio
     async def test_analyze_empty_response(self, analyzer: DiffAnalyzer, sample_diff: DiffResult):
         mock_response = {"choices": [{"message": {"content": ""}}]}

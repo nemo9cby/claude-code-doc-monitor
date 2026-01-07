@@ -5,6 +5,7 @@ import logging
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import click
 from dotenv import load_dotenv
@@ -17,6 +18,9 @@ from src.differ import DiffResult, DocumentDiffer
 from src.fetcher import DocumentFetcher
 from src.notifier import TelegramNotifier
 from src.reporter import ReportGenerator
+
+# Use US Eastern Time for display and notifications
+EST = ZoneInfo("America/New_York")
 
 logger = logging.getLogger(__name__)
 console = Console()
@@ -184,8 +188,8 @@ class DocMonitor:
             analysis = analysis_map.get(diff.page_slug)
             reporter.generate_page_diff(diff, report_time, analysis)
 
-        reporter.generate_daily_index(diffs, report_time, analyses)
-        reporter.update_main_index()
+        # Note: Daily index generation is deferred to the CLI to support batch analysis
+        # across all sources. Only generate page diffs here.
 
 
 def setup_logging(verbose: bool = False) -> None:
@@ -287,6 +291,7 @@ def cli(
 
             # Perform batch-level AI analysis across all diffs
             batch_analysis_text = None
+            batch_reasoning_text = None
             if config.analyzer.enabled and config.analyzer.api_key and config.analyzer.model:
                 analyzer = DiffAnalyzer(
                     api_key=config.analyzer.api_key,
@@ -297,13 +302,16 @@ def cli(
                     timeout_seconds=config.analyzer.timeout_seconds,
                 )
                 batch_result = asyncio.run(analyzer.analyze_batch(result.all_diffs))
-                batch_analysis_text = batch_result.analysis if batch_result else None
+                if batch_result:
+                    batch_analysis_text = batch_result.analysis
+                    batch_reasoning_text = batch_result.reasoning or None
 
             reporter.generate_daily_index(
                 result.all_diffs,
                 run_report_time,
                 analyses=None,
                 batch_analysis=batch_analysis_text,
+                batch_reasoning=batch_reasoning_text,
             )
             reporter.update_main_index()
 
@@ -323,7 +331,10 @@ def cli(
 
             success = asyncio.run(
                 notifier.send_notification(
-                    result.source_results, now.date(), report_url, result.all_analyses
+                    result.source_results,
+                    now.astimezone(EST).date(),
+                    report_url,
+                    result.all_analyses,
                 )
             )
             if success:

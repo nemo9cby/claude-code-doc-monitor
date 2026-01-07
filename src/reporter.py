@@ -10,13 +10,13 @@ from zoneinfo import ZoneInfo
 
 from jinja2 import Environment, FileSystemLoader
 
-# Use US Eastern Time for display
-EST = ZoneInfo("America/New_York")
-
 from src.differ import DiffResult
 
 if TYPE_CHECKING:
     from src.analyzer import AnalysisResult
+
+# Use US Eastern Time for display
+EST = ZoneInfo("America/New_York")
 
 
 class ReportGenerator:
@@ -91,6 +91,7 @@ class ReportGenerator:
         report_time: datetime,
         analyses: list[AnalysisResult] | None = None,
         batch_analysis: str | None = None,
+        batch_reasoning: str | None = None,
     ) -> Path:
         """Generate daily index page listing all changed pages, accumulating multiple runs."""
         date_dir = self._get_date_dir(report_time)
@@ -147,6 +148,9 @@ class ReportGenerator:
         }
         if batch_analysis:
             new_batch["analysis"] = batch_analysis
+        # Only include reasoning if it's a non-empty string
+        if batch_reasoning and batch_reasoning.strip():
+            new_batch["reasoning"] = batch_reasoning
         batches.append(new_batch)
 
         # Calculate totals
@@ -225,8 +229,9 @@ class ReportGenerator:
         return output_path
 
     def get_report_url(self, report_time: datetime) -> str:
-        """Get the URL for a specific date's report."""
-        date_path = f"{report_time.year:04d}/{report_time.month:02d}/{report_time.day:02d}/"
+        """Get the URL for a specific date's report (in EST)."""
+        est_time = report_time.astimezone(EST)
+        date_path = f"{est_time.year:04d}/{est_time.month:02d}/{est_time.day:02d}/"
         if self.base_url:
             return f"{self.base_url}/{date_path}"
         return date_path

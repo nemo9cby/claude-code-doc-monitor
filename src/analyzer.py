@@ -23,6 +23,7 @@ class AnalysisResult:
 
     page_slug: str
     analysis: str  # Markdown-formatted analysis text
+    reasoning: str = ""  # Model reasoning/thinking (if available)
     source_id: str | None = None
     source_name: str | None = None
 
@@ -72,15 +73,18 @@ class DiffAnalyzer:
 
         try:
             prompt = self._build_prompt(diff)
-            response = await self._call_api(prompt)
-            result = self._parse_response(response, diff.page_slug)
-            if not result.analysis:
+            content, reasoning = await self._call_api(prompt)
+            if not content:
                 logger.warning(f"Empty analysis for {diff.page_slug}")
                 return AnalysisResult(
                     page_slug=diff.page_slug,
                     analysis="Analysis returned empty response.",
                 )
-            return result
+            return AnalysisResult(
+                page_slug=diff.page_slug,
+                analysis=content.strip(),
+                reasoning=reasoning.strip() if reasoning else "",
+            )
         except Exception as e:
             logger.error(f"Error analyzing diff for {diff.page_slug}: {e}")
             return AnalysisResult(
@@ -115,14 +119,17 @@ class DiffAnalyzer:
 
         try:
             prompt = self._build_batch_prompt(changed)
-            response = await self._call_api(prompt)
-            result = self._parse_response(response, page_slug="__batch__")
-            if not result.analysis:
+            content, reasoning = await self._call_api(prompt)
+            if not content:
                 logger.warning("Empty batch analysis response")
                 return AnalysisResult(
                     page_slug="__batch__", analysis="Analysis returned empty response."
                 )
-            return result
+            return AnalysisResult(
+                page_slug="__batch__",
+                analysis=content.strip(),
+                reasoning=reasoning.strip() if reasoning else "",
+            )
         except Exception as e:
             logger.error(f"Error analyzing batch: {e}")
             return AnalysisResult(page_slug="__batch__", analysis=f"Analysis error: {str(e)[:100]}")
@@ -191,10 +198,14 @@ Focus on implications for developers. Be concise and insightful."""
                 logger.debug(f"API response content: {repr(message.get('content', ''))[:100]}")
                 logger.debug(f"API response reasoning: {repr(message.get('reasoning', ''))[:100]}")
                 content = message.get("content", "")
-                if not content and "reasoning" in message:
+                reasoning = message.get("reasoning", "")
+                # If content is empty but reasoning exists, use reasoning as content
+                if not content and reasoning:
                     logger.info("Using reasoning field as content was empty")
-                    content = message["reasoning"]
-                return content
+                    content = reasoning
+                    reasoning = ""  # Don't duplicate
+                # Return as tuple: (content, reasoning)
+                return (content, reasoning)
             except requests.RequestException as e:
                 last_exc = e
                 logger.warning(
@@ -246,8 +257,3 @@ Focus on implications for developers. Be concise and insightful."""
         }
 
         return await asyncio.to_thread(self._call_api_sync, payload, headers)
-
-    def _parse_response(self, response_text: str, page_slug: str) -> AnalysisResult:
-        """Parse LLM response into AnalysisResult."""
-        text = response_text.strip() if response_text else ""
-        return AnalysisResult(page_slug=page_slug, analysis=text)
