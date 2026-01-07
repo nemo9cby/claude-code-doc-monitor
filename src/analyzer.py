@@ -1,15 +1,16 @@
 """LLM-based analyzers using OpenRouter.
 
 Provides per-diff and per-batch analysis helpers.
+Uses requests library for more robust HTTP handling per OpenRouter recommendations.
 """
 
-import logging
-from dataclasses import dataclass
-from typing import Iterable
-
-import httpx
 import asyncio
-import httpcore
+import logging
+import time
+from collections.abc import Iterable
+from dataclasses import dataclass
+
+import requests
 
 from src.differ import DiffResult
 
@@ -118,7 +119,9 @@ class DiffAnalyzer:
             result = self._parse_response(response, page_slug="__batch__")
             if not result.analysis:
                 logger.warning("Empty batch analysis response")
-                return AnalysisResult(page_slug="__batch__", analysis="Analysis returned empty response.")
+                return AnalysisResult(
+                    page_slug="__batch__", analysis="Analysis returned empty response."
+                )
             return result
         except Exception as e:
             logger.error(f"Error analyzing batch: {e}")
@@ -164,21 +167,57 @@ Focus on implications for developers. Be concise and insightful."""
         )
         return "\n".join(lines)
 
-    async def _call_api(self, prompt: str) -> str:
-        """Call the OpenRouter API with retries and GLM-4.7 quirks handling."""
-        if not self.model or not self.base_url:
-            raise RuntimeError("Analyzer not configured with model/base_url")
+    def _call_api_sync(self, payload: dict, headers: dict) -> str:
+        """Synchronous API call with retries using requests library.
 
-        # Some providers (notably glm-4.7) can occasionally close connections under load.
-        # Add light retries and force connection close to avoid reusing broken keep-alives.
+        Uses requests instead of httpx for more robust HTTP handling,
+        especially with OpenRouter's chunked transfer encoding.
+        """
         max_attempts = 3
         last_exc: Exception | None = None
+
+        for attempt in range(1, max_attempts + 1):
+            try:
+                response = requests.post(
+                    f"{self.base_url}/chat/completions",
+                    headers=headers,
+                    json=payload,
+                    timeout=self.timeout_seconds,
+                )
+                response.raise_for_status()
+                data = response.json()
+                message = data["choices"][0]["message"]
+                logger.debug(f"API response message keys: {message.keys()}")
+                logger.debug(f"API response content: {repr(message.get('content', ''))[:100]}")
+                logger.debug(f"API response reasoning: {repr(message.get('reasoning', ''))[:100]}")
+                content = message.get("content", "")
+                if not content and "reasoning" in message:
+                    logger.info("Using reasoning field as content was empty")
+                    content = message["reasoning"]
+                return content
+            except requests.RequestException as e:
+                last_exc = e
+                logger.warning(
+                    f"Request error on attempt {attempt}/{max_attempts}: {e}. Retrying..."
+                )
+                if attempt < max_attempts:
+                    time.sleep(0.5 * attempt)
+
+        assert last_exc is not None
+        raise last_exc
+
+    async def _call_api(self, prompt: str) -> str:
+        """Call the OpenRouter API asynchronously.
+
+        Wraps the sync requests call in asyncio.to_thread() for async compatibility.
+        """
+        if not self.model or not self.base_url:
+            raise RuntimeError("Analyzer not configured with model/base_url")
 
         # Adjust defaults for GLM-4.7 specifically
         model_lower = self.model.lower()
         is_glm47 = "glm-4.7" in model_lower or "glm4.7" in model_lower
         max_tokens = min(self.max_tokens, 1200) if is_glm47 else self.max_tokens
-        timeout = httpx.Timeout(self.timeout_seconds, connect=20.0, read=self.timeout_seconds)
 
         payload = {
             "model": self.model,
@@ -202,53 +241,11 @@ Focus on implications for developers. Be concise and insightful."""
             "Content-Type": "application/json",
             # Helps attribution per OpenRouter recommendation
             "HTTP-Referer": "https://github.com/claude-code-doc-monitor",
-            # Avoid keep-alive reuse across attempts
-            "Connection": "close",
             # Optional title for dashboards
             "X-Title": "Doc Monitor AI Analysis",
         }
 
-        for attempt in range(1, max_attempts + 1):
-            try:
-                async with httpx.AsyncClient(timeout=timeout) as client:
-                    response = await client.post(
-                        f"{self.base_url}/chat/completions",
-                        headers=headers,
-                        json=payload,
-                    )
-                    response.raise_for_status()
-                    data = response.json()
-                    message = data["choices"][0]["message"]
-                    logger.debug(f"API response message keys: {message.keys()}")
-                    logger.debug(
-                        f"API response content: {repr(message.get('content', ''))[:100]}"
-                    )
-                    logger.debug(
-                        f"API response reasoning: {repr(message.get('reasoning', ''))[:100]}"
-                    )
-                    content = message.get("content", "")
-                    if not content and "reasoning" in message:
-                        logger.info("Using reasoning field as content was empty")
-                        content = message["reasoning"]
-                    return content
-            except (httpx.HTTPError, httpcore.RemoteProtocolError) as e:  # type: ignore[name-defined]
-                last_exc = e
-                # Special-case transient connection closure often observed with glm-4.7
-                if isinstance(e, httpcore.RemoteProtocolError):
-                    logger.warning(
-                        f"Remote protocol error on attempt {attempt}/{max_attempts}: {e}. "
-                        "Retrying with backoff..."
-                    )
-                else:
-                    logger.warning(
-                        f"HTTP error on attempt {attempt}/{max_attempts}: {e}. Retrying..."
-                    )
-                # Backoff before retrying
-                await asyncio.sleep(0.5 * attempt)
-
-        # If we got here, raise the last exception
-        assert last_exc is not None
-        raise last_exc
+        return await asyncio.to_thread(self._call_api_sync, payload, headers)
 
     def _parse_response(self, response_text: str, page_slug: str) -> AnalysisResult:
         """Parse LLM response into AnalysisResult."""

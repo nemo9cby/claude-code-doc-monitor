@@ -1,6 +1,6 @@
 """Tests for the LLM analyzer module."""
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -94,7 +94,7 @@ class TestDiffAnalyzer:
             ]
         }
 
-        with patch("httpx.AsyncClient.post", new_callable=AsyncMock) as mock_post:
+        with patch("requests.post") as mock_post:
             mock_post.return_value = MagicMock(
                 status_code=200,
                 json=lambda: mock_response,
@@ -109,8 +109,10 @@ class TestDiffAnalyzer:
 
     @pytest.mark.asyncio
     async def test_analyze_diff_api_error(self, analyzer: DiffAnalyzer, sample_diff: DiffResult):
-        with patch("httpx.AsyncClient.post", new_callable=AsyncMock) as mock_post:
-            mock_post.side_effect = Exception("API Error")
+        import requests as req
+
+        with patch("requests.post") as mock_post:
+            mock_post.side_effect = req.RequestException("API Error")
 
             result = await analyzer.analyze_diff(sample_diff)
 
@@ -148,7 +150,7 @@ class TestDiffAnalyzer:
             ]
         }
 
-        with patch("httpx.AsyncClient.post", new_callable=AsyncMock) as mock_post:
+        with patch("requests.post") as mock_post:
             mock_post.return_value = MagicMock(
                 status_code=200,
                 json=lambda: mock_response,
@@ -203,7 +205,7 @@ class TestDiffAnalyzer:
     async def test_analyze_empty_response(self, analyzer: DiffAnalyzer, sample_diff: DiffResult):
         mock_response = {"choices": [{"message": {"content": ""}}]}
 
-        with patch("httpx.AsyncClient.post", new_callable=AsyncMock) as mock_post:
+        with patch("requests.post") as mock_post:
             mock_post.return_value = MagicMock(
                 status_code=200,
                 json=lambda: mock_response,
