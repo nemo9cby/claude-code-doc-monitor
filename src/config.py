@@ -35,9 +35,12 @@ class AnalyzerConfig:
     """Configuration for LLM diff analyzer."""
 
     enabled: bool = True
-    model: str = "z-ai/glm-4.7"
-    base_url: str = "https://openrouter.ai/api/v1"
+    model: str | None = None
+    base_url: str | None = None
     api_key: str | None = None
+    temperature: float = 0.3
+    max_tokens: int = 2000
+    timeout_seconds: float = 120.0
 
     @property
     def is_configured(self) -> bool:
@@ -111,9 +114,12 @@ def load_config(config_path: Path) -> Config:
 
     analyzer = AnalyzerConfig(
         enabled=analyzer_data.get("enabled", True),
-        model=analyzer_data.get("model", "z-ai/glm-4.7"),
-        base_url=analyzer_data.get("base_url", "https://openrouter.ai/api/v1"),
+        model=analyzer_data.get("model"),
+        base_url=analyzer_data.get("base_url"),
         api_key=os.environ.get("OPENROUTER_API_KEY"),
+        temperature=analyzer_data.get("temperature", 0.3),
+        max_tokens=analyzer_data.get("max_tokens", 2000),
+        timeout_seconds=analyzer_data.get("timeout_seconds", 120.0),
     )
 
     # Load sources

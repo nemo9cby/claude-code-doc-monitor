@@ -88,6 +88,7 @@ class ReportGenerator:
         diffs: list[DiffResult],
         report_time: datetime,
         analyses: list[AnalysisResult] | None = None,
+        batch_analysis: str | None = None,
     ) -> Path:
         """Generate daily index page listing all changed pages, accumulating multiple runs."""
         date_dir = self._get_date_dir(report_time)
@@ -142,6 +143,8 @@ class ReportGenerator:
             # Keep flat pages list for backward compatibility and totals
             "pages": [p for pages in pages_by_source.values() for p in pages],
         }
+        if batch_analysis:
+            new_batch["analysis"] = batch_analysis
         batches.append(new_batch)
 
         # Calculate totals

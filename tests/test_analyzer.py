@@ -42,7 +42,7 @@ def analyzer() -> DiffAnalyzer:
     """Create analyzer with test config."""
     return DiffAnalyzer(
         api_key="test-key",
-        model="z-ai/glm-4.7",
+        model="google/gemini-3-flash-preview",
         base_url="https://openrouter.ai/api/v1",
     )
 
@@ -65,13 +65,15 @@ class TestDiffAnalyzer:
 
     def test_init(self, analyzer: DiffAnalyzer):
         assert analyzer.api_key == "test-key"
-        assert analyzer.model == "z-ai/glm-4.7"
+        assert analyzer.model == "google/gemini-3-flash-preview"
         assert analyzer.base_url == "https://openrouter.ai/api/v1"
 
     def test_init_defaults(self):
         analyzer = DiffAnalyzer(api_key="key")
-        assert analyzer.model == "z-ai/glm-4.7"
-        assert analyzer.base_url == "https://openrouter.ai/api/v1"
+        # No hardcoded defaults; requires config
+        assert analyzer.model is None
+        assert analyzer.base_url is None
+        assert analyzer.enabled is False
 
     def test_disabled_when_no_key(self):
         analyzer = DiffAnalyzer(api_key=None)

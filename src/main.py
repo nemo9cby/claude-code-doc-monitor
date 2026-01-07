@@ -90,6 +90,9 @@ class DocMonitor:
             api_key=config.analyzer.api_key,
             model=config.analyzer.model,
             base_url=config.analyzer.base_url,
+            temperature=config.analyzer.temperature,
+            max_tokens=config.analyzer.max_tokens,
+            timeout_seconds=config.analyzer.timeout_seconds,
         )
 
     def load_stored_content(self, page_slug: str) -> str | None:
@@ -153,13 +156,8 @@ class DocMonitor:
                 result.diffs.append(diff)
                 self.save_content(fetch_result.page_slug, fetch_result.content)
 
-        # Analyze diffs with LLM
-        if result.diffs and self.analyzer.enabled:
-            result.analyses = await self.analyzer.analyze_all(result.diffs)
-            # Tag analyses with source info
-            for analysis in result.analyses:
-                analysis.source_id = self.source.id
-                analysis.source_name = self.source.name
+        # Per-file analysis is disabled in favor of batch analysis (done at top level).
+        # We keep the capability here if needed in the future, but do not invoke it by default.
 
         if generate_reports and result.diffs:
             self._generate_reports(result.diffs, result.analyses, report_time)
@@ -236,6 +234,8 @@ def cli(
         console.print(f"Monitoring {len(sources)} source(s)...")
 
         result = RunResult()
+        # Use a single timestamp for the entire run to group into one batch on the index
+        run_report_time = datetime.now(UTC)
 
         for source in sources:
             console.print(f"\n[bold cyan]Source: {source.name}[/bold cyan]")
@@ -245,7 +245,10 @@ def cli(
             console.print(f"  Checking {len(pages)} pages...")
 
             monitor = DocMonitor(source, config, templates_dir)
-            source_result = asyncio.run(monitor.run(pages, generate_reports=not no_reports))
+            # Generate per-page diffs now, but defer daily index + batch analysis to end
+            source_result = asyncio.run(
+                monitor.run(pages, generate_reports=not no_reports, report_time=run_report_time)
+            )
             result.source_results.append(source_result)
 
             console.print(f"  Changed: {source_result.changed_pages}")
@@ -274,10 +277,40 @@ def cli(
         console.print(f"  Changed: {result.changed_pages}")
         console.print(f"  Failed: {result.failed_pages}")
 
+        # Generate the daily index once with batch AI analysis across all sources
+        if not no_reports and result.has_changes:
+            reporter = ReportGenerator(
+                config.reports_dir,
+                templates_dir,
+                config.github_pages_url,
+            )
+
+            # Perform batch-level AI analysis across all diffs
+            batch_analysis_text = None
+            if config.analyzer.enabled and config.analyzer.api_key and config.analyzer.model:
+                analyzer = DiffAnalyzer(
+                    api_key=config.analyzer.api_key,
+                    model=config.analyzer.model,
+                    base_url=config.analyzer.base_url,
+                    temperature=config.analyzer.temperature,
+                    max_tokens=config.analyzer.max_tokens,
+                    timeout_seconds=config.analyzer.timeout_seconds,
+                )
+                batch_result = asyncio.run(analyzer.analyze_batch(result.all_diffs))
+                batch_analysis_text = batch_result.analysis if batch_result else None
+
+            reporter.generate_daily_index(
+                result.all_diffs,
+                run_report_time,
+                analyses=None,
+                batch_analysis=batch_analysis_text,
+            )
+            reporter.update_main_index()
+
         # Send notification
         if config.telegram.is_configured and not no_notify and result.has_changes:
             console.print("\nSending Telegram notification...")
-            now = datetime.now(UTC)
+            now = run_report_time
             notifier = TelegramNotifier(
                 config.telegram.bot_token,
                 config.telegram.chat_id,

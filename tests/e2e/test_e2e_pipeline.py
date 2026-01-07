@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 import pytest
 from dotenv import load_dotenv
 
+from src.analyzer import DiffAnalyzer
 from src.config import load_config, load_pages
 from src.main import DocMonitor
 from src.notifier import TelegramNotifier
@@ -138,9 +139,11 @@ class TestFullPipeline:
         e2e_source,
         e2e_pages,
     ):
-        """Test: LLM analysis runs when API key is configured."""
+        """Test: LLM batch analysis runs when API key is configured."""
         if not e2e_config.analyzer.api_key:
             pytest.skip("OPENROUTER_API_KEY not configured")
+        if not e2e_config.analyzer.model:
+            pytest.skip("Analyzer model not configured")
 
         # Switch back to v1 to create a change (v2 -> v1)
         content_server.set_version("v1")
@@ -148,13 +151,24 @@ class TestFullPipeline:
         monitor = DocMonitor(e2e_source, e2e_config, TEMPLATES_DIR)
         result = await monitor.run(e2e_pages, generate_reports=False)
 
-        # Should have analyses (since v2 was saved in test_03, switching to v1 causes changes)
-        assert len(result.analyses) > 0
+        # Should have diffs (since v2 was saved in test_03, switching to v1 causes changes)
+        assert len(result.diffs) > 0
 
-        for analysis in result.analyses:
-            assert analysis.analysis, f"Empty analysis for {analysis.page_slug}"
-            # Should contain meaningful content
-            assert len(analysis.analysis) > 50
+        # Test batch analysis directly (per-file analysis was removed in favor of batch)
+        analyzer = DiffAnalyzer(
+            api_key=e2e_config.analyzer.api_key,
+            model=e2e_config.analyzer.model,
+            base_url=e2e_config.analyzer.base_url,
+            temperature=e2e_config.analyzer.temperature,
+            max_tokens=e2e_config.analyzer.max_tokens,
+            timeout_seconds=e2e_config.analyzer.timeout_seconds,
+        )
+        batch_result = await analyzer.analyze_batch(result.diffs)
+
+        assert batch_result is not None
+        assert batch_result.analysis, "Empty batch analysis"
+        # Should contain meaningful content
+        assert len(batch_result.analysis) > 50
 
     @pytest.mark.asyncio
     @pytest.mark.real_telegram
