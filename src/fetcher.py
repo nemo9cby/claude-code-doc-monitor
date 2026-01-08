@@ -1,10 +1,15 @@
-"""Async HTTP fetcher for Claude Code documentation."""
+"""Async HTTP fetcher for documentation sources."""
+
+from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass
-from typing import Self
+from typing import TYPE_CHECKING, Self
 
 import httpx
+
+if TYPE_CHECKING:
+    from src.config import SourceConfig
 
 
 @dataclass
@@ -22,16 +27,14 @@ class FetchResult:
 
 
 class DocumentFetcher:
-    """Async fetcher for documentation markdown files."""
+    """Async fetcher for documentation from various sources."""
 
     def __init__(
         self,
-        base_url: str,
-        language: str = "en",
+        source: SourceConfig,
         timeout: float = 30.0,
     ) -> None:
-        self.base_url = base_url
-        self.language = language
+        self.source = source
         self._client = httpx.AsyncClient(timeout=timeout, follow_redirects=True)
 
     async def __aenter__(self) -> Self:
@@ -43,12 +46,13 @@ class DocumentFetcher:
     async def close(self) -> None:
         await self._client.aclose()
 
-    def get_markdown_url(self, page_slug: str) -> str:
-        return f"{self.base_url}/{self.language}/{page_slug}.md"
+    def get_url(self, page_slug: str) -> str:
+        """Get URL for a page using source configuration."""
+        return self.source.get_url(page_slug)
 
     async def fetch_page(self, page_slug: str) -> FetchResult:
         """Fetch a single page."""
-        url = self.get_markdown_url(page_slug)
+        url = self.get_url(page_slug)
         try:
             response = await self._client.get(url)
             if response.status_code == 200:

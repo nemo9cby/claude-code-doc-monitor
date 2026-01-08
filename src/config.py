@@ -53,12 +53,29 @@ class SourceConfig:
 
     id: str
     name: str
-    base_url: str
-    language: str
     docs_dir: Path
     pages_file: Path
 
-    def get_markdown_url(self, page_slug: str) -> str:
+    # Type determines URL construction strategy: "docs" | "github"
+    source_type: str = "docs"
+
+    # For type="docs"
+    base_url: str = ""
+    language: str = "en"
+
+    # For type="github"
+    github_owner: str = ""
+    github_repo: str = ""
+    github_branch: str = "main"
+
+    def get_url(self, page_slug: str) -> str:
+        """Get the URL for a page based on source type."""
+        if self.source_type == "github":
+            return (
+                f"https://raw.githubusercontent.com/"
+                f"{self.github_owner}/{self.github_repo}/{self.github_branch}/{page_slug}"
+            )
+        # Default: docs type
         return f"{self.base_url}/{self.language}/{page_slug}.md"
 
 
@@ -129,10 +146,14 @@ def load_config(config_path: Path) -> Config:
             SourceConfig(
                 id=source_id,
                 name=source_data.get("name", source_id),
-                base_url=source_data.get("base_url", ""),
-                language=source_data.get("language", "en"),
                 docs_dir=Path(source_data.get("docs_dir", f"docs/{source_id}")),
                 pages_file=Path(source_data.get("pages_file", f"config/pages/{source_id}.yaml")),
+                source_type=source_data.get("type", "docs"),
+                base_url=source_data.get("base_url", ""),
+                language=source_data.get("language", "en"),
+                github_owner=source_data.get("owner", ""),
+                github_repo=source_data.get("repo", ""),
+                github_branch=source_data.get("branch", "main"),
             )
         )
 

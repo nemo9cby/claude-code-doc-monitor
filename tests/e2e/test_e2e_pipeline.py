@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import TYPE_CHECKING
+from zoneinfo import ZoneInfo
 
 import pytest
 from dotenv import load_dotenv
@@ -20,6 +21,9 @@ if TYPE_CHECKING:
 
 # Load .env for real credentials (must be after imports but before tests run)
 load_dotenv()
+
+# Use EST to match report generation (same as main.py)
+EST = ZoneInfo("America/New_York")
 
 # Config paths
 TEST_CONFIG_PATH = Path("config/test_config.yaml")
@@ -122,8 +126,8 @@ class TestFullPipeline:
         reports_dir = test_output_dir / "reports"
         assert reports_dir.exists()
 
-        # Should have date-based subdirectories
-        today = datetime.now(UTC).date()
+        # Should have date-based subdirectories (uses EST for date calculation)
+        today = datetime.now(UTC).astimezone(EST).date()
         date_dir = reports_dir / f"{today.year:04d}" / f"{today.month:02d}" / f"{today.day:02d}"
         assert date_dir.exists(), f"Date directory not created: {date_dir}"
 

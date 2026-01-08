@@ -3,6 +3,7 @@
 from datetime import UTC, datetime
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
+from zoneinfo import ZoneInfo
 
 import pytest
 
@@ -231,13 +232,14 @@ class TestDocMonitor:
         result = await monitor.run(["overview"], generate_reports=True)
 
         assert result.changed_pages == 1
-        # Check page diff reports were generated (use UTC date since code uses datetime.now(UTC))
-        utc_today = datetime.now(UTC).date()
+        # Check page diff reports were generated (uses EST for date calculation)
+        est = ZoneInfo("America/New_York")
+        est_today = datetime.now(UTC).astimezone(est).date()
         report_dir = (
             mock_config.reports_dir
-            / f"{utc_today.year:04d}"
-            / f"{utc_today.month:02d}"
-            / f"{utc_today.day:02d}"
+            / f"{est_today.year:04d}"
+            / f"{est_today.month:02d}"
+            / f"{est_today.day:02d}"
         )
         assert report_dir.exists()
         # Reports are now organized by source_id

@@ -1,9 +1,12 @@
 """Tests for fetcher module."""
 
+from pathlib import Path
+
 import httpx
 import pytest
 import respx
 
+from src.config import SourceConfig
 from src.fetcher import DocumentFetcher, FetchResult
 
 
@@ -27,12 +30,42 @@ class TestFetchResult:
 
 class TestDocumentFetcher:
     @pytest.fixture
-    def fetcher(self) -> DocumentFetcher:
-        return DocumentFetcher(base_url="https://example.com/docs", language="en")
+    def docs_source(self) -> SourceConfig:
+        return SourceConfig(
+            id="test",
+            name="Test",
+            docs_dir=Path("docs/test"),
+            pages_file=Path("config/pages/test.yaml"),
+            source_type="docs",
+            base_url="https://example.com/docs",
+            language="en",
+        )
 
-    def test_get_markdown_url(self, fetcher: DocumentFetcher) -> None:
-        url = fetcher.get_markdown_url("overview")
+    @pytest.fixture
+    def github_source(self) -> SourceConfig:
+        return SourceConfig(
+            id="github-test",
+            name="GitHub Test",
+            docs_dir=Path("docs/github-test"),
+            pages_file=Path("config/pages/github-test.yaml"),
+            source_type="github",
+            github_owner="anthropics",
+            github_repo="claude-code",
+            github_branch="main",
+        )
+
+    @pytest.fixture
+    def fetcher(self, docs_source: SourceConfig) -> DocumentFetcher:
+        return DocumentFetcher(source=docs_source)
+
+    def test_get_url_docs(self, fetcher: DocumentFetcher) -> None:
+        url = fetcher.get_url("overview")
         assert url == "https://example.com/docs/en/overview.md"
+
+    def test_get_url_github(self, github_source: SourceConfig) -> None:
+        fetcher = DocumentFetcher(source=github_source)
+        url = fetcher.get_url("CHANGELOG.md")
+        assert url == "https://raw.githubusercontent.com/anthropics/claude-code/main/CHANGELOG.md"
 
     @respx.mock
     async def test_fetch_page_success(self, fetcher: DocumentFetcher) -> None:
@@ -112,7 +145,7 @@ class TestDocumentFetcher:
         await fetcher.close()
         assert fetcher._client.is_closed
 
-    async def test_context_manager(self) -> None:
-        async with DocumentFetcher("https://example.com/docs", "en") as fetcher:
+    async def test_context_manager(self, docs_source: SourceConfig) -> None:
+        async with DocumentFetcher(source=docs_source) as fetcher:
             assert not fetcher._client.is_closed
         assert fetcher._client.is_closed

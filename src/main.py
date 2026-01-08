@@ -99,9 +99,20 @@ class DocMonitor:
             timeout_seconds=config.analyzer.timeout_seconds,
         )
 
+    def _get_storage_path(self, page_slug: str) -> Path:
+        """Get the storage path for a page slug.
+
+        For docs sources, adds .md extension. For GitHub, uses slug as-is (already has extension).
+        """
+        if self.source.source_type == "github":
+            # GitHub page slugs already include extension (e.g., CHANGELOG.md)
+            return self.source.docs_dir / page_slug
+        # Docs sources use slugs without extension
+        return self.source.docs_dir / f"{page_slug}.md"
+
     def load_stored_content(self, page_slug: str) -> str | None:
         """Load previously stored content for a page."""
-        path = self.source.docs_dir / f"{page_slug}.md"
+        path = self._get_storage_path(page_slug)
         if path.exists():
             return path.read_text()
         return None
@@ -109,8 +120,8 @@ class DocMonitor:
     def save_content(self, page_slug: str, content: str) -> None:
         """Save page content to storage."""
         self.source.docs_dir.mkdir(parents=True, exist_ok=True)
-        path = self.source.docs_dir / f"{page_slug}.md"
-        # Create parent directories for nested paths (e.g., api/messages)
+        path = self._get_storage_path(page_slug)
+        # Create parent directories for nested paths (e.g., api/messages or src/file.md)
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(content)
 
@@ -129,8 +140,7 @@ class DocMonitor:
         report_time = report_time or datetime.now(UTC)
 
         async with DocumentFetcher(
-            base_url=self.source.base_url,
-            language=self.source.language,
+            source=self.source,
             timeout=self.config.fetcher.timeout,
         ) as fetcher:
             fetch_results = await fetcher.fetch_all(

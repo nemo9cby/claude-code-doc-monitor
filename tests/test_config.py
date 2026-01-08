@@ -145,26 +145,66 @@ class TestTelegramConfig:
 
 
 class TestSourceConfig:
-    def test_get_markdown_url(self) -> None:
+    def test_get_url_docs_type(self) -> None:
         source = SourceConfig(
             id="test",
             name="Test Source",
-            base_url="https://code.claude.com/docs",
-            language="en",
             docs_dir=Path("docs/test"),
             pages_file=Path("config/pages/test.yaml"),
+            source_type="docs",
+            base_url="https://code.claude.com/docs",
+            language="en",
         )
-        url = source.get_markdown_url("overview")
+        url = source.get_url("overview")
         assert url == "https://code.claude.com/docs/en/overview.md"
 
-    def test_get_markdown_url_nested_path(self) -> None:
+    def test_get_url_docs_nested_path(self) -> None:
         source = SourceConfig(
             id="api",
             name="API Docs",
-            base_url="https://platform.claude.com/docs",
-            language="en",
             docs_dir=Path("docs/api"),
             pages_file=Path("config/pages/api.yaml"),
+            source_type="docs",
+            base_url="https://platform.claude.com/docs",
+            language="en",
         )
-        url = source.get_markdown_url("api/messages")
+        url = source.get_url("api/messages")
         assert url == "https://platform.claude.com/docs/en/api/messages.md"
+
+    def test_get_url_github_type(self) -> None:
+        source = SourceConfig(
+            id="github",
+            name="GitHub Source",
+            docs_dir=Path("docs/github"),
+            pages_file=Path("config/pages/github.yaml"),
+            source_type="github",
+            github_owner="anthropics",
+            github_repo="claude-code",
+            github_branch="main",
+        )
+        url = source.get_url("CHANGELOG.md")
+        assert url == "https://raw.githubusercontent.com/anthropics/claude-code/main/CHANGELOG.md"
+
+    def test_get_url_github_nested_path(self) -> None:
+        source = SourceConfig(
+            id="github",
+            name="GitHub Source",
+            docs_dir=Path("docs/github"),
+            pages_file=Path("config/pages/github.yaml"),
+            source_type="github",
+            github_owner="owner",
+            github_repo="repo",
+            github_branch="develop",
+        )
+        url = source.get_url("docs/README.md")
+        assert url == "https://raw.githubusercontent.com/owner/repo/develop/docs/README.md"
+
+    def test_default_source_type_is_docs(self) -> None:
+        source = SourceConfig(
+            id="test",
+            name="Test",
+            docs_dir=Path("docs/test"),
+            pages_file=Path("config/pages/test.yaml"),
+            base_url="https://example.com",
+        )
+        assert source.source_type == "docs"
