@@ -118,9 +118,185 @@
 
         <header>
             <h1>Changes on 2026-01-08</h1>
-            <p class="meta">7 total changes in 1 run</p>
+            <p class="meta">11 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">14:16 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">## 总体总结
+文档核心更新在于工具架构的统一：`SlashCommand` 工具已合并至 `Skill` 工具，从而统一了 Claude 对自定义指令和 Agent 技能的编程调用方式。同时，引入了更精细的可见性控制，并将生命周期 Hooks 支持扩展到了指令和子代理中。
+
+## 关键变更主题
+- **工具统一与重命名**：`SlashCommand` 工具已被 `Skill` 工具取代。新的 `Skill` 工具不仅处理自定义斜杠指令，还负责调用 Agent 技能。
+- **访问控制细化**：新增 `disable-model-invocation` 配置项，实现了“用户菜单可见性”（`user-invocable`）与“模型程序化调用权限”的分离。
+- **生命周期 Hooks 泛化**：Hooks 机制（支持 `PreToolUse`、`PostToolUse`、`Stop`）现已全面覆盖 Skills、Slash Commands 和 Subagents，允许在特定节点注入自定义逻辑。
+
+## 影响等级
+**中等**
+- **理由**：此次变更涉及破坏性更新。权限规则语法从 `SlashCommand:/cmd` 变更为 `Skill(/cmd)`，且 `SlashCommand` 工具的移除会影响现有的配置文件和提示词。虽然功能增强，但开发者必须更新现有设置以维持兼容性。
+
+## 开发者行动项
+- **更新权限规则**：立即将 IAM 或配置文件中的 `SlashCommand` 引用重命名为 `Skill`（例如：`SlashCommand:/commit` -&gt; `Skill(/commit)`）。
+- **审查调用控制**：检查 Skills 和 Commands 配置。如果仅希望隐藏菜单但仍允许 Claude 调用，使用 `user-invocable: false`；若需完全禁止 Claude 程序化调用，必须新增 `disable-model-invocation: true`。
+- **利用 Hooks 功能**：在 Slash Commands 和 Subagents 的配置中添加 `hooks` 字段（如 PreToolUse），以集成自动化脚本或安全检查。
+- **更新文档与提示词**：将团队文档、`CLAUDE.md` 及提示词模板中提及 `SlashCommand tool` 的部分更新为 `Skill tool`。
+- **检查环境变量**：确认 `SLASH_COMMAND_TOOL_CHAR_BUDGET` 变量的相关文档已更新，明确该变量现在应用于 `Skill` 工具。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Input:** Diffs for 4 pages (`settings.md`, `skills.md`, `slash-commands.md`, `sub-agents.md`).
+    *   **Output Format:** Markdown (Concise, insightful, focus on developers).
+    *   **Language:** Chinese (requested &#34;请用中文回复&#34;).
+    *   **Specifics:** Summary, Key Themes, Impact Level, Action Items.
+
+2.  **Analyze the Diffs:**
+
+    *   **`settings.md`**:
+        *   Change 1: Table row description updated. `SLASH_COMMAND_TOOL_CHAR_BUDGET` text changed from &#34;shown to SlashCommand tool&#34; to &#34;shown to the Skill tool&#34;. Link changed from `#slashcommand-tool` to `#skill-tool`.
+        *   Change 2: Tools table update. `Skill` row expanded to include &#34;skill or slash command&#34; and linked to `#skill-tool`. `SlashCommand` row removed entirely.
+        *   *Insight:* This is a consolidation/renaming. The `SlashCommand` tool is being merged into or replaced by the `Skill` tool.
+
+    *   **`skills.md`**:
+        *   Change 1: `user-invocable` description clarified. Added &#34;Does not affect the Skill tool or automatic discovery.&#34; Added link to a new section.
+        *   Change 2: Added a significant new section: &#34;Control Skill visibility&#34;.
+        *   *New Content:* Explains 3 ways to invoke skills (Manual, Programmatic/Skill tool, Auto-discovery).
+        *   *New Content:* Table comparing `user-invocable` vs `disable-model-invocation`.
+        *   *New Content:* `disable-model-invocation` introduced to block programmatic use.
+        *   *Insight:* Enhanced control over *how* and *who* can invoke skills. Distinguishes between user visibility and AI capability.
+
+    *   **`slash-commands.md`**:
+        *   Change 1: `disable-model-invocation` description updated from &#34;SlashCommand tool&#34; to &#34;Skill tool&#34;.
+        *   Change 2: Added `hooks` field to command frontmatter table.
+        *   Change 3: Added new section: &#34;Define hooks for commands&#34;. Details `PreToolUse`, `PostToolUse`, `Stop`. Mentions `once: true` option.
+        *   Change 4: Section `## SlashCommand tool` renamed to `## Skill tool`.
+        *   Change 5: Note added: &#34;In earlier versions... SlashCommand tool... merged into the Skill tool.&#34;
+        *   Change 6: Expanded table of what `Skill` tool can invoke (Custom slash commands, Agent Skills). Mentions built-in commands are excluded.
+        *   Change 7: Permission rules updated from `SlashCommand:/commit` to `Skill(/commit)`.
+        *   Change 8: Character budget limit section updated to refer to `Skill` tool.
+        *   *Insight:* Major renaming/refactoring. The `SlashCommand` tool is now the `Skill` tool, handling both commands and skills. Hooks are now supported for commands.
+
+    *   **`sub-agents.md`**:
+        *   Change 1: Added `hooks` field to subagent configuration table.
+        *   Change 2: Added new section: &#34;Define hooks for subagents&#34;. Details `PreToolUse`, `PostToolUse`, `Stop`.
+        *   *Insight:* Hooks support extended to subagents, mirroring functionality added to skills and commands.
+
+3.  **Synthesize Themes:**
+
+    *   **Theme 1: Unification/Refactoring:** The `SlashCommand` tool is effectively gone, replaced by a broader `Skill` tool that handles both slash commands and agent skills.
+    *   **Theme 2: Granular Control (Visibility vs. Invocation):** Introduction of `disable-model-invocation` to separate &#34;is it in the menu?&#34; (`user-invocable`) from &#34;can Claude call it programmatically?&#34;.
+    *   **Theme 3: Lifecycle Hooks:** Hooks (PreToolUse, etc.) are now supported in Skills, Slash Commands, and Subagents, providing a unified way to inject logic at specific points.
+
+4.  **Draft the Response (in Chinese):**
+
+    *   **Summary:** The `SlashCommand` tool has been merged into the `Skill` tool, unifying how Claude programmatically invokes commands and skills. Additionally, granular controls for visibility and invocation, along with lifecycle hooks, have been extended across Skills, Commands, and Subagents.
+    *   **Key Themes:**
+        *   *Tool Unification:* `SlashCommand` tool is now `Skill` tool.
+        *   *Granular Access Control:* New distinction between user visibility (`user-invocable`) and programmatic access (`disable-model-invocation`).
+        *   *Lifecycle Hooks:* Support for hooks (`PreToolUse`, `PostToolUse`, `Stop`) added to Slash Commands and Subagents (previously/existing in Skills).
+    *   **Impact Level:** **Medium**.
+        *   *Reasoning:* It involves renaming tools (`SlashCommand` -&gt; `Skill`) and updating permission syntax (`SlashCommand:/cmd` -&gt; `Skill(/cmd)`). Existing configurations might break if they rely on specific permission rule names or environment variable references, but the core logic is preserved. The new hooks feature is additive.
+    *   **Action Items:**
+        *   Update permission rules: Rename `SlashCommand` to `Skill` in IAM/policy files.
+        *   Update configuration: Review `user-invocable` settings if you want to block Claude from programmatically invoking skills/commands (use new `disable-model-invocation`).
+        *   Update documentation/prompts: Replace references to `SlashCommand` tool with `Skill` tool.
+        *   Leverage Hooks: Implement hooks in commands/subagents for validation/logging (e.g., `PreToolUse`).
+        *   Verify Env Vars: Ensure scripts relying on `SLASH_COMMAND_TOOL_CHAR_BUDGET` are updated to reflect it applies to the `Skill` tool now.
+
+5.  **Refine the Output:**
+
+    *   Translate technical concepts accurately.
+    *   Ensure the tone is professional and concise.
+    *   Check against the constraints (concise, markdown).
+
+    *(Self-Correction during drafting)*: Make sure to emphasize that `SlashCommand` tool is not just renamed but *merged*. It now handles agent skills too. This is a significant capability expansion. Also, clarify the distinction between `user-invocable` and `disable-model-invocation` as that&#39;s a subtle but important change for developers managing configurations.
+
+6.  **Final Polish (Markdown Structure):**
+
+    ```markdown
+    ## 总体总结
+    文档主要更新了核心工具架构：`SlashCommand` 工具已正式合并至 `Skill` 工具，统一了 Claude 对指令和技能的编程调用方式。同时，引入了细粒度的可见性与调用控制，并将生命周期 Hooks 支持（如 `PreToolUse`）扩展到了指令和子代理。
+
+    ## 关键变更主题
+    - **工具统一与重命名**：`SlashCommand` 工具被 `Skill` 工具取代，现在可以同时调用自定义斜杠指令和 Agent 技能。
+    - **访问控制细化**：引入 `disable-model-invocation` 配置项，明确区分了“用户菜单可见性”（`user-invocable`）与“程序化调用权限”。
+    - **生命周期 Hooks 泛化**：Hooks 机制现在全面支持 Skills、Slash Commands 和 Subagents，允许在特定事件（如工具调用前/后）执行自定义逻辑。
+
+    ## 影响等级
+    **中等**
+    - **理由**：虽然核心功能得到增强，但涉及破坏性更改。权限规则语法从 `SlashCommand:/cmd` 更改为 `Skill(/cmd)`，且工具名称变更会影响现有的提示词和文档引用。新引入的配置项需要开发者审查现有的权限设置。
+
+    ## 开发者行动项
+    - **更新权限规则**：将所有 IAM 或配置文件中的 `SlashCommand` 引用更新为 `Skill`（例如：`SlashCommand:/commit` -&gt; `Skill(/commit)`）。
+    - **审查可见性设置**：检查 Skills 和 Commands 的 frontmatter。若需禁止 Claude 程序化调用某项功能，请添加 `disable-model-invocation: true`，而不仅仅是设置 `user-invocable: false`。
+    - **利用 Hooks 新特性**：在 Slash Commands 和 Subagents 中配置 Hooks（如 `PreToolUse`），用于执行安全检查、日志记录或自动化脚本。
+    - **更新环境变量引用**：确认依赖于 `SLASH_COMMAND_TOOL_CHAR_BUDGET` 的脚本或文档已更新，明确该变量现在控制 `Skill` 工具的字符预算。
+    - **更新内部文档**：将团队文档和提示词模板中的 `SlashCommand tool` 提及更新为 `Skill tool`。
+    ```</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+24</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+46</span>
+                            <span class="removed">-30</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+13</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">00:20 EST</div>
