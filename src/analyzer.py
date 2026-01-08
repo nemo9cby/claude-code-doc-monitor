@@ -225,11 +225,6 @@ Focus on implications for developers. Be concise and insightful."""
         if not self.model or not self.base_url:
             raise RuntimeError("Analyzer not configured with model/base_url")
 
-        # Adjust defaults for GLM-4.7 specifically
-        model_lower = self.model.lower()
-        is_glm47 = "glm-4.7" in model_lower or "glm4.7" in model_lower
-        max_tokens = min(self.max_tokens, 1200) if is_glm47 else self.max_tokens
-
         payload = {
             "model": self.model,
             "messages": [
@@ -238,13 +233,14 @@ Focus on implications for developers. Be concise and insightful."""
                     "content": (
                         "You are a world-class programmer analyzing documentation changes. "
                         "Provide concise, insightful analysis in markdown format. "
-                        "Focus on what matters to developers."
+                        "Focus on what matters to developers. "
+                        "请用中文回复。"
                     ),
                 },
                 {"role": "user", "content": prompt},
             ],
             "temperature": self.temperature,
-            "max_tokens": max_tokens,
+            "max_tokens": self.max_tokens,
         }
 
         headers = {
