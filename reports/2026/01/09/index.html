@@ -118,9 +118,132 @@
 
         <header>
             <h1>Changes on 2026-01-09</h1>
-            <p class="meta">1 total change in 1 run</p>
+            <p class="meta">3 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">18:16 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">1.  **Overall Summary**
+    此次文档更新主要阐明了 Claude Code 中 Subagents（子代理）的内部机制与最佳实践，特别是明确了 Skills 的内容注入方式，并详细介绍了内置代理的具体行为与模型选择，旨在帮助开发者更精准地进行上下文管理和成本控制。
+
+2.  **Key Themes across pages**
+    *   **机制澄清与预期管理 (`skills.md`)**: 明确指出 Skills 是将**完整内容注入**到子代理的启动上下文中，而不仅仅是提供调用接口。这意味着大型 Skills 会显著增加 Token 消耗。
+    *   **内置代理透明化 (`sub-agents.md`)**: 新增了对 `Explore` (Haiku模型, 快速只读), `Plan` (只读研究), 和 `General-purpose` (全能型) 内置代理的详细说明，让开发者理解背后的模型路由和工具限制。
+    *   **成本与性能意识**: 文档更加强调通过将特定任务（如代码搜索）路由到更便宜/更快的模型（如 Haiku）来优化成本和响应速度。
+    *   **结构化引导**: 重构了文档结构，使用 Tab 和 Steps 组件，使从“了解概念”到“通过 `/agents` 命令创建自定义代理”的路径更加清晰。
+
+3.  **Impact level**
+    **Medium**
+    *   **理由**: 虽然这主要是文档更新而非 API 变更，但它改变了开发者对系统行为的**心理模型**。特别是意识到 Skills 是“全量注入”而非“按需调用”，这对上下文窗口的规划有直接影响。同时，了解内置代理的模型选择有助于开发者更合理地利用工具。
+
+4.  **Action items for developers**
+    *   **评估 Skills 大小**: 检查现有的 Skills 定义，因为全量注入可能会导致子代理上下文迅速溢出，必要时拆分大文件。
+    *   **利用内置代理**: 依据文档，在需要快速代码搜索时主动触发或依赖 `Explore` 模式，利用其 Haiku 后端节省成本。
+    *   **尝试 `/agents` 命令**: 使用文档中推荐的 `/agents` 交互式命令来生成自定义代理，而非手动编写 YAML，以利用最佳实践模版。
+    *   **配置工具权限**: 在创建自定义代理时，参考文档中的模式（如只读代理），明确限制工具访问权限以提高安全性。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Format:** Markdown, concise, insightful, Chinese.
+    *   **Input:** Two diffs (`skills.md` and `sub-agents.md`).
+    *   **Output Structure:**
+        1.  Overall Summary (1-2 sentences).
+        2.  Key Themes (bullets).
+        3.  Impact Level (Low/Medium/High/Breaking) with reasoning.
+        4.  Action Items for developers (max 5).
+
+2.  **Analyze `skills.md` Diff:**
+    *   *Change:* Updated the description of how Skills are loaded into a subagent.
+    *   *Old:* &#34;The listed Skills are loaded into the subagent&#39;s context when it starts.&#34;
+    *   *New:* &#34;The full content of each listed Skill is injected into the subagent&#39;s context at startup, not just made available for invocation.&#34;
+    *   *Significance:* This is a clarification of behavior. It changes the mental model from &#34;loading a reference&#34; to &#34;injecting full content.&#34; This implies a higher token usage cost but potentially less need for retrieval mechanisms inside the subagent.
+
+3.  **Analyze `sub-agents.md` Diff:**
+    *   *Context:* The diff provided is truncated (`&lt;S` at the end), but there&#39;s a massive shift in structure and content at the beginning.
+    *   *Title Change:* &#34;Subagents&#34; -&gt; &#34;Create custom subagents&#34;.
+    *   *Intro:* Refactored from general benefits list (cards) to a more concise summary emphasizing *what* they do and *why* (context preservation, constraints, reuse, cost control).
+    *   *New Section:* &#34;Built-in subagents&#34;. This is a major addition. It details `Explore` (Haiku, read-only), `Plan` (Read-only), and `General-purpose` (All tools).
+    *   *Quickstart:* Renamed to &#34;Quickstart: create your first subagent&#34;. The flow is more detailed and specific (User-level vs Project-level, specific example of a code reviewer).
+    *   *Formatting:* Heavily uses new UI components like `&lt;Tabs&gt;` and `&lt;Steps&gt;`.
+    *   *Key Insight:* The documentation is maturing. It&#39;s moving from &#34;Here is a feature&#34; to &#34;Here are the specific built-in agents we give you, and here is exactly how to make your own using the `/agents` command.&#34;
+
+4.  **Synthesize Key Themes:**
+    *   **Clarity of Mechanics:** The `skills.md` change clarifies exactly how data moves (full injection vs. reference).
+    *   **Better Onboarding/Discovery:** The `sub-agents.md` change highlights built-in agents (Explore, Plan, etc.) which developers might have missed or not fully understood (e.g., that Explore uses Haiku for speed/cost).
+    *   **Cost Awareness:** Mention of using Haiku for specific agents implies a focus on cost optimization and performance.
+
+5.  **Determine Impact Level:**
+    *   *Level:* Medium.
+    *   *Reasoning:* These are documentation updates. The code behavior likely hasn&#39;t changed (unless the `skills.md` update reflects a recent backend change, but it looks more like a clarification). However, the `sub-agents.md` changes introduce knowledge about *built-in* agents that developers might not have been using optimally. Knowing that `Explore` uses Haiku and is read-only is critical for mental modeling. Therefore, it&#39;s &#34;Medium&#34; because it changes how developers *think* about and *configure* the system, even if it&#39;s not a breaking API change.
+
+6.  **Draft Action Items:**
+    *   Review the new definitions of built-in agents (Explore, Plan) to understand when and how they are triggered.
+    *   Update Skills usage strategies: be aware that injecting full content consumes more context tokens.
+    *   Consider using the `/agents` CLI command to generate custom subagents instead of writing YAML manually.
+    *   Audit custom subagent configurations to ensure tool restrictions match the intended security/performance profile.
+
+7.  **Translate and Refine to Chinese (Target Language):**
+
+    *   *Summary:* 文档更新阐明了 Subagents（子代理）的工作机制，特别是 Skills 的注入方式和内置代理的详细行为。这有助于开发者更精确地控制上下文和成本。
+    *   *Themes:*
+        *   **机制澄清**: 明确了 Skills 是**完整注入**而非仅引用，影响 Token 消耗。
+        *   **内置代理透明化**: 详细介绍了 Explore（使用 Haiku）、Plan 和 General-purpose 三种内置代理的用途和限制。
+        *   **开发体验优化**: 重写了创建流程，强调使用 `/agents` 命令生成配置，并突出了成本控制能力。
+    *   *Impact:* **Medium**. Reasoning: 主要是概念和最佳实践的澄清，属于认知层面的提升。虽然没有 API 变更，但理解内置代理的模型选择（如 Explore 用 Haiku）和 Skills 的加载方式对性能和成本控制至关重要。
+    *   *Action Items:*
+        *   检查现有 Skills 的定义，评估完整注入到 Subagent 是否会导致上下文溢出。
+        *   根据新的内置代理文档，调整对 `Explore` 和 `Plan` 模式的预期（例如知道 Explore 是只读且廉价的）。
+        *   尝试使用 `/agents` 命令生成新的自定义 Subagent，利用新的配置选项（如颜色、特定模型选择）。
+
+8.  **Final Polish (Markdown formatting):** Ensure the structure matches the prompt requirements exactly.
+
+    *   *Self-Correction on `skills.md`:* It says &#34;not just made available for invocation&#34;. This is a crucial distinction. It means if a skill is huge, it bloats the subagent immediately.
+    *   *Self-Correction on `sub-agents.md`:* The addition of built-in agents is the biggest news. Before this, it might have been magic how &#34;Explore&#34; worked. Now it&#39;s documented as a subagent.
+
+9.  **Final Output Generation** (matches the thought process above).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+242</span>
+                            <span class="removed">-247</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">15:19 EST</div>
