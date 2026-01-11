@@ -118,9 +118,196 @@
 
         <header>
             <h1>Changes on 2026-01-10</h1>
-            <p class="meta">7 total changes in 3 runs</p>
+            <p class="meta">12 total changes in 4 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">22:46 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### Overall Summary
+此次更新重点阐明了插件市场中 URL 托管与 Git 托管的本质差异，特别是针对“相对路径”的限制进行了严格定义；同时规范了 Memory 配置文件的路径写法，并对 IAM 权限文档进行了细微修正。
+
+### Key Themes
+- **插件分发架构限制**：明确了通过直接 URL 添加的 `marketplace.json` 无法解析相对路径，要求插件开发者必须使用 Git 托管或外部源（GitHub/npm）。
+- **配置语法规范化**：Memory 配置中的 `paths` 字段强制要求使用 YAML 列表格式，不再支持逗号分隔或简单字符串，并澄清了花括号展开的用法。
+- **权限模型微调**：IAM 文档中移除了 `LS` 工具的特定提及，将只读工具的定义范围聚焦于 Grep 和 Glob。
+
+### Impact Level
+**Medium-High**
+**Reasoning:** 对于插件开发者而言，如果当前通过静态 URL 托管 `marketplace.json` 且使用了相对路径，这属于破坏性变更，必须立即调整配置或迁移托管方式，否则用户将无法安装插件。
+
+### Action items for developers
+1. **审查插件分发配置**：如果你通过 URL 托管 `marketplace.json`，请移除插件 `source` 字段中的相对路径（如 `&#34;./plugins/my-plugin&#34;`），改用 GitHub、npm 或 git URL 等外部源。
+2. **迁移托管方式（如适用）**：若需保留相对路径配置，请将插件市场仓库迁移至 Git 托管（如 GitHub/GitLab），并引导用户通过 Git URL 添加。
+3. **更新 Memory 配置**：将 `.claude/memory` 文件中的 `paths` 写法从单行字符串或逗号分隔改为标准的 YAML 列表格式（如 `- &#34;src/**/*.ts&#34;`）。
+4. **排查插件安装错误**：遇到 &#34;path not found&#34; 错误时，参考文档中新增的“故障排除”章节确认是否触发了 URL 托管的限制。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Input:** A batch of diffs from 5 markdown files (`discover-plugins.md`, `iam.md`, `memory.md`, `plugin-marketplaces.md`, `settings.md`).
+    *   **Output Format:** Markdown.
+    *   **Constraints:** Concise, insightful, focus on developers, Chinese language response.
+
+2.  **Analyze the Diffs:**
+
+    *   **`discover-plugins.md`:**
+        *   Added a section header &#34;Add from remote URLs&#34;.
+        *   Added a `&lt;Note&gt;` warning about URL-based marketplaces.
+        *   Link to troubleshooting for &#34;path not found&#34; errors.
+        *   *Insight:* Highlighting limitations of URL-based plugin sources vs Git sources.
+
+    *   **`iam.md` (Identity and Access Management):**
+        *   Updated a table comparing tool types.
+        *   Removed &#34;LS&#34; from Read-only examples.
+        *   Text change: &#34;Claude will make a best-effort attempt to apply `Read` rules to all built-in tools that read files like Grep and Glob.&#34; (Removed &#34;LS&#34; from text as well).
+        *   *Insight:* Clarification on permission scope. LS (list directory) is no longer explicitly listed as a read-only tool subject to these specific rules, or perhaps its behavior changed slightly in terms of categorization.
+
+    *   **`memory.md`:**
+        *   Changed `paths` syntax from a simple string/array string to a YAML list format (`- &#34;path&#34;`).
+        *   Clarified brace expansion (`{src,lib}`).
+        *   Removed the comma-separated syntax example (e.g., `path1, path2`).
+        *   *Insight:* Enforcing strict YAML list syntax for `paths` and clarifying how brace expansion works within the memory configuration. This makes the config format more explicit and less error-prone regarding syntax parsing.
+
+    *   **`plugin-marketplaces.md`:**
+        *   Added a `&lt;Note&gt;` warning about relative paths in `marketplace.json`. Specifically, relative paths only work if the marketplace is added via Git, not a raw URL.
+        *   Added a new troubleshooting section: &#34;Plugins with relative paths fail in URL-based marketplaces&#34;.
+        *   Explains *why* (URL downloads only the JSON, not the files) and offers *solutions* (use external sources like GitHub/npm, or use Git-based marketplace).
+        *   *Insight:* Critical fix for plugin developers distributing via raw URLs. You can&#39;t use local relative paths in the JSON if hosting via a simple URL; you must point to external repos.
+
+    *   **`settings.md`:**
+        *   Added the same `&lt;Note&gt;` as `plugin-marketplaces.md` regarding URL-based marketplaces and relative paths.
+        *   *Insight:* Consistency in warning users about the limitation of URL-based plugin sources.
+
+3.  **Synthesize Key Themes:**
+    *   **Plugin Marketplace Limitations:** A significant push to clarify that &#34;URL-based&#34; marketplaces (direct link to JSON) cannot handle plugins defined by relative paths (`&#34;./plugin-dir&#34;`). Only Git-based marketplaces support relative paths.
+    *   **Syntax Clarification:** `memory.md` now strictly prefers list syntax for paths and clarifies brace expansion.
+    *   **IAM Refinements:** Minor adjustment to the `LS` tool classification in the IAM docs.
+
+4.  **Determine Impact Level:**
+    *   **Reasoning:** The change regarding relative paths in URL-based marketplaces is critical for plugin authors. If they currently host a `marketplace.json` on a static host and use relative paths, their setup is broken or misleading. This requires an architectural change (switch to Git hosting or change JSON to point to GitHub/npm).
+    *   **Level:** Medium to High. It&#39;s likely &#34;Breaking&#34; for specific workflows, but overall &#34;High&#34; impact for those affected.
+
+5.  **Draft Action Items:**
+    *   Review how `marketplace.json` is hosted. If via URL, ensure no relative paths are used.
+    *   Update `memory.md` configurations to use the YAML list format for paths.
+    *   Note that `LS` tool permissions are slightly adjusted in IAM.
+
+6.  **Translate and Format into Chinese (as requested):**
+
+    *   *Overall Summary:* 此次更新主要修正了插件市场中相对路径的限制，强化了 URL 与 Git 托管的区别，同时优化了 Memory 配置的语法说明。
+    *   *Key Themes:*
+        *   插件市场 (Plugin Marketplace) 托管模式限制
+        *   Memory (记忆) 配置路径语法规范
+        *   IAM 权限工具列表微调
+    *   *Impact:* High (or Medium/High depending on strictness). Let&#39;s call it **Medium-High** because it addresses a breaking behavior scenario for plugin authors.
+    *   *Action Items:*
+        *   Check plugin distribution method.
+        *   Update memory config format.
+        *   Review IAM docs.
+
+7.  **Refine the Output (Self-Correction during drafting):**
+    *   Make sure to emphasize the &#34;URL vs Git&#34; distinction for plugins. That&#39;s the biggest code-affecting change.
+    *   For Memory, it&#39;s a syntax preference/enforcement.
+    *   For IAM, it&#39;s documentation cleanup (removing LS).
+
+8.  **Final Polish (Markdown Structure):**
+
+    ```markdown
+    ### Overall Summary
+    此次更新重点阐明了插件市场中 URL 托管与 Git 托管的差异，特别是针对“相对路径”的限制，同时规范了 Memory 配置文件的路径写法，并微调了 IAM 权限文档。
+
+    ### Key Themes
+    - **插件托管架构限制**：明确了通过直接 URL 添加的市场place无法解析相对路径，必须使用 Git 或外部源。
+    - **配置语法规范化**：Memory 中的 `paths` 字段强制要求使用 YAML 列表格式，并澄清了花括号展开的用法。
+    - **权限工具精简**：IAM 文档中移除了 `LS` 工具的特定提及，微调了只读工具的定义范围。
+
+    ### Impact Level
+    **Medium-High**
+    **Reasoning:** 对于插件开发者而言，如果当前通过静态 URL 托管 `marketplace.json` 且使用了相对路径，这是潜在的破坏性变更，需要立即迁移至 Git 托管或改用外部源链接。
+
+    ### Action items for developers
+    1. **检查插件分发配置**：如果你通过 URL 托管 `marketplace.json`，请移除 `source` 字段中的相对路径（如 `./plugins/...`），改用 GitHub、npm 或 git URL 作为源。
+    2. **更新 Memory 配置**：将 `.claude/memory` 文件中的 `paths` 格式从单行字符串改为 YAML 列表格式（如 `- &#34;path/to/file&#34;`）。
+    3. **注意路径解析**：仅当通过 Git 克隆添加市场时，相对路径插件才能正常工作。
+    4. **查阅故障排除**：遇到插件安装“Path not found”错误时，参考新增的故障排除章节。
+    ```
+
+    *Looks good. Meets all criteria.*</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/discover-plugins.html" class="page-link">discover-plugins.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/iam.html" class="page-link">iam.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/memory.html" class="page-link">memory.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+10</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugin-marketplaces.html" class="page-link">plugin-marketplaces.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+9</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">20:25 EST</div>
