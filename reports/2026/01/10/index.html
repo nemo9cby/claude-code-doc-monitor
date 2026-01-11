@@ -118,9 +118,148 @@
 
         <header>
             <h1>Changes on 2026-01-10</h1>
-            <p class="meta">4 total changes in 2 runs</p>
+            <p class="meta">7 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">20:25 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 总体摘要
+本次更新重点完善了 Hooks（钩子）系统的文档与实战指南，详细补充了核心工具的 `PreToolUse` 输入模式，并提供了完整的数据库权限校验脚本。此外，新增了环境变量以控制后台任务行为，旨在帮助开发者更轻松地实现细粒度的工具拦截与权限控制。
+
+### 关键主题
+*   **补全核心工具的输入 Schema：** `hooks.md` 新增了 Bash、Write、Edit 和 Read 四种常用工具在 `PreToolUse` 钩子中的详细 JSON 结构和字段说明，解决了以往文档模糊的问题。
+*   **实战案例具体化：** `sub-agents.md` 提供了完整的可执行 Bash 脚本，展示了如何利用 `jq` 解析 JSON 输入并拦截 SQL 写操作，填补了“如何写钩子”的空白。
+*   **细粒度权限控制：** 强调了通过 Hooks 实现“只读数据库”等复杂逻辑的能力，超越了简单的工具列表限制。
+*   **环境变量增强：** 引入 `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS` 以彻底关闭后台任务功能。
+
+### 影响级别
+**级别：中等**
+
+**理由：** 虽然没有破坏性 API 变更，但新增的详细 Schema 定义和完整的代码示例显著降低了开发者实现复杂钩子逻辑（如命令校验、文件操作拦截）的门槛。环境变量的增加也为运维配置提供了更多灵活性。
+
+### 开发者行动项
+*   如果您正在编写 `PreToolUse` 钩子，请参考 `hooks.md` 中关于 Bash、Write、Edit 和 Read 工具的具体字段定义（如 `timeout`, `file_path`, `replace_all` 等）。
+*   如果需要限制 AI 只能执行只读数据库查询，直接复用 `sub-agents.md` 中的 `validate-readonly-query.sh` 脚本逻辑。
+*   确保您的钩子脚本能正确读取 stdin 的 JSON 输入，并正确使用**退出码 2** 来阻止操作并返回错误信息。
+*   如需禁用自动后台化和 Ctrl+B 快捷键，请设置环境变量 `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1`。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Input:** Three changed pages (`hooks.md`, `sub-agents.md`, `CHANGELOG.md.md`).
+    *   **Goal:** Provide a concise, insightful analysis in Markdown format, focusing on what matters to developers.
+    *   **Language:** Chinese.
+    *   **Format Constraints:**
+        1.  Overall Summary (1-2 sentences).
+        2.  Key Themes (bullets).
+        3.  Impact Level (Low/Medium/High/Breaking) with reasoning.
+        4.  Action Items (bullets, max 5).
+
+2.  **Analyze the Changes:**
+
+    *   **Page 1: `hooks.md` (+36 / -1)**
+        *   *Change:* Added detailed examples for `PreToolUse` input schemas for four specific tools: Bash, Write, Edit, and Read.
+        *   *Content:* Added JSON examples and tables explaining fields like `command`, `timeout`, `file_path`, `content`, `old_string`, etc.
+        *   *Significance:* Makes it much easier for developers to write hooks that inspect or modify tool inputs, moving from vague documentation to concrete references.
+
+    *   **Page 2: `sub-agents.md` (+35 / -2)**
+        *   *Change:* Expanded the example for creating a database query validator subagent.
+        *   *Content:* Replaced a placeholder description with a full, executable bash script example (`validate-readonly-query.sh`). Added a new section &#34;Database query validator&#34; at the end.
+        *   *Details:* Shows how to read JSON from stdin, parse with `jq`, detect SQL keywords, and use exit code 2 to block operations. Repeated concepts found in `hooks.md`.
+        *   *Significance:* Provides a practical, copy-pasteable solution for a common use case (restricting subagent permissions via hooks).
+
+    *   **Page 3: `CHANGELOG.md.md` (+3 / -0)**
+        *   *Change:* Added entry for version 2.1.4.
+        *   *Content:*
+            *   New Env Var: `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS`.
+            *   Bug Fix: &#34;Help improve Claude&#34; OAuth token refresh.
+        *   *Significance:* Minor feature addition and bug fix.
+
+3.  **Synthesize and Structure the Analysis (in Chinese):**
+
+    *   **Overall Summary:** 本次更新大幅增强了 Hooks 文档的实用性，详细补充了常用工具的输入模式，并提供了完整的数据库只读权限校验示例，帮助开发者更轻松地实现细粒度的工具控制。同时引入了禁用后台任务的环境变量。
+
+    *   **Key Themes:**
+        *   **完善 Hooks 文档:** `hooks.md` 新增了 Bash、Write、Edit、Read 四种核心工具的详细 JSON Schema 和字段说明，填补了之前的空白。
+        *   **实践案例落地:** `sub-agents.md` 提供了完整的 bash 脚本示例，展示了如何通过 `PreToolUse` 钩子拦截 SQL 写操作，实现了从理论到实践的跨越。
+        *   **精细化权限控制:** 强调了利用 Hooks 进行条件验证（如只读数据库），超越了简单的工具启用/禁用配置。
+        *   **配置灵活性:** 新增环境变量 `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS` 以控制后台任务行为。
+
+    *   **Impact Level:**
+        *   **Level:** Medium (中等)
+        *   **Reasoning:** 虽然没有破坏性 API 变更，但新增的详细文档和代码示例显著降低了开发者实现复杂钩子的难度。环境变量的增加提升了配置灵活性，属于功能增强。
+
+    *   **Action Items for Developers:**
+        *   如果您正在编写 `PreToolUse` 钩子，请查阅更新后的 `hooks.md` 获取 `tool_input` 的具体字段定义（特别是 Bash 和文件操作工具）。
+        *   如果需要限制 AI 对数据库的写入权限，参考 `sub-agents.md` 中的“Database query validator”示例和校验脚本。
+        *   确保您的钩子脚本正确处理 JSON 输入（通过 stdin）并使用正确的退出码（如退出码 2）来阻止操作。
+        *   如需完全禁用后台任务（包括自动后台化和 Ctrl+B 快捷键），设置环境变量 `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS`。
+
+4.  **Review and Refine:**
+    *   Check against constraints: Concise? Yes. Insightful? Yes. Markdown? Yes. Chinese? Yes.
+    *   *Self-Correction:* Ensure the connection between `hooks.md` schema addition and `sub-agents.md` example is clear. They are complementary. The changelog part is minor but worth mentioning in the summary.
+
+5.  **Final Output Generation.** (Proceeding to generate output based on the above steps).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+36</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+35</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">16:14 EST</div>
