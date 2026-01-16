@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>statusline - Diff Report</title>
+    <link rel="stylesheet" href="../../css/diff.css">
+    <style>
+        :root {
+            --bg-color: #1a1a2e;
+            --card-bg: #16213e;
+            --text-color: #eee;
+            --accent: #0f3460;
+            --add-bg: #1a4d1a;
+            --del-bg: #4d1a1a;
+            --add-text: #4ade80;
+            --del-text: #f87171;
+        }
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg-color: #f5f5f5;
+                --card-bg: #fff;
+                --text-color: #333;
+                --accent: #e0e0e0;
+                --add-bg: #d4edda;
+                --del-bg: #f8d7da;
+                --add-text: #155724;
+                --del-text: #721c24;
+            }
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        header { margin-bottom: 2rem; }
+        h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+        .meta { color: #888; font-size: 0.9rem; }
+        .summary {
+            background: var(--card-bg);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 2rem;
+        }
+        .stat { display: flex; align-items: center; gap: 0.5rem; }
+        .stat.added { color: var(--add-text); }
+        .stat.removed { color: var(--del-text); }
+        .analysis {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            border-left: 4px solid #8b5cf6;
+        }
+        .analysis-header {
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: #8b5cf6;
+        }
+        .analysis-content {
+            white-space: pre-wrap;
+            font-size: 0.95rem;
+            line-height: 1.7;
+        }
+        .diff-container {
+            background: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .diff-header {
+            background: var(--accent);
+            padding: 0.75rem 1rem;
+            font-weight: 600;
+        }
+        .diff-content {
+            padding: 1rem;
+            overflow-x: auto;
+        }
+        .diff-content ins {
+            background: var(--add-bg);
+            color: var(--add-text);
+            text-decoration: none;
+            padding: 0.1em 0.2em;
+            border-radius: 2px;
+        }
+        .diff-content del {
+            background: var(--del-bg);
+            color: var(--del-text);
+            text-decoration: line-through;
+            padding: 0.1em 0.2em;
+            border-radius: 2px;
+        }
+        pre {
+            background: var(--accent);
+            padding: 1rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 0.85rem;
+            margin-top: 2rem;
+        }
+        a { color: #60a5fa; }
+        .back-link { margin-bottom: 1rem; display: inline-block; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../index.html" class="back-link">&larr; Back to daily report</a>
+
+        <header>
+            <h1>statusline.md</h1>
+            <p class="meta">Changed on 2026-01-16 10:19:13 EST</p>
+        </header>
+
+        <div class="summary">
+            <div class="stat added">
+                <span>+9</span> lines added
+            </div>
+            <div class="stat removed">
+                <span>-1</span> lines removed
+            </div>
+        </div>
+
+        
+
+        <div class="diff-container">
+            <div class="diff-header">Visual Diff</div>
+            <div class="diff-content"><span># Status line configuration&para;<br>&para;<br>&gt; Create a custom status line for Claude Code to display contextual information&para;<br>&para;<br>Make Claude Code your own with a custom status line that displays at the bottom of the Claude Code interface, similar to how terminal prompts (PS1) work in shells like Oh-my-zsh.&para;<br>&para;<br>## Create a custom status line&para;<br>&para;<br>You can either:&para;<br>&para;<br>* Run `/statusline` to ask Claude Code to help you set up a custom status line. By default, it will try to reproduce your terminal's prompt, but you can provide additional instructions about the behavior you want to Claude Code, such as `/statusline show the model name in orange`&para;<br>&para;<br>* Directly add a `statusLine` command to your `.claude/settings.json`:&para;<br>&para;<br>```json  theme={null}&para;<br>{&para;<br>  "statusLine": {&para;<br>    "type": "command",&para;<br>    "command": "~/.claude/statusline.sh",&para;<br>    "padding": 0 // Optional: set to 0 to let status line go to edge&para;<br>  }&para;<br>}&para;<br>```&para;<br>&para;<br>## How it Works&para;<br>&para;<br>* The status line is updated when the conversation messages update&para;<br>* Updates run at most every 300 ms&para;<br>* The first line of stdout from your command becomes the status line text&para;<br>* ANSI color codes are supported for styling your status line&para;<br>* Claude Code passes contextual information about the current session (model, directories, etc.) as JSON to your script via stdin&para;<br>&para;<br>## JSON Input Structure&para;<br>&para;<br>Your status line command receives structured data via stdin in JSON format:&para;<br>&para;<br>```json  theme={null}&para;<br>{&para;<br>  "hook_event_name": "Status",&para;<br>  "session_id": "abc123...",&para;<br>  "transcript_path": "/path/to/transcript.json",&para;<br>  "cwd": "/current/working/directory",&para;<br>  "model": {&para;<br>    "id": "claude-opus-4-1",&para;<br>    "display_name": "Opus"&para;<br>  },&para;<br>  "workspace": {&para;<br>    "current_dir": "/current/working/directory",&para;<br>    "project_dir": "/original/project/directory"&para;<br>  },&para;<br>  "version": "1.0.80",&para;<br>  "output_style": {&para;<br>    "name": "default"&para;<br>  },&para;<br>  "cost": {&para;<br>    "total_cost_usd": 0.01234,&para;<br>    "total_duration_ms": 45000,&para;<br>    "total_api_duration_ms": 2300,&para;<br>    "total_lines_added": 156,&para;<br>    "total_lines_removed": 23&para;<br>  },&para;<br>  "context_window": {&para;<br>    "total_input_tokens": 15234,&para;<br>    "total_output_tokens": 4521,&para;<br>    "context_window_size": 200000,&para;<br></span><ins style="background:#e6ffe6;">    "used_percentage": 42.5,&para;<br>    "remaining_percentage": 57.5,&para;<br></ins><span>    "current_usage": {&para;<br>      "input_tokens": 8500,&para;<br>      "output_tokens": 1200,&para;<br>      "cache_creation_input_tokens": 5000,&para;<br>      "cache_read_input_tokens": 2000&para;<br>    }&para;<br>  }&para;<br>}&para;<br>```&para;<br>&para;<br>## Example Scripts&para;<br>&para;<br>### Simple Status Line&para;<br>&para;<br>```bash  theme={null}&para;<br>#!/bin/bash&para;<br># Read JSON input from stdin&para;<br>input=$(cat)&para;<br>&para;<br># Extract values using jq&para;<br>MODEL_DISPLAY=$(echo "$input" | jq -r '.model.display_name')&para;<br>CURRENT_DIR=$(echo "$input" | jq -r '.workspace.current_dir')&para;<br>&para;<br>echo "[$MODEL_DISPLAY] 📁 ${CURRENT_DIR##*/}"&para;<br>```&para;<br>&para;<br>### Git-Aware Status Line&para;<br>&para;<br>```bash  theme={null}&para;<br>#!/bin/bash&para;<br># Read JSON input from stdin&para;<br>input=$(cat)&para;<br>&para;<br># Extract values using jq&para;<br>MODEL_DISPLAY=$(echo "$input" | jq -r '.model.display_name')&para;<br>CURRENT_DIR=$(echo "$input" | jq -r '.workspace.current_dir')&para;<br>&para;<br># Show git branch if in a git repo&para;<br>GIT_BRANCH=""&para;<br>if git rev-parse --git-dir &gt; /dev/null 2&gt;&amp;1; then&para;<br>    BRANCH=$(git branch --show-current 2&gt;/dev/null)&para;<br>    if [ -n "$BRANCH" ]; then&para;<br>        GIT_BRANCH=" | 🌿 $BRANCH"&para;<br>    fi&para;<br>fi&para;<br>&para;<br>echo "[$MODEL_DISPLAY] 📁 ${CURRENT_DIR##*/}$GIT_BRANCH"&para;<br>```&para;<br>&para;<br>### Python Example&para;<br>&para;<br>```python  theme={null}&para;<br>#!/usr/bin/env python3&para;<br>import json&para;<br>import sys&para;<br>import os&para;<br>&para;<br># Read JSON from stdin&para;<br>data = json.load(sys.stdin)&para;<br>&para;<br># Extract values&para;<br>model = data['model']['display_name']&para;<br>current_dir = os.path.basename(data['workspace']['current_dir'])&para;<br>&para;<br># Check for git branch&para;<br>git_branch = ""&para;<br>if os.path.exists('.git'):&para;<br>    try:&para;<br>        with open('.git/HEAD', 'r') as f:&para;<br>            ref = f.read().strip()&para;<br>            if ref.startswith('ref: refs/heads/'):&para;<br>                git_branch = f" | 🌿 {ref.replace('ref: refs/heads/', '')}"&para;<br>    except:&para;<br>        pass&para;<br>&para;<br>print(f"[{model}] 📁 {current_dir}{git_branch}")&para;<br>```&para;<br>&para;<br>### Node.js Example&para;<br>&para;<br>```javascript  theme={null}&para;<br>#!/usr/bin/env node&para;<br>&para;<br>const fs = require('fs');&para;<br>const path = require('path');&para;<br>&para;<br>// Read JSON from stdin&para;<br>let input = '';&para;<br>process.stdin.on('data', chunk =&gt; input += chunk);&para;<br>process.stdin.on('end', () =&gt; {&para;<br>    const data = JSON.parse(input);&para;<br>    &para;<br>    // Extract values&para;<br>    const model = data.model.display_name;&para;<br>    const currentDir = path.basename(data.workspace.current_dir);&para;<br>    &para;<br>    // Check for git branch&para;<br>    let gitBranch = '';&para;<br>    try {&para;<br>        const headContent = fs.readFileSync('.git/HEAD', 'utf8').trim();&para;<br>        if (headContent.startsWith('ref: refs/heads/')) {&para;<br>            gitBranch = ` | 🌿 ${headContent.replace('ref: refs/heads/', '')}`;&para;<br>        }&para;<br>    } catch (e) {&para;<br>        // Not a git repo or can't read HEAD&para;<br>    }&para;<br>    &para;<br>    console.log(`[${model}] 📁 ${currentDir}${gitBranch}`);&para;<br>});&para;<br>```&para;<br>&para;<br>### Helper Function Approach&para;<br>&para;<br>For more complex bash scripts, you can create helper functions:&para;<br>&para;<br>```bash  theme={null}&para;<br>#!/bin/bash&para;<br># Read JSON input once&para;<br>input=$(cat)&para;<br>&para;<br># Helper functions for common extractions&para;<br>get_model_name() { echo "$input" | jq -r '.model.display_name'; }&para;<br>get_current_dir() { echo "$input" | jq -r '.workspace.current_dir'; }&para;<br>get_project_dir() { echo "$input" | jq -r '.workspace.project_dir'; }&para;<br>get_version() { echo "$input" | jq -r '.version'; }&para;<br>get_cost() { echo "$input" | jq -r '.cost.total_cost_usd'; }&para;<br>get_duration() { echo "$input" | jq -r '.cost.total_duration_ms'; }&para;<br>get_lines_added() { echo "$input" | jq -r '.cost.total_lines_added'; }&para;<br>get_lines_removed() { echo "$input" | jq -r '.cost.total_lines_removed'; }&para;<br>get_input_tokens() { echo "$input" | jq -r '.context_window.total_input_tokens'; }&para;<br>get_output_tokens() { echo "$input" | jq -r '.context_window.total_output_tokens'; }&para;<br>get_context_window_size() { echo "$input" | jq -r '.context_window.context_window_size'; }&para;<br>&para;<br># Use the helpers&para;<br>MODEL=$(get_model_name)&para;<br>DIR=$(get_current_dir)&para;<br>echo "[$MODEL] 📁 ${DIR##*/}"&para;<br>```&para;<br>&para;<br>### Context Window Usage&para;<br>&para;<br>Display the percentage of context window consumed. The `context_window` object contains:&para;<br>&para;<br>* `total_input_tokens` / `total_output_tokens`: Cumulative totals across the entire session&para;<br></span><ins style="background:#e6ffe6;">* `used_percentage`: Pre-calculated percentage of context window used (0-100)&para;<br>* `remaining_percentage`: Pre-calculated percentage of context window remaining (0-100)&para;<br></ins><span>* `current_usage`: Current context window usage from the last API call (may be `null` if no messages yet)&para;<br>  * `input_tokens`: Input tokens in current context&para;<br>  * `output_tokens`: Output tokens generated&para;<br>  * `cache_creation_input_tokens`: Tokens written to cache&para;<br>  * `cache_read_input_tokens`: Tokens read from cache&para;<br>&para;<br></span><del style="background:#ffe6e6;">For ac</del><ins style="background:#e6ffe6;">You can use the pre-cal</ins><span>cu</span><del style="background:#ffe6e6;">r</del><ins style="background:#e6ffe6;">l</ins><span>ate</span><del style="background:#ffe6e6;"> context percentage, use `current_usage` which reflects the actual </del><ins style="background:#e6ffe6;">d `used_percentage` and `remaining_percentage` fields directly, or calculate from `current_usage` for more control.&para;<br>&para;<br>**Simple approach using pre-calculated percentages:**&para;<br>&para;<br>```bash  theme={null}&para;<br>#!/bin/bash&para;<br>input=$(cat)&para;<br>&para;<br>MODEL=$(echo "$input" | jq -r '.model.display_name')&para;<br>PERCENT_USED=$(echo "$input" | jq -r '.</ins><span>context</span><del style="background:#ffe6e6;"> </del><ins style="background:#e6ffe6;">_</ins><span>window</span><del style="background:#ffe6e6;"> state:</del><ins style="background:#e6ffe6;">.used_percentage // 0')&para;<br>&para;<br>echo "[$MODEL] Context: ${PERCENT_USED}%"&para;<br>```&para;<br>&para;<br>**Advanced approach with manual calculation:**</ins><span>&para;<br>&para;<br>```bash  theme={null}&para;<br>#!/bin/bash&para;<br>input=$(cat)&para;<br>&para;<br>MODEL=$(echo "$input" | jq -r '.model.display_name')&para;<br>CONTEXT_SIZE=$(echo "$input" | jq -r '.context_window.context_window_size')&para;<br>USAGE=$(echo "$input" | jq '.context_window.current_usage')&para;<br>&para;<br>if [ "$USAGE" != "null" ]; then&para;<br>    # Calculate current context from current_usage fields&para;<br>    CURRENT_TOKENS=$(echo "$USAGE" | jq '.input_tokens + .cache_creation_input_tokens + .cache_read_input_tokens')&para;<br>    PERCENT_USED=$((CURRENT_TOKENS * 100 / CONTEXT_SIZE))&para;<br>    echo "[$MODEL] Context: ${PERCENT_USED}%"&para;<br>else&para;<br>    echo "[$MODEL] Context: 0%"&para;<br>fi&para;<br>```&para;<br>&para;<br>## Tips&para;<br>&para;<br>* Keep your status line concise - it should fit on one line&para;<br>* Use emojis (if your terminal supports them) and colors to make information scannable&para;<br>* Use `jq` for JSON parsing in Bash (see examples above)&para;<br>* Test your script by running it manually with mock JSON input: `echo '{"model":{"display_name":"Test"},"workspace":{"current_dir":"/test"}}' | ./statusline.sh`&para;<br>* Consider caching expensive operations (like git status) if needed&para;<br>&para;<br>## Troubleshooting&para;<br>&para;<br>* If your status line doesn't appear, check that your script is executable (`chmod +x`)&para;<br>* Ensure your script outputs to stdout (not stderr)&para;<br>&para;<br>&para;<br>---&para;<br>&para;<br>&gt; To find navigation and other pages in this documentation, fetch the llms.txt file at: https://code.claude.com/docs/llms.txt</span></div>
+        </div>
+
+        <h2 style="margin-top: 2rem; margin-bottom: 1rem;">Unified Diff</h2>
+        <pre><code>--- a/statusline.md
++++ b/statusline.md
+@@ -63,6 +63,8 @@
+     &#34;total_input_tokens&#34;: 15234,
+     &#34;total_output_tokens&#34;: 4521,
+     &#34;context_window_size&#34;: 200000,
++    &#34;used_percentage&#34;: 42.5,
++    &#34;remaining_percentage&#34;: 57.5,
+     &#34;current_usage&#34;: {
+       &#34;input_tokens&#34;: 8500,
+       &#34;output_tokens&#34;: 1200,
+@@ -207,13 +209,29 @@
+ Display the percentage of context window consumed. The `context_window` object contains:
+ 
+ * `total_input_tokens` / `total_output_tokens`: Cumulative totals across the entire session
++* `used_percentage`: Pre-calculated percentage of context window used (0-100)
++* `remaining_percentage`: Pre-calculated percentage of context window remaining (0-100)
+ * `current_usage`: Current context window usage from the last API call (may be `null` if no messages yet)
+   * `input_tokens`: Input tokens in current context
+   * `output_tokens`: Output tokens generated
+   * `cache_creation_input_tokens`: Tokens written to cache
+   * `cache_read_input_tokens`: Tokens read from cache
+ 
+-For accurate context percentage, use `current_usage` which reflects the actual context window state:
++You can use the pre-calculated `used_percentage` and `remaining_percentage` fields directly, or calculate from `current_usage` for more control.
++
++**Simple approach using pre-calculated percentages:**
++
++```bash  theme={null}
++#!/bin/bash
++input=$(cat)
++
++MODEL=$(echo &#34;$input&#34; | jq -r &#39;.model.display_name&#39;)
++PERCENT_USED=$(echo &#34;$input&#34; | jq -r &#39;.context_window.used_percentage // 0&#39;)
++
++echo &#34;[$MODEL] Context: ${PERCENT_USED}%&#34;
++```
++
++**Advanced approach with manual calculation:**
+ 
+ ```bash  theme={null}
+ #!/bin/bash
+</code></pre>
+    </div>
+</body>
+</html>
