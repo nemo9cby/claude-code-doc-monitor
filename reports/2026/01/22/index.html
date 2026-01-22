@@ -118,9 +118,197 @@
 
         <header>
             <h1>Changes on 2026-01-22</h1>
-            <p class="meta">3 total changes in 3 runs</p>
+            <p class="meta">9 total changes in 4 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">15:21 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 整体摘要
+此次更新主要将沙盒功能扩展至 WSL2 平台，并引入了必要的系统依赖要求。同时，CLI 的子代理配置逻辑进行了优化，默认模型行为从“指定默认值”改为“继承主会话模型”。
+
+### 关键变更主题
+*   **WSL2 沙盒支持**：正式在 Linux/macOS 之外增加了对 WSL2 的沙盒支持（基于 `bubblewrap`），明确排除了 WSL1。
+*   **强制依赖安装**：在 Linux 和 WSL2 上启用沙盒功能前，用户必须手动安装 `bubblewrap` 和 `socat` 包。
+*   **子代理模型继承**：`--agents` 配置中新增 `inherit` 选项并将其设为默认值，使子代理默认跟随主对话的模型，而非使用固定的默认模型。
+*   **稳定性修复**：Changelog 显示修复了 Windows 界面渲染的竞态条件、大量子代理使用时的内存溢出（OOM）崩溃等问题。
+
+### 影响级别
+**Medium** (中等)
+虽然引入了新的平台支持，但 WSL2 用户若不安装依赖将无法使用沙盒功能，这增加了部署步骤。子代理默认行为的改变（改为继承模型）可能影响现有的工作流预期。
+
+### 开发者行动项
+1.  **WSL2 用户**：若需使用沙盒功能，请立即安装依赖：`sudo apt-get install bubblewrap socat` (Debian/Ubuntu) 或 `sudo dnf install bubblewrap socat` (Fedora)。
+2.  **WSL1 用户**：注意当前不支持沙盒，建议升级至 WSL2 以获取完整的安全隔离体验。
+3.  **审查子代理配置**：检查您的 CLI 配置或脚本，确认子代理是否需要显式指定模型，否则它们现在将自动继承主会话的模型。
+4.  **利用新功能**：尝试 VSCode 插件管理功能和新的任务依赖跟踪系统。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1. **分析输入：**
+    *   **角色：** 世界级程序员/文档分析师。
+    *   **任务：** 分析文档变更批次。提供简明的、有见地的 Markdown 分析。
+    *   **目标受众：** 开发者（关注重要事项）。
+    *   **语言：** 中文。
+    *   **输入：** 6 个文件的 Diff（cli-reference.md, sandboxing.md, settings.md, setup.md, troubleshooting.md, CHANGELOG.md.md）。
+
+2. **分析每个文件的 Diff：**
+
+    *   **cli-reference.md：**
+        *   变更：`--agents` 标志的 `model` 字段描述。
+        *   旧值：`sonnet`, `opus`, `haiku`。默认：默认子代理模型。
+        *   新值：`sonnet`, `opus`, `haiku`, 或 `inherit`。默认：`inherit`（使用主对话的模型）。
+        *   *影响：* 对子代理的模型配置进行了改进，默认为继承上下文。
+
+    *   **sandboxing.md：**
+        *   变更：增加了对 **WSL2** 的明确支持。
+        *   细节：WSL2 使用 `bubblewrap`（像 Linux 一样）。WSL1 *不*受支持。
+        *   增加了一个“前提条件”部分，列出了 Linux/WSL2 所需的软件包（`bubblewrap`, `socat`）。
+        *   更新了平台支持文本：“支持 macOS, Linux 和 WSL2。WSL1 不支持。计划支持原生 Windows。”
+
+    *   **settings.md：**
+        *   变更：更新了 `enabled` 键的描述以包含 WSL2。
+        *   变更：更新了 `enableWeakerNestedSandbox` 键的描述以包含 WSL2。
+        *   *影响：* 配置文档与平台支持变更保持一致。
+
+    *   **setup.md：**
+        *   变更：添加了重复的 `theme={null}` 字符串到代码块中（看起来像是一个 lint/formatting 伪影，对内容没有功能影响，但值得注意可能存在文档生成 bug）。
+        *   变更：更新了 WSL 部分。提到 WSL2 支持沙盒，WSL1 不支持。
+        *   *影响：* 设置时的澄清。
+
+    *   **troubleshooting.md：**
+        *   变更：增加了“WSL2 沙盒设置”部分。
+        *   内容：如果是缺失依赖项会出现的错误。安装 `bubblewrap` 和 `socat` 的说明。关于 WSL1 不支持的警告。
+        *   *影响：* 帮助用户在 WSL2 上修复沙盒问题。
+
+    *   **CHANGELOG.md.md：**
+        *   版本 2.1.16。
+        *   新功能：任务管理系统（依赖跟踪），VSCode 插件管理。
+        *   修复：OOM 崩溃（子代理），“context remaining”警告，语言设置会话标题，Windows IDE 竞态条件。
+        *   *影响：* 一般性版本更新，验证了其他文档中所见的 WSL/沙盒变更。
+
+3. **综合关键主题：**
+    *   **沙盒扩展：** 主要功能是向 WSL2 扩展沙盒支持，并明确排除 WSL1。
+    *   **依赖管理：** 在 Linux/WSL2 上启用沙盒现在需要特定的系统包（`bubblewrap`, `socat`）。
+    *   **子代理配置：** 更改了子代理的默认模型行为以继承父级模型。
+    *   **稳定性/修复：** 更新日志显示对 OOM 和 Windows UI 的修复。
+
+4. **起草回复（按要求使用中文）：**
+
+    *   **Overall Summary (整体摘要)：** 此次更新显著扩展了平台支持，将沙盒功能引入 WSL2，并优化了子代理的模型配置。主要强调安全隔离的可用性以及对依赖项的需求。
+
+    *   **Key Themes (关键主题)：**
+        *   **WSL2 沙盒支持：** 明确增加了对 WSL2 的沙盒支持，排除了 WSL1（因为缺乏内核特性）。
+        *   **依赖项管理：** Linux 和 WSL2 用户现在必须手动安装 `bubblewrap` 和 `socat` 才能使用沙盒功能。
+        *   **子代理配置：** `--agents` 标志现在支持 `inherit` 作为模型参数的默认值，允许子代理使用主对话的模型。
+        *   **Bug 修复与稳定性：** 更新日志包含针对 Windows UI 竞态条件、OOM 崩溃和会话恢复错误的修复。
+
+    *   **Impact Level (影响级别)：** **Medium**（中）。对 WSL2 用户来说是积极的（安全性），但增加了设置步骤（依赖项）。子代理行为的变更改变了默认行为（继承 vs 特定模型），虽然通常是向后兼容的，但会影响行为。
+
+    *   **Action Items (行动项)：**
+        *   **WSL2 用户：** 如果使用沙盒，请运行 `sudo apt-get install bubblewrap socat`（或相应的 dnf 命令）。
+        *   **WSL1 用户：** 请注意沙盒不受支持；如有需要请升级到 WSL2。
+        *   **子代理用户：** 审查子代理配置；如果未指定 `model`，它们现在默认继承主模型。
+        *   **VSCode 用户：** 检查新的插件管理功能和会话恢复功能。
+
+5. **审查与润色：**
+    *   确保语气专业（“世界级程序员”）。
+    *   检查 Markdown 格式。
+    *   检查语言（中文）。
+    *   *起草时的自我修正：* `setup.md` 中的“theme={null”变更似乎是格式化噪音，与开发者无关，我将忽略它以保持“专注于重要事项”。
+
+6. **最终输出生成：**（继续根据第 4 步生成输出）。</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/cli-reference.html" class="page-link">cli-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sandboxing.html" class="page-link">sandboxing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+15</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/setup.html" class="page-link">setup.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/troubleshooting.html" class="page-link">troubleshooting.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+11</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">14:21 EST</div>
