@@ -460,7 +460,7 @@ To prevent Claude Code from accessing files containing sensitive information lik
 }
 ```
 
-This replaces the deprecated `ignorePatterns` configuration. Files matching these patterns will be completely invisible to Claude Code, preventing any accidental exposure of sensitive data.
+This replaces the deprecated `ignorePatterns` configuration. Files matching these patterns are excluded from file discovery and search results, and read operations on these files are denied.
 
 ## Subagent configuration
 
