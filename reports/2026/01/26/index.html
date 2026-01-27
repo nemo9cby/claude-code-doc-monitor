@@ -118,9 +118,161 @@
 
         <header>
             <h1>Changes on 2026-01-26</h1>
-            <p class="meta">7 total changes in 1 run</p>
+            <p class="meta">10 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">22:44 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">## 总体摘要
+Claude Code 2.1.20 版本主要优化了插件市场的私有仓库认证机制，引入了 `hostPattern` 以支持企业级 Git 服务器的灵活配置，并修复了大量 UI 渲染、会话管理及权限处理的细节问题。
+
+## 关键主题
+*   **企业级市场管理增强**：新增 `hostPattern` 支持，允许通过正则表达式（Regex）批量放行内部 GitHub/GitLab 服务器的所有市场，无需逐一枚举仓库。
+*   **私有仓库认证策略调整**：明确区分了“手动安装/更新”（使用现有 Git credential helpers）与“后台自动更新”（依赖环境变量 Token）的认证逻辑。
+*   **UX 与稳定性修复**：针对全角字符/emoji 渲染、会话压缩恢复、历史记录导航及输入法交互进行了广泛修复。
+*   **权限规则变更**：放宽了权限通配符规则（如 `Bash(*)` 现等同于 `Bash`），并优化了配置备份机制。
+
+## 影响程度
+**中等**
+虽然不是破坏性变更，但私有仓库认证逻辑的细化对依赖私有插件的开发者至关重要。新引入的 `hostPattern` 显著降低了企业环境的管理成本，同时 `Bash(*)` 权限规则的变更可能影响现有的安全策略配置。
+
+## 开发者行动项
+1.  **配置私有仓库认证**：确保终端的 `git credential helper`（如 `gh auth login`）配置正确以供手动操作使用，并设置环境变量（如 `GITHUB_TOKEN`）以支持后台自动更新。
+2.  **更新市场白名单策略**：管理员应利用新的 `hostPattern` 字段替换繁琐的单个仓库枚举，以统一管理内部 Git 服务器上的插件源。
+3.  **审查权限规则**：注意 `Bash(*)` 等通配符权限现在被视为等效于精确匹配，请据此调整 managed settings 中的安全策略。
+4.  **利用新功能**：尝试使用改进的 `/sandbox` 命令查看依赖状态，或使用 `TaskUpdate` 工具删除不需要的任务。
+5.  **关注配置备份**：了解配置文件现在会自动保留最近 5 个带时间戳的备份，以防数据丢失。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Understand the Goal**: The user wants a concise, insightful analysis of documentation changes for Claude Code, presented in markdown, in Chinese. The analysis should focus on what matters to developers. I need to process three pages: `plugin-marketplaces.md`, `settings.md`, and `CHANGELOG.md.md`.
+
+2.  **Analyze the Input**:
+
+    *   **Page 1: `plugin-marketplaces.md` (+14 / -6)**
+        *   *Change 1 (Auth mechanism)*: Clarifies how private repositories are authenticated.
+            *   Manual/Updates: Uses git credential helpers (e.g., `gh auth login`, macOS Keychain). If `git clone` works, Claude Code works.
+            *   Background Auto-updates: Cannot use interactive helpers (blocks startup). Requires env vars like `GITHUB_TOKEN`.
+            *   Removed: &#34;Authentication tokens are only used when a repository requires authentication...&#34;
+        *   *Change 2 (New feature - `hostPattern`)*: Added a new way to allow marketplaces via regex matching on the host (e.g., `^github\.example\.com$`).
+        *   *Change 3 (Troubleshooting)*: Updated &#34;Private repository authentication fails&#34; section to distinguish between manual (git creds) and auto-update (env vars) scenarios.
+        *   *Theme*: Improves clarity on auth flow and introduces flexibility for enterprise/internal git servers.
+
+    *   **Page 2: `settings.md` (+17 / -3)**
+        *   *Change 1 (New source type)*: Added `hostPattern` to the list of marketplace source types.
+        *   *Change 2 (`strictKnownMarketplaces` logic)*: Updated description to note `hostPattern` uses regex matching, while others use exact matching.
+        *   *Change 3 (Detailed docs)*: Added section &#34;7. Host pattern matching&#34; with examples and host extraction logic (github.com, URL extraction, etc.).
+        *   *Change 4 (Examples)*: Added example JSON for allowing an internal git server via regex.
+        *   *Theme*: Formal documentation of the `hostPattern` feature seen in page 1.
+
+    *   **Page 3: `CHANGELOG.md.md` (+30 / -0)**
+        *   *Entry*: Version 2.1.20.
+        *   *Content*: A massive list of additions, fixes, and improvements.
+        *   *Highlights relevant to previous pages*:
+            *   &#34;Fixed marketplace source removal not properly deleting settings&#34; (connects to marketplace management).
+        *   *Other highlights*:
+            *   Arrow key history, PR review status, `CLAUDE.md` loading, task deletion, session compaction fixes, rendering fixes (emoji/CJK), JSON parsing fixes, `/sandbox` improvements, `/commit-push-pr` Slack integration, `/copy` command availability, permission handling changes (`Bash(*)` now equals `Bash`), config backup rotation.
+
+3.  **Synthesize and Structure**:
+
+    *   **Overall Summary**: Claude Code version 2.1.20 released significant enhancements to plugin marketplace management (specifically private repo authentication and enterprise flexibility) alongside a broad array of UI/UX fixes and stability improvements.
+
+    *   **Key Themes**:
+        *   **Enterprise &amp; Marketplace Enhancements**: The star here is `hostPattern` support in `strictKnownMarketplaces`, allowing admins to whitelist internal GitHub Enterprise/GitLab instances via regex rather than listing every repo. Also a crucial distinction between *interactive* auth (git credential helpers) and *background* auth (env tokens).
+        *   **Stability &amp; UX Fixes**: The changelog is packed with fixes for rendering (CJK/emojis), session management (compaction), and input handling.
+        *   **Feature Expansion**: New features like PR review status indicators, task deletion, and enhanced `/sandbox` commands.
+
+    *   **Impact Level**: **Medium**.
+        *   *Reasoning*: While not a &#34;breaking&#34; change, the modification to private repository authentication logic is significant behavior change (manual vs. background). The new `hostPattern` feature is a high-value feature for enterprise users. The changelog indicates a strong focus on polish and bug fixes, which improves the overall developer experience but doesn&#39;t necessarily force code changes unless developers were relying on specific auth behaviors or old permission logic.
+
+    *   **Action Items for Developers**:
+        *   **Update Auth Config**: If using private plugins, ensure `git credential helpers` are set up for manual use and `GITHUB_TOKEN` (or similar) is set for background auto-updates.
+        *   **Configure Enterprise Whitelisting**: Admins managing `strictKnownMarketplaces` should use the new `hostPattern` regex to simplify internal server whitelisting.
+        *   **Review Permission Rules**: Note the change in permission logic where `Bash(*)` is now treated as `Bash`.
+        *   **Check Config Backups**: Be aware that config backups are now timestamped/rotated (5 most recent).
+        *   **Utilize New Commands**: Explore the updated `/sandbox` (dependency status), `/copy` (now available to all), and `TaskUpdate` (deletion).
+
+4.  **Drafting the Response (in Chinese)**:
+
+    *   *Summary*: 2.1.20 版本发布，重点增强了插件市场的私有仓库认证机制和企业级权限管理，同时修复了大量 UI 渲染和会话稳定性问题。
+    *   *Themes*:
+        *   插件市场与企业支持：新增 `hostPattern` 正则匹配用于白名单管理，明确区分手动安装与后台更新的认证方式。
+        *   用户体验与稳定性：修复了字符渲染、会话恢复、历史导航等多个 UI/UX 细节。
+        *   权限与安全：优化了权限规则匹配逻辑（如通配符处理）。
+    *   *Impact*: Medium. 认证逻辑的变更需要开发者关注，特别是私有插件用户；新功能提升了企业管理的灵活性。
+    *   *Action Items*:
+        *   配置私有仓库认证：确保手动操作使用 `git credential helper`，后台更新设置环境变量。
+        *   使用 hostPattern：管理员利用正则表达式批量放行内部 Git 服务器。
+        *   注意权限变化：检查通配符权限（如 `Bash(*)`）的新处理方式。
+        *   利用新特性：尝试 `/sandbox` 依赖检查和任务删除功能。
+        *   备份机制：了解配置文件现在会保留最近 5 个备份。
+
+5.  **Refining the Output**: Make it concise and professional. Ensure technical terms like &#34;Credential Helpers&#34;, &#34;Regex&#34;, &#34;Background auto-updates&#34; are clear.
+
+    *   *Self-Correction during drafting*: The changelog mentions &#34;Changed permission rules like `Bash(*)` to be accepted and treated as equivalent to `Bash`&#34;. This is a security/behavior change worth mentioning in action items. The distinction between manual and background auth is the most critical technical change in the docs.
+
+6.  **Final Polish**: Check against the markdown format requested.
+
+    (Proceed to generate output).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugin-marketplaces.html" class="page-link">plugin-marketplaces.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+14</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+17</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+30</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">14:20 EST</div>
