@@ -118,9 +118,137 @@
 
         <header>
             <h1>Changes on 2026-01-30</h1>
-            <p class="meta">2 total changes in 1 run</p>
+            <p class="meta">3 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">16:23 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 1. Overall Summary
+版本 2.1.27 主要聚焦于提升 GitHub PR 工作流的集成度、修复 Windows 平台及 VSCode 环境下的兼容性问题，并显著收紧了权限控制逻辑。此次更新优化了会话管理与调试体验，特别是修正了权限判定优先级，确保更细粒度的安全控制生效。
+
+### 2. Key Themes
+*   **权限模型强化（关键变更）**：修正了权限评估逻辑，现在内容级别的 `ask`（询问）将严格覆盖工具级别的 `allow`（允许），防止宽泛的权限设置意外绕过敏感操作的安全检查。
+*   **GitHub PR 深度集成**：新增了与 PR 的自动关联及 `--from-pr` 恢复功能，无缝衔接 `gh pr create` 流程。
+*   **平台与稳定性修复**：重点解决了 Windows 下 Bash 执行（涉及 `.bashrc`）和子进程窗口闪烁问题，修复了 VSCode 中 OAuth 过期导致的 401 错误。
+*   **可观测性与 UI 改进**：增加了工具调用失败/拒绝的调试日志，修复了状态栏重复显示和 `/context` 命令无颜色的问题。
+
+### 3. Impact level
+**级别：High (高)**
+**理由**：尽管大多数为 Bug 修复，但权限系统的逻辑变更属于**行为层面的重要修改**（Breaking Change）。修改前，配置 `allow: [&#34;Bash&#34;]` 可能会隐式允许 `ask` 列表中的敏感操作（如 `rm`）；修改后，系统会严格拦截并提示。这直接影响用户的交互流程和安全预期。
+
+### 4. Action items for developers
+*   **审查并测试权限配置**：请检查现有的权限配置，特别是那些既包含 `allow` 又包含 `ask` 的规则，确保敏感操作现在的强制弹窗提示符合预期。
+*   **尝试新的 PR 工作流**：利用 `gh pr create` 自动关联会话，或在需要时使用 `--from-pr &lt;PR-number/URL&gt;` 恢复之前的上下文。
+*   **Windows 用户更新**：如果此前在 Windows 上遇到 `.bashrc` 导致的命令失败或控制台闪烁问题，请更新验证修复效果。
+*   **查看调试日志**：若遇到工具调用异常，检查新的调试日志以获取关于调用失败或拒绝的详细信息。
+*   **VSCode 用户留意**：检查长时间会话后是否还会出现 OAuth 401 错误，并确认 Chrome 集成功能已启用。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the User&#39;s Request:**
+    *   **Role:** World-class programmer, expert in developer tools and documentation.
+    *   **Task:** Analyze documentation changes (a single CHANGELOG diff) and summarize.
+    *   **Format:** Markdown (Specifically: 1. Overall Summary, 2. Key Themes, 3. Impact Level, 4. Action Items).
+    *   **Language:** Chinese (Please use Chinese to reply).
+    *   **Input:** A diff of `CHANGELOG.md.md` showing version `2.1.27`.
+
+2.  **Analyze the Input Data (CHANGELOG diff):**
+    *   *Version:* 2.1.27.
+    *   *Change 1:* Added tool call failures/denials to debug logs.
+        *   *Implication:* Better debugging for permission issues or tool execution errors.
+    *   *Change 2:* Fixed context management validation error for gateway users with `CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS=1`.
+        *   *Implication:* Fixes a specific error blocking gateway users who disable betas.
+    *   *Change 3:* Added `--from-pr` flag to resume sessions linked to a PR.
+        *   *Implication:* Improved workflow for PR management.
+    *   *Change 4:* Auto-link sessions to PRs when created via `gh pr create`.
+        *   *Implication:* Better integration with GitHub CLI.
+    *   *Change 5:* Fixed `/context` command color output.
+        *   *Implication:* UI/UX improvement.
+    *   *Change 6:* Fixed status bar duplication.
+        *   *Implication:* UI bug fix.
+    *   *Change 7:* VSCode: Enabled Claude in Chrome integration.
+        *   *Implication:* Feature enablement for VSCode users.
+    *   *Change 8 (CRITICAL):* Permissions now respect content-level `ask` over tool-level `allow`. Example: `allow: [&#34;Bash&#34;], ask: [&#34;Bash(rm *)&#34;]` prompts for `rm` instead of allowing it implicitly.
+        *   *Implication:* *Breaking Change* or significant behavior change regarding security/permissions. It tightens security.
+    *   *Change 9:* Windows: Fixed bash execution with `.bashrc`.
+        *   *Implication:* Windows compatibility fix.
+    *   *Change 10:* Windows: Fixed console flashing.
+        *   *Implication:* Windows UX fix.
+    *   *Change 11:* VSCode: Fixed OAuth token expiration (401 errors).
+        *   *Implication:* Stability fix for long sessions.
+
+3.  **Drafting the Analysis (Internal Monologue/Rough Draft):**
+
+    *   **Summary:** This release (2.1.27) focuses heavily on bug fixes, specifically for Windows, VSCode, and GitHub PR workflows. Crucially, it tightens permission logic to respect specific security overrides.
+    *   **Key Themes:**
+        *   Security/Permissions (The `ask` vs `allow` logic change).
+        *   GitHub Integration (PR linking).
+        *   Platform Stability (Windows and VSCode fixes).
+        *   Observability (Debug logs).
+    *   **Impact Level:** High. While most are fixes, the permission logic change affects how security policies are evaluated, which could change user behavior (more prompts). The Windows fixes are important for a subset of users.
+    *   **Action Items:**
+        *   Review permission settings (especially if you relied on `allow` being permissive).
+        *   Update to avoid Gateway validation errors.
+        *   Check `/context` colors if you rely on that.
+        *   Try the new `--from-pr` workflow.
+
+4.  **Refining into the Required Format (in Chinese):**
+
+    *   *Section 1: Overall Summary*
+        Version 2.1.27 主要是对 GitHub PR 集成、Windows 平台兼容性以及 VSCode 体验的改进。其中最重要的变化是收紧了权限控制逻辑，确保细粒度的安全设置（`ask`）能正确覆盖宽泛的工具设置（`allow`）。
+
+    *   *Section 2: Key Themes*
+        *   **权限与安全模型重大调整**：修正了权限判定优先级，强化了细粒度控制的安全性。
+        *   **GitHub PR 工作流增强**：增加了与 GitHub PR 的自动关联及恢复功能，提升开发体验。
+        *   **平台兼容性与稳定性修复**：重点解决了 Windows 下的 Bash 执行和窗口闪烁问题，以及 VSCode 中的 OAuth 过期错误。
+        *   **可观测性提升**：增加了工具调用失败和拒绝的调试日志。
+
+    *   *Section 3: Impact Level*
+        *   **级别：High (高)**
+        *   **理由**：虽然大部分是 Bug 修复，但关于权限系统的逻辑变更（`ask` 优先于 `allow`）属于行为层面的重大改变。这意味着原本可能被静默允许的敏感操作（如 `rm`）现在会触发提示，改变了交互流和安全性预期。
+
+    *   *Section 4: Action Items for developers*
+        *   **审查权限配置**：如果项目配置了 `allow` 配合 `ask`，请务必测试，因为敏感命令现在会强制触发提示而不是自动执行。
+        *   **利用新工作流**：尝试使用 `gh pr create` 创建 PR 或 `--from-pr` 标志，以体验会话恢复功能。
+        *   **关注日志**：利用新的调试日志来排查工具调用失败的具体原因。
+        *   **Windows 用户更新**：建议 Windows 用户（尤其是使用 `.bashrc` 的）更新以解决命令执行问题。
+        *   **VSCode 用户检查**：留意 OAuth 401 错误是否消失，以及 Chrome 集成是否已按预期启用。
+
+5.  **Final Review:**
+    *   Does it meet the constraints? Yes (Markdown, concise, insightful, Chinese).
+    *   Is the insight accurate? Yes, the permission change is the &#34;gotcha&#34; here.
+
+6.  **Final Output Generation** (Proceed to generate output based on step 4).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+12</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">13:35 EST</div>
