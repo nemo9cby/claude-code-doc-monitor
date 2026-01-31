@@ -118,9 +118,323 @@
 
         <header>
             <h1>Changes on 2026-01-30</h1>
-            <p class="meta">5 total changes in 4 runs</p>
+            <p class="meta">19 total changes in 5 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">23:01 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">1. Overall Summary
+本次更新显著增强了与 GitHub PR 的集成能力，同时对 Hooks 系统进行了重大重构（移除 &#34;Setup&#34; hook 并引入新的 Hook 类型）。此外，包含一个破坏性的 API 变更，涉及文本编辑器工具的参数命名。
+
+2. Key Themes across pages
+*   **GitHub PR 深度集成**: 新增 `--from-pr` CLI 参数，允许开发者直接通过 PR 编号或 URL 恢复会话。当使用 `gh pr create` 创建 PR 时，会话会自动关联该 PR。交互模式中新增“紫色”状态标识已合并的 PR。
+*   **Hooks 系统重构与清理**: 文档彻底重写了 Hooks 部分，移除了 `Setup` 事件（CLI 参考中 `--init`/`--maintenance` 的描述也随之修改），并引入了基于 Prompt 和 Agent 的 Hooks。文档现在更清晰地解释了 JSON 输入/输出流、匹配器以及退出码机制。
+*   **破坏性 API 变更**: 文本编辑器工具 的 `insert` 命令参数 `new_str` 已被重命名为 `insert_text`。
+*   **文档结构优化**: 大量修正了内部链接锚点（如 `#exit-code-output`），修复了 Markdown 格式冗余（如重复的 `theme={null}`），并更新了插件和子代理中的相关示例。
+
+3. Impact level: **High**
+*   **理由**:
+    1.  **API 破坏性变更**: `new_str` 改为 `insert_text` 会导致任何直接调用该工具的现有代码或插件立即失效。
+    2.  **生命周期事件移除**: `Setup` hook 的移除意味着依赖 `--init` 或 `--maintenance` 触发自动化任务的旧配置需要迁移，否则将停止工作。
+
+4. Action items for developers
+*   **修复 API 调用**: 立即检查并更新代码中所有使用 Text Editor Tool `insert` 命令的地方，将参数名从 `new_str` 改为 `insert_text`。
+*   **迁移 Hooks 配置**: 审查 `settings.json` 中的 Hooks 配置，移除或重构任何依赖 `Setup` 事件的逻辑，改用 `SessionStart` 或其他新文档中推荐的生命周期事件。
+*   **采用新 PR 工作流**: 在日常开发中尝试使用 `gh pr create` 结合 `claude --from-pr &lt;number&gt;`，以简化代码审查和上下文恢复流程。
+*   **更新子代理配置**: 如果在子代理 中配置了 Hooks，请根据新文档更新 `SubagentStop` 的匹配器逻辑（现不再支持特定 Agent 类型的匹配，而是对所有子代理触发）。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Understand the Goal:** The user wants a concise, insightful analysis of documentation changes for a developer tool (Claude Code), provided in a single batch. The output must be in markdown, in Chinese, focusing on what matters to developers.
+
+2.  **Analyze the Input:** I have diffs for 14 pages. I need to scan them for patterns, specific feature changes, deprecations, and structural updates.
+
+    *   `cli-reference.md`: Added `--from-pr` flag (resume sessions linked to PRs). Updated descriptions for `--init`, `--init-only`, `--maintenance` (removed &#34;Setup hooks&#34; reference, likely renaming things internally or clarifying terms).
+    *   `common-workflows.md`: Added mention of `--from-pr` and automatic PR linking via `gh pr create`. Added `claude --from-pr 123` to resume options.
+    *   `hooks.md`: Major refactor.
+        *   Description updated: &#34;Reference for... async hooks, prompt hooks, and MCP tool hooks.&#34;
+        *   New section: &#34;How a hook resolves&#34; with diagrams and detailed flow explanation.
+        *   Explanation of JSON input/output, exit codes.
+        *   Removed &#34;Setup&#34; hook from the table/list (matches cli-reference changes).
+    *   `hooks-guide.md`: Renamed from &#34;Get started with Claude Code hooks&#34; to &#34;Automate workflows with hooks&#34;.
+        *   Updated intro: &#34;Run shell commands automatically...&#34;
+        *   Quickstart walkthrough changed to a &#34;desktop notification&#34; example instead of logging bash commands.
+        *   Mentions &#34;prompt-based hooks&#34; and &#34;agent-based hooks&#34;.
+    *   `interactive-mode.md`: Added &#34;Purple&#34; status for merged PRs.
+    *   `plugins.md`: Updated example to use `jq` to read from stdin (`jq -r &#39;.tool_input.file_path&#39;`).
+    *   `plugins-reference.md`: Removed `Setup` hook from the list of available events.
+    *   `settings.md`: Removed redundant `theme={null}` attributes. Updated hooks description. Sandbox settings table formatting adjustments.
+    *   `setup.md`: Removed duplicate `theme={null}` attributes.
+    *   `skills.md`: Updated link reference for hooks inside skills.
+    *   `sub-agents.md`: Updated anchor links (`#exit-code-2-behavior` -&gt; `#exit-code-2-behavior-per-event`, `#simple-exit-code` -&gt; `#exit-code-output`). Clarified `SubagentStop` event behavior (matcher removed/support changed).
+    *   `troubleshooting.md`: Updated anchor link (`#markdown-formatting-hook` -&gt; `#auto-format-code-after-edits`).
+    *   `agents-and-tools/tool-use/text-editor-tool.md`: API change: `new_str` -&gt; `insert_text` for the `insert` command.
+    *   `CHANGELOG.md.md`: Removed a changelog entry about permissions respecting `ask` over `allow` (un-changelogged? or moved?).
+
+3.  **Synthesize Key Themes:**
+    *   **PR Integration:** New `--from-pr` CLI flag and automatic session linking with GitHub PRs.
+    *   **Hooks Overhaul:** Significant documentation restructuring for hooks. Removal of &#34;Setup&#34; hooks (or renaming/refactoring). Better explanation of how hooks resolve (JSON input, exit codes). Introduction to &#34;prompt-based&#34; and &#34;agent-based&#34; hooks.
+    *   **API Updates:** Text editor tool `insert` command parameter changed from `new_str` to `insert_text`.
+    *   **Documentation Cleanup:** Fixed anchor links, removed duplicate markdown attributes (`theme={null}`).
+
+4.  **Determine Impact:**
+    *   **Medium to High:** The API change (`new_str` -&gt; `insert_text`) is breaking for anyone directly calling that tool or writing tools against that schema.
+    *   **Medium:** The Hooks documentation revamp suggests underlying feature changes (removal of &#34;Setup&#34; hooks, addition of prompt/agent hooks). Developers relying on &#34;Setup&#34; hooks need to check if they still work or how they map to the new lifecycle.
+    *   **Low:** PR integration is additive (new features).
+
+5.  **Formulate Action Items:**
+    *   Check code for Text Editor Tool API usage (`insert_text` vs `new_str`).
+    *   Update Hook configurations if &#34;Setup&#34; hooks were used (check migration guide).
+    *   Try new `--from-pr` workflow.
+    *   Review new hook examples (prompt/agent based) for automation improvements.
+
+6.  **Draft the Response (in Chinese):**
+
+    *   *Summary*: Major focus on Hooks documentation restructure (removing &#34;Setup&#34;, adding new hook types) and new GitHub PR integration features. Includes a breaking API change for the text editor tool.
+    *   *Themes*:
+        *   PR Integration workflow (`--from-pr`).
+        *   Hooks system overhaul (Lifecycle changes, &#34;Setup&#34; removed, prompt/agent hooks introduced).
+        *   API breaking change (Text editor `insert` command).
+        *   Doc polish (Anchors, formatting).
+    *   *Impact*: Medium/High (due to API change and hook removal).
+    *   *Actions*: Update API calls, audit hooks, try new PR feature.
+
+7.  **Refine the Content:**
+
+    *   *Theme 1*: GitHub PR Integration. Added `--from-pr` flag. Automatic linking via `gh pr create`. Purple status for merged PRs.
+    *   *Theme 2*: Hooks System Refactor. &#34;Setup&#34; hook is gone from docs/cli references. New docs emphasize &#34;prompt-based&#34; and &#34;agent-based&#34; hooks. Better explanation of stdin JSON flow.
+    *   *Theme 3*: API Breaking Change. Text Editor Tool `insert` command: `new_str` -&gt; `insert_text`.
+    *   *Theme 4*: Documentation/Anchor Updates. Many internal links changed (e.g., `#exit-code-output`).
+
+    *   *Impact*: **High**. Why? An API parameter rename is breaking. The removal of &#34;Setup&#34; hooks implies a lifecycle change that might break existing automation.
+
+    *   *Action Items*:
+        1.  Update code using Text Editor Tool&#39;s `insert` command (`new_str` -&gt; `insert_text`).
+        2.  Audit existing hook configurations, specifically replacing any &#34;Setup&#34; hooks with the new lifecycle events.
+        3.  Explore the new &#34;prompt-based&#34; and &#34;agent-based&#34; hooks for advanced automation.
+        4.  Utilize `--from-pr` to streamline PR-based workflows.
+
+8.  **Final Polish (Markdown format):**
+
+    ```markdown
+    1. Overall Summary
+    ...
+
+    2. Key Themes
+    ...
+
+    3. Impact level
+    ...
+
+    4. Action items
+    ...
+    ```
+
+    (Self-Correction during drafting): Make sure to emphasize that &#34;Setup&#34; hooks were removed/replaced, as that appears in `cli-reference`, `hooks`, and `plugins-reference`. This is a significant potential breaking change for automation scripts relying on `--init` hooks.
+
+9.  **Final Output Generation** (Translate concepts to clear, professional Chinese).
+
+    *   *Summary*: 本次更新主要集中在 GitHub PR 工作流的集成、Hooks 系统的重大重构（移除 &#34;Setup&#34; hooks 并引入 prompt/agent 类型），以及文本编辑器工具的一个破坏性 API 变更。
+    *   *Themes*:
+        *   **PR 集成**: 新增 `--from-pr` 命令行参数，支持通过 PR 编号恢复会话，并在交互模式中显示紫色状态表示已合并。
+        *   **Hooks 生态重构**: 彻底重写了 Hooks 文档，移除了 &#34;Setup&#34; hook 相关的引用（包括 `--init`, `--maintenance` 的描述变更），引入了基于 Prompt 和 Agent 的 Hook 类型。文档更清晰地解释了 JSON 输入/输出及退出码逻辑。
+        *   **API 破坏性变更**: 文本编辑器工具 的 `insert` 命令参数从 `new_str` 更名为 `insert_text`。
+        *   **文档清理**: 修正了多处文档锚点链接 和 Markdown 格式问题。
+    *   *Impact*: **High** (高)。理由：包含破坏性的 API 参数变更，且移除了 &#34;Setup&#34; hook 生命周期事件，可能影响现有的自动化配置。
+    *   *Action Items*:
+        1.  **更新 API 调用**: 检查并修改所有调用文本编辑器 `insert` 命令的代码，将 `new_str` 替换为 `insert_text`。
+        2.  **审计 Hooks 配置**: 审查现有 Hooks 设置，特别是 &#34;Setup&#34; 类型的 Hook，需根据新的生命周期事件（如 `SessionStart`）进行迁移或适配。
+        3.  **利用新工作流**: 在开发流程中尝试使用 `gh pr create` 自动关联会话，并使用 `--from-pr` 命令恢复上下文。
+        4.  **查阅新 Hook 文档**: 阅读更新后的 Hooks 指南，探索 Prompt-based 和 Agent-based Hooks 以提升自动化能力。
+
+10. **Final Review:** Does it meet all constraints? Yes (Markdown, Chinese, concise, insightful, world-class programmer persona).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/cli-reference.html" class="page-link">cli-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/common-workflows.html" class="page-link">common-workflows.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+535</span>
+                            <span class="removed">-511</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+270</span>
+                            <span class="removed">-170</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/interactive-mode.html" class="page-link">interactive-mode.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins.html" class="page-link">plugins.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+16</span>
+                            <span class="removed">-13</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/setup.html" class="page-link">setup.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+13</span>
+                            <span class="removed">-12</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/troubleshooting.html" class="page-link">troubleshooting.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/text-editor-tool.html" class="page-link">agents-and-tools/tool-use/text-editor-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">20:27 EST</div>
