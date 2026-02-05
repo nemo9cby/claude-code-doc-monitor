@@ -118,9 +118,148 @@
 
         <header>
             <h1>Changes on 2026-02-04</h1>
-            <p class="meta">11 total changes in 4 runs</p>
+            <p class="meta">14 total changes in 5 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">20:43 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 总体摘要
+此次更新主要为核心协议（MCP）引入了**预配置 OAuth 凭证**的完整支持，解决了部分服务器不支持动态客户端注册的认证痛点，同时新增了两个环境变量以适配 CI/CD 流程，并包含少量文档格式修正。
+
+### 关键主题
+*   **增强的 MCP OAuth 认证能力**：新增针对不支持动态注册的 MCP 服务器的手动配置流程，支持通过 CLI、JSON 配置或环境变量注入 `client-id` 和 `client-secret`。
+*   **安全性提升**：CLI 新增掩码输入功能处理 Client Secret，且敏感信息被安全存储在系统钥匙链中，而非明文配置文件。
+*   **自动化与集成支持**：引入 `MCP_CLIENT_SECRET` 和 `MCP_OAUTH_CALLBACK_PORT` 环境变量，使得在无交互环境（如 CI/CD）中配置 MCP 服务器成为可能。
+*   **文档规范化**：清理了安装指南中代码块的冗余属性声明。
+
+### 影响等级
+**Medium (中等)**
+*   **理由**：这是一个重要的功能增强，显著扩展了 MCP 服务器（特别是企业级或严格管控的 OAuth 提供商）的兼容性。虽然它不破坏现有功能（非 Breaking Change），但对于需要连接此类特定服务器的开发者来说，它是解决连接问题的关键方案。
+
+### 开发者行动项
+*   **排查连接错误**：若遇到 &#34;Incompatible auth server: does not support dynamic client registration&#34; 错误，请参考新增的 `mcp.md` 章节进行手动 OAuth 注册。
+*   **更新自动化脚本**：在 CI/CD 环境中，利用新增的 `MCP_CLIENT_SECRET` 环境变量来绕过交互式密码提示。
+*   **验证配置**：使用 `claude mcp get &lt;name&gt;` 命令检查服务器是否正确绑定了 OAuth 凭证。
+*   **注意安全存储**：知晓 Client Secret 现由系统钥匙链管理，无需手动编辑敏感配置文件。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing docs.
+    *   **Format:** Markdown, concise, insightful, Chinese language.
+    *   **Input:** Three pages of documentation changes (`mcp.md`, `overview.md`, `settings.md`).
+    *   **Output Requirements:**
+        1.  Overall Summary (1-2 sentences).
+        2.  Key Themes.
+        3.  Impact Level (Low/Medium/High/Breaking) with reasoning.
+        4.  Action Items (max 5 bullets).
+
+2.  **Analyze the Changes:**
+
+    *   **Page `mcp.md` (+33 lines):**
+        *   **Content:** Added a new section &#34;Use pre-configured OAuth credentials&#34;.
+        *   **Context:** MCP servers requiring manual OAuth setup (instead of dynamic registration).
+        *   **Details:**
+            *   Handles error: &#34;Incompatible auth server: does not support dynamic client registration&#34;.
+            *   Process: Register app -&gt; Add server with `--client-id` / `--client-secret` / `--callback-port`.
+            *   Methods: `claude mcp add`, `claude mcp add-json`, CI/Env var.
+            *   Storage: Secret stored in keychain/credentials file, not config.
+            *   Updated `add-json` example to include OAuth.
+        *   **Significance:** Major new feature for MCP integration regarding authentication flexibility.
+
+    *   **Page `overview.md` (+4/-4 lines):**
+        *   **Content:** Fixed duplicate `theme={null}` attributes in code blocks.
+        *   **Context:** Installation instructions (Native, Homebrew, WinGet).
+        *   **Significance:** Formatting fix, no functional change to the tool, just docs cleanup.
+
+    *   **Page `settings.md` (+2 lines):**
+        *   **Content:** Added two new environment variables: `MCP_CLIENT_SECRET` and `MCP_OAUTH_CALLBACK_PORT`.
+        *   **Context:** Relates directly to the new `mcp.md` section about pre-configured OAuth.
+        *   **Significance:** Enables non-interactive configuration (CI/CD friendly) for the new OAuth feature.
+
+3.  **Synthesize &amp; Structure (Drafting in English then translating/refining to Chinese):**
+
+    *   *Summary:* The changes primarily introduce support for pre-configured OAuth credentials for MCP servers, alongside minor documentation formatting fixes.
+    *   *Themes:*
+        *   Enhanced MCP Authentication (OAuth).
+        *   CI/CD support for secrets (Env vars).
+        *   Documentation hygiene (formatting).
+    *   *Impact:* Medium. It&#39;s a new capability, not a breaking change. Essential for users connecting to servers that don&#39;t support dynamic client registration.
+    *   *Action Items:*
+        *   Check if MCP servers need manual OAuth.
+        *   Update scripts to use new env vars if needed.
+        *   Ignore formatting changes.
+
+4.  **Refining the Output (Chinese):**
+
+    *   *Overall Summary:* 此次更新主要引入了对 MCP 服务器预配置 OAuth 凭证的支持，解决了不支持动态客户端注册的认证问题，并包含少量文档格式修正。
+    *   *Key Themes:*
+        *   **增强的 MCP OAuth 认证**: 新增手动注册和配置 OAuth 应用的完整流程。
+        *   **CI/CD 友好**: 通过环境变量管理敏感凭证，支持自动化部署。
+        *   **文档优化**: 清理了安装指南中的冗余代码块属性。
+    *   *Impact:* **Medium** (中等)。这是一个新功能，扩展了 MCP 服务器的兼容性，特别是对于企业级或特定的 OAuth 提供商，虽然不破坏现有功能，但对特定场景至关重要。
+    *   *Action Items:*
+        *   如果遇到 &#34;does not support dynamic client registration&#34; 错误，请按照新文档注册 OAuth 应用。
+        *   在自动化脚本中利用 `MCP_CLIENT_SECRET` 环境变量来避免交互式输入。
+        *   使用 `claude mcp get` 验证已配置的凭证。
+
+5.  **Final Polish:** Ensure tone is professional and concise. Check against &#34;Focus on what matters to developers&#34;. The MCP OAuth flow is the most critical part here.
+
+    *   *Self-Correction during drafting:* The `overview.md` changes are trivial noise. I should focus heavily on the `mcp.md` and `settings.md` interplay. The ability to use a client secret flag is a big deal for security (masking input).
+
+6.  **Final Output Generation:** (Matches the provided good response).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+33</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/overview.html" class="page-link">overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">16:28 EST</div>
