@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026-02-07 - Documentation Changes</title>
+    <style>
+        :root {
+            --bg-color: #1a1a2e;
+            --card-bg: #16213e;
+            --text-color: #eee;
+            --accent: #0f3460;
+            --add-text: #4ade80;
+            --del-text: #f87171;
+            --time-color: #60a5fa;
+        }
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg-color: #f5f5f5;
+                --card-bg: #fff;
+                --text-color: #333;
+                --accent: #e0e0e0;
+                --add-text: #155724;
+                --del-text: #721c24;
+                --time-color: #2563eb;
+            }
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+        .container { max-width: 800px; margin: 0 auto; }
+        header { margin-bottom: 2rem; }
+        h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+        .meta { color: #888; }
+        .batch { margin-bottom: 2rem; }
+        .batch-header {
+            color: var(--time-color);
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--accent);
+        }
+        .page-list { list-style: none; }
+        .page-item {
+            background: var(--card-bg);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .page-item:hover { background: var(--accent); }
+        .page-link {
+            color: var(--text-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .page-summary { color: #888; font-size: 0.9rem; }
+        .added { color: var(--add-text); }
+        .removed { color: var(--del-text); }
+        a { color: #60a5fa; }
+        .back-link { margin-bottom: 1rem; display: inline-block; }
+        .page-item-content { flex: 1; }
+        .page-analysis {
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: 0.25rem;
+        }
+        .source-section {
+            margin-bottom: 1.5rem;
+        }
+        .source-header {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: #8b5cf6;
+        }
+        .batch-analysis {
+            background: var(--card-bg);
+            border-left: 3px solid #22c55e;
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            margin: 0.75rem 0 1rem 0;
+        }
+        .batch-analysis h4 {
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+        .batch-analysis-content {
+            white-space: pre-wrap;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        .reasoning-section {
+            margin-top: 1rem;
+            padding-top: 0.75rem;
+            border-top: 1px dashed var(--accent);
+            font-size: 0.85rem;
+            color: #888;
+        }
+        .reasoning-section summary {
+            cursor: pointer;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../../../index.html" class="back-link">&larr; All reports</a>
+
+        <header>
+            <h1>Changes on 2026-02-07</h1>
+            <p class="meta">6 total changes in 1 run</p>
+        </header>
+
+        
+        <div class="batch">
+            <div class="batch-header">13:28 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 整体摘要
+此次文档更新主要引入了针对 **Claude Opus 4.6（研究预览版）的“快速模式”**。该功能通过 `speed: &#34;fast&#34;` 参数提供显著更快的推理速度，但价格为标准费率的 6 倍，并引入了独立的速率限制及特定的缓存失效规则。
+
+### 关键变更主题
+*   **新功能发布：快速模式**
+    *   新增针对 Opus 4.6 的 `speed: &#34;fast&#34;` 参数，旨在极低延迟场景下使用。
+    *   **定价高昂**：输入/输出价格均为标准的 6 倍，且根据上下文长度（≤200K vs &gt;200K）分级，叠加提示词缓存和数据驻留等其它费用。
+    *   **功能限制**：不支持 Batch API，且拥有独立于标准 Opus 模型的速率限制池。
+*   **API 行为与错误处理**
+    *   当快速模式速率限制超限时，返回 `429` 错误及 `retry-after` 头。
+    *   响应中新增 `anthropic-fast-*` 系列头字段，用于指示快速模式的限流状态。
+    *   错误类型列表中新增了 `&#34;fast-mode-2026-02-01&#34;`。
+*   **缓存逻辑调整**
+    *   在提示词缓存中，**速度设置** 被列为影响缓存命中的因素。切换 `speed` 参数将导致系统和消息缓存失效。
+
+### 影响等级
+**Medium (中)**
+*   **理由**：这是一个可选的增量更新，不会破坏现有代码。但由于快速模式价格极高（6x 倍率）且改变了现有的速率限制和缓存逻辑，开发者在集成时需格外注意成本控制及错误处理机制。
+
+### 开发者行动项
+*   **成本核算**：在启用快速模式前，务必计算 6 倍溢价对整体预算的影响，特别是对于长上下文（&gt;200K tokens）请求。
+*   **错误处理适配**：更新错误处理逻辑以区分快速模式与标准模式的 `429` 限流错误，并利用 `retry-after` 头进行重试。
+*   **监控新指标**：应用层需解析并监控 `anthropic-fast-*` 响应头，以掌握快速模式专属的配额使用情况。
+*   **优化缓存策略**：避免在同一会话中动态切换 `speed` 参数，以防止缓存失效带来的额外性能和成本损耗。
+*   **API 调用约束**：确保不要在 Batch API 请求中尝试使用快速模式参数。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Task:** Analyze a single batch of 6 documentation changes.
+    *   **Format:** Concise, insightful analysis in Markdown.
+    *   **Focus:** What matters to developers.
+    *   **Language:** Chinese.
+
+2.  **Analyze the Changes:**
+
+    *   **Page 1: `about-claude/pricing.md`**
+        *   *Changes:* Added a new section &#34;Fast mode pricing&#34;.
+        *   *Details:*
+            *   Applies to Claude Opus 4.6 (research preview).
+            *   Significantly faster output.
+            *   Premium pricing: 6x standard rates.
+            *   Pricing tiers based on input context window (≤200K vs &gt;200K).
+            *   Stacks with prompt caching and data residency multipliers.
+            *   Not available with Batch API.
+        *   *Edits:* Minor consistency fixes (e.g., &#34;our&#34; -&gt; &#34;the&#34;).
+
+    *   **Page 2: `api/models-list.md`**
+        *   *Changes:* Updated error types list.
+        *   *Details:* Added `&#34;fast-mode-2026-02-01&#34;` to the list of error types (or beta headers/types). The count went from &#34;16 more&#34; to &#34;17 more&#34;.
+
+    *   **Page 3: `api/files-create.md`**
+        *   *Changes:* Updated error types list.
+        *   *Details:* Same as Page 2, added `&#34;fast-mode-2026-02-01&#34;`.
+
+    *   **Page 4: `api/rate-limits.md`**
+        *   *Changes:* Added a new section &#34;Fast mode rate limits&#34;.
+        *   *Details:*
+            *   Dedicated rate limits for fast mode (`speed: &#34;fast&#34;`).
+            *   Separate from standard Opus limits.
+            *   Returns 429 errors if exceeded.
+            *   New headers: `anthropic-fast-*`.
+
+    *   **Page 5: `build-with-claude/prompt-caching.md`**
+        *   *Changes:* Updated cache invalidation table.
+        *   *Details:* Added &#34;Speed setting&#34; as a factor that invalidates system and message caches.
+
+    *   **Page 6: `CHANGELOG.md.md`**
+        *   *Changes:* Added version 2.1.36.
+        *   *Details:* Mentions Fast mode is now available for Opus 4.6.
+
+3.  **Synthesize and Summarize (in Chinese):**
+
+    *   *Overall Summary:* The core change is the introduction of **Fast Mode (快速模式)** for Claude Opus 4.6. This feature allows for faster inference at a significantly higher cost (6x), with specific rate limits and caching behaviors. (核心变化是为 Claude Opus 4.6 引入了**快速模式**，该功能能显著提升推理速度，但成本更高，并有特定的速率限制和缓存行为。)
+
+    *   *Key Themes:*
+        *   **Fast Mode (Opus 4.6):** The star of the show. Research preview feature.
+        *   **Pricing Structure:** High cost (6x multiplier). Context window dependent (≤200K vs &gt;200K). Stacks with other modifiers.
+        *   **Rate Limits:** Separate bucket for fast mode, specific headers (`anthropic-fast-*`).
+        *   **Caching Impact:** Switching speeds invalidates caches.
+        *   **API Error Types:** Updated to include fast mode specific errors/headers (`fast-mode-2026-02-01`).
+
+    *   *Impact Level:*
+        *   *Level:* **High** (specifically for those needing low latency on Opus).
+        *   *Reasoning:* It introduces a new pricing tier that is 6x standard, which is a major cost factor if misused. It introduces new API parameters and behaviors (rate limiting, caching invalidation) that developers need to handle. However, since it&#39;s limited to Opus 4.6 (research preview), it&#39;s not a &#34;Breaking Change&#34; for everyone, but significant for the target audience. I&#39;ll classify it as **Medium to High**. Let&#39;s go with **Medium** generally, but **High** for latency-sensitive Opus users. Actually, looking at the cost multiplier (6x), it&#39;s a significant financial consideration. Let&#39;s stick to **Medium** because it&#39;s additive and optional, not a breaking change to existing workflows.
+
+    *   *Action Items:*
+        *   Evaluate cost-benefit: 6x price for speed.
+        *   Implement error handling: 429 errors with `retry-after`.
+        *   Monitor headers: `anthropic-fast-*`.
+        *   Adjust caching logic: Be aware speed changes flush the cache.
+        *   Check Batch API incompatibility: Don&#39;t use fast mode there.
+
+4.  **Drafting the Response (Markdown):**
+
+    *   *Summary:* 此次更新引入了针对 Claude Opus 4.6 的**快速模式**，旨在提供更快的推理速度，但价格高昂（6 倍标准费率）。同时更新了相关的速率限制、缓存失效规则以及 API 错误类型定义。
+
+    *   *Themes:*
+        *   **新功能发布：快速模式**
+        *   **定价策略调整** (Pricing Strategy)
+        *   **速率限制** (Rate Limits)
+        *   **缓存行为** (Caching Behavior)
+
+    *   *Impact:* Medium. Why: New feature, optional, but high cost multiplier (6x) requires careful implementation. Not breaking existing code.
+
+    *   *Actions:*
+        *   Review pricing impact.
+        *   Handle 429s for fast mode.
+        *   Watch `anthropic-fast-*` headers.
+        *   Note cache invalidation on speed change.
+        *   Avoid using with Batch API.
+
+5.  **Refining the Language (Chinese):**
+
+    *   *Summary:* 文档核心更新是引入了 **Fast Mode (快速模式)** 功能，专门针对 Claude Opus 4.6（研究预览版）。该功能以 6 倍于标准费率的成本提供显著更快的推理速度，并引入了独立的速率限制和特定的缓存失效机制。
+    *   *Key Themes:*
+        *   **功能引入：** 为 Opus 4.6 新增 `speed: &#34;fast&#34;` 参数。
+        *   **定价结构：** 快速模式定价为标准价格的 6 倍，并根据上下文窗口大小（≤200K vs &gt;200K）分档计费；该价格会与提示词缓存和数据驻留费率叠加。
+        *   **API 行为变更：** 快速模式拥有独立的速率限制配额，不兼容 Batch API，且切换速度设置会清空系统及消息缓存。
+        *   **错误类型更新：** 新增 `fast-mode-2026-02-01` 错误类型及相关响应头 `anthropic-fast-*`。
+    *   *Impact:* **Medium** (中)。**理由：** 这是一个可选的新增功能，属于非破坏性更新。但由于其极高的成本倍数（6x）以及独立的速率限制逻辑，需要开发者在集成时进行仔细的成本核算和错误处理。
+    *   *Action Items:*
+        *   **成本评估：** 在启用快速模式前，仔细评估 6 倍费率对成本的影响，尤其是长上下文（&gt;200K tokens）场景。
+        *   **错误处理：** 捕捉并处理 `429` 状态码及 `retry-after` 响应头，专门针对快速模式的限流场景。
+        *   **监控指标：** 关注新的响应头 `anthropic-fast-*` 以追踪快速模式特定的速率限制状态。
+        *   **缓存策略：** 注意在 `speed` 参数切换时会触发缓存失效，避免在生产环境中动态切换导致性能回退。
+        *   **功能限制：** 确保不在 Batch API 中使用快速模式。
+
+6.  **Final Review:** Does this meet the &#34;concise, insightful&#34; requirement? Yes. Is it in Chinese? Yes. Does it focus on developers? Yes.
+
+    *Self-Correction during drafting:* I initially thought about mentioning the specific prices ($30/MTok), but the summary should focus on the *change* (the multiplier) rather than just raw data, to keep it insightful. The 6x multiplier is the key insight.
+
+    *Refining the &#34;Themes&#34;:* Make sure to highlight that Fast Mode stacks with other modifiers. That&#39;s a &#34;gotcha&#34; for developers calculating costs.
+
+    *Refining &#34;Action Items&#34;:* Keep them actionable verbs.
+
+7.  **Final Output Generation.** (Proceed to generate the markdown block).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/about-claude/pricing.html" class="page-link">about-claude/pricing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+19</span>
+                            <span class="removed">-8</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/models-list.html" class="page-link">api/models-list.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/files-create.html" class="page-link">api/files-create.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/rate-limits.html" class="page-link">api/rate-limits.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-caching.html" class="page-link">build-with-claude/prompt-caching.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
+        
+    </div>
+</body>
+</html>
