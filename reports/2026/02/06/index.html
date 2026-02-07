@@ -118,9 +118,253 @@
 
         <header>
             <h1>Changes on 2026-02-06</h1>
-            <p class="meta">12 total changes in 3 runs</p>
+            <p class="meta">21 total changes in 4 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">20:29 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">本次文档更新涉及 9 个页面，重点引入了“自动记忆”机制以增强上下文持久化能力，新增了针对 Agent 团队的生命周期钩子，并大幅细化了 Sub-agents 的配置选项，为开发者提供了更强大的多代理协作和自动化控制能力。
+
+### 关键主题
+
+*   **自动记忆**：引入 Auto Memory 功能，允许 Claude 自主记录项目模式、调试见解和架构笔记。该功能存储在 `~/.claude/projects/&lt;project&gt;/memory/`，并可通过环境变量 `CLAUDE_CODE_DISABLE_AUTO_MEMORY` 进行控制。
+*   **Agent 团队生态扩展**：在 Hooks 和插件系统中新增了 `TeammateIdle` 和 `TaskCompleted` 事件，支持对 Agent 团队成员的空闲状态和任务完成状态进行监听和自动化处理。
+*   **精细化代理控制**：Sub-agent 配置（CLI 和 Frontmatter）新增了 `maxTurns`（限制最大轮次防死循环）、`disallowedTools`（显式拒绝特定工具）、`skills`（预加载技能）和 `mcpServers`（指定 MCP 服务器）等字段。
+*   **工作流与配置优化**：Clarified 区分 `summarize`（上下文压缩）与 `fork`（分支会话）；技能的字符预算现在动态调整为上下文窗口的 2%（默认回退至 16k 字符）；支持从 `--add-dir` 目录热加载技能。
+
+### 影响等级：高
+
+**理由**：
+1.  **范式转变**：Auto Memory 标志着 Claude 从被动接收指令向主动记忆和学习转变，可能显著改变长期项目的上下文管理方式。
+2.  **自动化能力增强**：新增的 Hook 事件填补了 Agent 团队生命周期的监控空白，使得构建复杂的自动化工作流成为可能。
+3.  **稳定性与控制**：`maxTurns` 等参数的引入为防止 Agent 陷入无限循环提供了必要的安全保障。
+
+### 开发者行动项
+
+*   **评估自动记忆**：检查 Auto Memory 是否符合你的隐私和工作流需求，必要时通过环境变量 `CLAUDE_CODE_DISABLE_AUTO_MEMORY` 关闭或强制开启。
+*   **优化 Agent 配置**：在 Sub-agent 定义中利用 `maxTurns` 防止资源耗尽，并使用 `disallowedTools` 收紧安全权限。
+*   **更新 Hook 脚本**：如果你编写了自定义 Hooks，请更新逻辑以处理新引入的 `TeammateIdle` 和 `TaskCompleted` 事件。
+*   **重构技能管理**：利用 `--add-dir` 的热加载功能来组织外部技能库，减少重启会话的频率。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer, expert in developer tools.
+    *   **Task:** Analyze documentation changes (9 pages), summarize changes, explain why it matters.
+    *   **Format:** Markdown, Chinese, concise, insightful.
+    *   **Specific Sections:** Overall Summary, Key Themes, Impact Level, Action Items.
+
+2.  **Scan and Process the Diff Files:**
+
+    *   **`checkpointing.md` (+3/-0):**
+        *   *Change:* Added a `&lt;Note&gt;` clarifying the difference between &#34;Summarize&#34; (context compression) and &#34;fork&#34; (branching).
+        *   *Developer Relevance:* Clarifies workflow choices between preserving context vs. branching.
+
+    *   **`cli-reference.md` (+10/-6):**
+        *   *Change:* Updated the `--agents` flag documentation table.
+        *   *New Fields:* `disallowedTools` (explicit denial), `skills` (preload skills), `mcpServers` (specific MCP servers), `maxTurns` (limit iterations).
+        *   *Developer Relevance:* Provides much finer-grained control over custom subagents via CLI (deny tools, limit loops, specific integrations).
+
+    *   **`hooks.md` (+77/-32):**
+        *   *Change:* New hook events (`TeammateIdle`, `TaskCompleted`) added to the lifecycle table and diagrams.
+        *   *Change:* Updated matchers list to include the new events.
+        *   *Developer Relevance:* Extends the hook system to support agent teams workflows (idle states, task completion), allowing more granular automation and monitoring of complex agent behaviors.
+
+    *   **`hooks-guide.md` (+26/-24):**
+        *   *Change:* Consistent with `hooks.md` (new events added to tables).
+        *   *Change:* Added new SessionEnd matcher value (`bypass_permissions_disabled`).
+        *   *Developer Relevance:* Reinforces the new agent team capabilities and specific exit condition handling.
+
+    *   **`memory.md` (+36/-3):**
+        *   *Change:* Major update to memory documentation.
+        *   *Concept:* Introduced &#34;Auto memory&#34; (automatic notes by Claude) vs. &#34;CLAUDE.md files&#34; (manual instructions).
+        *   *Details:* Auto memory location (`~/.claude/projects/&lt;project&gt;/memory/`), limit (first 200 lines of `MEMORY.md`), environment variable control (`CLAUDE_CODE_DISABLE_AUTO_MEMORY`).
+        *   *Developer Relevance:* Developers need to understand that Claude now &#34;writes its own notes&#34; and how to manage/opt-in/opt-out of this feature.
+
+    *   **`plugins-reference.md` (+2/-0):**
+        *   *Change:* Added `TeammateIdle` and `TaskCompleted` to plugin hook events.
+        *   *Developer Relevance:* Ensures plugin developers can hook into the new agent team lifecycle.
+
+    *   **`settings.md` (+2/-1):**
+        *   *Change 1:* Added `CLAUDE_CODE_DISABLE_AUTO_MEMORY` environment variable.
+        *   *Change 2:* Updated `SLASH_COMMAND_TOOL_CHAR_BUDGET` description to mention dynamic scaling (2% of context window, fallback 16k).
+        *   *Developer Relevance:* Fine-tuning control over auto memory and skill metadata limits.
+
+    *   **`skills.md` (+5/-2):**
+        *   *Change 1:* Skills from `--add-dir` are auto-loaded with live detection.
+        *   *Change 2:* Updated char budget explanation (dynamic 2%).
+        *   *Developer Relevance:* Improved workflow for external skill management and better context management.
+
+    *   **`sub-agents.md` (+33/-21):**
+        *   *Change 1:* Updated `--agents` flag description to list new fields (`skills`, `mcpServers`, `maxTurns`).
+        *   *Change 2:* Updated Subagent frontmatter table. Added `maxTurns`, `mcpServers`. Added `delegate` to `permissionMode`.
+        *   *Change 3:* Added section &#34;Restrict which subagents can be spawned&#34;.
+        *   *Developer Relevance:* Enhanced control over agent hierarchy, resource limits, and permissions.
+
+3.  **Synthesize Key Themes:**
+    *   **Agent Teams / Multi-Agent Logic:** The addition of `TeammateIdle` and `TaskCompleted` hooks across multiple files points to a significant strengthening of the &#34;Agent Teams&#34; functionality.
+    *   **Auto Memory:** Introduction of a new automatic memory system where Claude learns and persists notes autonomously.
+    *   **Finer-Grained Agent Control:** New configuration options for subagents (`maxTurns`, `disallowedTools`, `mcpServers`, `skills`).
+    *   **Configuration &amp; Limits:** Dynamic context budgeting for skills and explicit opt-in/out flags for new features.
+
+4.  **Drafting the Response (in Chinese):**
+
+    *   *Overall Summary:* 本次更新引入了“自动记忆”功能，增强了 Agent 团队的生命周期管理，并显著细化了 Sub-agents 的配置控制能力。
+
+    *   *Key Themes:*
+        *   **自动记忆:** Claude 现在可以自动记录项目模式和上下文笔记。
+        *   **Agent 团队钩子:** 新增 `TeammateIdle` 和 `TaskCompleted` 事件，支持更复杂的多代理工作流。
+        *   **Sub-agent 增强:** 新增 `maxTurns`、`mcpServers` 等字段，提供更细粒度的权限和资源限制。
+        *   **配置优化:** 技能描述的字符预算现在动态调整（上下文的 2%）。
+
+    *   *Impact Level:* High. Auto memory changes how state is persisted, and new hooks/events significantly expand automation capabilities for agent teams.
+
+    *   *Action Items:*
+        *   Check if Auto Memory behavior fits your workflow (opt-in/out via env var).
+        *   Review new hooks if you automate Claude Code workflows.
+        *   Update agent configs to use `maxTurns` to prevent infinite loops.
+        *   Adjust skills management now that external directories support live reload.
+
+5.  **Refining the Output (Self-Correction during drafting):**
+    *   Make sure to mention the specific environment variable `CLAUDE_CODE_DISABLE_AUTO_MEMORY`.
+    *   Clarify the distinction between `fork` and `summarize` as that&#39;s a specific user-facing fix.
+    *   Ensure the &#34;High&#34; impact is justified (Auto memory is a paradigm shift for context management).
+
+6.  **Final Polish (Markdown Format):**
+    (Proceeding to generate the output based on the above thought process.)
+
+    *   *Summary:* 这次更新引入了“自动记忆”机制，让 Claude 能够自主保存项目上下文；同时新增了针对 Agent 团队的生命周期钩子，并大幅增强了 Sub-agent 的配置颗粒度。
+    *   *Themes:*
+        1.  **智能上下文管理**：新增 Auto Memory。
+        2.  **Agent 团队生态扩展**：新增钩子事件。
+        3.  **精细化代理控制**：Sub-agent 新增限制工具、最大轮次等字段。
+        4.  **配置与性能调优**：技能字符预算动态化，支持外部目录热加载。
+    *   *Impact:* **High**。Auto Memory 改变了状态持久化的方式，新钩子和 Agent 配置选项为构建复杂自动化工作流提供了必要的基础设施。
+    *   *Action Items:*
+        *   配置 `CLAUDE_CODE_DISABLE_AUTO_MEMORY` 以控制自动记忆的开启/关闭。
+        *   利用 `maxTurns` 防止 Sub-agent 陷入无限循环。
+        *   更新 Hook 脚本以处理 `TeammateIdle` 和 `TaskCompleted` 事件。
+        *   利用 `--add-dir` 管理外部技能目录，体验实时更新。
+
+7.  **Final Review against constraints:** Concise? Yes. Insightful? Yes. Chinese? Yes. Markdown? Yes.</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/checkpointing.html" class="page-link">checkpointing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/cli-reference.html" class="page-link">cli-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+10</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+77</span>
+                            <span class="removed">-32</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+26</span>
+                            <span class="removed">-24</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/memory.html" class="page-link">memory.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+36</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+33</span>
+                            <span class="removed">-21</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">18:20 EST</div>
