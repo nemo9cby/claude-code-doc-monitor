@@ -118,9 +118,214 @@
 
         <header>
             <h1>Changes on 2026-02-17</h1>
-            <p class="meta">57 total changes in 5 runs</p>
+            <p class="meta">62 total changes in 6 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">23:17 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档更新分析摘要
+
+### 1. Overall Summary (总体摘要)
+本次文档更新主要集中在三个领域：强化了 **OAuth 认证与 API Key 的合规使用界限**，大幅**简化了结构化输出的 API 调用方式**，并显著扩展了 **C#、Java 和 Ruby SDK 在云平台上的集成支持**。
+
+### 2. Key Themes (关键主题)
+
+*   **合规与认证策略收紧**：明确禁止将 Free/Pro/Max 账户的 OAuth Token 用于 Agent SDK 或第三方工具，开发者必须通过 API Console 获取 API Key 进行产品构建。
+*   **结构化输出体验优化**：引入了更简洁的 API（如 Python 的 `.parse()` 和 TypeScript 的 `zodOutputFormat()`），允许直接传递原生模型/类，而无需手动构建 JSON Schema。
+*   **多语言 SDK 生态扩展**：为 Amazon Bedrock、Google Vertex AI 和 Microsoft Foundry 增加了 C#、Java 和 Ruby 的详细安装与使用示例。
+*   **企业认证支持增强**：在 Amazon Bedrock 中新增了 Bearer Token 认证支持，便于企业环境绕过复杂的 AWS 凭证管理；在 Microsoft Foundry 中增加了 Entra ID 认证示例。
+*   **SDK 支持范围澄清**：明确指出 PHP SDK 目前不支持 Bedrock、Vertex AI 或 Foundry。
+
+### 3. Impact Level (影响等级)
+**Medium (中等)**
+
+**理由**：虽然代码层面的变更主要是增强功能和新示例（非破坏性），但法律合规条款的变更具有**High**风险性。如果开发者当前正在违规使用 OAuth Token，必须立即整改。此外，结构化输出的 API 简化将显著改善开发体验，建议尽快采纳。
+
+### 4. Action Items for Developers (开发者行动项)
+
+*   **审查认证方式**：立即检查代码库，确保没有在 Agent SDK 或第三方服务中使用 Free/Pro/Max 账号的 OAuth Token；此类用途必须切换至 API Key。
+*   **重构结构化输出代码**：迁移至新的 `.parse()` (Python) 或 `zodOutputFormat()` (TypeScript) 模式，以获得自动类型验证和更简洁的代码结构。
+*   **利用新语言支持**：如果您使用 C#、Java 或 Ruby，请查阅新增的 Bedrock/Vertex AI/Foundry 文档，利用官方 SDK 替代手动 HTTP 调用。
+*   **PHP 开发者注意**：如需使用 Bedrock、Vertex AI 或 Foundry，请注意官方 PHP SDK 目前尚不支持，需考虑直接调用 HTTP API 或切换语言。
+*   **探索 Bedrock Bearer Token**：如果在 AWS Bedrock 环境中面临凭证管理难题，可尝试使用新增的 Bearer Token 认证方式（适用于 C#, Go, Java）。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Understand the Goal**: The user wants a concise, insightful analysis of 5 documentation pages related to Anthropic&#39;s developer tools. The response must be in Chinese, focusing on what matters to developers.
+
+2.  **Analyze the Input Data**:
+    *   **Page 1: `legal-and-compliance.md`**:
+        *   Change 1: &#34;Consumer Terms&#34; -&gt; &#34;Consumer Terms of Service&#34; (minor text tweak).
+        *   Change 2: Added &#34;Usage policy&#34; section.
+        *   Key points in new section: Acceptable use policy link, usage limits assumption (ordinary individual usage), Authentication/Credential policy.
+        *   **Crucial Dev Impact**: OAuth tokens (Free/Pro/Max) are for Claude Code/Claude.ai *only*. They cannot be used with the Agent SDK. Developers must use API keys for products/services. Third-party devs cannot offer Claude.ai login. This is a strict enforcement notice.
+
+    *   **Page 2: `structured-outputs.md`**:
+        *   Massive rewrite of the &#34;Using native schema definitions&#34; section.
+        *   Language support expanded: Python (Pydantic), TypeScript (Zod), Java, Ruby, C#, Go, PHP.
+        *   Methodology: Replaced raw `transform_schema()` or manual schema conversion with direct model/schema integration (e.g., `client.messages.parse()`, `output_config: {format: Model}`, `outputFormat(Class)`).
+        *   Examples updated: Removed `client.messages.create` + `transform_schema` in Python, replaced with `client.messages.parse`. Added code blocks for Go, Ruby, C#, and PHP.
+        *   **Crucial Dev Impact**: API improvement/Simplification. Developers can now pass classes/objects directly to SDKs instead of manually converting them to JSON schemas in many cases (though Go/PHP/C# still pass raw schemas but the examples are cleaner). The focus is on &#34;guaranteed type-safe&#34; parsing.
+
+    *   **Page 3: `claude-on-amazon-bedrock.md`**:
+        *   Added installation info for C# and Ruby SDKs.
+        *   Added usage examples for C# and Ruby.
+        *   Added &#34;Bearer token authentication&#34; section. Supported in C#, Go, Java. Useful for corporate envs without AWS credentials.
+        *   Added Bearer token examples for C#, Go, Java.
+        *   Updated regional/global routing docs with C# and Ruby examples.
+        *   Added a Note stating PHP SDK does *not* support Bedrock.
+        *   **Crucial Dev Impact**: Expanded language support (C#, Ruby) for Bedrock. New auth method (Bearer token) for enterprise scenarios. Clarification on PHP limitations.
+
+    *   **Page 4: `claude-on-vertex-ai.md`**:
+        *   Added installation info for Ruby SDK.
+        *   Added usage examples for Ruby (global and regional endpoints).
+        *   Added a Note stating PHP SDK does *not* support Vertex AI.
+        *   **Crucial Dev Impact**: Added Ruby support for Vertex AI. Clarification on PHP limitations.
+
+    *   **Page 5: `claude-in-microsoft-foundry.md`**:
+        *   Added Note: Foundry supported by C#, Java, Python, TypeScript. Go, PHP, Ruby *not* currently supported.
+        *   Added Java installation (Gradle/Maven).
+        *   Added Java usage examples (API Key and Entra ID).
+        *   Added C# usage examples (API Key and Entra ID).
+        *   **Crucial Dev Impact**: Added Java support. Added more robust examples for C# authentication (including Entra ID). Clarified SDK limitations (Go, PHP, Ruby).
+
+3.  **Synthesize Key Themes**:
+    *   **Theme 1: Policy/Compliance**: Strict separation of consumer OAuth vs. developer API keys.
+    *   **Theme 2: SDK Expansion/Enhancement**: Adding support for C#, Ruby, Java across different platforms (Bedrock, Vertex, Foundry).
+    *   **Theme 3: Structured Outputs Refinement**: Simplifying the API for native types (removing manual schema transformation).
+    *   **Theme 4: Authentication Flexibility**: Adding Bearer token support for Bedrock, Entra ID examples for Foundry.
+
+4.  **Determine Impact Level**:
+    *   The legal change regarding OAuth tokens is **High/High** impact for anyone building products on top of Claude (misuse risk).
+    *   The Structured Outputs change is **Medium/High** impact (improves developer experience, better code).
+    *   The Bedrock/Foundry/Vertex changes are **Medium** impact (new language support, but not breaking existing code for users of existing languages).
+    *   *Overall*: Medium to High. The legal enforcement is the most critical &#34;watch out&#34;, while the SDK updates are &#34;nice to have/improvements&#34;. I will lean towards **Medium-High** or just **Medium** because the code changes are additive/improvements, not breaking, except for the strict legal warning which affects design decisions. Let&#39;s stick with **Medium** overall but highlight the legal aspect as high importance for compliance.
+
+5.  **Draft Action Items**:
+    *   Check authentication: Are you using consumer OAuth tokens in your Agent SDK? Stop.
+    *   Update Structured Outputs code: Migrate to `.parse()` methods or native model passing for cleaner code.
+    *   Review SDK support: If using Ruby/C#/Java, check the new Bedrock/Foundry integrations.
+    *   Auth updates: Consider Bearer tokens for Bedrock if in a corporate env.
+    *   PHP limitation check: Note that PHP doesn&#39;t support Bedrock/Vertex/Foundry in these updates.
+
+6.  **Drafting the Response (in Chinese)**:
+
+    *   *Summary*: 文档更新涵盖了法律合规、SDK 功能增强以及多平台（Bedrock、Vertex AI、Foundry）的语言支持扩展。
+    *   *Themes*:
+        *   **合规与认证策略收紧**：严禁将 OAuth 令牌用于 Agent SDK，必须使用 API Keys。
+        *   **结构化输出 API 简化**：引入 `.parse()` 方法和原生模型支持，移除了繁琐的 schema 转换。
+        *   **SDK 语言生态扩展**：大幅增加了 C#、Java、Ruby 在云平台上的支持和示例。
+    *   *Impact*: Medium (合规风险为 High，代码变更主要是增强体验)。
+    *   *Action Items*:
+        *   审查代码中的认证方式，停止在第三方工具中使用 Claude Free/Pro/Max 的 OAuth。
+        *   更新结构化输出代码，利用新的 `.parse()` 方法提升代码简洁性。
+        *   查看新增的 Java、Ruby、C# 示例，了解云平台集成方案。
+        *   PHP 开发者注意：当前 SDK 尚不支持 Bedrock、Vertex AI 或 Foundry。
+        *   如果在 Bedrock 上运作，可探索新的 Bearer Token 认证方式。
+
+7.  **Refining the Output**: Ensure the tone is professional and the markdown formatting is correct. Double-check the specific constraint about &#34;OAuth tokens... constitutes a violation&#34;.
+
+    *   *Self-Correction on Impact*: The legal change is technically &#34;High&#34; severity if violated, but is it &#34;Breaking&#34;? No, unless you were violating ToS. The code changes for Structured Outputs (removing `transform_schema` in examples) suggests a recommended migration path, but old methods might still work (though the example changed from `create` to `parse`). The prompt asks for &#34;Impact level&#34;. I&#39;ll say **Medium** overall because it&#39;s mostly additive/improvements, but I&#39;ll add a caveat about the policy.
+
+8.  **Final Polish (Chinese)**:
+    *   Headline: 简洁摘要.
+    *   Themes: 关键主题.
+    *   Impact: 影响等级.
+    *   Actions: 开发者行动项.
+
+    *Translation check*:
+    *   &#34;Bearer token authentication&#34; -&gt; Bearer Token 认证
+    *   &#34;Structured outputs&#34; -&gt; 结构化输出
+    *   &#34;OAuth authentication&#34; -&gt; OAuth 认证
+
+    *Let&#39;s refine the Legal Summary*: The addition of &#34;Usage policy&#34; is the biggest legal takeaway. Specifically, the distinction between OAuth (for end users of Claude.ai/Code) and API Keys (for developers). This prevents &#34;proxy&#34; services using consumer tokens.
+
+    *Let&#39;s refine the Structured Outputs Summary*: The move towards `client.messages.parse()` in Python and `zodOutputFormat` in TS allows for automatic parsing and validation, removing the need for manual JSON handling.
+
+    *Let&#39;s refine the Platform Summary*: C# and Ruby are getting first-class treatment in Bedrock and Vertex. Java is getting support in Foundry. PHP is explicitly excluded in these docs.
+
+    *Ready to generate.*</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/legal-and-compliance.html" class="page-link">legal-and-compliance.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+10</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/structured-outputs.html" class="page-link">build-with-claude/structured-outputs.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+229</span>
+                            <span class="removed">-21</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-on-amazon-bedrock.html" class="page-link">build-with-claude/claude-on-amazon-bedrock.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+95</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-on-vertex-ai.html" class="page-link">build-with-claude/claude-on-vertex-ai.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+24</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-in-microsoft-foundry.html" class="page-link">build-with-claude/claude-in-microsoft-foundry.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+59</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">20:49 EST</div>
