@@ -26,7 +26,7 @@ Claude has a broad range of text-based capabilities, including but not limited t
 
 ## Claude Cookbook
 
-Dive into practical examples and hands-on tutorials with our collection of Jupyter notebooks.
+Dive into practical examples and hands-on tutorials with the collection of Jupyter notebooks.
 
 <CardGroup cols={3}>
   <Card title="PDF Upload & Summarization" icon="file" href="https://platform.claude.com/cookbook/misc-pdf-upload-summarization">
@@ -44,7 +44,7 @@ Dive into practical examples and hands-on tutorials with our collection of Jupyt
 
 ## More Resources
 
-From crafting the perfect prompt to understanding API details, we've got you covered.
+From crafting the perfect prompt to understanding API details, these resources can help.
 
 <CardGroup cols={3}>
   <Card title="Prompt Engineering Guide" icon="edit" href="/docs/en/build-with-claude/prompt-engineering/overview">
@@ -56,6 +56,6 @@ From crafting the perfect prompt to understanding API details, we've got you cov
   </Card>
 
   <Card title="API Documentation" icon="code" href="/docs/en/api/overview">
-    Everything you need to interact with Claude via our API: request formats, response handling, and troubleshooting.
+    Everything you need to interact with Claude via the API: request formats, response handling, and troubleshooting.
   </Card>
 </CardGroup>

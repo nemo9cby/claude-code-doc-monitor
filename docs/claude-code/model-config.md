@@ -149,10 +149,16 @@ Effort is currently supported on Opus 4.6. The effort slider appears in `/model`
 
 Opus 4.6 and Sonnet 4.6 support a [1 million token context window](https://platform.claude.com/docs/en/build-with-claude/context-windows#1m-token-context-window) for long sessions with large codebases.
 
+<Note>
+  The 1M context window is currently in beta. Features, pricing, and availability may change.
+</Note>
+
 Extended context is available for:
 
 * **API and pay-as-you-go users**: full access to 1M context
-* **Pro, Max, Teams, and Enterprise subscribers**: available with [extra usage](https://support.claude.com/en/articles/12429409-extra-usage-for-paid-claude-plans) enabled. Any tokens beyond 200k are billed directly as extra usage rather than through the subscription.
+* **Pro, Max, Teams, and Enterprise subscribers**: available with [extra usage](https://support.claude.com/en/articles/12429409-extra-usage-for-paid-claude-plans) enabled
+
+Selecting a 1M model does not immediately change billing. Your session uses standard rates until it exceeds 200K tokens of context. Beyond 200K tokens, requests are charged at [long-context pricing](https://platform.claude.com/docs/en/about-claude/pricing#long-context-pricing) with dedicated [rate limits](https://platform.claude.com/docs/en/api/rate-limits#long-context-rate-limits). For subscribers, tokens beyond 200K are billed as extra usage rather than through the subscription.
 
 If your account supports 1M context, the option appears in the model picker (`/model`) in the latest versions of Claude Code. If you don't see it, try restarting your session.
 
@@ -165,9 +171,6 @@ You can also use the `[1m]` suffix with model aliases or full model names:
 # Or append [1m] to a full model name
 /model claude-sonnet-4-6[1m]
 ```
-
-Extended context models have
-[different pricing](https://platform.claude.com/docs/en/about-claude/pricing#long-context-pricing).
 
 ## Checking your current model
 

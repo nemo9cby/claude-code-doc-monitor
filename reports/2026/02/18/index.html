@@ -118,9 +118,435 @@
 
         <header>
             <h1>Changes on 2026-02-18</h1>
-            <p class="meta">13 total changes in 2 runs</p>
+            <p class="meta">39 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">20:48 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更分析
+
+## 总体摘要
+本次更新主要为文档语气去个人化（大规模移除 &#34;we/our&#34; 并改为中性表达），同时将**结构化输出** 和 **Web 搜索/抓取工具** 等 Beta 功能正式转正（GA），并更新了相关的 API 调用方式及参数限制说明。
+
+## 关键主题
+
+*   **语气去个人化**：文档系统性地将第一人称（如 &#34;we recommend&#34;, &#34;our API&#34;）修改为被动语态或第三方指代（如 &#34;The API&#34;, &#34;Anthropic&#34;, &#34;Consider&#34;），旨在提升客观性和专业性。
+*   **功能正式转正 (GA) 与 API 变更**：
+    *   **结构化输出**：不再需要 Beta headers，参数从 `output_format` 迁移至 `output_config.format`，SDK 调用从 `beta.messages` 迁移至 `messages`。
+    *   **Web 搜索与抓取**：移除 `code-execution-web-tools-2026-02-09` beta header，功能直接可用。
+    *   **Computer Use**：`computer-use-2025-11-24` beta header 现在支持 Claude Sonnet 4.6（此前仅支持 Opus）。
+*   **技术细节澄清**：
+    *   **速率限制**：输出令牌每分钟限制（OTPM）改为**实时计算**（基于实际生成的 token），不再基于 `max_tokens` 预估，这意味着设置高 `max_tokens` 不会直接消耗速率配额。
+    *   **复杂度限制**：明确了结构化输出的硬性限制（单请求最多 20 个 strict tools，24 个可选参数，16 个联合类型参数）。
+    *   **1M 上下文窗口**：明确了订阅用户的计费逻辑（前 200k token 使用订阅额度，超出部分按额外使用量计费）。
+
+## 影响等级：中等
+
+**理由**：
+虽然大部分变更仅为措辞润色，但**结构化输出**的参数变更（`output_format` -&gt; `output_config.format`）和 **Web 工具**的 Beta header 移除属于破坏性变更，开发者需更新代码。速率限制计算方式的改变（从预估到实时）对高并发应用有直接的积极影响，允许更灵活的 token 设置。
+
+## 开发者行动项
+
+1.  **迁移结构化输出代码**：将代码中的 `output_format` 参数替换为 `output_config.format`，并移除 `structured-outputs-2025-11-13` 等 beta headers；SDK 调用从 `client.beta.messages` 切换至 `client.messages`。
+2.  **移除 Web 工具 Beta Headers**：如果你在使用 Web 搜索或抓取工具的动态过滤功能，请移除请求头中的 `code-execution-web-tools-2026-02-09`。
+3.  **检查 Schema 复杂度**：审查你的结构化输出 schema，确保单个请求中的 strict tools 数量不超过 20 个，可选参数不超过 24 个，以避免 400 错误。
+4.  **优化 Max Tokens 设置**：利用 OTPM 实时计算的变更，在需要长文本生成的场景中可以放心设置更高的 `max_tokens`，而无需担心提前占用速率限制。
+5.  **更新 Sonnet 4.6 Computer Use 调用**：如果你想在 Sonnet 4.6 上使用最新的 Computer Use 功能（如 zoom action），请使用 `computer-use-2025-11-24` beta header。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Task:** Analyze a single batch of 26 documentation changes (though the prompt only provides diffs for a subset of pages, I need to look at what&#39;s provided). *Correction*: The prompt lists &#34;Total changed pages: 26&#34;, but only provides diffs for about 17 specific pages. I must base my analysis *only* on the diffs provided.
+    *   **Format:** Markdown.
+    *   **Style:** Concise, insightful, developer-focused.
+    *   **Language:** Chinese.
+    *   **Output Structure:**
+        1.  Overall Summary (1-2 sentences).
+        2.  Key Themes (bullets).
+        3.  Impact Level (Low/Medium/High/Breaking) + Reasoning.
+        4.  Action Items (bullets, max 5).
+
+2.  **Analyze the Diffs (Page by Page):**
+
+    *   **model-config.md:** Clarifies 1M context window billing. It&#39;s in beta. Billing changes only after 200k tokens for subscribers. Removes generic pricing link, adds specific billing explanation.
+    *   **about-claude/models/overview.md:** Tone changes (&#34;we recommend&#34; -&gt; &#34;consider&#34;). API naming changes (&#34;Anthropic API&#34; -&gt; &#34;Claude API&#34;). General polishing of phrasing (e.g., &#34;Our most intelligent&#34; -&gt; &#34;The most intelligent&#34;). &#34;Legacy&#34; models section text slightly less aggressive.
+    *   **about-claude/models/migrating-to-claude-4.md:** Tone changes (&#34;We strongly encourage&#34; -&gt; &#34;Consider&#34;). Migration advice for Sonnet 4.5 -&gt; 4.6 regarding `effort` parameter. Clarifies `output_format` to `output_config.format` migration.
+    *   **about-claude/model-deprecations.md:** Significant tone shift from active voice &#34;we&#34; to passive/neutral voice (e.g., &#34;we notify&#34; -&gt; &#34;Anthropic notifies&#34;). Removes &#34;we urge you&#34; -&gt; &#34;Move workloads&#34;.
+    *   **api/messages-stream.md:** &#34;Our SDKs&#34; -&gt; &#34;The SDKs&#34;. &#34;We may occasionally&#34; -&gt; &#34;The API may occasionally&#34;. &#34;Our current models&#34; -&gt; &#34;Current models&#34;. Tone is more neutral.
+    *   **api/rate-limits.md:** &#34;we have implemented&#34; -&gt; &#34;limits are in place&#34;. &#34;We enforce&#34; -&gt; &#34;The API enforces&#34;. *Technical change*: Clarifies OTPM (Output Tokens Per Minute) limits. Previously estimated based on `max_tokens`, now evaluated in **real-time** based on actual tokens generated. Setting high `max_tokens` no longer hurts rate limits.
+    *   **api/service-tiers.md:** Minor phrasing updates (&#34;Multipliers stack —&#34; -&gt; &#34;Multipliers stack:&#34;).
+    *   **api/errors.md:** &#34;Our API follows&#34; -&gt; &#34;The API follows&#34;. &#34;We may also use&#34; -&gt; &#34;This error type may also be used&#34;. *Technical change*: Long requests warning toned down (&#34;We highly encourage&#34; -&gt; &#34;Consider&#34;).
+    *   **build-with-claude/text-generation.md:** &#34;our collection&#34; -&gt; &#34;the collection&#34;. &#34;we&#39;ve got you covered&#34; -&gt; &#34;these resources can help&#34;. &#34;our API&#34; -&gt; &#34;the API&#34;.
+    *   **build-with-claude/extended-thinking.md:** &#34;we recommend&#34; -&gt; &#34;use&#34;. &#34;We&#39;re continuously working&#34; -&gt; &#34;Anthropic is continuously working&#34;. &#34;We suggest&#34; -&gt; &#34;always&#34;. Beta header status updates (deprecation notes).
+    *   **build-with-claude/streaming.md:** Similar to `api/messages-stream.md`. &#34;Our SDKs&#34; -&gt; &#34;The SDKs&#34;.
+    *   **build-with-claude/citations.md:** &#34;we parse&#34; -&gt; &#34;citations are parsed&#34;. &#34;we found&#34; -&gt; &#34;In evaluations... was found&#34;. &#34;We support&#34; -&gt; &#34;Three document types are supported&#34;. &#34;we&#39;ve added&#34; -&gt; &#34;is included&#34;.
+    *   **build-with-claude/structured-outputs.md:** **Major Code Changes**.
+        *   Go, Ruby, C# code examples updated to remove Beta (`client.Beta.Messages`) and use standard (`client.Messages`).
+        *   `output_format` replaced by `output_config.format`.
+        *   Schema structure changed slightly in examples.
+        *   Error section updated: Instead of specific &#34;Too many recursive definitions&#34; errors, it now describes explicit limits (20 strict tools, 24 optional params, 16 union types) and internal grammar limits.
+    *   **build-with-claude/effort.md:** Tone changes (&#34;We recommend&#34; -&gt; &#34;Explicitly set&#34;). Phrasing tweaks.
+    *   **build-with-claude/working-with-messages.md:** &#34;We support&#34; -&gt; &#34;Both ... are supported&#34;. &#34;See our guide&#34; -&gt; &#34;See the ... guide&#34;.
+    *   **build-with-claude/prompt-engineering/*:** Tone shifts (passive voice, removing &#34;we&#34;).
+    *   **agents-and-tools/tool-use/*:** Tone shifts. `web-search-tool` and `web-fetch-tool`: **Code Changes**.
+        *   Removes `beta` header requirement (`code-execution-web-tools-2026-02-09`) from the request examples.
+        *   Moves from `client.beta.messages` to `client.messages`.
+    *   **agents-and-tools/tool-use/computer-use-tool.md:**
+        *   Beta header `computer-use-2025-11-24` now supports Claude Sonnet 4.6 (previously Opus 4.6/4.5 only).
+        *   Tone changes (&#34;We&#39;ve trained&#34; -&gt; &#34;The model has been trained&#34;).
+
+3.  **Synthesize Findings:**
+
+    *   **Theme 1: Depersonalization/Tone Shift.** Massive effort to remove first-person plural (&#34;we&#34;, &#34;our&#34;) from docs, replacing with neutral voice (&#34;The API&#34;, &#34;Anthropic&#34;, passive voice).
+    *   **Theme 2: Beta Features Moving to GA.**
+        *   Structured Outputs: `output_format` -&gt; `output_config.format`, Beta namespace removal in SDKs.
+        *   Web Search/Fetch: `code-execution-web-tools` beta header removed (GA).
+        *   Fine-grained tool streaming mentioned as GA in migration guide.
+    *   **Theme 3: Technical Clarifications.**
+        *   Rate Limits: OTPM is now real-time, not pre-estimated.
+        *   1M Context Window: Billing clarification for subscribers.
+        *   Computer Use: `computer-use-2025-11-24` now supports Sonnet 4.6.
+        *   Structured Outputs: New explicit complexity limits (tools, optional params, unions).
+
+4.  **Draft the Content (in Chinese):**
+
+    *   *Summary:* 主要是文档语气的去个人化（去除 &#34;we&#34;），以及几个 Beta 功能正式转正带来的 API 调整。同时明确了结构化输出的限制条件和速率限制的实时计算方式。
+    *   *Themes:*
+        *   语气去个人化：大规模移除 &#34;we/our&#34;，改用被动语态或指代 &#34;The API/Anthropic&#34;。
+        *   功能转正（GA）：结构化输出、Web 搜索/抓取工具不再需要 Beta headers；参数从 `output_format` 变更为 `output_config.format`。
+        *   API 行为变更：速率限制（OTPM）改为实时计算，不再基于 `max_tokens` 预估；Computer Use 新版 beta 头支持 Sonnet 4.6。
+        *   限制与规范：明确结构化输出的复杂度限制（工具数量、可选参数等）。
+    *   *Impact:* **Medium**.
+        *   *Reasoning:* 语气变化不影响代码。但 Structured Outputs (`output_config.format`) 和移除 Beta headers 是破坏性变更（虽然功能转正了）。速率限制计算方式的变化对有大量并发需求的开发者有正面影响。
+    *   *Action Items:*
+        *   更新代码：将 `output_format` 替换为 `output_config.format`，移除 Structured Outputs 相关的 Beta headers。
+        *   更新代码：移除 Web Search/Fetch 工具的 `code-execution-web-tools` beta header。
+        *   利用速率限制：可以放心设置更高的 `max_tokens` 而不消耗额外的 OTPM 配额。
+        *   检查结构化输出：确保 schema 不超过新的复杂度限制（20个 strict tools，24个可选参数等）。
+
+5.  **Refine Language (Chinese):**
+
+    *   *Tone Check:* Professional, concise.
+    *   *Structuring:* Ensure headers match the request.
+
+    *Self-Correction during drafting:* The prompt asks for &#34;Total changed pages: 26&#34; but I only have diffs for ~17. I should focus on the content of the diffs. The tone change is ubiquitous. The API changes are specific to Structured Outputs and Web tools.
+
+    *Action Item refinement:* Be specific about `output_format` -&gt; `output_config.format`. That&#39;s a big one for devs using structured outputs.
+
+6.  **Final Output Generation:** (Proceeding to generate markdown).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/model-config.html" class="page-link">model-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/about-claude/models/overview.html" class="page-link">about-claude/models/overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+12</span>
+                            <span class="removed">-12</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/about-claude/models/migrating-to-claude-4.html" class="page-link">about-claude/models/migrating-to-claude-4.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            <span class="removed">-7</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/about-claude/model-deprecations.html" class="page-link">about-claude/model-deprecations.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+17</span>
+                            <span class="removed">-17</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/messages-streaming.html" class="page-link">api/messages-streaming.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+10</span>
+                            <span class="removed">-10</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/rate-limits.html" class="page-link">api/rate-limits.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+9</span>
+                            <span class="removed">-10</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/service-tiers.html" class="page-link">api/service-tiers.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/errors.html" class="page-link">api/errors.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+10</span>
+                            <span class="removed">-10</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/text-generation.html" class="page-link">build-with-claude/text-generation.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/extended-thinking.html" class="page-link">build-with-claude/extended-thinking.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+17</span>
+                            <span class="removed">-17</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/streaming.html" class="page-link">build-with-claude/streaming.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+10</span>
+                            <span class="removed">-10</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/citations.html" class="page-link">build-with-claude/citations.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/structured-outputs.html" class="page-link">build-with-claude/structured-outputs.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+53</span>
+                            <span class="removed">-47</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/effort.html" class="page-link">build-with-claude/effort.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            <span class="removed">-7</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/working-with-messages.html" class="page-link">build-with-claude/working-with-messages.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/prompt-generator.html" class="page-link">build-with-claude/prompt-engineering/prompt-generator.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/chain-prompts.html" class="page-link">build-with-claude/prompt-engineering/chain-prompts.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/extended-thinking-tips.html" class="page-link">build-with-claude/prompt-engineering/extended-thinking-tips.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+10</span>
+                            <span class="removed">-10</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/claude-4-best-practices.html" class="page-link">build-with-claude/prompt-engineering/claude-4-best-practices.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+12</span>
+                            <span class="removed">-12</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/overview.html" class="page-link">agents-and-tools/tool-use/overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-8</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/implement-tool-use.html" class="page-link">agents-and-tools/tool-use/implement-tool-use.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+11</span>
+                            <span class="removed">-11</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/computer-use-tool.html" class="page-link">agents-and-tools/tool-use/computer-use-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+29</span>
+                            <span class="removed">-29</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/web-search-tool.html" class="page-link">agents-and-tools/tool-use/web-search-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/web-fetch-tool.html" class="page-link">agents-and-tools/tool-use/web-fetch-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-7</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/memory-tool.html" class="page-link">agents-and-tools/tool-use/memory-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/programmatic-tool-calling.html" class="page-link">agents-and-tools/tool-use/programmatic-tool-calling.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">18:25 EST</div>
