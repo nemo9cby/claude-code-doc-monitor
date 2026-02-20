@@ -118,9 +118,180 @@
 
         <header>
             <h1>Changes on 2026-02-19</h1>
-            <p class="meta">12 total changes in 3 runs</p>
+            <p class="meta">16 total changes in 4 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">20:44 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># Claude Code 文档变更分析
+
+### 总体摘要
+此次更新主要围绕 **Claude Code v2.1.49** 版本发布，文档重点介绍了如何配置桌面通知以监控后台任务，同时记录了 Git Worktree 隔离工作流、性能优化以及将 Sonnet 4.5 升级到 Sonnet 4.6 的关键变更。
+
+### 关键主题
+*   **桌面通知集成**: 新增详细指南，展示如何利用 `Notification` hook 配置 macOS (`osascript`)、Linux (`notify-send`) 和 Windows (PowerShell) 的原生系统通知，以便在长时间任务结束或需要人工干预时提醒开发者。
+*   **Git 隔离工作流**: 引入了 `--worktree` 标志和子代理隔离模式 (`isolation: &#34;worktree&#34;`)，允许在独立的 git 工作树中执行操作，增强安全性。
+*   **模型迁移**: Max 计划中的 1M 上下文模型已从 Sonnet 4.5 迁移至前沿的 Sonnet 4.6（同样支持 1M 上下文），提示用户手动切换。
+*   **性能与稳定性修复**: 重点解决了长期会话中的 WASM 内存泄漏问题、优化了启动性能（减少 API 调用、缓存 auth 失败），并修复了代理管理逻辑（如 Ctrl+F 终止后台代理）。
+*   **企业级审计**: 新增 `ConfigChange` hook 事件，用于监控和审计配置文件的变更。
+*   **资源更新**: 文档中的数据流向图和 Hook 生命周期图进行了 CDN 资源刷新，内容实质未变。
+
+### 影响等级: **中等**
+**理由**: 虽然主要是新功能增强和性能提升，但 1M 上下文模型的强制迁移需要用户操作，且新增的 Worktree 和 Notification 功能代表了重要的工作流改进。没有破坏性的 API 变更，但内存泄漏的修复对长期用户至关重要。
+
+### 开发者行动项
+1.  **切换模型**: 如果你使用的是 Max 计划下的 1M 上下文模型，请通过 `/model` 命令从 Sonnet 4.5 切换到 Sonnet 4.6。
+2.  **配置通知**: 对于长时间运行的任务，按照 `common-workflows.md` 中的新指南配置桌面通知 Hook，以提高多任务处理效率。
+3.  **尝试 Worktree**: 在涉及高风险或破坏性的 Git 操作时，尝试使用 `--worktree` 标志进行隔离测试。
+4.  **利用 Config Hook**: 如果你是企业用户或插件开发者，利用新增的 `ConfigChange` hook 实现配置变更的监控或拦截。
+5.  **更新插件**: 如果你开发插件，现在可以随插件发布默认的 `settings.json` 配置文件。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request**:
+    *   **Role**: World-class programmer analyzing documentation changes.
+    *   **Output Format**: Markdown, concise, insightful, Chinese.
+    *   **Input**: 4 pages of changes (`common-workflows.md`, `data-usage.md`, `hooks.md`, `CHANGELOG.md.md`).
+
+2.  **Analyze the Input Data**:
+    *   **Page 1: `common-workflows.md` (+30 lines)**:
+        *   New section: &#34;Get notified when Claude needs your attention&#34;.
+        *   Content: Describes how to set up desktop notifications using the `Notification` hook event.
+        *   Details: Provides specific OS commands (macOS `osascript`, Linux `notify-send`, Windows PowerShell).
+        *   Context: Useful for long-running tasks.
+    *   **Page 2: `data-usage.md` (+1/-1 lines)**:
+        *   Change: Updated the URL hash for an image (`claude-code-data-flow.svg`).
+        *   Significance: Trivial asset update, likely re-uploaded to CDN. No functional change to documentation content.
+    *   **Page 3: `hooks.md` (+2/-2 lines)**:
+        *   Change: Updated URL hashes for two images (`hooks-lifecycle.svg`, `hook-resolution.svg`).
+        *   Significance: Trivial asset update, similar to page 2. No functional content change.
+    *   **Page 4: `CHANGELOG.md.md` (+27 lines)**:
+        *   Version: 2.1.49.
+        *   Key changes:
+            *   `--worktree` flag and subagent isolation.
+            *   Ctrl+F to kill background agents.
+            *   Plugins can ship `settings.json`.
+            *   Performance improvements (startup, WASM memory, cache).
+            *   Bug fixes (file path suggestions, Ctrl+C handling, verbose mode).
+            *   Model changes: Sonnet 4.5 1M context replaced by Sonnet 4.6 (1M context).
+            *   New hook event: `ConfigChange`.
+            *   Simple mode now includes file edit tool.
+
+3.  **Synthesize Key Themes**:
+    *   **Notifications/Workflows**: Introduction of desktop notifications via hooks.
+    *   **Performance &amp; Stability**: Significant focus on memory leaks (WASM), startup speed, and caching.
+    *   **Git/Workflow Enhancements**: Git worktree support for isolated operations.
+    *   **Agent Management**: Better control over background agents (`Ctrl+F`, `background: true`).
+    *   **Model Updates**: Shift from Sonnet 4.5 to 4.6 for 1M context.
+    *   **Asset Updates**: Minor image URL refreshes (likely internal CDN management).
+
+4.  **Determine Impact Level**:
+    *   **Reasoning**:
+        *   New features (Worktree, Notifications, ConfigChange hook) are additive.
+        *   Model change (4.5 -&gt; 4.6) is a forced migration/upgrade path but usually additive/better.
+        *   Performance fixes improve stability significantly.
+        *   No breaking API changes mentioned in the diff (though `Sonnet 4.5` removal might force a config change for some users).
+    *   **Verdict**: Medium to High (leaning towards High due to the model switch for heavy users and the new git worktree feature which is a major workflow improvement). Let&#39;s stick with **Medium** as the default for doc updates unless it&#39;s a major version bump, but given the specific model migration for Max plan users, it&#39;s significant. Let&#39;s call it **Medium** to be safe, or **High** if emphasizing the model switch. I&#39;ll go with **Medium** because the documentation changes mostly highlight *new* capabilities rather than breaking the core system, although the changelog implies significant backend improvements. Actually, the `ConfigChange` hook and Worktree support are fairly significant developer-facing features.
+
+5.  **Formulate Action Items**:
+    *   Switch to Sonnet 4.6 (if using 1M context on Max plan).
+    *   Check out the new `Notification` hook for long-running tasks.
+    *   Explore `--worktree` for safer git operations.
+    *   Update plugins if shipping default settings.
+    *   Review `ConfigChange` hook for enterprise auditing.
+
+6.  **Draft the Response (in Chinese)**:
+
+    *   *Summary*: Claude Code v2.1.49 更新文档，主要引入了桌面通知钩子、Git Worktree 支持以及一系列性能和稳定性修复，同时将 1M 上下文模型从 Sonnet 4.5 迁移至 4.6。
+    *   *Themes*:
+        *   **桌面通知集成**: 新增通过 Hook 配置原生 OS 通知的文档。
+        *   **Git 隔离工作流**: 引入 `--worktree` 和子代理隔离功能。
+        *   **模型升级**: Sonnet 4.5 (1M) 被 Sonnet 4.6 (1M) 取代。
+        *   **性能与稳定性**: 修复了 WASM 内存泄漏、启动性能及代理管理问题。
+        *   **资源更新**: 文档中的架构图进行了 CDN 刷新（内容无实质变化）。
+    *   *Impact*: Medium. 引入了重要的工作流增强（Worktree, 通知）和关键模型迁移，但主要是功能增强而非破坏性变更。
+    *   *Action Items*:
+        *   如果你在 Max 计划中使用 1M 上下文模型，请切换至 Sonnet 4.6。
+        *   尝试使用新的 `Notification` hook 配置桌面通知，以便在长时间任务完成后接收提醒。
+        *   探索 `--worktree` 标志以在隔离的 git 工作树中进行操作。
+        *   针对企业安全审计，利用新增的 `ConfigChange` hook。
+        *   更新插件以支持默认 `settings.json` 配置。
+
+7.  **Refine for Conciseness and Insight**:
+    *   Make sure to mention the specific commands for notifications as a nice-to-know.
+    *   Highlight the memory fix for long sessions as a &#34;quality of life&#34; improvement for devs.
+
+8.  **Final Polish (Markdown)**: (Proceed to generate output).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/common-workflows.html" class="page-link">common-workflows.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+30</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/data-usage.html" class="page-link">data-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+27</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">17:26 EST</div>
