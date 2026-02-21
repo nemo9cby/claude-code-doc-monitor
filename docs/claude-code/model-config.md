@@ -78,12 +78,7 @@ When `availableModels` is set, users cannot switch to models not in the list via
 
 ### Default model behavior
 
-The Default option in the model picker is not affected by `availableModels`. It always remains available and represents the system's runtime default based on the user's subscription tier:
-
-| User type                     | Default model |
-| :---------------------------- | :------------ |
-| Max, Team, or Pro subscribers | Opus 4.6      |
-| Pay-as-you-go (API) users     | Sonnet 4.5    |
+The Default option in the model picker is not affected by `availableModels`. It always remains available and represents the system's runtime default [based on the user's subscription tier](#default-model-setting).
 
 Even with `availableModels: []`, users can still use Claude Code with the Default model for their tier.
 
@@ -94,7 +89,7 @@ To fully control the model experience, use `availableModels` together with the `
 * **availableModels**: restricts what users can switch to
 * **model**: sets the explicit model override, taking precedence over the Default
 
-This example ensures all users run Sonnet 4.5 and can only choose between Sonnet and Haiku:
+This example ensures all users run Sonnet 4.6 and can only choose between Sonnet and Haiku:
 
 ```json  theme={null}
 {
