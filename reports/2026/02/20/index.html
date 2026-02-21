@@ -118,9 +118,196 @@
 
         <header>
             <h1>Changes on 2026-02-20</h1>
-            <p class="meta">18 total changes in 5 runs</p>
+            <p class="meta">23 total changes in 6 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">20:29 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 1. Overall Summary
+此次更新显著提升了文档的引导性体验，将新手入门路径标准化为线性流程。同时，Changelog 显示重点修复了 CLI 和 Agent 工具中严重的内存泄漏问题，并引入了 Worktree 隔离等增强功能，大幅提升了开发工具的稳定性和性能。
+
+### 2. Key Themes across pages
+*   **文档体验重构:** 入门页（intro.md）和快速上手页（get-started.md）将原本的卡片式推荐重构为清晰的“步骤化”路径，强调从“首次调用”到“掌握消息 API”的学习顺序。
+*   **稳定性与性能修复:** Changelog 集中解决了长期运行会话中的内存泄漏问题（涉及 LSP 诊断、Agent 任务、文件快照等），并修复了 Linux 系统兼容性和 SSH 断连导致的数据丢失问题。
+*   **Agent 与 CLI 能力增强:** 新增 `isolation: worktree` 声明式支持、Worktree 钩子事件以及 `claude agents` CLI 命令，优化了 Agent 的隔离管理和操作效率。
+*   **API 细节更新:** 修正了 `programmatic-tool-calling` 中的工具版本字符串，`code_execution` 版本从 `20250825` 更新至 `20260120`。
+
+### 3. Impact level
+**High**
+**理由：** 虽然文档改动主要是 UX 优化，但 Changelog 包含了大量针对内存泄漏和崩溃的关键修复。对于使用 Claude CLI 或长期运行 Agent 的开发者来说，此次更新能显著解决内存暴涨和会话不稳定的问题，属于必须关注的稳定性版本。此外，工具版本字符串的更新属于破坏性变更（Breaking Change），需要代码适配。
+
+### 4. Action items for developers
+*   **更新代码中的硬编码字符串：** 如果你的代码中使用了 `code_execution` 工具，请务必将版本标识符 `code_execution_20250825` 更新为 `code_execution_20260120`。
+*   **升级 CLI/工具链：** 建议立即更新至最新版本以解决长期运行时的内存泄漏问题和 Linux 兼容性问题。
+*   **探索 Worktree 隔离：** 查看新增的 `isolation: worktree` 配置和 Worktree 钩子，利用这些新特性实现更安全的 Agent 隔离环境。
+*   **关注环境变量：** 检查 `CLAUDE_CODE_DISABLE_1M_CONTEXT` 和 `CLAUDE_CODE_SIMPLE` 的行为变化，确认其符合你的预期配置。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Input:** 5 pages of diffs (`intro.md`, `get-started.md`, `build-with-claude/overview.md`, `agents-and-tools/tool-use/programmatic-tool-calling.md`, `CHANGELOG.md.md`).
+    *   **Output Format:** Markdown, concise, insightful.
+    *   **Language:** Chinese.
+    *   **Structure:**
+        1.  Overall Summary.
+        2.  Key Themes.
+        3.  Impact Level.
+        4.  Action Items.
+
+2.  **Analyze the Diffs:**
+
+    *   **intro.md:**
+        *   *Change:* &#34;Get started&#34; section restructured from a generic card list to a specific &#34;Recommended path for new developers&#34; with 4 clear steps (Make API call -&gt; Understand Messages API -&gt; Choose model -&gt; Explore features).
+        *   *Change:* Minor text tweaks (e.g., &#34;best-in-class&#34; -&gt; &#34;provides&#34;, &#34;enjoy easier&#34; -&gt; &#34;prototype and test&#34;).
+        *   *Insight:* Improves onboarding flow for new users.
+
+    *   **get-started.md:**
+        *   *Change:* &#34;Next steps&#34; section restructured. First highlights &#34;Working with the Messages API&#34; as the critical next step after the first API call. Then lists &#34;Further exploration&#34; (Models, Features, SDKs).
+        *   *Change:* Text refinements (&#34;Get your API key at&#34; -&gt; &#34;from&#34;, &#34;Explore&#34; -&gt; &#34;Browse&#34;).
+        *   *Insight:* Aligns with `intro.md` changes, guiding learning path more effectively.
+
+    *   **build-with-claude/overview.md:**
+        *   *Change:* Added a summary section at the top explaining the 5 areas of the API surface (Model capabilities, Tools, Tool infrastructure, Context management, Files and assets).
+        *   *Change:* Grammar fix: &#34;Batch API calls costs 50%&#34; -&gt; &#34;cost 50%&#34;.
+        *   *Change:* Header title fix: &#34;Files &amp; assets&#34; -&gt; &#34;Files and assets&#34;.
+        *   *Insight:* Better organization of high-level concepts and grammar fixes.
+
+    *   **agents-and-tools/tool-use/programmatic-tool-calling.md:**
+        *   *Change:* Updated `code_execution` tool version string from `20250825` to `20260120`. This applies to Opus 4.6, Sonnet 4.6, Sonnet 4.5, Opus 4.5.
+        *   *Change:* Removed &#34;Web search&#34; and &#34;Web fetch&#34; from the list of tools that cannot currently be called programmatically (implying they might now support it or it was removed for other reasons? Actually, looking at the context, it removes them from the exclusion list, suggesting they *might* be supported or the section was simplified. However, the diff specifically deletes those two lines).
+        *   *Insight:* Critical update for tool definition strings. Likely relates to an update in the code execution capability or date-based versioning.
+
+    *   **CHANGELOG.md.md:**
+        *   *Version 2.1.50*: Major focus on **memory leaks** (multiple fixes for long sessions, LSP diagnostics, TaskOutput, CircularBuffer, ChildProcess).
+        *   *Features:* `startupTimeout` for LSP, Worktree hooks, `isolation: worktree` for agents, `claude agents` command.
+        *   *Fixes:* Linux glibc compatibility, session visibility with symlinks, SSH disconnect data loss, MCP tool discovery.
+        *   *Performance:* Better memory usage, startup performance for headless mode.
+        *   *Context:* Opus 4.6 (fast mode) now includes full 1M context.
+        *   *Insight:* Heavy focus on stability and performance, specifically memory management and CLI/Agent tooling features.
+
+3.  **Synthesize the Findings:**
+
+    *   *Theme 1: Improved Onboarding &amp; UX.* The docs are getting a facelift to guide new users better (intro, get-started).
+    *   *Theme 2: API Versioning &amp; Tooling Updates.* `code_execution` version string changed (from Aug 2025 to Jan 2026 - wait, the dates are in the future? That&#39;s standard for pre-planned versions or just string identifiers. `20260120` implies a version from Jan 20, 2026). *Correction*: The current date is likely later, or these are placeholders. Regardless, the version string *changed*, which is the important part.
+    *   *Theme 3: Stability &amp; Performance (CLI).* The changelog is dominated by memory leak fixes and performance improvements for long-running sessions.
+    *   *Theme 4: Agent/CLI Enhancements.* Worktree support, better hooks, and LSP config.
+
+4.  **Draft the Content (in Chinese):**
+
+    *   **Summary:** 此次更新集中优化了文档结构以改善新用户体验，并修复了多项关键的性能和稳定性问题（特别是内存泄漏）。同时更新了代码执行工具的版本标识符。
+    *   **Themes:**
+        *   **文档重构:** 首页和快速入门页面的引导路径更加清晰，强调“首次调用” -&gt; “消息 API” -&gt; “模型选择”的学习路径。
+        *   **稳定性与性能:** Changelog 显示大量关于内存泄漏的修复（LSP、Agent Teams、长会话等），以及提升 Linux 兼容性和 SSH 稳定性。
+        *   **工具与 CLI 增强:** 新增 Agent 工作树支持、LSP 配置选项，并优化了 CLI 的启动性能和内存使用。
+        *   **API 版本更新:** `code_execution` 工具版本从 `20250825` 升级至 `20260120`。
+    *   **Impact:** **High** (对于 CLI 用户和长期运行 Agent 的开发者)。**Medium** (对于仅阅读文档的用户)。**Low/Breaking** (需要更新硬编码的工具版本字符串)。
+    *   **Action Items:**
+        *   如果使用了 `code_execution` 工具，请更新代码中的版本字符串。
+        *   升级 CLI/编辑器扩展以解决长期会话中的内存泄漏问题。
+        *   关注新的 `isolation: worktree` 和 Worktree Hooks 功能以改进 Agent 隔离。
+
+5.  **Refine and Polish (Markdown formatting):**
+
+    *   *Summary:* 简明扼要，覆盖文档变更和 Changelog 的核心。
+    *   *Themes:* 提取关键词（UX, Memory, Tools）。
+    *   *Impact:* 判断为 High，因为 Changelog 显示很多严重的内存泄漏修复，这直接影响生产环境稳定性。Breaking change 主要涉及硬编码字符串。
+    *   *Action:* 具体的代码更新建议。
+
+6.  **Final Review against constraints:**
+    *   Concise? Yes.
+    *   Insightful? Yes, connects the dots between doc changes and changelog fixes.
+    *   Chinese? Yes.
+    *   Focus on developers? Yes.
+
+    *(Self-Correction during drafting)*: The date in the tool version string (`20260120`) is in the future relative to typical release cycles, but I should treat it as a literal string update requirement. The prompt asks for analysis, not speculation on dates.
+
+    *Changelog Details:* The changelog is specifically for the CLI/IDE extension (likely `claude-code` or similar tooling given mentions of VSCode, LSP, Worktrees), not the Anthropic API itself, though the intro docs cover the API. I should distinguish between &#34;Developer Tools&#34; (the CLI mentioned in Changelog) and &#34;Claude API&#34; (docs). The prompt says &#34;Total changed pages&#34;, implying these docs are for the *Developer Tools* suite provided by Anthropic, possibly the Claude desktop app/CLI wrapper context, OR the Changelog is for the Claude Code CLI. Wait, `intro.md` talks about `claude.ai` and `Anthropic API`. `CHANGELOG.md` talks about `CLAUDE_CODE_SIMPLE`, `claude agents` CLI command. This suggests the documentation covers the **Claude Code CLI/Agent** tooling, not just the raw API.
+    *Actually*, looking at `intro.md`, it mentions &#34;Make your first API call to Claude&#34;. This is the *general* Anthropic docs. But the Changelog refers to `claude agents` command and VSCode. This implies this repository/project contains both general API docs AND specific tooling (CLI) docs. Or perhaps the Changelog is just included in this batch.
+    *Decision:* I will analyze the batch as a whole. The Changelog significantly impacts developers using the CLI/Agent features. The Doc changes impact API users. I will highlight the Changelog&#39;s focus on the CLI/Agent tooling stability.
+
+7.  **Final Output Generation.**</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/intro.html" class="page-link">intro.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+22</span>
+                            <span class="removed">-13</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/get-started.html" class="page-link">get-started.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+11</span>
+                            <span class="removed">-10</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/overview.html" class="page-link">build-with-claude/overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+9</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/programmatic-tool-calling.html" class="page-link">agents-and-tools/tool-use/programmatic-tool-calling.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+21</span>
+                            <span class="removed">-23</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+26</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">17:20 EST</div>
