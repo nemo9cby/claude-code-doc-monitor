@@ -118,9 +118,236 @@
 
         <header>
             <h1>Changes on 2026-02-23</h1>
-            <p class="meta">47 total changes in 4 runs</p>
+            <p class="meta">55 total changes in 5 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">20:45 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### Overall Summary
+本次变更仅涉及文档底层技术基础设施（具体为 HTML 渲染输出中的 CSP Nonce 或构建哈希值变更），未包含任何实质性的文档内容修改。
+
+### Key Themes across pages
+*   **技术构建更新**：所有 8 个页面的 Diff 均显示为 Next.js/HTML 源码片段的变化，而非 Markdown 源文本。
+*   **无内容改动**：没有涉及到“提示工程”技巧、说明文字或代码示例的修改。
+*   **自动化变更**：这通常是重新构建或部署文档站点时自动生成的哈希值差异。
+
+### Impact level: **Low**
+**理由**：虽然文件显示有变更行数，但这些差异仅影响 HTML 渲染层的安全随机数（`nonce`）或脚本引用，完全不改变开发者阅读到的实际指导内容、最佳实践或 API 用法。
+
+### Action items for developers
+*   **无需采取任何行动**。
+*   无需更新代码或学习新的文档内容。
+*   如需确认源码变更，建议检查 Markdown 源文件而非 HTML 输出。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer/documentation expert.
+    *   **Task:** Analyze documentation changes as a single batch.
+    *   **Input:** 8 pages of diffs for &#34;build-with-claude/prompt-engineering&#34; (Markdown files).
+    *   **Output Format:** Concise, insightful markdown analysis in *Chinese*.
+    *   **Structure:**
+        1.  Overall Summary (1-2 sentences).
+        2.  Key Themes (bullets).
+        3.  Impact Level (Low/Medium/High/Breaking) with reasoning.
+        4.  Action Items for developers (max 5 bullets).
+
+2.  **Analyze the Input Data (The Diffs):**
+    *   I need to look at the provided diffs for the 8 pages.
+    *   *Page 1:* `build-with-claude/prompt-engineering/be-clear-and-direct.md`. Diff shows only `&lt;!DOCTYPE html&gt;`... `nonce=&#34;0/6NE...&#34;`. It&#39;s a massive HTML blob being replaced by another massive HTML blob. The text content isn&#39;t shown as text, just the rendered HTML source code.
+    *   *Page 2:* `build-with-claude/prompt-engineering/multishot-prompting.md`. Same pattern. HTML head script/link tags. `nonce` changed.
+    *   *Page 3:* `build-with-claude/prompt-engineering/chain-of-thought.md`. Same pattern.
+    *   *Page 4:* `build-with-claude/prompt-engineering/use-xml-tags.md`. Same pattern.
+    *   *Page 5:* `build-with-claude/prompt-engineering/system-prompts.md`. Same pattern.
+    *   *Page 6:* `build-with-claude/prompt-engineering/chain-prompts.md`. Same pattern.
+    *   *Page 7:* `build-with-claude/prompt-engineering/long-context-tips.md`. Same pattern.
+    *   *Page 8:* `build-with-claude/prompt-engineering/extended-thinking-tips.md`. Same pattern.
+
+3.  **Deep Dive into the Diffs:**
+    *   Wait, looking closely at the diffs provided...
+    *   `--- a/build-with-claude/prompt-engineering/be-clear-and-direct.md`
+    *   `+++ b/build-with-claude/prompt-engineering/be-clear-and-direct.md`
+    *   `@@ -1,4 +1,4 @@`
+    *   The content is *all* HTML boilerplate (Next.js specific). `&lt;script src=&#34;...&#34;&gt;`, `&lt;link rel=&#34;stylesheet&#34;...`, `nonce=&#34;...&#34;`.
+    *   The filenames end in `.md`, but the content inside the diff looks like raw HTML output from a web scraper or a static site generator (SSG) output snapshot, not source Markdown.
+    *   However, standard diffs usually show source code. If this is a documentation repo, these files *should* be Markdown. The fact that the diff shows HTML implies either:
+        1.  The files *are* HTML files saved as `.md` (unlikely for a doc repo like this usually).
+        2.  The diff tool is showing the *rendered* output or a snapshot of the build artifacts, not the source.
+        3.  (Most likely for this specific prompt context): The changes are purely technical infrastructure changes (build cache invalidation, asset hashing, nonce regeneration for security) related to the site deployment/rendering process, **not** content changes.
+    *   Let&#39;s look at what actually changed.
+        *   Old: `nonce=&#34;0/6NEAkDzSOZJWs0NEHzSA==&#34;`
+        *   New: (Different nonce string for every file).
+        *   The file paths are `.md`, but the content is Next.js HTML. This is weird. Usually, a diff on a `.md` file shows Markdown.
+    *   *Hypothesis:* The user might have provided diffs from a &#34;built&#34; or &#34;exported&#34; view, or the tooling generating these diffs is comparing the HTML output of the docs. OR, more likely, the actual content *didn&#39;t change*, but the build hashes/csp nonces changed.
+    *   *Crucial Observation:* The diff lines show `+3 / -3`. This implies 3 lines added, 3 lines removed.
+    *   Looking at the structure: It&#39;s a massive block of HTML. The diff format is `@@ -1,4 +1,4 @@`, which suggests the comparison is looking at the first few lines.
+    *   Actually, looking at the *very* end of the provided diffs (which seem truncated or cut off), they all look identical in structure.
+    *   *Wait, looking at the actual text visible:*
+        *   The &#34;removed&#34; side has a specific `nonce`.
+        *   The &#34;added&#34; side has a *different* `nonce`.
+        *   The rest of the URL hash (e.g., `href=&#34;/_next/static/css/95b83e376d020c60.css&#34;`) appears identical in the visible snippets.
+    *   *Conclusion:* These are **not** documentation content changes. These are **infrastructure/deployment changes**. The content of the Markdown files (the actual text developers read) is not shown in these diffs because the diffs provided are comparing the HTML output (or the files are somehow storing HTML, which is bad practice but possible in snapshots).
+    *   *Correction:* If the files are `.md`, and the diff shows HTML, it&#39;s highly probable that the diffing tool or the source provided is actually showing the *rendered HTML* or the files were corrupted/changed to HTML.
+    *   *However*, as an analyzer of *documentation changes*, if the content provided is just HTML boilerplate with different nonces, I must report that: **No meaningful content changes.**
+    *   Let&#39;s verify the &#34;content&#34;. The diffs show `&lt;html class=&#34;h-screen antialiased...&#34;&gt;`. This is definitely the *rendered* HTML of a Next.js app, not the source `.md` text.
+    *   Why would `.md` files contain HTML?
+        *   Maybe these aren&#39;t source files, but output files being tracked?
+        *   Maybe the user copied the wrong diffs (view source vs edit source)?
+        *   Maybe the documentation site uses `.md` extensions but serves pre-rendered HTML? (Unlikely for a standard Next.js + MDX setup, usually source is separate).
+    *   *Regardless of the &#34;Why&#34;, the &#34;What&#34; is clear:* The diffs exclusively show HTML boilerplate updates (specifically CSP nonces and script tags). There is zero information regarding the actual text, instructions, or prompt engineering advice.
+
+4.  **Formulating the Analysis:**
+
+    *   **Overall Summary:** The provided diffs indicate technical infrastructure updates (specifically Next.js build artifacts and CSP nonces) rather than changes to the actual documentation content.
+    *   **Key Themes:**
+        *   HTML/CSS/JS asset hashing or nonce updates.
+        *   No visible changes to the explanatory text or code examples.
+        *   Likely a deployment or build system regeneration.
+    *   **Impact Level:** **Low** (or None/Infrastructure only). There are no changes to the developer-facing information or API documentation.
+    *   **Action Items:** None. Developers don&#39;t need to learn anything new.
+
+5.  **Refining the Tone and Language (Chinese):**
+
+    *   *Summary:* 本次变更仅涉及文档底层技术设施（如 HTML 源码、构建哈希值或 Nonce 值的更新），未发现实质性的文档内容修改。
+    *   *Themes:*
+        *   技术更新：所有页面的 Diff 均显示为 HTML/Next.js 代码片段的变化。
+        *   无内容变更：没有涉及 Prompt Engineering 相关的文字说明或示例代码的调整。
+    *   *Impact:* **Low**。对开发者阅读文档、学习 Prompt Engineering 技巧或集成 API 没有任何影响。
+    *   *Action Items:* 无需操作。
+
+6.  **Final Sanity Check:**
+    *   Did I miss something hidden in the massive HTML string?
+    *   The diffs show `+3 / -3`.
+    *   The structure is strictly: Old Nonce/Hash -&gt; New Nonce/Hash.
+    *   The paths are `build-with-claude/prompt-engineering/...`.
+    *   If the user expects me to find content changes, they might be confused because they pasted the &#34;View Source&#34; diff instead of the source file diff. I need to be polite but firm that *based on the provided text*, there are no content changes.
+    *   *Self-Correction:* If the file names are `.md` but contain HTML, it&#39;s possible the repository tracks the *exported* HTML. If so, the change is purely mechanical. I will stick to the observation: No content changes visible.
+
+7.  **Drafting the Response (Markdown):**
+
+    ```markdown
+    ### Overall Summary
+    本次变更纯粹属于技术层面的基础设施更新（具体为 HTML 渲染输出中的 CSP Nonce 或构建哈希值变更），不包含任何实质性的文档内容修改。
+
+    ### Key Themes across pages
+    *   **技术构建更新**：所有 8 个页面的 Diff 均显示为 Next.js/HTML 源码片段的变化，而非 Markdown 源文本。
+    *   **无内容改动**：没有涉及到“提示工程”技巧、说明文字或代码示例的修改。
+    *   **自动化变更**：这通常是重新构建或部署文档站点时自动生成的哈希值差异。
+
+    ### Impact level: **Low**
+    **理由**：虽然文件显示有变更，但这些差异仅影响 HTML 渲染层（如 `nonce` 值），不改变开发者看到的实际指导内容或 API 用法。
+
+    ### Action items for developers
+    *   无需采取任何行动。
+    *   无需更新代码或工作流程。
+    ```</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/be-clear-and-direct.html" class="page-link">build-with-claude/prompt-engineering/be-clear-and-direct.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/multishot-prompting.html" class="page-link">build-with-claude/prompt-engineering/multishot-prompting.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/chain-of-thought.html" class="page-link">build-with-claude/prompt-engineering/chain-of-thought.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/use-xml-tags.html" class="page-link">build-with-claude/prompt-engineering/use-xml-tags.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/system-prompts.html" class="page-link">build-with-claude/prompt-engineering/system-prompts.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/chain-prompts.html" class="page-link">build-with-claude/prompt-engineering/chain-prompts.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/long-context-tips.html" class="page-link">build-with-claude/prompt-engineering/long-context-tips.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/extended-thinking-tips.html" class="page-link">build-with-claude/prompt-engineering/extended-thinking-tips.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">18:30 EST</div>
