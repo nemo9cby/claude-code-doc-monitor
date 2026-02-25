@@ -118,9 +118,216 @@
 
         <header>
             <h1>Changes on 2026-02-25</h1>
-            <p class="meta">140 total changes in 13 runs</p>
+            <p class="meta">149 total changes in 14 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">16:31 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 总体概述
+本次文档更新主要涉及**结构化输出**功能的增强说明，明确了 JSON 响应中对象属性的排序规则。其余 8 个提示工程相关的页面仅包含 HTML 构建产出的哈希/Nonce 变更，属于非功能性噪音，未包含实质性的开发者指南更新。
+
+### 关键主题
+*   **结构化输出的属性排序机制**：新增文档明确指出，在使用结构化输出时，JSON 对象中的属性顺序会被强制调整。所有 `required`（必选）属性将优先出现，随后才是 `optional`（可选）属性，且各自内部保持 Schema 定义的顺序。
+*   **构建产物噪音**：大部分差异源于 HTML 静态资源的 Content Security Policy (CSP) Nonce 值更新，对代码逻辑无任何影响。
+
+### 影响级别
+**Medium (中等)**
+
+**理由**：虽然这只是文档更新而非 API 破坏性变更，但它揭示了一个隐式的系统行为。如果您的应用程序（例如用于生成 CSV 表头、创建哈希签名或依赖固定字段顺序的解析器）严格依赖 JSON 键的原始定义顺序，这一行为可能会导致运行时错误或逻辑异常。
+
+### 开发者行动项
+1.  **审查结构化输出解析逻辑**：检查处理 Structured Outputs 响应的代码，确认是否存在依赖 JSON 键名顺序的硬逻辑。
+2.  **适配排序规则**：如果必须保持特定的属性顺序，请将所有相关字段标记为 `required`；或者修改解析代码，使其能够处理“必选字段在前，可选字段在后”的排序逻辑。
+3.  **忽略构建变更**：无需对 `prompt-engineering` 目录下的其他页面文档进行任何代码层面的调整。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer with developer tools expertise.
+    *   **Task:** Analyze documentation changes (9 pages) as a single batch.
+    *   **Format:** Markdown, concise, insightful.
+    *   **Language:** Chinese (as requested by &#34;请用中文回复&#34;).
+    *   **Key Sections:** Overall Summary, Key Themes, Impact Level, Action Items.
+
+2.  **Analyze the Input (Diff Content):**
+
+    *   **Page 1: `build-with-claude/structured-outputs.md`**
+        *   *Change:* Added a new section titled &#34;Property ordering&#34;.
+        *   *Content:* Explains that structured outputs reorder properties: `required` properties come *before* `optional` properties, preserving schema order within those groups.
+        *   *Implication:* Developers relying on property order in the output (e.g., for signature generation, CSV headers, or strictly typed systems) need to be aware of this automatic reordering.
+
+    *   **Pages 2-9: Various Prompt Engineering pages**
+        *   `be-clear-and-direct.md`, `multishot-prompting.md`, `chain-of-thought.md`, `use-xml-tags.md`, `system-prompts.md`, `chain-prompts.md`, `long-context-tips.md`, `extended-thinking-tips.md`.
+        *   *Change:* Looking at the diffs, they start with `&lt;!DOCTYPE html&gt;&lt;html ...`. This is a huge red flag.
+        *   *Interpretation:* These diffs show changes in the *source HTML* or the *rendered output* of the website (likely a hash change or nonce change in the HTML headers), rather than actual documentation content changes. The specific change visible is in the `nonce` attribute of the `&lt;link&gt;` and `&lt;script&gt;` tags. For example:
+            *   Old: `nonce=&#34;oVKsIRYPrmttc9zPZS3piw==&#34;`
+            *   New: `nonce=&#34;tgkJlx5FUmkL/H5NovfVpA==&#34;`
+        *   *Conclusion:* These are noise/build artifacts, not content updates for developers to care about.
+
+3.  **Synthesize the Analysis:**
+
+    *   **Overall Summary:** The update primarily affects the Structured Outputs documentation, clarifying how JSON object properties are ordered in the response. The other 8 pages contain only non-functional build artifacts (HTML nonce/hash changes) and do not alter developer guidance.
+        *   *Translation:* 更新主要影响结构化输出文档，阐明了 JSON 对象属性在响应中的排序方式。其余 8 个页面仅包含非功能性的构建产物（HTML nonce/哈希变更），未改变开发者指南。
+
+    *   **Key Themes:**
+        *   **Structured Outputs Behavior:** Explicit definition of property ordering rules (Required &gt; Optional).
+        *   **Build Artifacts:** The bulk of the &#34;changes&#34; are automated HTML nonce updates, irrelevant to logic.
+
+    *   **Impact Level:**
+        *   *Level:* **Low to Medium**.
+        *   *Reasoning:* It&#39;s Low because it&#39;s just documentation. It&#39;s Medium-ish because if a developer&#39;s code relies on the specific order of JSON keys (which is bad practice, but happens), this documentation change explains why their code might now break or behave unexpectedly. It&#39;s not &#34;Breaking&#34; in the API sense, but a &#34;Behavioral Clarification&#34;.
+
+    *   **Action Items:**
+        *   Review code that processes Structured Outputs if it depends on JSON key order.
+        *   Update schemas to mark all fields as `required` if strict ordering is mandatory for your specific use case (e.g., generating column headers based on keys).
+        *   Or, adjust parsing logic to handle the (required fields first) ordering automatically.
+
+4.  **Drafting the Response (in Chinese):**
+
+    *   *Structure:*
+        *   ### 总体概述
+        *   ### 关键主题
+        *   ### 影响级别
+        *   ### 开发者行动项
+
+    *   *Drafting Content:*
+        *   *Summary:* 本次更新主要在结构化输出文档中增加了关于 JSON 属性排序的说明。其余 8 个页面的变更仅涉及 HTML 构建产出的哈希值，对开发者无实质影响。
+        *   *Themes:*
+            *   结构化输出的属性重排序行为：`required` 字段优先于 `optional` 字段。
+            *   自动化构建产物变更（忽略）。
+        *   *Impact:* Medium. While it&#39;s just documentation, it reveals a specific behavior that could cause bugs in systems sensitive to JSON key order.
+        *   *Action Items:*
+            *   检查依赖 JSON 键序的代码（如签名生成、固定列头映射）。
+            *   如果需要严格保持原始定义顺序，请将所有属性标记为 `required`，或在解析逻辑中适配新的排序规则。
+
+5.  **Refining the Output:**
+    *   Make sure to emphasize that the &#34;diffs&#34; for pages 2-9 are noise. A world-class programmer would immediately spot the `nonce` changes as irrelevant CSP/CDN artifacts.
+    *   Keep the tone professional and insightful.
+
+6.  **Final Polish (Self-Correction):**
+    *   *Self-Correction on Impact:* Is it really Medium? If I&#39;m using structured outputs, JSON order usually shouldn&#39;t matter. But if I&#39;m outputting to a CSV where the first N columns are the required ones, maybe it&#39;s fine. If I expect the specific order of a mixed schema, it breaks. I&#39;ll stick to &#34;Medium&#34; because it&#39;s a subtle behavior change that isn&#39;t immediately obvious unless you read the docs.
+
+    *(Self-Correction during drafting the Chinese response)*: Ensure the distinction between the meaningful change (Page 1) and the noise (Pages 2-9) is clear.
+
+7.  **Final Output Generation:** (Matches the provided good response).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/structured-outputs.html" class="page-link">build-with-claude/structured-outputs.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+20</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/be-clear-and-direct.html" class="page-link">build-with-claude/prompt-engineering/be-clear-and-direct.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/multishot-prompting.html" class="page-link">build-with-claude/prompt-engineering/multishot-prompting.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/chain-of-thought.html" class="page-link">build-with-claude/prompt-engineering/chain-of-thought.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-14</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/use-xml-tags.html" class="page-link">build-with-claude/prompt-engineering/use-xml-tags.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-14</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/system-prompts.html" class="page-link">build-with-claude/prompt-engineering/system-prompts.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-14</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/chain-prompts.html" class="page-link">build-with-claude/prompt-engineering/chain-prompts.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/long-context-tips.html" class="page-link">build-with-claude/prompt-engineering/long-context-tips.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+14</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/extended-thinking-tips.html" class="page-link">build-with-claude/prompt-engineering/extended-thinking-tips.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">15:30 EST</div>
