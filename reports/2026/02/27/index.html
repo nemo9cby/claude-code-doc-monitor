@@ -118,9 +118,291 @@
 
         <header>
             <h1>Changes on 2026-02-27</h1>
-            <p class="meta">127 total changes in 15 runs</p>
+            <p class="meta">140 total changes in 16 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">15:22 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 概要总结
+
+本次文档更新重点为 **HTTP Hooks 引入了更严格的安全控制机制**，新增了 URL 和环境变量的白名单功能。同时，文档中对 Hooks 的权限警告进行了更精确的界定，并对部分代码示例的格式进行了标准化。
+
+### 关键变更主题
+
+*   **安全增强（主要变更）**：引入了 `allowedHttpHookUrls`（URL 白名单）和 `httpHookAllowedEnvVars`（环境变量白名单）设置，允许管理员严格限制 HTTP Hooks 的访问目标和可注入的敏感信息。
+*   **配置行为变更**：HTTP Hooks 的环境变量插值逻辑发生变化。现在**必须**在 Hook 配置中显式声明 `allowedEnvVars` 字段，否则 header 中的变量引用将无法解析。
+*   **精确化免责声明**：将安全警告范围从泛指的 &#34;Hooks&#34; 收窄为 &#34;Command hooks&#34;，明确了 Shell 命令执行的风险范围，而 HTTP Hooks 受限于新的白名单机制。
+
+### 影响等级：**高**（针对 HTTP Hooks 用户）
+
+**理由**：
+虽然这并非破坏性的 API 变更，但行为发生了显著改变。如果开发者当前在 HTTP Hooks 的 headers 中使用环境变量（如 `$MY_TOKEN`），如果不更新配置添加 `allowedEnvVars`，这些变量将无法被解析（被替换为空字符串），导致认证失败或功能异常。这属于&#34;需采取行动才能保持现有功能&#34;的变更。
+
+### 开发者行动项
+
+1.  **更新现有 HTTP Hook 配置**：检查所有使用环境变量插值（如 `$VAR_NAME`）的 HTTP Hooks，在配置对象中添加 `allowedEnvVars` 字段并列出所需的变量名，否则变量注入将失效。
+2.  **审查安全设置**：如果在受管环境中，管理员应评估并配置 `allowedHttpHookUrls` 和 `httpHookAllowedEnvVars` 设置，以防止 Hooks 访问未授权的外部端点或泄露敏感环境变量。
+3.  **关注警告范围变化**：注意文档中关于 &#34;Hooks run with full permissions&#34; 的警告现已特指 &#34;Command hooks&#34;，HTTP Hooks 的安全模型由新的白名单设置控制。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Format:** Concise, insightful analysis in markdown.
+    *   **Output Language:** Chinese.
+    *   **Input:** A batch of 13 documentation diffs (files).
+    *   **Goal:** Summarize what changed, why it matters to developers, themes, impact level, and action items.
+
+2.  **Analyze the Input Diffs:**
+
+    *   **`hooks.md` (Substantial changes):**
+        *   *Change:* Added `allowedEnvVars` field to HTTP hooks. Added explicit `allowedEnvVars` to the example configuration.
+        *   *Change:* Modified the header description to state that only variables listed in `allowedEnvVars` are resolved.
+        *   *Change:* Changed disclaimer text from &#34;Hooks run with...&#34; to &#34;Command hooks run with...&#34; to be more precise.
+        *   *Impact:* Security/Configuration change for HTTP hooks. Requires updating hook configurations to use environment variables in headers.
+
+    *   **`settings.md` (Substantial changes):**
+        *   *Change:* Added `allowedHttpHookUrls` setting (allowlist for HTTP hook URLs).
+        *   *Change:* Added `httpHookAllowedEnvVars` setting (allowlist for env vars in HTTP hooks).
+        *   *Change:* Updated &#34;Hook configuration&#34; section to describe these new allowlists.
+        *   *Impact:* Administrators/Developers need to know about new security controls for HTTP hooks.
+
+    *   **`build-with-claude/prompt-caching.md` (Formatting changes):**
+        *   *Change:* JSON formatting (spacing).
+        *   *Impact:* Cosmetic. No functional change.
+
+    *   **`build-with-claude/structured-outputs.md` (Formatting changes):**
+        *   *Change:* JSON formatting (spacing), bullet point punctuation (changed `--` to `:`), code snippet formatting.
+        *   *Impact:* Cosmetic.
+
+    *   **`build-with-claude/prompt-engineering/prompt-generator.md` (Formatting change):**
+        *   *Change:* Changed code block language from `` ``` `` to `` ```text ``.
+        *   *Impact:* Cosmetic.
+
+    *   **`build-with-claude/prompt-engineering/*.md` (Multiple files):**
+        *   `be-clear-and-direct.md`, `multishot-prompting.md`, `chain-of-thought.md`, `use-xml-tags.md`, `system-prompts.md`, `chain-prompts.md`, `long-context-tips.md`, `extended-thinking-tips.md`.
+        *   *Change:* Looking closely at the diff (e.g., `be-clear-and-direct.md`), it shows a massive HTML dump (`&lt;!DOCTYPE html...&gt;`) in the diff.
+        *   *Observation:* This looks like build artifact noise or a rendering issue in the diff tool. The &#34;diff&#34; shows the entire HTML file content rather than actual source Markdown changes. However, comparing the start of the file, it just looks like the file content was replaced with HTML or the diff is garbled.
+        *   *Re-evaluating:* Wait, looking at the provided diffs, for the `prompt-engineering` pages, the diff content is literally just the `&lt;head&gt;` of an HTML document. This usually indicates an issue with how the diff was generated (comparing raw HTML output vs markdown source) or these files were converted to HTML in the source (unlikely for a docs repo).
+        *   *Hypothesis:* The user provided diffs that likely come from a web scraping or a build process output where the &#34;source&#34; view is weirdly HTML-based, OR the changes are just nonces in the HTML tags.
+        *   *Looking at the specific diff:* `@@ -1,4 +1,4 @@` shows the first line of the HTML.
+        *   *Conclusion for these files:* These diffs are likely meaningless build artifacts (HTML nonces changing) or the source format changed to HTML. Given the context of &#34;documentation changes,&#34; I should treat these as **noise** or **build artifacts** unless I see actual content changes. Since I don&#39;t see content changes, I will ignore them for the &#34;Key Themes&#34; and &#34;Action Items&#34; but acknowledge them as cosmetic/technical noise.
+        *   *Correction:* Looking at `system-prompts.md` again: `+16 / -8`. It might have actual content changes hidden in the noise, but the snippet provided only shows the HTML head.
+        *   *Decision:* Focus on the *meaningful* changes in `hooks.md` and `settings.md`. The prompt engineering files appear to have build-related noise (HTML nonces) or trivial formatting changes that aren&#39;t visible in the snippet. I will focus on the Hooks/Settings changes as the primary value.
+
+3.  **Synthesize the Analysis:**
+
+    *   **Overall Summary:** The update introduces stricter security controls for HTTP Hooks, specifically adding allowlists for URLs and environment variables, alongside minor formatting standardization across the documentation.
+    *   **Key Themes:**
+        *   **Security Hardening:** Implementation of allowlisting for HTTP hook targets (`allowedHttpHookUrls`) and environment variables (`httpHookAllowedEnvVars`).
+        *   **Configuration Precision:** Distinction made between &#34;Command hooks&#34; and generic &#34;Hooks&#34; regarding system permissions.
+        *   **Documentation Standardization:** Minor formatting improvements (JSON spacing, code blocks) in API and prompt engineering docs.
+    *   **Impact Level:** **High** (specifically for users of HTTP Hooks).
+        *   *Reasoning:* The changes to HTTP hooks (`allowedEnvVars` is now required for env var interpolation) are potentially breaking or at least behavior-changing for existing configurations. The new settings allow admins to strictly restrict hook behavior.
+    *   **Action Items:**
+        *   Update HTTP hook configurations to include the `allowedEnvVars` field if using environment variables in headers.
+        *   Review and configure `allowedHttpHookUrls` and `httpHookAllowedEnvVars` in settings if managing environments with strict security requirements.
+        *   Note the distinction that permission warnings now apply specifically to &#34;Command hooks.&#34;
+
+4.  **Draft the Response (in Chinese):**
+
+    *   *Summary:* 本次更新主要为 HTTP Hooks 引入了更严格的安全控制机制，增加了 URL 和环境变量的白名单功能，并对文档格式进行了微调。
+    *   *Themes:*
+        *   **安全增强:** 引入 `allowedHttpHookUrls` 和 `httpHookAllowedEnvVars` 限制 HTTP Hooks 的访问范围。
+        *   **配置明确化:** 明确了环境变量插值需要显式配置 `allowedEnvVars` 字段。
+        *   **文档规范化:** 统一了代码块格式和 JSON 样式。
+    *   *Impact:* **High** (针对 HTTP Hooks 用户).
+        *   *Reasoning:* `headers` 中的环境变量插值行为发生了变更，必须在配置中声明 `allowedEnvVars`，否则无法解析。这属于非破坏性但必须采取行动的变更。
+    *   *Action Items:*
+        *   检查现有的 HTTP Hooks 配置，如果使用了环境变量，请添加 `allowedEnvVars` 字段。
+        *   管理员应考虑在设置中配置 `allowedHttpHookUrls` 和 `httpHookAllowedEnvVars` 以限制访问范围。
+        *   注意免责声明已更新，安全警告目前专门针对“Command hooks”。
+
+5.  **Review and Refine:**
+    *   Did I address the HTML diffs? Yes, by treating them as noise/focus on the clear changes in hooks/settings.
+    *   Is the tone right? Professional and insightful.
+    *   Is it concise? Yes.
+
+6.  **Final Output Generation** (matches the drafted Chinese response).
+
+    *   *Self-Correction during drafting:* Make sure to emphasize that `allowedEnvVars` is *required for any env var interpolation to work* according to the text &#34;Required for any env var interpolation to work&#34; in `hooks.md`. This is a crucial detail for developers.
+
+7.  **Final Polish:**
+    *   Summary: Introduces strict security controls for HTTP hooks.
+    *   Themes: Security, Config changes, Formatting.
+    *   Impact: High for HTTP Hook users.
+    *   Actions: Update config, add allowlists.
+
+    (Proceed to output).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+10</span>
+                            <span class="removed">-8</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+9</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-caching.html" class="page-link">build-with-claude/prompt-caching.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/structured-outputs.html" class="page-link">build-with-claude/structured-outputs.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+12</span>
+                            <span class="removed">-12</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/prompt-generator.html" class="page-link">build-with-claude/prompt-engineering/prompt-generator.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/be-clear-and-direct.html" class="page-link">build-with-claude/prompt-engineering/be-clear-and-direct.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/multishot-prompting.html" class="page-link">build-with-claude/prompt-engineering/multishot-prompting.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/chain-of-thought.html" class="page-link">build-with-claude/prompt-engineering/chain-of-thought.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/use-xml-tags.html" class="page-link">build-with-claude/prompt-engineering/use-xml-tags.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/system-prompts.html" class="page-link">build-with-claude/prompt-engineering/system-prompts.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+16</span>
+                            <span class="removed">-8</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/chain-prompts.html" class="page-link">build-with-claude/prompt-engineering/chain-prompts.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/long-context-tips.html" class="page-link">build-with-claude/prompt-engineering/long-context-tips.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/extended-thinking-tips.html" class="page-link">build-with-claude/prompt-engineering/extended-thinking-tips.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">14:29 EST</div>
