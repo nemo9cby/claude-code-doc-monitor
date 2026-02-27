@@ -118,9 +118,209 @@
 
         <header>
             <h1>Changes on 2026-02-27</h1>
-            <p class="meta">150 total changes in 17 runs</p>
+            <p class="meta">160 total changes in 18 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">17:18 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">## 文档变更分析
+
+### 1. 总体概述
+此次更新主要增强了沙盒的文件系统访问控制能力，新增了 `sandbox.filesystem.allowWrite/denyWrite/denyRead` 配置项，允许开发者更精细地管理子进程（如 kubectl、terraform、npm）的文件读写权限。
+
+### 2. 核心变更主题
+
+- **新增沙盒文件系统配置**
+  - 新增 `sandbox.filesystem.allowWrite` 配置项，用于授予子进程对工作目录外特定路径的写入权限
+  - 新增 `sandbox.filesystem.denyWrite` 和 `sandbox.filesystem.denyRead`，用于明确阻止访问敏感路径
+  - 配置作用域支持合并（用户、项目、托管设置自动合并，而非覆盖）
+
+- **路径前缀语法支持**
+  - `//`：文件系统根目录的绝对路径
+  - `~/`：用户主目录相对路径
+  - `/`：配置文件所在目录的相对路径
+  - `./` 或无前缀：运行时解析的相对路径
+
+- **权限模型澄清**
+  - 明确区分了&#34;权限规则&#34;（控制 Claude 工具访问）与&#34;沙盒限制&#34;（控制 Bash 命令及其子进程访问）
+  - 文档强调这些限制在操作系统层面强制执行（macOS Seatbelt、Linux bubblewrap）
+  - 路径规则会同时合并来自沙盒设置和权限规则的配置
+
+### 3. 影响级别：中等
+**原因**：
+- 这是功能增强，非破坏性变更
+- 为需要工具（如 kubectl、terraform）访问特定系统目录的开发者提供了更安全的解决方案，而无需完全禁用沙盒
+- 企业环境可以通过托管设置预设安全路径，同时允许用户扩展
+
+### 4. 开发者行动建议
+
+1. **审查现有沙盒配置**：如果你目前使用 `excludedCommands` 来绕过沙盒限制，考虑改用新的 `allowWrite` 配置来提升安全性
+2. **更新项目配置文件**：为需要访问 `~/.kube`、`~/.aws` 等目录的工具添加相应的 `allowWrite` 路径
+3. **保护敏感文件**：使用 `denyRead` 阻止访问凭证文件（如 `~/.aws/credentials`）
+4. **利用路径合并特性**：在项目级配置中扩展团队级的托管设置，无需重复定义
+5. **测试工具兼容性**：验证常用 CLI 工具在新的文件系统限制下能否正常运行</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">用户想要我分析这10个页面的文档更改，并用中文回复，提供简洁的markdown格式分析。
+
+让我先看看这些更改：
+
+1. **sandboxing.md** (+20/-1): 主要更改是增加了关于 `sandbox.filesystem.allowWrite` 的详细说明。这是一个新功能，允许用户为子进程命令（如 kubectl, terraform, npm）授予对工作目录以外路径的写入权限。还包括了路径前缀说明（//, ~, /, ./）以及这些设置如何与权限规则合并。
+
+2. **settings.md** (+18/-8): 更新了沙盒设置表，添加了新的配置选项：
+   - `sandbox.filesystem.allowWrite`
+   - `sandbox.filesystem.denyWrite`
+   - `sandbox.filesystem.denyRead`
+   - 添加了&#34;Sandbox path prefixes&#34;部分
+   - 更新了配置示例
+   - 修改了关于文件系统和网络限制的说明
+
+3. **其他页面** (7个 prompt-engineering 相关页面): 这些看起来只是 HTML 内联脚本 nonce 的微小变化（+3/-3），可能是由于构建过程生成的哈希值变化，不涉及实际内容更改。这些是构建产物变化，不是实质性文档更新。
+
+**主要变更内容**：
+- 新增了沙盒文件系统访问控制的细粒度配置
+- 允许开发者为子进程授予特定路径的写入权限
+- 提供了路径前缀语法支持
+- 说明了沙盒设置与权限规则的合并机制
+ 
+这次更新对开发者具有重大意义。通过引入新的文件系统访问控制机制，开发者可以更精确地管理子进程的权限，同时保持沙盒的安全性。新增的配置选项提供了更细粒度的控制，使得权限管理更加灵活和安全。</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sandboxing.html" class="page-link">sandboxing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+20</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+18</span>
+                            <span class="removed">-8</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/be-clear-and-direct.html" class="page-link">build-with-claude/prompt-engineering/be-clear-and-direct.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/multishot-prompting.html" class="page-link">build-with-claude/prompt-engineering/multishot-prompting.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/chain-of-thought.html" class="page-link">build-with-claude/prompt-engineering/chain-of-thought.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/use-xml-tags.html" class="page-link">build-with-claude/prompt-engineering/use-xml-tags.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/system-prompts.html" class="page-link">build-with-claude/prompt-engineering/system-prompts.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/chain-prompts.html" class="page-link">build-with-claude/prompt-engineering/chain-prompts.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/long-context-tips.html" class="page-link">build-with-claude/prompt-engineering/long-context-tips.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/extended-thinking-tips.html" class="page-link">build-with-claude/prompt-engineering/extended-thinking-tips.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">16:24 EST</div>
