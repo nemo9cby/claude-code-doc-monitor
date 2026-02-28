@@ -118,9 +118,339 @@
 
         <header>
             <h1>Changes on 2026-02-28</h1>
-            <p class="meta">104 total changes in 13 runs</p>
+            <p class="meta">120 total changes in 14 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">13:26 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更分析摘要
+
+## 1. Overall Summary
+本次文档更新主要反映了 **核心工具的重命名**（`Task` 变更为 `Agent`），同时进行了 **文档结构的整合**，将 CLAUDE.md 相关指引统一归档至 Memory（内存管理）页面。部分 HTML 构建产物的哈希变化已被过滤，不在此分析范围内。
+
+## 2. Key Themes
+
+*   **工具重命名**: `Task` 工具在 CLI、Hooks、Settings 和 Sub-agents 配置中已全面更名为 `Agent`。
+*   **向后兼容**: 文档明确指出在 v2.1.63 版本中进行了此更改，且旧的 `Task(...)` 引用仍可作为别名继续工作。
+*   **文档整合**: `overview.md` 和相关页面的链接从 `/en/claude-md` 迁移至 `/en/memory`，强化了“自动内存”与“CLAUDE.md 指令”的统一概念。
+*   **权限系统更新**: 权限拒绝列表和工具允许列表中的 `Task` 语法已更新为 `Agent` 语法。
+
+## 3. Impact Level
+**Medium**
+
+**Reasoning**: 虽然旧语法仍被支持（非破坏性变更），但这是配置文件和 Agent 定义中的核心术语变更。开发者需要更新配置以遵循最新的最佳实践，避免在未来的版本升级中遇到潜在的弃用问题。文档 URL 的变化也可能影响现有的书签或内部链接。
+
+## 4. Action items for developers
+
+*   **更新 Agent 定义**: 在 `.claude/agents/` 目录或 `--agents` 标志的 JSON 配置中，将 `tools` 字段里的 `Task(...)` 更新为 `Agent(...)`。
+*   **更新权限配置**: 在 `settings.json` 的 `permissions.deny` 列表或 CLI 的 `--disallowedTools` 参数中，将 `Task(...)` 替换为 `Agent(...)`。
+*   **检查 Hooks 配置**: 更新 `PreToolUse` 和 `SubagentStart` 等钩子中匹配工具名称的相关逻辑。
+*   **查阅新版内存文档**: 访问 `/en/memory` 页面以了解关于 CLAUDE.md 和自动内存的最新整合说明。
+*   **注意版本兼容性**: 确认环境已更新至 v2.1.63 或更高版本以获得一致的行为体验。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Format:** Markdown, concise, insightful.
+    *   **Language:** Chinese.
+    *   **Input:** A batch of 16 documentation pages with diffs.
+ Most diffs show `+X / -X` line changes.
+    *   **Focus:** What changed and why it matters to developers.
+
+2.  **Analyze the Changes (Page by Page):**
+
+    *   `cli-reference.md`:
+        *   Change: `Task(agent_type)` syntax mentioned in the `tools` field description changed to `Agent(agent_type)`.
+        *   Impact: Terminology update.
+
+    *   `hooks.md`:
+        *   Change 1: PreToolUse tool name list changed from `Task` to `Agent`.
+        *   Change 2: Heading `Task` changed to `Agent` (description about spawning subagent).
+        *   Change 3: SubagentStart hook description mentions &#34;Agent tool&#34; instead of &#34;Task tool&#34;.
+        *   Impact: Tool renaming.
+
+    *   `memory.md`:
+        *   Change: File content seems to have been heavily rewritten or truncated in the diff view provided (starts with `&lt; !DOCTYPE html...` in the source? No, wait. The diff shows `-` lines of markdown content and `+` lines of HTML-looking content in the *prompt* diff output, but looking closely at the prompt text, the `+` block for `memory.md` looks like HTML/Next.js build artifacts injected into the diff, or perhaps a complete rewrite. However, looking at the *actual* content change in the `-` block vs `+` block, the `-` block is standard markdown. The `+` block starts with `&gt; Fetch the complete documentation index...` and then `# Manage Claude&#39;s memory`. It looks like a restructure or a new header/directive added. Let&#39;s look closer. The `+` block is much smaller (135 lines added vs 113 removed). It seems to be rewriting the beginning of the file.
+        *   *Self-Correction on memory.md*: The diff shows the old content replaced by new content including a comment block about fetching documentation. The main title remains &#34;Manage Claude&#39;s memory&#34;. This suggests a documentation reformatting or structural update, possibly moving from a specific &#34;claude-md&#34; page to a consolidated &#34;memory&#34; page structure, as hinted by the URL changes in `overview.md` later.
+
+    *   `overview.md`:
+        *   Change 1: Link text `[`CLAUDE.md`](/en/claude-md)` changed to `[`CLAUDE.md`](/en/memory)`.
+        *   Change 2: Added mention of &#34;auto memory&#34; in the description.
+        *   Change 3: Navigation links updated: Added &#34;Store instructions and memories&#34;, reordered links.
+        *   Impact: Structural consolidation, merging concepts.
+
+    *   `settings.md`:
+        *   Change 1: Mention of `Task` tool in permission rules text changed to `Agent`.
+        *   Change 2: Table showing tool list: `Task` changed to `Agent`.
+        *   Impact: Tool renaming consistency.
+
+    *   `skills.md`:
+        *   Change: Link text `Load memory from additional directories` changed to `Load from additional directories` (target anchor might have changed too, or just text simplified).
+        *   Impact: Minor link text update.
+
+    *   `slash-commands.md`:
+        *   Change: Same as `skills.md`, link text update.
+        *   Impact: Minor.
+
+    *   `sub-agents.md`:
+        *   Change 1: Text &#34;Task tool&#34; -&gt; &#34;Agent tool&#34;.
+        *   Change 2: **Important**: Added note: &#34;In version 2.1.63, the Task tool was renamed to Agent. Existing `Task(...)` references in settings and agent definitions still work as aliases.&#34;
+        *   Change 3: Code examples `Task(worker, researcher)` -&gt; `Agent(worker, researcher)`.
+        *   Change 4: Permission deny examples `Task(Explore)` -&gt; `Agent(Explore)`.
+        *   Change 5: CLI flag examples `Task(Explore)` -&gt; `Agent(Explore)`.
+        *   Impact: **Breaking Change** (Soft breaking - renamed but aliased). This is the core technical change.
+
+    *   `build-with-claude/prompt-engineering/*.md` (multiple files):
+        *   Observation: The diffs for these files (`be-clear-and-direct.md`, `multishot-prompting.md`, etc.) only show HTML changes (specifically `&lt;!DOCTYPE html&gt;` and `&lt;script src=...&gt;` with different nonces/hashes).
+        *   Analysis: These are likely build artifact changes (SSR/Next.js hydration chunks) rather than actual content changes relevant to the *text* of the documentation. The content hash changed, but the markdown content itself (the part developers read) likely didn&#39;t change in a meaningful way for this analysis, or the diff is too granular/hashed to see. I should ignore the HTML noise and focus on the clear text changes in other files.
+
+3.  **Synthesize the Analysis:**
+
+    *   **Core Change:** The tool name `Task` has been renamed to `Agent` throughout the documentation (CLI flags, Hooks, Settings, Sub-agents).
+    *   **Context:** A note in `sub-agents.md` explicitly states this happened in version 2.1.63 and mentions backward compatibility (`Task` is an alias).
+    *   **Secondary Change:** Documentation structure consolidation. `CLAUDE.md` references point to `/en/memory` instead of `/en/claude-md`, suggesting a merge of documentation concepts (Memory vs CLAUDE.md).
+    *   **Noise:** Several pages show HTML build diffs (hash changes) which are irrelevant to the developer-facing content.
+
+4.  **Drafting the Response (in Chinese):**
+
+    *   **Summary:** The documentation reflects a tool renaming (`Task` -&gt; `Agent`) and a consolidation of memory/CLAUDE.md documentation structure.
+    *   **Key Themes:**
+        *   Tool Renaming (`Task` -&gt; `Agent`).
+        *   Documentation Restructuring (`CLAUDE.md` links moved to `memory`).
+        *   Backward Compatibility (explicitly mentioned).
+    *   **Impact:** Medium/Low. It&#39;s a rename with alias support, so existing configs *should* work, but new configs should use the new name.
+    *   **Action Items:**
+        *   Update custom agent definitions to use `Agent` instead of `Task`.
+        *   Update permission rules if explicitly named.
+        *   Be aware of the new `/en/memory` URL structure.
+
+5.  **Refining the Output:**
+
+    *   *Summary:* 文档更新主要反映了核心工具从 `Task` 重命名为 `Agent`，以及记忆/CLAUDE.md 相关文档结构的整合。
+    *   *Themes:*
+        *   **工具重命名**: `Task` 工具统一更名为 `Agent`。
+        *   **文档结构整合**: CLAUDE.md 相关链接指向 `/en/memory`，表明文档内容的合并。
+        *   **向后兼容**: 明确指出版本 2.1.63 中的变更，旧配置仍可作为别名使用。
+    *   *Impact:* Medium. 虽然旧语法仍有效，但属于 API/配置术语的重大更新，开发者应尽快适配新规范以保持代码一致性。
+    *   *Action Items:*
+        *   检查并更新 `.claude/settings.json` 及自定义 Agent 定义中的 `tools` 字段，将 `Task(...)` 替换为 `Agent(...)`。
+        *   更新 Hook 配置及权限拒绝列表中的相关引用。
+        *   关注 `/en/memory` 页面以了解最新的内存管理方式。
+
+6.  **Final Review:** Does this meet the &#34;world-class programmer&#34; persona? Yes, it filters out the HTML noise and focuses on the semantic API change.
+
+7.  **Final Polish (Markdown):** Ensure the formatting matches the user&#39;s request.
+
+    *(Self-Correction during drafting)*: Make sure to mention the specific version 2.1.63 as it provides context for the change.
+
+    *Action Items check:* Are there more than 5? No. Are they actionable? Yes.
+
+    *HTML Diffs:* Explicitly mention they were ignored to show analytical depth.
+
+8.  **Construct Final Output.**</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/cli-reference.html" class="page-link">cli-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+10</span>
+                            <span class="removed">-10</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/memory.html" class="page-link">memory.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+135</span>
+                            <span class="removed">-113</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/overview.html" class="page-link">overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+9</span>
+                            <span class="removed">-8</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/be-clear-and-direct.html" class="page-link">build-with-claude/prompt-engineering/be-clear-and-direct.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/multishot-prompting.html" class="page-link">build-with-claude/prompt-engineering/multishot-prompting.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/chain-of-thought.html" class="page-link">build-with-claude/prompt-engineering/chain-of-thought.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/use-xml-tags.html" class="page-link">build-with-claude/prompt-engineering/use-xml-tags.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/system-prompts.html" class="page-link">build-with-claude/prompt-engineering/system-prompts.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/chain-prompts.html" class="page-link">build-with-claude/prompt-engineering/chain-prompts.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/long-context-tips.html" class="page-link">build-with-claude/prompt-engineering/long-context-tips.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/extended-thinking-tips.html" class="page-link">build-with-claude/prompt-engineering/extended-thinking-tips.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">12:16 EST</div>
