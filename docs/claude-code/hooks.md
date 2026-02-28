@@ -1517,9 +1517,9 @@ SessionEnd hooks have no decision control. They cannot block session termination
 
 ## Prompt-based hooks
 
-In addition to Bash command hooks (`type: "command"`), Claude Code supports prompt-based hooks (`type: "prompt"`) that use an LLM to evaluate whether to allow or block an action, and agent hooks (`type: "agent"`) that spawn an agentic verifier with tool access. Not all events support every hook type.
+In addition to command and HTTP hooks, Claude Code supports prompt-based hooks (`type: "prompt"`) that use an LLM to evaluate whether to allow or block an action, and agent hooks (`type: "agent"`) that spawn an agentic verifier with tool access. Not all events support every hook type.
 
-Events that support all three hook types (`command`, `prompt`, and `agent`):
+Events that support all four hook types (`command`, `http`, `prompt`, and `agent`):
 
 * `PermissionRequest`
 * `PostToolUse`
