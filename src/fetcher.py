@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import re
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Self
 
@@ -10,6 +11,19 @@ import httpx
 
 if TYPE_CHECKING:
     from src.config import SourceConfig
+
+# Patterns for dynamic HTML content that changes on every request
+_NONCE_RE = re.compile(r'\s*nonce="[^"]*"')
+
+
+def normalize_html_content(content: str) -> str:
+    """Strip dynamic HTML attributes that change per-request (e.g. CSP nonces).
+
+    Server-rendered pages from Next.js include nonce="..." attributes on <link>
+    and <script> tags. These rotate on every request and cause false-positive
+    diffs when monitoring documentation for real content changes.
+    """
+    return _NONCE_RE.sub("", content)
 
 
 @dataclass

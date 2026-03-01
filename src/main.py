@@ -15,7 +15,7 @@ from rich.logging import RichHandler
 from src.analyzer import AnalysisResult, DiffAnalyzer
 from src.config import Config, SourceConfig, load_config, load_pages
 from src.differ import DiffResult, DocumentDiffer
-from src.fetcher import DocumentFetcher
+from src.fetcher import DocumentFetcher, normalize_html_content
 from src.notifier import TelegramNotifier
 from src.reporter import ReportGenerator
 
@@ -155,11 +155,14 @@ class DocMonitor:
                 result.errors.append(f"{fetch_result.page_slug}: {fetch_result.error}")
                 continue
 
+            # Normalize HTML to strip dynamic attributes (CSP nonces, etc.)
+            # that change on every request and cause false-positive diffs
+            normalized_content = normalize_html_content(fetch_result.content)
             old_content = self.load_stored_content(fetch_result.page_slug) or ""
             diff = self.differ.compute_diff(
                 fetch_result.page_slug,
                 old_content,
-                fetch_result.content,
+                normalized_content,
             )
 
             if diff.has_changes:
@@ -168,7 +171,7 @@ class DocMonitor:
                 diff.source_id = self.source.id
                 diff.source_name = self.source.name
                 result.diffs.append(diff)
-                self.save_content(fetch_result.page_slug, fetch_result.content)
+                self.save_content(fetch_result.page_slug, normalized_content)
 
         # Per-file analysis is disabled in favor of batch analysis (done at top level).
         # We keep the capability here if needed in the future, but do not invoke it by default.
