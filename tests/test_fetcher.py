@@ -7,7 +7,45 @@ import pytest
 import respx
 
 from src.config import SourceConfig
-from src.fetcher import DocumentFetcher, FetchResult
+from src.fetcher import DocumentFetcher, FetchResult, normalize_html_content
+
+
+class TestNormalizeHtmlContent:
+    def test_strips_nonce_attributes(self) -> None:
+        html = '<link rel="stylesheet" href="/style.css" nonce="abc123==" data-precedence="next"/>'
+        result = normalize_html_content(html)
+        assert "nonce=" not in result
+        assert 'href="/style.css"' in result
+
+    def test_strips_multiple_nonces(self) -> None:
+        html = (
+            '<script src="/a.js" nonce="token1"></script>'
+            '<script src="/b.js" nonce="token2"></script>'
+        )
+        result = normalize_html_content(html)
+        assert "nonce=" not in result
+        assert 'src="/a.js"' in result
+        assert 'src="/b.js"' in result
+
+    def test_identical_after_normalization(self) -> None:
+        """Two fetches with different nonces should normalize to the same content."""
+        html_v1 = '<link href="/s.css" nonce="AAA==" /><script src="/a.js" nonce="AAA=="></script>'
+        html_v2 = '<link href="/s.css" nonce="BBB==" /><script src="/a.js" nonce="BBB=="></script>'
+        assert normalize_html_content(html_v1) == normalize_html_content(html_v2)
+
+    def test_preserves_non_html_content(self) -> None:
+        markdown = "# Hello\n\nThis is markdown content."
+        assert normalize_html_content(markdown) == markdown
+
+    def test_preserves_real_content_changes(self) -> None:
+        """Content changes beyond nonces should still be detected."""
+        html_v1 = '<div nonce="AAA==">Old content</div>'
+        html_v2 = '<div nonce="BBB==">New content</div>'
+        n1 = normalize_html_content(html_v1)
+        n2 = normalize_html_content(html_v2)
+        assert n1 != n2
+        assert "Old content" in n1
+        assert "New content" in n2
 
 
 class TestFetchResult:
