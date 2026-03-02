@@ -278,4 +278,35 @@ class TestDocMonitor:
         result = await monitor.run(["overview"])
 
         assert result.changed_pages == 0
+
+    @patch("src.main.DocumentFetcher")
+    async def test_run_ignores_rsc_chunk_reorder(
+        self,
+        mock_fetcher_class: MagicMock,
+        mock_source: SourceConfig,
+        mock_config: Config,
+        templates_dir: Path,
+    ) -> None:
+        """RSC chunk ID reshuffling should not trigger a diff."""
+        mock_source.docs_dir.mkdir(parents=True)
+        # Stored content already normalized (RSC scripts stripped)
+        (mock_source.docs_dir / "overview.md").write_text("<div>Doc content</div>")
+
+        # Fetched content has RSC scripts that will be stripped
+        mock_fetcher = AsyncMock()
+        mock_fetcher.fetch_all.return_value = [
+            FetchResult(
+                "overview",
+                '<div>Doc content</div><script>self.__next_f.push([1,"17:I[215187218]"])</script>',
+                200,
+            )
+        ]
+        mock_fetcher.__aenter__ = AsyncMock(return_value=mock_fetcher)
+        mock_fetcher.__aexit__ = AsyncMock(return_value=None)
+        mock_fetcher_class.return_value = mock_fetcher
+
+        monitor = DocMonitor(mock_source, mock_config, templates_dir)
+        result = await monitor.run(["overview"])
+
+        assert result.changed_pages == 0
         assert len(result.diffs) == 0

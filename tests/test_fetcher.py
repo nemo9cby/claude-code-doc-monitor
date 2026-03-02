@@ -19,18 +19,18 @@ class TestNormalizeHtmlContent:
 
     def test_strips_multiple_nonces(self) -> None:
         html = (
-            '<script src="/a.js" nonce="token1"></script>'
-            '<script src="/b.js" nonce="token2"></script>'
+            '<link href="/a.css" nonce="token1" data-precedence="next"/>'
+            '<link href="/b.css" nonce="token2" data-precedence="next"/>'
         )
         result = normalize_html_content(html)
         assert "nonce=" not in result
-        assert 'src="/a.js"' in result
-        assert 'src="/b.js"' in result
+        assert 'href="/a.css"' in result
+        assert 'href="/b.css"' in result
 
     def test_identical_after_normalization(self) -> None:
         """Two fetches with different nonces should normalize to the same content."""
-        html_v1 = '<link href="/s.css" nonce="AAA==" /><script src="/a.js" nonce="AAA=="></script>'
-        html_v2 = '<link href="/s.css" nonce="BBB==" /><script src="/a.js" nonce="BBB=="></script>'
+        html_v1 = '<link href="/s.css" nonce="AAA==" /><link href="/b.css" nonce="AAA==" />'
+        html_v2 = '<link href="/s.css" nonce="BBB==" /><link href="/b.css" nonce="BBB==" />'
         assert normalize_html_content(html_v1) == normalize_html_content(html_v2)
 
     def test_preserves_non_html_content(self) -> None:
@@ -46,6 +46,69 @@ class TestNormalizeHtmlContent:
         assert n1 != n2
         assert "Old content" in n1
         assert "New content" in n2
+
+    def test_strips_rsc_script_tags(self) -> None:
+        """Next.js RSC payload scripts should be stripped entirely."""
+        html = (
+            "<div>Real content</div>"
+            '<script>self.__next_f.push([1,"17:I[215187218,[\\"13263\\"]"])</script>'
+            '<script>self.__next_f.push([1,"18:I[7664339605,[\\"chunk\\"]"])</script>'
+            "<p>More content</p>"
+        )
+        result = normalize_html_content(html)
+        assert "self.__next_f" not in result
+        assert "Real content" in result
+        assert "More content" in result
+
+    def test_rsc_chunk_id_reorder_normalizes_equal(self) -> None:
+        """Same RSC content with reshuffled chunk IDs should normalize identically."""
+        html_v1 = (
+            "<div>Content</div>"
+            '<script>self.__next_f.push([1,"17:I[215187218,[\\"x\\"]"])</script>'
+            '<script>self.__next_f.push([1,"18:I[7664339605,[\\"y\\"]"])</script>'
+        )
+        html_v2 = (
+            "<div>Content</div>"
+            '<script>self.__next_f.push([1,"19:I[215187218,[\\"x\\"]"])</script>'
+            '<script>self.__next_f.push([1,"1a:I[7664339605,[\\"y\\"]"])</script>'
+        )
+        assert normalize_html_content(html_v1) == normalize_html_content(html_v2)
+
+    def test_strips_all_script_tags(self) -> None:
+        """All script tags should be stripped (both inline and src-loaded)."""
+        html = (
+            "<div>Content</div>"
+            '<script src="/_next/static/chunks/82418-96ce9b0bba7975e1.js" async=""></script>'
+            '<script>console.log("inline")</script>'
+        )
+        result = normalize_html_content(html)
+        assert "<script" not in result
+        assert "Content" in result
+
+    def test_strips_preload_script_links(self) -> None:
+        """<link rel="preload" as="script"> tags should be stripped."""
+        html = (
+            '<link rel="preload" as="script" fetchPriority="low" href="/_next/static/chunks/webpack.js"/>'
+            '<link rel="stylesheet" href="/style.css" data-precedence="next"/>'
+        )
+        result = normalize_html_content(html)
+        assert "webpack" not in result
+        assert "stylesheet" in result
+
+    def test_strips_skeleton_loading_divs(self) -> None:
+        """Shimmer skeleton placeholders with random widths should be stripped."""
+        html_v1 = (
+            "<div>Real content</div>"
+            '<div class="relative bg-bg-400 overflow-hidden after:animate-[shimmer_1.5s_infinite]"'
+            ' style="height:32px;width:214px"><span class="sr-only">Loading...</span></div>'
+        )
+        html_v2 = (
+            "<div>Real content</div>"
+            '<div class="relative bg-bg-400 overflow-hidden after:animate-[shimmer_1.5s_infinite]"'
+            ' style="height:32px;width:313px"><span class="sr-only">Loading...</span></div>'
+        )
+        assert normalize_html_content(html_v1) == normalize_html_content(html_v2)
+        assert "Real content" in normalize_html_content(html_v1)
 
 
 class TestFetchResult:

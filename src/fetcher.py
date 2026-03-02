@@ -13,17 +13,32 @@ if TYPE_CHECKING:
     from src.config import SourceConfig
 
 # Patterns for dynamic HTML content that changes on every request
-_NONCE_RE = re.compile(r'\s*nonce="[^"]*"')
+_NONCE_ATTR_RE = re.compile(r'\s*nonce="[^"]*"')
+# All <script> tags — both inline RSC payloads and src-loaded chunks with per-request hashes
+_SCRIPT_TAG_RE = re.compile(r"<script\b[^>]*>.*?</script>|<script\b[^>]*/>", re.DOTALL)
+# <link rel="preload" as="script"> tags that reference per-request chunk hashes
+_PRELOAD_SCRIPT_RE = re.compile(
+    r'<link\s[^>]*as="script"[^>]*/?>',
+)
+# Loading skeleton divs with randomized widths (shimmer placeholders)
+_SKELETON_RE = re.compile(r"<div\b[^>]*animate-\[shimmer[^>]*>.*?</div>", re.DOTALL)
 
 
 def normalize_html_content(content: str) -> str:
-    """Strip dynamic HTML attributes that change per-request (e.g. CSP nonces).
+    """Strip dynamic HTML content that changes per-request but carries no doc content.
 
-    Server-rendered pages from Next.js include nonce="..." attributes on <link>
-    and <script> tags. These rotate on every request and cause false-positive
-    diffs when monitoring documentation for real content changes.
+    Next.js server-rendered pages include several sources of per-request noise:
+    1. nonce="..." attributes on <link>/<style> tags (CSP nonces rotate each request)
+    2. All <script> tags — RSC payloads reshuffle chunk IDs, and src-loaded chunks
+       have content-hashed filenames that change between requests
+    3. <link rel="preload" as="script"> tags that reference the same volatile chunk hashes
+    4. Loading skeleton divs with randomized widths (shimmer animation placeholders)
     """
-    return _NONCE_RE.sub("", content)
+    result = _SCRIPT_TAG_RE.sub("", content)
+    result = _PRELOAD_SCRIPT_RE.sub("", result)
+    result = _NONCE_ATTR_RE.sub("", result)
+    result = _SKELETON_RE.sub("", result)
+    return result
 
 
 @dataclass
