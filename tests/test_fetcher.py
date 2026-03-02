@@ -7,7 +7,7 @@ import pytest
 import respx
 
 from src.config import SourceConfig
-from src.fetcher import DocumentFetcher, FetchResult, normalize_html_content
+from src.fetcher import DocumentFetcher, FetchResult, is_incomplete_ssr, normalize_html_content
 
 
 class TestNormalizeHtmlContent:
@@ -109,6 +109,29 @@ class TestNormalizeHtmlContent:
         )
         assert normalize_html_content(html_v1) == normalize_html_content(html_v2)
         assert "Real content" in normalize_html_content(html_v1)
+
+
+class TestIsIncompleteSsr:
+    def test_detects_suspense_placeholder(self) -> None:
+        html = '<div>Content</div><template id="P:2"></template><div>More</div>'
+        assert is_incomplete_ssr(html) is True
+
+    def test_detects_multiple_placeholders(self) -> None:
+        html = '<template id="P:2"></template><template id="P:3"></template>'
+        assert is_incomplete_ssr(html) is True
+
+    def test_ignores_boundary_templates(self) -> None:
+        """B: templates are boundary markers, not Suspense placeholders."""
+        html = '<template id="B:0"></template><div>Full content here</div>'
+        assert is_incomplete_ssr(html) is False
+
+    def test_complete_ssr_response(self) -> None:
+        html = "<div>Fully rendered content</div><p>No placeholders</p>"
+        assert is_incomplete_ssr(html) is False
+
+    def test_non_html_content(self) -> None:
+        markdown = "# Hello\n\nMarkdown content"
+        assert is_incomplete_ssr(markdown) is False
 
 
 class TestFetchResult:

@@ -15,7 +15,7 @@ from rich.logging import RichHandler
 from src.analyzer import AnalysisResult, DiffAnalyzer
 from src.config import Config, SourceConfig, load_config, load_pages
 from src.differ import DiffResult, DocumentDiffer
-from src.fetcher import DocumentFetcher, normalize_html_content
+from src.fetcher import DocumentFetcher, is_incomplete_ssr, normalize_html_content
 from src.notifier import TelegramNotifier
 from src.reporter import ReportGenerator
 
@@ -153,6 +153,14 @@ class DocMonitor:
             if not fetch_result.is_success:
                 result.failed_pages += 1
                 result.errors.append(f"{fetch_result.page_slug}: {fetch_result.error}")
+                continue
+
+            # Skip incomplete SSR responses — content is only in stripped scripts
+            if is_incomplete_ssr(fetch_result.content):
+                logger.debug(
+                    "Skipping %s: incomplete SSR response (has Suspense placeholders)",
+                    fetch_result.page_slug,
+                )
                 continue
 
             # Normalize HTML to strip dynamic attributes (CSP nonces, etc.)

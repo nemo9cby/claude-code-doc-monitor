@@ -310,3 +310,36 @@ class TestDocMonitor:
 
         assert result.changed_pages == 0
         assert len(result.diffs) == 0
+
+    @patch("src.main.DocumentFetcher")
+    async def test_run_skips_incomplete_ssr(
+        self,
+        mock_fetcher_class: MagicMock,
+        mock_source: SourceConfig,
+        mock_config: Config,
+        templates_dir: Path,
+    ) -> None:
+        """Incomplete SSR responses (with Suspense placeholders) should be skipped."""
+        mock_source.docs_dir.mkdir(parents=True)
+        stored = "<div>Previously saved full content</div>"
+        (mock_source.docs_dir / "overview.md").write_text(stored)
+
+        # Fetched content has SSR Suspense placeholder — incomplete render
+        mock_fetcher = AsyncMock()
+        mock_fetcher.fetch_all.return_value = [
+            FetchResult(
+                "overview",
+                '<template id="P:2"></template><div>Partial content</div>',
+                200,
+            )
+        ]
+        mock_fetcher.__aenter__ = AsyncMock(return_value=mock_fetcher)
+        mock_fetcher.__aexit__ = AsyncMock(return_value=None)
+        mock_fetcher_class.return_value = mock_fetcher
+
+        monitor = DocMonitor(mock_source, mock_config, templates_dir)
+        result = await monitor.run(["overview"])
+
+        assert result.changed_pages == 0
+        # Stored content should not be overwritten
+        assert (mock_source.docs_dir / "overview.md").read_text() == stored

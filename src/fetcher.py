@@ -22,6 +22,8 @@ _PRELOAD_SCRIPT_RE = re.compile(
 )
 # Loading skeleton divs with randomized widths (shimmer placeholders)
 _SKELETON_RE = re.compile(r"<div\b[^>]*animate-\[shimmer[^>]*>.*?</div>", re.DOTALL)
+# Next.js SSR streaming Suspense placeholders — indicates incomplete server render
+_SSR_PLACEHOLDER_RE = re.compile(r'<template\s+id="P:\d+">')
 
 
 def normalize_html_content(content: str) -> str:
@@ -39,6 +41,17 @@ def normalize_html_content(content: str) -> str:
     result = _NONCE_ATTR_RE.sub("", result)
     result = _SKELETON_RE.sub("", result)
     return result
+
+
+def is_incomplete_ssr(content: str) -> bool:
+    """Check if HTML content is an incomplete Next.js SSR streaming response.
+
+    When SSR streaming hasn't finished, the response contains <template id="P:N">
+    Suspense placeholders. The actual content for those regions is only available
+    in <script> RSC payloads (which we strip during normalization), so saving an
+    incomplete response would lose real content and cause false diffs later.
+    """
+    return bool(_SSR_PLACEHOLDER_RE.search(content))
 
 
 @dataclass
