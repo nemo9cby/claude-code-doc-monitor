@@ -619,28 +619,7 @@ def generate_html(data: dict, stats: dict, output: Path) -> None:
       <ul class="tree" id="root"></ul>
     </div>
   </div>
-  <script>
-    const data = {json.dumps(data)};
-    const colors = {json.dumps(colors)};
-    function fmt(b) {{ if (b < 1024) return b + ' B'; if (b < 1048576) return (b/1024).toFixed(1) + ' KB'; return (b/1048576).toFixed(1) + ' MB'; }}
-    function render(node, parent) {{
-      if (node.children) {{
-        const det = document.createElement('details');
-        det.open = parent === document.getElementById('root');
-        det.innerHTML = `<summary><span class="folder">📁 ${{node.name}}</span><span class="size">${{fmt(node.size)}}</span></summary>`;
-        const ul = document.createElement('ul'); ul.className = 'tree';
-        node.children.sort((a,b) => (b.children?1:0)-(a.children?1:0) || a.name.localeCompare(b.name));
-        node.children.forEach(c => render(c, ul));
-        det.appendChild(ul);
-        const li = document.createElement('li'); li.appendChild(det); parent.appendChild(li);
-      }} else {{
-        const li = document.createElement('li'); li.className = 'file';
-        li.innerHTML = `<span class="dot" style="background:${{colors[node.ext]||'#6b7280'}}"></span>${{node.name}}<span class="size">${{fmt(node.size)}}</span>`;
-        parent.appendChild(li);
-      }}
-    }}
-    data.children.forEach(c => render(c, document.getElementById('root')));
-  </script>
+  
 </body></html>'''
     output.write_text(html)
 
