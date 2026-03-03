@@ -16,9 +16,9 @@ if TYPE_CHECKING:
 _NONCE_ATTR_RE = re.compile(r'\s*nonce="[^"]*"')
 # All <script> tags — both inline RSC payloads and src-loaded chunks with per-request hashes
 _SCRIPT_TAG_RE = re.compile(r"<script\b[^>]*>.*?</script>|<script\b[^>]*/>", re.DOTALL)
-# <link rel="preload" as="script"> tags that reference per-request chunk hashes
-_PRELOAD_SCRIPT_RE = re.compile(
-    r'<link\s[^>]*as="script"[^>]*/?>',
+# <link> tags that reference Next.js static assets (CSS/scripts) with per-build hashes
+_NEXTJS_LINK_RE = re.compile(
+    r'<link\b[^>]*href="/_next/static/[^"]*"[^>]*/?>',
 )
 # Loading skeleton divs with randomized widths (shimmer placeholders)
 _SKELETON_RE = re.compile(r"<div\b[^>]*animate-\[shimmer[^>]*>.*?</div>", re.DOTALL)
@@ -33,11 +33,12 @@ def normalize_html_content(content: str) -> str:
     1. nonce="..." attributes on <link>/<style> tags (CSP nonces rotate each request)
     2. All <script> tags — RSC payloads reshuffle chunk IDs, and src-loaded chunks
        have content-hashed filenames that change between requests
-    3. <link rel="preload" as="script"> tags that reference the same volatile chunk hashes
+    3. <link> tags referencing /_next/static/ assets (CSS and script preloads) whose
+       content-hashed filenames change between builds/requests
     4. Loading skeleton divs with randomized widths (shimmer animation placeholders)
     """
     result = _SCRIPT_TAG_RE.sub("", content)
-    result = _PRELOAD_SCRIPT_RE.sub("", result)
+    result = _NEXTJS_LINK_RE.sub("", result)
     result = _NONCE_ATTR_RE.sub("", result)
     result = _SKELETON_RE.sub("", result)
     return result

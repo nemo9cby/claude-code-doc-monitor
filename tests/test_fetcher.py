@@ -85,15 +85,23 @@ class TestNormalizeHtmlContent:
         assert "<script" not in result
         assert "Content" in result
 
-    def test_strips_preload_script_links(self) -> None:
-        """<link rel="preload" as="script"> tags should be stripped."""
+    def test_strips_nextjs_static_links(self) -> None:
+        """<link> tags referencing /_next/static/ assets should be stripped."""
         html = (
-            '<link rel="preload" as="script" fetchPriority="low" href="/_next/static/chunks/webpack.js"/>'
-            '<link rel="stylesheet" href="/style.css" data-precedence="next"/>'
+            '<link rel="preload" as="script" fetchPriority="low" href="/_next/static/chunks/webpack-abc123.js"/>'
+            '<link rel="stylesheet" href="/_next/static/css/b2961405e21ace61.css" data-precedence="next"/>'
+            '<link rel="stylesheet" href="/custom/style.css" data-precedence="next"/>'
         )
         result = normalize_html_content(html)
         assert "webpack" not in result
-        assert "stylesheet" in result
+        assert "b2961405" not in result
+        assert "custom/style.css" in result
+
+    def test_css_hash_change_normalizes_equal(self) -> None:
+        """CSS files with different content hashes should normalize identically."""
+        html_v1 = '<link rel="stylesheet" href="/_next/static/css/b2961405e21ace61.css" data-precedence="next"/><div>Content</div>'
+        html_v2 = '<link rel="stylesheet" href="/_next/static/css/c40933516c29a5e3.css" data-precedence="next"/><div>Content</div>'
+        assert normalize_html_content(html_v1) == normalize_html_content(html_v2)
 
     def test_strips_skeleton_loading_divs(self) -> None:
         """Shimmer skeleton placeholders with random widths should be stripped."""
