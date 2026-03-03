@@ -99,6 +99,16 @@ class DocumentFetcher:
         try:
             response = await self._client.get(url)
             if response.status_code == 200:
+                # Reject HTML responses for .md URLs — indicates a redirect to a
+                # rendered page (e.g. consolidated docs) rather than raw markdown
+                content_type = response.headers.get("content-type", "")
+                if url.endswith(".md") and "text/html" in content_type:
+                    return FetchResult(
+                        page_slug,
+                        None,
+                        200,
+                        f"Expected markdown but got text/html (likely a redirect to {response.url})",
+                    )
                 return FetchResult(page_slug, response.text, 200)
             return FetchResult(
                 page_slug, None, response.status_code, f"HTTP {response.status_code}"
