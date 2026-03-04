@@ -254,6 +254,23 @@ class Program
                         },
                         Required = ["location"],
                     },
+                    InputExamples =
+                    [
+                        new Dictionary<string, JsonElement>()
+                        {
+                            { "location", JsonSerializer.SerializeToElement("San Francisco, CA") },
+                            { "unit", JsonSerializer.SerializeToElement("fahrenheit") },
+                        },
+                        new Dictionary<string, JsonElement>()
+                        {
+                            { "location", JsonSerializer.SerializeToElement("Tokyo, Japan") },
+                            { "unit", JsonSerializer.SerializeToElement("celsius") },
+                        },
+                        new Dictionary<string, JsonElement>()
+                        {
+                            { "location", JsonSerializer.SerializeToElement("New York, NY") },
+                        },
+                    ],
                 }),
             ],
             Messages = [

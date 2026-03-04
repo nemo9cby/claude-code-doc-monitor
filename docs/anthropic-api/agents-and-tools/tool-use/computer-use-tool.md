@@ -824,7 +824,7 @@ client = anthropic.Anthropic()
 
 response = client.beta.messages.create(
     model="claude-opus-4-6",
-    max_tokens=1024,
+    max_tokens=2000,
     tools=[
         {
             "type": "computer_20251124",
@@ -944,7 +944,7 @@ print(response)
           var parameters = new MessageCreateParams
           {
               Model = Model.ClaudeOpus4_6,
-              MaxTokens = 1024,
+              MaxTokens = 2000,
               Tools = new BetaToolUnion[]
               {
                   new BetaToolComputerUse20251124

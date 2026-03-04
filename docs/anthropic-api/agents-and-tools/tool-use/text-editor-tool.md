@@ -189,7 +189,7 @@ response = client.messages.create(
 )
 ```
 
-```typescript TypeScript hidelines={1..4}
+```typescript TypeScript nocheck hidelines={1..4}
 import Anthropic from "@anthropic-ai/sdk";
 
 const anthropic = new Anthropic();
@@ -212,7 +212,7 @@ const response = await anthropic.messages.create({
 });
 ```
 
-```java Java hidelines={1..10,-1}
+```java Java nocheck hidelines={1..10,-1}
 import com.anthropic.client.AnthropicClient;
 import com.anthropic.client.okhttp.AnthropicOkHttpClient;
 import com.anthropic.models.messages.Message;
@@ -811,7 +811,7 @@ response = client.messages.create(
 ```
 
 ```typescript TypeScript
-const response = await anthropic.messages.create({
+const response = await client.messages.create({
   model: "claude-opus-4-6",
   max_tokens: 1024,
   tools: [

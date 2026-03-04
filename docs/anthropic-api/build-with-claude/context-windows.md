@@ -46,7 +46,7 @@ The diagram below demonstrates the specialized token management when extended th
   - The API automatically excludes thinking blocks from previous turns when you pass them back as part of the conversation history.
   - Extended thinking tokens are billed as output tokens only once, during their generation.
   - The effective context window calculation becomes: `context_window = (input_tokens - previous_thinking_tokens) + current_turn_tokens`.
-  - Thinking tokens include both `thinking` blocks and `redacted_thinking` blocks.
+  - Thinking tokens include `thinking` blocks.
 
 This architecture is token efficient and allows for extensive reasoning without token waste, as thinking blocks can be substantial in length.
 
@@ -79,7 +79,7 @@ The diagram below illustrates the context window token management when combining
 </Steps>
 
 * **Considerations for tool use with extended thinking:**
-  - When posting tool results, the entire unmodified thinking block that accompanies that specific tool request (including signature/redacted portions) must be included.
+  - When posting tool results, the entire unmodified thinking block that accompanies that specific tool request (including signature portions) must be included.
   - The effective context window calculation for extended thinking with tool use becomes: `context_window = input_tokens + current_turn_tokens`.
   - The system uses cryptographic signatures to verify thinking block authenticity. Failing to preserve thinking blocks during tool use can break Claude's reasoning continuity. Thus, if you modify thinking blocks, the API returns an error.
 

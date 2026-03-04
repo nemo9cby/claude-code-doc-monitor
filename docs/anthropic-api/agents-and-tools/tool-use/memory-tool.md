@@ -600,7 +600,7 @@ response = client.messages.create(
 )
 ```
 
-```typescript TypeScript hidelines={1..2}
+```typescript TypeScript nocheck hidelines={1..2}
 import Anthropic from "@anthropic-ai/sdk";
 
 const anthropic = new Anthropic({
@@ -796,7 +796,7 @@ $message = $client->beta->messages->create(
 );
 ```
 
-```ruby Ruby
+```ruby Ruby nocheck
 require "anthropic"
 
 client = Anthropic::Client.new
@@ -843,7 +843,7 @@ context_management = {
 }
 ```
 
-```typescript TypeScript
+```typescript TypeScript nocheck
 context_management: {
   edits: [
     {
@@ -851,6 +851,43 @@ context_management: {
       exclude_tools: ["memory"]
     }
   ];
+}
+```
+
+```csharp C# nocheck
+var contextManagement = new BetaContextManagementConfig
+{
+    Edits = [new BetaClearToolUses20250919Edit { ExcludeTools = ["memory"] }]
+};
+```
+
+```go Go nocheck
+contextManagement := anthropic.BetaContextManagementConfigParam{
+	Edits: []anthropic.BetaContextManagementConfigEditUnionParam{{
+		OfClearToolUses20250919: &anthropic.BetaClearToolUses20250919EditParam{
+			ExcludeTools: []string{"memory"},
+		},
+	}},
+}
+```
+
+```java Java nocheck
+BetaContextManagementConfig contextManagement = BetaContextManagementConfig.builder()
+    .addEdit(BetaClearToolUses20250919Edit.builder()
+        .addExcludeTool("memory")
+        .build())
+    .build();
+```
+
+```php PHP nocheck
+$contextManagement = [
+    'edits' => [['type' => 'clear_tool_uses_20250919', 'exclude_tools' => ['memory']]]
+];
+```
+
+```ruby Ruby nocheck
+context_management = {
+  edits: [{ type: "clear_tool_uses_20250919", exclude_tools: ["memory"] }]
 }
 ```
 

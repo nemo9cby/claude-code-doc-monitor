@@ -179,7 +179,7 @@ if response.content[0].type == "tool_use":
     )
 ```
 
-```typescript TypeScript hidelines={1..4}
+```typescript TypeScript nocheck hidelines={1..4}
 import Anthropic from "@anthropic-ai/sdk";
 
 const anthropic = new Anthropic();
@@ -886,7 +886,7 @@ print(response.model_dump_json(indent=2))
 ```
 
 ```typescript TypeScript
-import { Anthropic } from "@anthropic-ai/sdk";
+import Anthropic from "@anthropic-ai/sdk";
 
 const anthropic = new Anthropic();
 

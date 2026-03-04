@@ -30,6 +30,12 @@ npm install @anthropic-ai/vertex-sdk
 ```
 </Tab>
 
+<Tab title="C#">
+```bash
+dotnet add package Anthropic.Vertex
+```
+</Tab>
+
 <Tab title="Go">
 ```bash
 go get github.com/anthropics/anthropic-sdk-go
@@ -144,7 +150,8 @@ The following examples show how to generate text from Claude on Vertex AI:
   }'
   ```
 
-  ```python Python
+  
+  ```python Python nocheck
   from anthropic import AnthropicVertex
 
   project_id = "MY_PROJECT_ID"
@@ -304,7 +311,8 @@ The following examples show how to generate text from Claude on Vertex AI:
   echo $message->content[0]->text;
   ```
 
-  ```ruby Ruby
+  
+  ```ruby Ruby nocheck
   require "anthropic"
 
   client = Anthropic::VertexClient.new(
@@ -375,7 +383,7 @@ Set the `region` parameter to `"global"` when initializing the client:
 
 <CodeGroup>
 
-```python Python
+```python Python nocheck
 from anthropic import AnthropicVertex
 
 project_id = "MY_PROJECT_ID"
@@ -513,7 +521,7 @@ $message = $client->messages->create(
 echo $message->content[0]->text;
 ```
 
-```ruby Ruby
+```ruby Ruby nocheck
 require "anthropic"
 
 client = Anthropic::VertexClient.new(
@@ -537,7 +545,7 @@ Specify a specific region like `"us-east1"` or `"europe-west1"`:
 
 <CodeGroup>
 
-```python Python
+```python Python nocheck
 from anthropic import AnthropicVertex
 
 project_id = "MY_PROJECT_ID"
@@ -679,7 +687,7 @@ $message = $client->messages->create(
 echo $message->content[0]->text;
 ```
 
-```ruby Ruby
+```ruby Ruby nocheck
 require "anthropic"
 
 client = Anthropic::VertexClient.new(

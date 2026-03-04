@@ -19,7 +19,7 @@ Context editing allows you to selectively clear specific content from conversati
 | Approach | Where it runs | Strategies | How it works |
 |----------|---------------|------------|--------------|
 | **Server-side** | API | Tool result clearing (`clear_tool_uses_20250919`)<br/>Thinking block clearing (`clear_thinking_20251015`) | Applied before the prompt reaches Claude. Clears specific content from conversation history. Each strategy can be configured independently. |
-| **Client-side** | SDK | Compaction | Available in [Python and TypeScript SDKs](/docs/en/api/client-sdks) when using [`tool_runner`](/docs/en/agents-and-tools/tool-use/implement-tool-use#tool-runner-beta). Generates a summary and replaces full conversation history. See [Client-side compaction](#client-side-compaction-sdk) below. |
+| **Client-side** | SDK | Compaction | Available in [Python, TypeScript, and Ruby SDKs](/docs/en/api/client-sdks) when using [`tool_runner`](/docs/en/agents-and-tools/tool-use/implement-tool-use#tool-runner-beta). Generates a summary and replaces full conversation history. See [Client-side compaction](#client-side-compaction-sdk) below. |
 
 ## Server-side strategies
 
@@ -755,7 +755,7 @@ curl https://api.anthropic.com/v1/messages \
     --header "anthropic-beta: context-management-2025-06-27" \
     --data '{
         "model": "claude-opus-4-6",
-        "max_tokens": 1024,
+        "max_tokens": 16000,
         "messages": [/* ... */],
         "thinking": {
             "type": "enabled",
@@ -778,7 +778,7 @@ curl https://api.anthropic.com/v1/messages \
 ```python Python nocheck
 response = client.beta.messages.create(
     model="claude-opus-4-6",
-    max_tokens=1024,
+    max_tokens=16000,
     messages=[...],
     thinking={"type": "enabled", "budget_tokens": 10000},
     betas=["context-management-2025-06-27"],
@@ -793,7 +793,7 @@ response = client.beta.messages.create(
 )
 ```
 
-```typescript TypeScript hidelines={1..2}
+```typescript TypeScript nocheck hidelines={1..2}
 import Anthropic from "@anthropic-ai/sdk";
 
 const anthropic = new Anthropic({
@@ -802,7 +802,7 @@ const anthropic = new Anthropic({
 
 const response = await anthropic.beta.messages.create({
   model: "claude-opus-4-6",
-  max_tokens: 1024,
+  max_tokens: 16000,
   messages: [
     // ...
   ],
@@ -840,7 +840,7 @@ class Program
         var parameters = new MessageCreateParams
         {
             Model = "claude-opus-4-6",
-            MaxTokens = 1024,
+            MaxTokens = 16000,
             Messages = [],
             Thinking = new BetaThinkingParam
             {
@@ -885,7 +885,7 @@ func main() {
 
 	response, err := client.Beta.Messages.New(context.TODO(), anthropic.BetaMessageNewParams{
 		Model:     anthropic.ModelClaudeOpus4_6,
-		MaxTokens: 1024,
+		MaxTokens: 16000,
 		Messages:  []anthropic.BetaMessageParam{},
 		Thinking:  anthropic.BetaThinkingConfigParamOfEnabled(10000),
 		Betas:     []anthropic.AnthropicBeta{anthropic.AnthropicBetaContextManagement2025_06_27},
@@ -926,7 +926,7 @@ public class Main {
 
         MessageCreateParams params = MessageCreateParams.builder()
             .model(Model.CLAUDE_OPUS_4_6)
-            .maxTokens(1024L)
+            .maxTokens(16000L)
             .thinking(BetaThinkingConfigEnabled.builder()
                 .budgetTokens(10000L)
                 .build())
@@ -954,7 +954,7 @@ use Anthropic\Client;
 $client = new Client(apiKey: getenv("ANTHROPIC_API_KEY"));
 
 $message = $client->beta->messages->create(
-    maxTokens: 1024,
+    maxTokens: 16000,
     messages: [/* ... */],
     model: 'claude-opus-4-6',
     betas: ['context-management-2025-06-27'],
@@ -986,7 +986,7 @@ messages = [{ role: "user", content: "Explain quantum computing in simple terms"
 
 response = client.beta.messages.create(
   model: "claude-opus-4-6",
-  max_tokens: 1024,
+  max_tokens: 16000,
   messages: messages,
   thinking: {
     type: "enabled",
@@ -1054,7 +1054,7 @@ When using multiple strategies, the `clear_thinking_20251015` strategy must be l
 ```python Python nocheck
 response = client.beta.messages.create(
     model="claude-opus-4-6",
-    max_tokens=1024,
+    max_tokens=16000,
     messages=[...],
     thinking={"type": "enabled", "budget_tokens": 10000},
     tools=[...],
@@ -1075,10 +1075,10 @@ response = client.beta.messages.create(
 )
 ```
 
-```typescript TypeScript
+```typescript TypeScript nocheck
 const response = await anthropic.beta.messages.create({
   model: "claude-opus-4-6",
-  max_tokens: 1024,
+  max_tokens: 16000,
   messages: [
     // ...
   ],
@@ -1128,7 +1128,7 @@ public class Program
         var parameters = new MessageCreateParams
         {
             Model = Model.ClaudeOpus4_6,
-            MaxTokens = 1024,
+            MaxTokens = 16000,
             Messages = [],
             Thinking = new BetaThinkingParam
             {
@@ -1187,7 +1187,7 @@ func main() {
 
 	response, err := client.Beta.Messages.New(context.TODO(), anthropic.BetaMessageNewParams{
 		Model:     anthropic.ModelClaudeOpus4_6,
-		MaxTokens: 1024,
+		MaxTokens: 16000,
 		Messages:  []anthropic.BetaMessageParam{},
 		Thinking:  anthropic.BetaThinkingConfigParamOfEnabled(10000),
 		Tools:     []anthropic.BetaToolUnionParam{},
@@ -1244,7 +1244,7 @@ public class ContextManagementExample {
 
         MessageCreateParams params = MessageCreateParams.builder()
             .model(Model.CLAUDE_OPUS_4_6)
-            .maxTokens(1024L)
+            .maxTokens(16000L)
             .thinking(BetaThinkingConfigEnabled.builder()
                 .budgetTokens(10000L)
                 .build())
@@ -1280,7 +1280,7 @@ use Anthropic\Client;
 $client = new Client(apiKey: getenv("ANTHROPIC_API_KEY"));
 
 $message = $client->beta->messages->create(
-    maxTokens: 1024,
+    maxTokens: 16000,
     messages: [/* ... */],
     model: 'claude-opus-4-6',
     betas: ['context-management-2025-06-27'],
@@ -1321,7 +1321,7 @@ messages = [{ role: "user", content: "Explain quantum computing in simple terms"
 
 response = client.beta.messages.create(
   model: "claude-opus-4-6",
-  max_tokens: 1024,
+  max_tokens: 16000,
   messages: messages,
   thinking: {
     type: "enabled",
@@ -1761,7 +1761,7 @@ response = client.beta.messages.create(
 )
 ```
 
-```typescript TypeScript hidelines={1..2}
+```typescript TypeScript nocheck hidelines={1..2}
 import Anthropic from "@anthropic-ai/sdk";
 
 const anthropic = new Anthropic({
@@ -1955,7 +1955,7 @@ puts response
 </Warning>
 
 <Note>
-Compaction is available in the [Python and TypeScript SDKs](/docs/en/api/client-sdks) when using the [`tool_runner` method](/docs/en/agents-and-tools/tool-use/implement-tool-use#tool-runner-beta).
+Compaction is available in the [Python, TypeScript, and Ruby SDKs](/docs/en/api/client-sdks) when using the [`tool_runner` method](/docs/en/agents-and-tools/tool-use/implement-tool-use#tool-runner-beta).
 </Note>
 
 Compaction is an SDK feature that automatically manages conversation context by generating summaries when token usage grows too large. Unlike server-side context editing strategies that clear content, compaction instructs Claude to summarize the conversation history, then replaces the full history with that summary. This allows Claude to continue working on long-running tasks that would otherwise exceed the [context window](/docs/en/build-with-claude/context-windows).
@@ -2057,7 +2057,7 @@ public class Program
                 Edits = [
                     new BetaCompact20260112Edit()
                     {
-                        ContextTokenThreshold = 100000
+                        Trigger = new BetaInputTokensTrigger(100000)
                     }
                 ]
             }

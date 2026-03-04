@@ -65,6 +65,12 @@ implementation("com.anthropic:anthropic-java-foundry:2.15.0")
 </Tab>
 </Tabs>
 </Tab>
+
+<Tab title="PHP">
+```bash
+composer require anthropic-ai/sdk
+```
+</Tab>
 </Tabs>
 
 ## Provisioning
@@ -143,7 +149,8 @@ curl https://{resource}.services.ai.azure.com/anthropic/v1/messages \
 </Tab>
 
 <Tab title="Python">
-```python
+
+```python nocheck
 import os
 from anthropic import AnthropicFoundry
 
@@ -298,7 +305,8 @@ curl https://{resource}.services.ai.azure.com/anthropic/v1/messages \
 </Tab>
 
 <Tab title="Python">
-```python
+
+```python nocheck
 import os
 from anthropic import AnthropicFoundry
 from azure.identity import DefaultAzureCredential, get_bearer_token_provider

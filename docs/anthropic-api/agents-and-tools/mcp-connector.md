@@ -80,7 +80,7 @@ response = client.beta.messages.create(
     mcp_servers=[
         {
             "type": "url",
-            "url": "https://mcp.example.com/sse",
+            "url": "https://example-server.modelcontextprotocol.io/sse",
             "name": "example-mcp",
             "authorization_token": "YOUR_TOKEN",
         }

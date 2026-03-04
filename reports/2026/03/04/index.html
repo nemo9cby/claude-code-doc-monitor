@@ -118,9 +118,398 @@
 
         <header>
             <h1>Changes on 2026-03-04</h1>
-            <p class="meta">46 total changes in 6 runs</p>
+            <p class="meta">69 total changes in 7 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">18:25 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更分析摘要
+
+### 1. 总体概述
+本次更新标志着多个功能（特别是 Java SDK 中的工具调用和代码执行）从 Beta 版本正式迁移至稳定版。文档大幅删除了关于 &#34;Redacted Thinking&#34;（推理内容编辑）的说明，并对 C# 和 Java SDK 的属性命名进行了规范化修正。同时，Prompt Caching 和 Structured Outputs 功能已正式发布（GA），相关的 Beta 前缀和参数已被移除或更新。
+
+### 2. 关键变更主题
+
+*   **Java SDK 稳定化迁移**：`BetaMessage`, `BetaTool`, `BetaCodeExecutionTool20260120` 等类已迁移至 `messages` 包下的正式版（如 `Message`, `Tool`, `CodeExecutionTool20260120`），不再需要显式添加 `addBeta` 标志。代码执行工具调用也从 `ofToolUse` 变更为 `ofServerToolUse`。
+*   **移除 Redacted Thinking**：完全删除了关于 `redacted_thinking` 块的文档及处理示例。这意味着开发者不再需要处理或担心安全系统加密的推理块。
+*   **C# SDK 属性规范化**：多处属性名从 PascalCase 简写形式（如 `Id`, `CustomId`）更改为标准全大写形式（`ID`, `CustomID`）。部分方法名变更（如 `Results` -&gt; `ResultsStreaming`）。
+*   **功能正式发布 (GA)**：Prompt Caching 和 Structured Outputs 功能在 PHP/Python 示例中已移除 `beta` 前缀，PHP 结构化输出参数从 `outputFormat` 变更为 `outputConfig`。
+*   **新增工具参数与配置**：增加了 `InputExamples`（工具输入示例）和 `DeferLoading`（延迟加载）参数的支持；上下文编辑触发器配置语法更新（`ContextTokenThreshold` -&gt; `Trigger`）。
+*   **Ruby SDK 增强支持**：Ruby SDK 现已支持客户端压缩和更多上下文管理配置。
+
+### 3. 影响等级：**高**
+
+**理由**：
+*   **破坏性变更**：Java SDK 的包路径变更和类名重命名（从 Beta 迁移）将导致现有代码编译失败，需要开发者立即更新导入和调用方式。
+*   **行为变更**：移除 `redacted_thinking` 文档暗示后端行为已改变，依赖此逻辑的代码可能不再需要或面临异常。
+*   **API 调整**：C# 的属性重命名和 PHP 的参数结构调整（如 `outputConfig`）属于 breaking changes，必须修改代码才能适配新 SDK 或 API 版本。
+
+### 4. 开发者行动项
+
+*   **更新 Java 代码**：移除所有 `beta` 相关的 import（如 `BetaTool` -&gt; `Tool`），删除 `addBeta` 调用，并将 `ofToolUse` 替换为 `ofServerToolUse`。
+*   **修正 C# 属性名**：检查代码中涉及 `Id`, `CustomId` 的地方，将其改为 `ID`, `CustomID`；更新流式处理方法调用。
+*   **移除 Redacted Thinking 处理逻辑**：从代码中移除检测和处理 `redacted_thinking` 块的逻辑。
+*   **更新 PHP Structured Outputs 调用**：将参数键从 `outputFormat` 替换为 `outputConfig`，并移除 `betas` 请求头。
+*   **审查工具定义**：利用新增的 `InputExamples` 参数优化工具定义，并检查 `DeferLoading` 是否适用于您的工具场景。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer/Documentation analyst.
+    *   **Task:** Analyze a batch of 23 documentation changes.
+    *   **Output:** Concise, insightful markdown analysis in Chinese.
+    *   **Focus:** What matters to developers.
+    *   **Structure:** Overall Summary, Key Themes, Impact Level, Action Items.
+
+2.  **Scan and Categorize Changes (Batch Analysis):**
+
+    *   *Page: `api/client-sdks.md`*: Java example updated (added full class structure with imports). Code quality improvement, likely consistency update.
+    *   *Page: `build-with-claude/extended-thinking.md`*: Large deletion (-112 lines). Removed the &#34;Thinking redaction&#34; section entirely (including explanation, `redacted_thinking` blocks, handling examples, magic string trigger). This is a significant conceptual change.
+    *   *Page: `build-with-claude/streaming.md`*: Updated text to mention Java (`MessageAccumulator`) and Ruby (`.accumulated_message`) for accumulating stream events.
+    *   *Page: `build-with-claude/prompt-caching.md`*: C# example updates (added `hidelines` flags), PHP/Python updates (removed beta prefix). Ruby example updated (added caching example). Significant updates to Ruby and removal of &#34;beta&#34; mentions for Prompt Caching (it&#39;s GA now).
+    *   *Page: `build-with-claude/batch-processing.md`*: C# changes: `CustomId` -&gt; `CustomID` (property casing change). Method name change: `Results` -&gt; `ResultsStreaming`. This suggests an SDK update/fix.
+    *   *Page: `build-with-claude/context-windows.md`*: Removed mentions of `redacted_thinking` blocks. Changed text to &#34;thinking tokens include thinking blocks&#34; instead of &#34;thinking and redacted&#34;.
+    *   *Page: `build-with-claude/context-editing.md`*: Mentioned Ruby SDK support for compaction. Max tokens increased (1024 -&gt; 16000) in examples. Updated context edit trigger syntax (`ContextTokenThreshold` -&gt; `Trigger = new BetaInputTokensTrigger(...)`).
+    *   *Page: `build-with-claude/search-results.md`*: Minor import change (`nocheck` flag).
+    *   *Page: `build-with-claude/structured-outputs.md`*: PHP changes: `outputFormat` -&gt; `outputConfig` (API change), removed beta flag. C# changes: `additionalProperties` logic updates (generally stricter `false`). Ruby example added. C# model info fix.
+    *   *Page: `build-with-claude/files.md`*: `nocheck` flag addition for Ruby.
+    *   *Page: `build-with-claude/working-with-messages.md`*: `nocheck` flag addition.
+    *   *Page: `build-with-claude/claude-on-vertex-ai.md`*: Added C# install instruction. `nocheck` flags added.
+    *   *Page: `build-with-claude/claude-in-microsoft-foundry.md`*: Added PHP install instruction.
+    *   *Page: `agents-and-tools/tool-use/overview.md`*: C# `Id` -&gt; `ID`. Minor data change (65 degrees -&gt; 15 degrees).
+    *   *Page: `agents-and-tools/tool-use/implement-tool-use.md`*: Added `InputExamples` to C# code example. Added `DeferLoading` to a tool example.
+    *   *Page: `agents-and-tools/tool-use/text-editor-tool.md`*: `nocheck` flags.
+    *   *Page: `agents-and-tools/tool-use/computer-use-tool.md`*: Max tokens updated (1024 -&gt; 2000).
+    *   *Page: `agents-and-tools/tool-use/web-search-tool.md`*: `nocheck` flags.
+    *   *Page: `agents-and-tools/tool-use/code-execution-tool.md`*: `nocheck` flags.
+    *   *Page: `agents-and-tools/tool-use/memory-tool.md`*: Added C#, Go, Java, PHP, Ruby examples for context management exclusion.
+    *   *Page: `agents-and-tools/tool-use/tool-search-tool.md`*: `nocheck` flags. Added `DeferLoading = true` in C#.
+    *   *Page: `agents-and-tools/tool-use/programmatic-tool-calling.md`*: **Major Java changes**: Removed Beta imports (`BetaTool` -&gt; `Tool`, `BetaMessage` -&gt; `Message`), removed `.addBeta(...)`, renamed `ContentBlockParam.ofToolUse` to `ContentBlockParam.ofServerToolUse`, updated allowed callers logic. C# property name change `query` -&gt; `sql`.
+
+3.  **Synthesize Key Themes:**
+
+    *   **Removal of &#34;Redacted Thinking&#34;:** The extended thinking page no longer mentions `redacted_thinking` blocks or handling them. This implies the safety mechanism might have changed, or the feature was deprecated/removed.
+    *   **SDK Updates (Java &amp; C#):**
+        *   Java: moved from `beta` packages to stable packages (`Tool` instead of `BetaTool`, `Message` instead of `BetaMessage`). Removed the need for beta flags.
+        *   C#: Property renames (`CustomId` -&gt; `CustomID`, `Id` -&gt; `ID`). Method renames (`Results` -&gt; `ResultsStreaming`).
+        *   General: Prompt Caching and Structured Outputs are now generally available (GA) - removing beta prefixes from PHP/Python examples.
+    *   **New Features/Params:** `DeferLoading` for tools (Go/C# examples). `InputExamples` for tools. `MessageAccumulator` for Java streaming.
+    *   **Ruby SDK Expansion:** Ruby is getting more prominence (compaction support, explicit examples added).
+    *   **Token Limit Adjustments:** Many examples updated `max_tokens` (1024 -&gt; 16000 or 2000), likely to match new default/recommended practices for Opus/Sonnet.
+    *   **Code Consistency:** Adding `nocheck` or `hidelines` flags to code blocks for cleaner documentation rendering.
+
+4.  **Determine Impact Level:**
+
+    *   **Impact:** Medium to High.
+    *   **Reasoning:**
+        *   *High:* Java SDK migration from Beta to Stable is a breaking change in import paths and class names. The removal of &#34;Redacted Thinking&#34; documentation suggests a significant backend change developers need to know (they can stop handling that case).
+        *   *Medium:* C# property renames (`ID`) are breaking if strictly typed. API parameter changes (`outputFormat` -&gt; `outputConfig` in PHP).
+
+5.  **Draft Action Items:**
+
+    *   Update Java imports (remove `beta`).
+    *   Update C# code to use new property names (`CustomID`, `ID`).
+    *   Remove code handling `redacted_thinking` blocks.
+    *   Update PHP code for Structured Outputs (use `outputConfig`).
+    *   Review tool definitions for new `InputExamples` and `DeferLoading` options.
+
+6.  **Refine into Chinese (Target Language):**
+
+    *   *Summary:* 此次更新主要涉及 SDK 的稳定性升级（Java 从 Beta 迁移至正式版）、C# 属性命名修正，以及移除了 &#34;Redacted Thinking&#34; 相关文档。同时，Prompt Caching 和 Structured Outputs 功能现已正式发布。
+    *   *Themes:* Java SDK 稳定化, Redacted Thinking 移除, C# 命名规范更新, 新增参数支持, Token 限制调整.
+    *   *Impact:* High/Medium.
+    *   *Actions:* 更新 Java 导入, 修改 C# 属性名, 移除 `redacted_thinking` 处理逻辑, 更新 PHP API 参数.
+
+7.  **Final Polish:** Ensure tone is professional and concise. (Self-correction: Make sure to emphasize that &#34;Redacted Thinking&#34; documentation was deleted, meaning developers don&#39;t need to handle that block type anymore).
+
+    *   *Check:* Did I miss anything? The `context-editing` page updated the trigger syntax (`ContextTokenThreshold` -&gt; `Trigger`). This is relevant for developers using beta context editing features.
+    *   *Check:* Programmatic tool calling for Java changed significantly (`ofToolUse` -&gt; `ofServerToolUse`). Important for Java devs.
+
+8.  **Final Output Generation** (similar to the provided good response).
+
+    *   Structure check:
+        1.  Overall Summary.
+        2.  Key Themes.
+        3.  Impact Level.
+        4.  Action Items.
+
+**(Self-Correction during drafting Chinese text):**
+Instead of just saying &#34;Java updates&#34;, specify &#34;Graduation from Beta&#34;.
+For &#34;Redacted Thinking&#34;, clarify that the docs were *deleted*, implying the feature/block type is likely removed or hidden.
+
+9.  **Construct Final Markdown.**</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/client-sdks.html" class="page-link">api/client-sdks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+16</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/extended-thinking.html" class="page-link">build-with-claude/extended-thinking.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-112</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/streaming.html" class="page-link">build-with-claude/streaming.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-caching.html" class="page-link">build-with-claude/prompt-caching.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/batch-processing.html" class="page-link">build-with-claude/batch-processing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+9</span>
+                            <span class="removed">-9</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/context-windows.html" class="page-link">build-with-claude/context-windows.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/context-editing.html" class="page-link">build-with-claude/context-editing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+12</span>
+                            <span class="removed">-10</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/search-results.html" class="page-link">build-with-claude/search-results.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/structured-outputs.html" class="page-link">build-with-claude/structured-outputs.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+21</span>
+                            <span class="removed">-47</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/files.html" class="page-link">build-with-claude/files.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/working-with-messages.html" class="page-link">build-with-claude/working-with-messages.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-on-vertex-ai.html" class="page-link">build-with-claude/claude-on-vertex-ai.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-in-microsoft-foundry.html" class="page-link">build-with-claude/claude-in-microsoft-foundry.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/overview.html" class="page-link">agents-and-tools/tool-use/overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/implement-tool-use.html" class="page-link">agents-and-tools/tool-use/implement-tool-use.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/text-editor-tool.html" class="page-link">agents-and-tools/tool-use/text-editor-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/computer-use-tool.html" class="page-link">agents-and-tools/tool-use/computer-use-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/web-search-tool.html" class="page-link">agents-and-tools/tool-use/web-search-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/code-execution-tool.html" class="page-link">agents-and-tools/tool-use/code-execution-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/memory-tool.html" class="page-link">agents-and-tools/tool-use/memory-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+22</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/tool-search-tool.html" class="page-link">agents-and-tools/tool-use/tool-search-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/programmatic-tool-calling.html" class="page-link">agents-and-tools/tool-use/programmatic-tool-calling.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+10</span>
+                            <span class="removed">-16</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/mcp-connector.html" class="page-link">agents-and-tools/mcp-connector.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">17:25 EST</div>

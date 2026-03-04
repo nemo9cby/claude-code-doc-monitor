@@ -690,7 +690,8 @@ Claude can read both text and images in requests. Both `base64` and `url` source
   print(message_from_url)
   ```
 
-  ```typescript TypeScript hidelines={1..4}
+  
+  ```typescript TypeScript nocheck hidelines={1..4}
   import Anthropic from "@anthropic-ai/sdk";
 
   const anthropic = new Anthropic();
@@ -1041,7 +1042,8 @@ Claude can read both text and images in requests. Both `base64` and `url` source
   echo $message_from_url;
   ```
 
-  ```ruby Ruby
+  
+  ```ruby Ruby nocheck
   require "anthropic"
   require "base64"
   require "net/http"

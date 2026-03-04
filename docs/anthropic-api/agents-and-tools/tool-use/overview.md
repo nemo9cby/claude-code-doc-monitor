@@ -1086,7 +1086,7 @@ You would then need to execute the `get_weather` function with the provided inpu
                     {
                         "type": "tool_result",
                         "tool_use_id": "toolu_01A09q90qw90lq917835lq9",  # from the API response
-                        "content": "65 degrees",  # from running your tool
+                        "content": "15 degrees",  # from running your tool
                     }
                 ],
             },
@@ -1145,7 +1145,7 @@ You would then need to execute the `get_weather` function with the provided inpu
             {
               type: "tool_result",
               tool_use_id: "toolu_01A09q90qw90lq917835lq9",
-              content: "65 degrees"
+              content: "15 degrees"
             }
           ]
         }
@@ -1198,7 +1198,7 @@ You would then need to execute the `get_weather` function with the provided inpu
                             new ContentBlockParam(new TextBlockParam("I'll check the current weather in San Francisco for you.")),
                             new ContentBlockParam(new ToolUseBlockParam()
                             {
-                                Id = "toolu_01A09q90qw90lq917835lq9",
+                                ID = "toolu_01A09q90qw90lq917835lq9",
                                 Name = "get_weather",
                                 Input = JsonSerializer.SerializeToElement(new { location = "San Francisco, CA", unit = "celsius" }),
                             }),
@@ -1461,7 +1461,7 @@ You would then need to execute the `get_weather` function with the provided inpu
         },
         {
           role: "user",
-          content: [{ type: "tool_result", tool_use_id: "toolu_01A09q90qw90lq917835lq9", content: "65 degrees" }]
+          content: [{ type: "tool_result", tool_use_id: "toolu_01A09q90qw90lq917835lq9", content: "15 degrees" }]
         }
       ]
     )

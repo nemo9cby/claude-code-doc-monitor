@@ -255,15 +255,15 @@ func main() {
 }
 ```
 
-```java Java nocheck hidelines={1..13,-1}
+```java Java hidelines={1..13,-1}
 import com.anthropic.client.AnthropicClient;
 import com.anthropic.client.okhttp.AnthropicOkHttpClient;
 import com.anthropic.core.JsonValue;
-import com.anthropic.models.beta.messages.BetaCodeExecutionTool20260120;
-import com.anthropic.models.beta.messages.BetaMessage;
-import com.anthropic.models.beta.messages.BetaTool;
-import com.anthropic.models.beta.messages.BetaTool.InputSchema;
-import com.anthropic.models.beta.messages.MessageCreateParams;
+import com.anthropic.models.messages.Message;
+import com.anthropic.models.messages.MessageCreateParams;
+import com.anthropic.models.messages.Tool;
+import com.anthropic.models.messages.Tool.InputSchema;
+import com.anthropic.models.messages.CodeExecutionTool20260120;
 import java.util.List;
 import java.util.Map;
 
@@ -274,13 +274,12 @@ public class Main {
         MessageCreateParams params = MessageCreateParams.builder()
             .model("claude-opus-4-6")
             .maxTokens(4096L)
-            .addBeta("code-execution-2026-01-20")
             .addUserMessage("Query sales data for the West, East, and Central regions, then tell me which region had the highest revenue")
-            .addTool(BetaCodeExecutionTool20260120.builder().build())
-            .addTool(BetaTool.builder()
+            .addTool(CodeExecutionTool20260120.builder().build())
+            .addTool(Tool.builder()
                 .name("query_database")
                 .description("Execute a SQL query against the sales database. Returns a list of rows as JSON objects.")
-                .inputSchema(BetaTool.InputSchema.builder()
+                .inputSchema(InputSchema.builder()
                     .properties(JsonValue.from(Map.of(
                         "sql", Map.of(
                             "type", "string",
@@ -289,11 +288,11 @@ public class Main {
                     )))
                     .putAdditionalProperty("required", JsonValue.from(List.of("sql")))
                     .build())
-                .allowedCallers(List.of(BetaTool.AllowedCaller.of("code_execution_20260120")))
+                .allowedCallers(List.of(Tool.AllowedCaller.of("code_execution_20260120")))
                 .build())
             .build();
 
-        BetaMessage response = client.beta().messages().create(params);
+        Message response = client.messages().create(params);
         System.out.println(response);
     }
 }
@@ -506,7 +505,7 @@ response = client.messages.create(
 )
 ```
 
-```typescript TypeScript
+```typescript TypeScript nocheck
 const response = await client.messages.create({
   model: "claude-opus-4-6",
   max_tokens: 4096,
@@ -571,12 +570,12 @@ class Program
                     InputSchema = new() {
                         Type = "object",
                         Properties = new() {
-                            ["query"] = new() {
+                            ["sql"] = new() {
                                 Type = "string",
                                 Description = "The SQL query to execute"
                             }
                         },
-                        Required = ["query"]
+                        Required = ["sql"]
                     },
                     AllowedCallers = ["code_execution_20260120"]
                 }
@@ -854,7 +853,7 @@ response = client.messages.create(
 )
 ```
 
-```typescript TypeScript
+```typescript TypeScript nocheck
 const response = await client.messages.create({
   model: "claude-opus-4-6",
   max_tokens: 4096,
@@ -1044,14 +1043,16 @@ func main() {
 }
 ```
 
-```java Java nocheck hidelines={1..15,-1}
+```java Java nocheck hidelines={1..17,-1}
 import com.anthropic.client.AnthropicClient;
 import com.anthropic.client.okhttp.AnthropicOkHttpClient;
 import com.anthropic.core.JsonValue;
+import com.anthropic.models.messages.CodeExecutionTool20260120;
 import com.anthropic.models.messages.ContentBlockParam;
 import com.anthropic.models.messages.Message;
 import com.anthropic.models.messages.MessageCreateParams;
 import com.anthropic.models.messages.Model;
+import com.anthropic.models.messages.ServerToolUseBlockParam;
 import com.anthropic.models.messages.TextBlockParam;
 import com.anthropic.models.messages.ToolResultBlockParam;
 import com.anthropic.models.messages.ToolUseBlockParam;
@@ -1072,8 +1073,8 @@ public class ContainerReuse {
                     TextBlockParam.builder()
                         .text("I'll query the purchase history and analyze the results.")
                         .build()),
-                ContentBlockParam.ofToolUse(
-                    ToolUseBlockParam.builder()
+                ContentBlockParam.ofServerToolUse(
+                    ServerToolUseBlockParam.builder()
                         .id("srvtoolu_abc123")
                         .name("code_execution")
                         .input(JsonValue.from(Map.of("code", "...")))
@@ -1083,6 +1084,7 @@ public class ContainerReuse {
                         .id("toolu_def456")
                         .name("query_database")
                         .input(JsonValue.from(Map.of("sql", "<sql>")))
+                        .codeExecution20260120Caller("srvtoolu_abc123")
                         .build())
             ))
             .addUserMessageOfBlockParams(List.of(
@@ -1092,6 +1094,7 @@ public class ContainerReuse {
                         .content("[{\"customer_id\": \"C1\", \"revenue\": 45000}, {\"customer_id\": \"C2\", \"revenue\": 38000}, ...]")
                         .build())
             ))
+            .addTool(CodeExecutionTool20260120.builder().build())
             .build();
 
         Message response = client.messages().create(params);

@@ -1041,7 +1041,7 @@ for file_id in extract_file_ids(response):
     print(f"Downloaded: {file_metadata.filename}")
 ```
 
-```typescript TypeScript hidelines={1}
+```typescript TypeScript nocheck hidelines={1}
 import Anthropic from "@anthropic-ai/sdk";
 import { writeFile } from "fs/promises";
 
@@ -2101,7 +2101,7 @@ async function main() {
 main().catch(console.error);
 ```
 
-```csharp C# nocheck hidelines={1..10,-1}
+```csharp C# hidelines={1..10,-1}
 using Anthropic;
 using Anthropic.Models.Messages;
 using System;

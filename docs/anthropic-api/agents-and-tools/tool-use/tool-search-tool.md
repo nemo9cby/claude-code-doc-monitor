@@ -1144,7 +1144,8 @@ Errors during tool execution return a 200 response with error information in the
 Tool search works with [prompt caching](/docs/en/build-with-claude/prompt-caching). Add `cache_control` breakpoints to optimize multi-turn conversations:
 
 <CodeGroup>
-```python Python hidelines={1..4}
+
+```python Python nocheck hidelines={1..4}
 import anthropic
 
 client = anthropic.Anthropic()
@@ -1293,6 +1294,7 @@ public class Program
                     },
                     Required = ["location"],
                 },
+                DeferLoading = true,
             }),
         };
 

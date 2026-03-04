@@ -873,7 +873,7 @@ const response = await client.messages.create({
 console.log(response);
 ```
 
-```csharp C#
+```csharp C# hidelines={1..9,-1}
 using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
@@ -1236,7 +1236,7 @@ const response = await client.messages.create({
 console.log(response);
 ```
 
-```csharp C#
+```csharp C# hidelines={1..9,-1}
 using System;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -1725,7 +1725,7 @@ const response = await client.messages.create({
 console.log(response);
 ```
 
-```csharp C#
+```csharp C# hidelines={1..5}
 using Anthropic;
 using Anthropic.Models.Messages;
 using System.Collections.Generic;
@@ -2288,7 +2288,7 @@ const response = await client.messages.create({
 console.log(response);
 ```
 
-```csharp C#
+```csharp C# hidelines={1..10,-1}
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
@@ -2362,7 +2362,7 @@ public class Program
                     {
                         new ContentBlockParam(new ToolUseBlockParam()
                         {
-                            Id = "tool_1",
+                            ID = "tool_1",
                             Name = "search_documents",
                             Input = JsonSerializer.SerializeToElement(new { query = "Mars rovers" }),
                         }),
@@ -3018,7 +3018,8 @@ Note: Starting February 5, 2026, caches will be isolated per workspace instead o
 
   This error typically appears when you have upgraded your SDK or you are using outdated code examples. Prompt caching is now generally available, so you no longer need the beta prefix. Instead of:
     <CodeGroup>
-      ```python
+      
+      ```python Python nocheck
       client.beta.prompt_caching.messages.create(**params)
       ```
 
@@ -3072,7 +3073,8 @@ Note: Starting February 5, 2026, caches will be isolated per workspace instead o
     </CodeGroup>
     Simply use:
     <CodeGroup>
-      ```python
+      
+      ```python Python nocheck
       client.messages.create(**params)
       ```
 
@@ -3122,8 +3124,7 @@ Note: Starting February 5, 2026, caches will be isolated per workspace instead o
       echo $message->content[0]->text;
       ```
 
-      
-      ```ruby Ruby nocheck
+      ```ruby Ruby
       require "anthropic"
 
       client = Anthropic::Client.new
@@ -3131,8 +3132,15 @@ Note: Starting February 5, 2026, caches will be isolated per workspace instead o
       message = client.messages.create(
         model: "claude-opus-4-6",
         max_tokens: 1024,
+        system: [
+          {
+            type: "text",
+            text: "You are an expert on this large document...",
+            cache_control: { type: "ephemeral" }
+          }
+        ],
         messages: [
-          { role: "user", content: "Hello, Claude" }
+          { role: "user", content: "Summarize the key points" }
         ]
       )
       puts message.content.first.text

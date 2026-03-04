@@ -161,7 +161,7 @@ $file = $client->beta->files->upload(
 echo $file->id;
 ```
 
-```ruby Ruby
+```ruby Ruby nocheck
 require "anthropic"
 
 client = Anthropic::Client.new
@@ -424,7 +424,7 @@ $response = $client->beta->messages->create(
 print_r($response);
 ```
 
-```ruby Ruby
+```ruby Ruby nocheck
 require "anthropic"
 
 client = Anthropic::Client.new

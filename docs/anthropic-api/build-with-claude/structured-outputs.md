@@ -279,7 +279,7 @@ $client = new Client(
     apiKey: getenv("ANTHROPIC_API_KEY")
 );
 
-$response = $client->beta->messages->create(
+$response = $client->messages->create(
     maxTokens: 1024,
     messages: [
         [
@@ -288,19 +288,20 @@ $response = $client->beta->messages->create(
         ]
     ],
     model: 'claude-opus-4-6',
-    betas: ['structured-outputs-2025-11-13'],
-    outputFormat: [
-        'type' => 'json_schema',
-        'schema' => [
-            'type' => 'object',
-            'properties' => [
-                'name' => ['type' => 'string'],
-                'email' => ['type' => 'string'],
-                'plan_interest' => ['type' => 'string'],
-                'demo_requested' => ['type' => 'boolean']
-            ],
-            'required' => ['name', 'email', 'plan_interest', 'demo_requested'],
-            'additionalProperties' => false
+    outputConfig: [
+        'format' => [
+            'type' => 'json_schema',
+            'schema' => [
+                'type' => 'object',
+                'properties' => [
+                    'name' => ['type' => 'string'],
+                    'email' => ['type' => 'string'],
+                    'plan_interest' => ['type' => 'string'],
+                    'demo_requested' => ['type' => 'boolean']
+                ],
+                'required' => ['name', 'email', 'plan_interest', 'demo_requested'],
+                'additionalProperties' => false
+            ]
         ]
     ],
 );
@@ -1213,7 +1214,7 @@ class Invoice(BaseModel):
 
 response = client.messages.parse(
     model="claude-opus-4-6",
-    max_tokens=1024,
+    max_tokens=4096,
     output_format=Invoice,
     messages=[
         {"role": "user", "content": f"Extract invoice data from: {invoice_text}"}
@@ -1239,7 +1240,7 @@ const InvoiceSchema = z.object({
 const invoiceText = "Invoice #12345, Date: 2024-01-15, Total: $500.00";
 const response = await client.messages.parse({
   model: "claude-opus-4-6",
-  max_tokens: 1024,
+  max_tokens: 4096,
   output_config: { format: zodOutputFormat(InvoiceSchema) },
   messages: [{ role: "user", content: `Extract invoice data from: ${invoiceText}` }]
 });
@@ -1292,7 +1293,7 @@ public class InvoiceExtraction
                                 items = new
                                 {
                                     type = "object",
-                                    additionalProperties = true,
+                                    additionalProperties = false,
                                 },
                             },
                             customer_name = new { type = "string" },
@@ -1727,6 +1728,22 @@ $message = $client->messages->create(
         ['role' => 'user', 'content' => "Classify this feedback: {$feedbackText}"]
     ],
     model: 'claude-opus-4-6',
+    outputConfig: [
+        'format' => [
+            'type' => 'json_schema',
+            'schema' => [
+                'type' => 'object',
+                'properties' => [
+                    'category' => ['type' => 'string'],
+                    'confidence' => ['type' => 'number'],
+                    'tags' => ['type' => 'array', 'items' => ['type' => 'string']],
+                    'sentiment' => ['type' => 'string']
+                ],
+                'required' => ['category', 'confidence', 'tags', 'sentiment'],
+                'additionalProperties' => false
+            ]
+        ]
+    ],
 );
 echo $message->content[0]->text;
 ```
@@ -1834,13 +1851,13 @@ var parameters = new MessageCreateParams
                 ["properties"] = JsonSerializer.SerializeToElement(new
                 {
                     status = new { type = "string" },
-                    data = new { type = "object", additionalProperties = true },
+                    data = new { type = "object", additionalProperties = false },
                     errors = new
                     {
                         type = "array",
-                        items = new { type = "object", additionalProperties = true },
+                        items = new { type = "object", additionalProperties = false },
                     },
-                    metadata = new { type = "object", additionalProperties = true },
+                    metadata = new { type = "object", additionalProperties = false },
                 }),
                 ["required"] = JsonSerializer.SerializeToElement(new[] { "status", "data", "metadata" }),
                 ["additionalProperties"] = JsonSerializer.SerializeToElement(false),
@@ -2199,7 +2216,6 @@ public class Program
                             ["unit"] = JsonSerializer.SerializeToElement(new { type = "string", @enum = new[] { "celsius", "fahrenheit" } }),
                         },
                         Required = ["location"],
-                        AdditionalProperties = false,
                     },
                 }),
             ]
@@ -2526,7 +2542,6 @@ class Program
                             ["passengers"] = JsonSerializer.SerializeToElement(new { type = "integer", @enum = new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 } }),
                         },
                         Required = ["destination", "departure_date"],
-                        AdditionalProperties = false,
                     },
                 }),
             ]
@@ -2839,7 +2854,6 @@ class Program
                             ["travelers"] = JsonSerializer.SerializeToElement(new { type = "integer", @enum = new[] { 1, 2, 3, 4, 5, 6 } }),
                         },
                         Required = ["origin", "destination", "departure_date"],
-                        AdditionalProperties = false,
                     },
                 }),
                 new ToolUnion(new Tool()
@@ -2855,7 +2869,6 @@ class Program
                             ["guests"] = JsonSerializer.SerializeToElement(new { type = "integer", @enum = new[] { 1, 2, 3, 4 } }),
                         },
                         Required = ["city", "check_in"],
-                        AdditionalProperties = false,
                     },
                 }),
             ]
@@ -3211,6 +3224,7 @@ var parameters = new MessageCreateParams
     Model = Model.ClaudeOpus4_6,
     MaxTokens = 1024,
     Messages = [new() { Role = Role.User, Content = "Help me plan a trip to Paris for next month" }],
+    // JSON outputs: structured response format
     OutputConfig = new OutputConfig
     {
         Format = new JsonOutputFormat
@@ -3220,68 +3234,29 @@ var parameters = new MessageCreateParams
                 ["type"] = JsonSerializer.SerializeToElement("object"),
                 ["properties"] = JsonSerializer.SerializeToElement(new
                 {
-                    destinations = new
-                    {
-                        type = "array",
-                        items = new
-                        {
-                            type = "object",
-                            properties = new
-                            {
-                                city = new { type = "string" },
-                                country = new { type = "string" },
-                            },
-                            required = new[] { "city", "country" },
-                            additionalProperties = false,
-                        },
-                    },
-                    travel_dates = new
-                    {
-                        type = "object",
-                        properties = new
-                        {
-                            start = new { type = "string" },
-                            end = new { type = "string" },
-                        },
-                        required = new[] { "start", "end" },
-                        additionalProperties = false,
-                    },
-                    budget_range = new
-                    {
-                        type = "object",
-                        properties = new
-                        {
-                            min = new { type = "number" },
-                            max = new { type = "number" },
-                            currency = new { type = "string" },
-                        },
-                        required = new[] { "min", "max", "currency" },
-                        additionalProperties = false,
-                    },
+                    summary = new { type = "string" },
+                    next_steps = new { type = "array", items = new { type = "string" } },
                 }),
-                ["required"] = JsonSerializer.SerializeToElement(new[] { "destinations", "travel_dates", "budget_range" }),
+                ["required"] = JsonSerializer.SerializeToElement(new[] { "summary", "next_steps" }),
                 ["additionalProperties"] = JsonSerializer.SerializeToElement(false),
             },
         },
     },
+    // Strict tool use: guaranteed tool parameters
     Tools =
     [
         new Tool
         {
             Name = "search_flights",
-            Description = "Search for available flights between two cities",
             Strict = true,
             InputSchema = new InputSchema
             {
                 Properties = new Dictionary<string, JsonElement>
                 {
-                    ["departure_city"] = JsonSerializer.SerializeToElement(new { type = "string", description = "City to depart from" }),
-                    ["destination_city"] = JsonSerializer.SerializeToElement(new { type = "string", description = "City to fly to" }),
-                    ["date"] = JsonSerializer.SerializeToElement(new { type = "string", description = "Travel date (YYYY-MM-DD)" }),
-                    ["max_price"] = JsonSerializer.SerializeToElement(new { type = "number", description = "Maximum ticket price in USD" }),
+                    ["destination"] = JsonSerializer.SerializeToElement(new { type = "string" }),
+                    ["date"] = JsonSerializer.SerializeToElement(new { type = "string", format = "date" }),
                 },
-                Required = ["departure_city", "destination_city", "date", "max_price"],
-                AdditionalProperties = false,
+                Required = ["destination", "date"],
             },
         }
     ],

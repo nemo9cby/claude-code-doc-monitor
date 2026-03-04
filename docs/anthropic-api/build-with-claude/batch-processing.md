@@ -212,7 +212,7 @@ var batch = await client.Messages.Batches.Create(new BatchCreateParams
     [
         new()
         {
-            CustomId = "my-first-request",
+            CustomID = "my-first-request",
             Params = new()
             {
                 Model = Model.ClaudeOpus4_6,
@@ -225,7 +225,7 @@ var batch = await client.Messages.Batches.Create(new BatchCreateParams
         },
         new()
         {
-            CustomId = "my-second-request",
+            CustomID = "my-second-request",
             Params = new()
             {
                 Model = Model.ClaudeOpus4_6,
@@ -499,7 +499,7 @@ while (true) {
 console.log(messageBatch);
 ```
 
-```csharp C#
+```csharp C# nocheck
 using System;
 using System.Threading.Tasks;
 using Anthropic;
@@ -909,7 +909,7 @@ for await (const result of await anthropic.messages.batches.results(
 }
 ```
 
-```csharp C#
+```csharp C# nocheck
 using System;
 using System.Threading.Tasks;
 using Anthropic;
@@ -921,25 +921,25 @@ public class Program
     {
         AnthropicClient client = new();
 
-        await foreach (var result in client.Messages.Batches.Results("msgbatch_01HkcTjaV5uDC8jWR4ZsDV8d"))
+        await foreach (var result in client.Messages.Batches.ResultsStreaming("msgbatch_01HkcTjaV5uDC8jWR4ZsDV8d"))
         {
             switch (result.Result.Type)
             {
                 case "succeeded":
-                    Console.WriteLine($"Success! {result.CustomId}");
+                    Console.WriteLine($"Success! {result.CustomID}");
                     break;
                 case "errored":
                     if (result.Result.Error?.Type == "invalid_request")
                     {
-                        Console.WriteLine($"Validation error: {result.CustomId}");
+                        Console.WriteLine($"Validation error: {result.CustomID}");
                     }
                     else
                     {
-                        Console.WriteLine($"Server error: {result.CustomId}");
+                        Console.WriteLine($"Server error: {result.CustomID}");
                     }
                     break;
                 case "expired":
-                    Console.WriteLine($"Request expired: {result.CustomId}");
+                    Console.WriteLine($"Request expired: {result.CustomID}");
                     break;
             }
         }
@@ -1435,7 +1435,7 @@ public class Program
             [
                 new()
                 {
-                    CustomId = "my-first-request",
+                    CustomID = "my-first-request",
                     Params = new()
                     {
                         Model = Model.ClaudeOpus4_6,
@@ -1462,7 +1462,7 @@ public class Program
                 },
                 new()
                 {
-                    CustomId = "my-second-request",
+                    CustomID = "my-second-request",
                     Params = new()
                     {
                         Model = Model.ClaudeOpus4_6,

@@ -517,7 +517,7 @@ For multi-turn conversations, set a `cache_control` breakpoint on or after the l
 For example, to use prompt caching with web search for a multi-turn conversation:
 
 <CodeGroup>
-```python hidelines={1..4}
+```python Python hidelines={1..4}
 import anthropic
 
 client = anthropic.Anthropic()

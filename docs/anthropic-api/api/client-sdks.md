@@ -152,17 +152,27 @@ func main() {
 }
 ```
 
-```java Java
-AnthropicClient client = AnthropicOkHttpClient.fromEnv();
+```java Java hidelines={1..8,-1}
+import com.anthropic.client.AnthropicClient;
+import com.anthropic.client.okhttp.AnthropicOkHttpClient;
+import com.anthropic.models.messages.Message;
+import com.anthropic.models.messages.MessageCreateParams;
+import com.anthropic.models.messages.Model;
 
-MessageCreateParams params = MessageCreateParams.builder()
-    .model(Model.CLAUDE_OPUS_4_6)
-    .maxTokens(1024L)
-    .addUserMessage("Hello, Claude")
-    .build();
+public class Main {
+    public static void main(String[] args) {
+        AnthropicClient client = AnthropicOkHttpClient.fromEnv();
 
-Message message = client.messages().create(params);
-System.out.println(message.content());
+        MessageCreateParams params = MessageCreateParams.builder()
+            .model(Model.CLAUDE_OPUS_4_6)
+            .maxTokens(1024L)
+            .addUserMessage("Hello, Claude")
+            .build();
+
+        Message message = client.messages().create(params);
+        System.out.println(message.content());
+    }
+}
 ```
 
 ```php PHP hidelines={1}
