@@ -118,9 +118,113 @@
 
         <header>
             <h1>Changes on 2026-03-03</h1>
-            <p class="meta">54 total changes in 3 runs</p>
+            <p class="meta">55 total changes in 4 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">20:42 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">1. Overall Summary
+本次更新 (v2.1.64) 为 `claude server` 和远程控制引入了重大的会话持久化与隔离功能，同时修复了多项严重影响长期运行稳定性的内存泄漏和安全漏洞（如符号链接逃逸），显著提升了工具在大规模和长时间使用场景下的可靠性与安全性。
+
+2. Key Themes
+*   **会话管理增强**：新增 `claude server` 的持久化会话支持（通过 `session_key`），并引入 `remote-control server` 以支持多并发会话及工作树隔离，强化了服务器端的部署能力。
+*   **稳定性与性能调优**：重点修复了多个组件的内存泄漏（REPL 渲染作用域、React 编译器缓存、队友对话历史等），并优化了 LSP 工具渲染和文件操作性能，大幅改善长时间会话的体验。
+*   **安全性修复**：修复了 `acceptEdits` 模式下的符号链接逃逸漏洞，以及沙箱模式下非白名单域名的自动阻断逻辑，防止权限绕过。
+*   **开发者生态扩展**：引入 `/reload-plugins` 命令、新的环境变量（`CLAUDE_SKILL_DIR`）、更丰富的 Hook 事件（如 `InstructionsLoaded`）以及新的插件源类型 (`git-subdir`)，增强了插件和技能的开发灵活性。
+*   **二进制内容处理**：改进了 MCP 工具对 PDF/Office 文档及音频的处理，现在直接保存解码后的字节到磁盘，而非在上下文中堆砌 Base64 数据。
+
+3. Impact level
+**High** (高)
+**Reasoning**: 尽管是次版本更新，但包含了对生产环境部署至关重要的会话持久化功能。更重要的是，修复的内存泄漏问题和符号链接安全漏洞直接影响到应用的稳定性与安全性，属于必须关注的修复。
+
+4. Action items for developers
+*   **立即升级**：如果您遇到长期会话导致的内存飙升或卡顿，或使用了 `claude server`，请立即升级以获得内存泄漏修复和会话持久化功能。
+*   **审查安全策略**：检查沙箱配置（特别是 `allowManagedDomainsOnly`），确认非白名单域名的阻断行为是否符合您的安全预期。
+*   **利用新 CLI 特性**：在使用 `claude server` 时，尝试利用 `--workspace` 和 `--idle-timeout` 标志来优化会话管理；使用 `/reload-plugins` 在不重启的情况下加载插件更新。
+*   **适配 MCP 二进制流**：如果您的 MCP 工具返回二进制文件（如 PDF），请更新逻辑以从磁盘读取保存的文件，而不是解析上下文中的 Base64 字符串。
+*   **检查钩子逻辑**：如果您使用了 `TeammateIdle` 或 `TaskCompleted` 钩子，请验证新的 `{&#34;continue&#34;: false, &#34;stopReason&#34;: &#34;...&#34;}` 停止机制是否影响现有工作流。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **理解目标**：用户希望获得关于对单个文档文件（`CHANGELOG.md`）进行更改的简明、有见地且用中文编写的分析。分析需要针对“全局级程序员”，侧重于对开发人员重要的事项，格式包含 4 个特定部分：总体摘要、关键主题、影响程度和行动项。
+
+2.  **分析输入数据**：
+    *   **来源**：`CHANGELOG.md`，版本 `2.1.64`。
+    *   **新增内容**：63 行（纯增加）。
+    *   **内容分类**：
+        *   *新功能*：持续会话支持、`claude remote-control server`、远程控制命名、新语音语言、工作树隔离、新的环境变量/配置（`CLAUDE_SKILL_DIR`、`oauth.authServerMetadataUrl` 等）、`/reload-plugins`、插件 `git-subdir` 源类型、技能触发器、hook 事件（`InstructionsLoaded`、`agent_id`、`worktree` 等）。
+        *   *修复*：符号链接绕过（安全性）、沙箱非受管域名阻止、静默允许交互式工具、内存泄漏（多处）、崩溃（Android、启动时的配置文件）、UI 卡顿/闪烁、权限提示、钩子修复。
+        *   *改进*：MCP 二进制处理（PDF/Office）、内存优化（长期会话）、LSP 渲染、文件操作性能、思考摘要显示。
+
+3.  **起草分析（迭代过程）**：
+
+    *   **第 1 部分：总体摘要**
+        *   *草稿*：此更新为 `claude server` 和远程控制引入了重要的会话管理增强功能，修复了多个内存泄漏和性能问题，并加强了沙箱安全性和权限处理。
+        *   *中文*：本次更新为 `claude server` 和远程控制引入了重大的会话管理增强功能，修复了多个内存泄漏和性能问题，并加强了沙箱安全性和权限处理。
+
+    *   **第 2 部分：关键主题**
+        *   *主题 1：会话持久性与远程控制*。添加了 `session_key`、`--idle-timeout`、`--max-sessions`、`--worktree` 隔离。
+        *   *主题 2：内存与性能优化*。修复了 REPL 渲染、队友、钩子、React 缓存、长期会话中 LSP 渲染的泄漏。优化了文件检查。
+        *   *主题 3：安全性与权限*。符号链接绕过修复、非受管域名的沙箱行为、交互式工具静默允许问题。
+        *   *主题 4：开发体验/扩展性*。新增环境变量（`CLAUDE_SKILL_DIR`）、钩子事件（`InstructionsLoaded`、`worktree`）、新的插件源类型（`git-subdir`）、`/reload-plugins`。
+        *   *中文*：
+            *   **会话持久性与远程控制**：增强了 `claude server` 支持断线重连和跨重启恢复，新增 `remote-control server` 以支持多并发会话及工作树隔离。
+            *   **内存与性能优化**：修复了多项严重的内存泄漏（REPL、队友、钩子缓存等），大幅提升了长期会话的稳定性，并优化了 LSP 渲染和文件操作性能。
+            *   **安全性与权限**：修复了符号链接逃逸漏洞和沙箱域名绕过问题，确保非允许域名被自动阻止，同时修正了交互式工具的静默授权风险。
+            *   **开发者体验与扩展性**：引入 `/reload-plugins`、新环境变量（如 `CLAUDE_SKILL_DIR`）、更多 Hook 事件以及新的插件源类型 (`git-subdir`)。
+
+    *   **第 3 部分：影响程度**
+        *   *评级*：高。
+        *   *原因*：会话持久性对生产/服务器使用影响巨大。内存泄漏修复对于使用会话时间较长的开发人员至关重要。符号链接绕过修复是一个安全问题。
+        *   *中文*：**High**（高）。尽管是补丁版本（2.1.64），但包含了会话持久性、远程控制服务器等重大功能，以及影响长期使用稳定性的关键内存泄漏修复和安全性补丁。
+
+    *   **第 4 部分：行动项**
+        *   *项目 1*：如果使用 `claude server`，请查看新的 `--workspace` 和 `session_key` 功能。
+        *   *项目 2*：检查新的沙箱行为/安全更新（符号链接）。
+        *   *项目 3*：如果使用插件/技能，请检查 `/reload-plugins` 和新变量。
+        *   *项目 4*：如果使用 MCP 二进制内容，请留意新的保存行为。
+        *   *项目 5*：如果受内存问题困扰，立即更新。
+        *   *中文*：
+            *   **升级测试**：强烈建议升级以解决内存泄漏和符号链接安全漏洞，特别是对于长期运行的会话。
+            *   **利用新功能**：如果使用 `claude server`，尝试使用 `--workspace` 和 `session_key` 实现持久化连接；如果是插件开发者，探索新的 `git-subdir` 源类型和 `CLAUDE_SKILL_DIR` 变量。
+            *   **权限审查**：检查沙箱配置（`allowManagedDomainsOnly`），确认非白名单域名的阻断行为是否符合预期。
+            *   **MCP 适配**：如果通过 MCP 工具处理二进制文件（PDF/Office/音频），需注意文件现在会被直接保存到磁盘，而非 Base64 转储。
+
+4.  **最终审查**：根据限制条件进行检查。简洁？是。有见地？是。Markdown 格式？是。中文？是。开发者侧重？是。
+
+    *   *起草过程中的自我修正*：务必在行动项中强调内存泄漏修复，因为这是开发人员非常关心的痛点（应用变慢/崩溃）。提及“符号链接绕过”是因为安全漏洞对用户很重要。
+
+5.  **最终输出生成**。（继续根据上述步骤生成输出）。</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+63</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">18:21 EST</div>
