@@ -174,6 +174,95 @@ class Program
 }
 ```
 
+```go Go hidelines={1..13,-1}
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+
+	"github.com/anthropics/anthropic-sdk-go"
+)
+
+func main() {
+	client := anthropic.NewClient()
+
+	response, err := client.Beta.Messages.New(context.TODO(), anthropic.BetaMessageNewParams{
+		Model:     anthropic.ModelClaudeOpus4_6,
+		MaxTokens: 1024,
+		Messages: []anthropic.BetaMessageParam{
+			anthropic.NewBetaUserMessage(anthropic.NewBetaTextBlock("Process this large document...")),
+		},
+		Betas: []anthropic.AnthropicBeta{
+			anthropic.AnthropicBetaContext1m2025_08_07,
+		},
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(response)
+}
+```
+
+```java Java hidelines={1..8,-1}
+import com.anthropic.client.AnthropicClient;
+import com.anthropic.client.okhttp.AnthropicOkHttpClient;
+import com.anthropic.models.beta.messages.MessageCreateParams;
+import com.anthropic.models.beta.messages.BetaMessage;
+
+public class Example {
+    public static void main(String[] args) {
+        AnthropicClient client = AnthropicOkHttpClient.fromEnv();
+
+        MessageCreateParams params = MessageCreateParams.builder()
+            .model("claude-opus-4-6")
+            .maxTokens(1024L)
+            .addUserMessage("Process this large document...")
+            .addBeta("context-1m-2025-08-07")
+            .build();
+
+        BetaMessage response = client.beta().messages().create(params);
+        System.out.println(response);
+    }
+}
+```
+
+```php PHP
+<?php
+
+use Anthropic\Client;
+
+$client = new Client(apiKey: getenv("ANTHROPIC_API_KEY"));
+
+$message = $client->beta->messages->create(
+    maxTokens: 1024,
+    messages: [
+        ['role' => 'user', 'content' => 'Process this large document...']
+    ],
+    model: 'claude-opus-4-6',
+    betas: ['context-1m-2025-08-07'],
+);
+
+echo $message->content[0]->text;
+```
+
+```ruby Ruby
+require "anthropic"
+
+client = Anthropic::Client.new
+
+message = client.beta.messages.create(
+  model: "claude-opus-4-6",
+  max_tokens: 1024,
+  messages: [
+    { role: "user", content: "Process this large document..." }
+  ],
+  betas: ["context-1m-2025-08-07"]
+)
+puts message
+```
+
 </CodeGroup>
 
 **Important considerations:**

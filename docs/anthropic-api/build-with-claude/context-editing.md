@@ -178,6 +178,128 @@ var response = await client.Beta.Messages.Create(parameters);
 Console.WriteLine(response);
 ```
 
+```go Go hidelines={1..13,-5..-1}
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+
+	"github.com/anthropics/anthropic-sdk-go"
+)
+
+func main() {
+	client := anthropic.NewClient()
+
+	response, err := client.Beta.Messages.New(context.TODO(), anthropic.BetaMessageNewParams{
+		Model:     anthropic.ModelClaudeOpus4_6,
+		MaxTokens: 4096,
+		Messages: []anthropic.BetaMessageParam{
+			anthropic.NewBetaUserMessage(anthropic.NewBetaTextBlock("Search for recent developments in AI")),
+		},
+		Tools: []anthropic.BetaToolUnionParam{
+			{OfWebSearchTool20250305: &anthropic.BetaWebSearchTool20250305Param{}},
+		},
+		ContextManagement: anthropic.BetaContextManagementConfigParam{
+			Edits: []anthropic.BetaContextManagementConfigEditUnionParam{
+				{OfClearToolUses20250919: &anthropic.BetaClearToolUses20250919EditParam{}},
+			},
+		},
+		Betas: []anthropic.AnthropicBeta{
+			anthropic.AnthropicBetaContextManagement2025_06_27,
+		},
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(response)
+}
+```
+
+```java Java hidelines={1..13,-1}
+import com.anthropic.client.AnthropicClient;
+import com.anthropic.client.okhttp.AnthropicOkHttpClient;
+import com.anthropic.models.beta.messages.MessageCreateParams;
+import com.anthropic.models.beta.messages.BetaMessage;
+import com.anthropic.models.beta.messages.BetaWebSearchTool20250305;
+import com.anthropic.models.beta.messages.BetaContextManagementConfig;
+import com.anthropic.models.beta.messages.BetaClearToolUses20250919Edit;
+import com.anthropic.models.beta.AnthropicBeta;
+import com.anthropic.models.messages.Model;
+
+public class WebSearchExample {
+    public static void main(String[] args) {
+        AnthropicClient client = AnthropicOkHttpClient.fromEnv();
+
+        MessageCreateParams params = MessageCreateParams.builder()
+            .model(Model.CLAUDE_OPUS_4_6)
+            .maxTokens(4096L)
+            .addUserMessage("Search for recent developments in AI")
+            .addTool(BetaWebSearchTool20250305.builder().build())
+            .contextManagement(BetaContextManagementConfig.builder()
+                .addEdit(BetaClearToolUses20250919Edit.builder().build())
+                .build())
+            .addBeta(AnthropicBeta.CONTEXT_MANAGEMENT_2025_06_27)
+            .build();
+
+        BetaMessage response = client.beta().messages().create(params);
+        System.out.println(response);
+    }
+}
+```
+
+```php PHP
+<?php
+
+use Anthropic\Client;
+
+$client = new Client(apiKey: getenv("ANTHROPIC_API_KEY"));
+
+$response = $client->beta->messages->create(
+    maxTokens: 4096,
+    messages: [
+        ['role' => 'user', 'content' => 'Search for recent developments in AI']
+    ],
+    model: 'claude-opus-4-6',
+    betas: ['context-management-2025-06-27'],
+    tools: [
+        ['type' => 'web_search_20250305', 'name' => 'web_search']
+    ],
+    contextManagement: [
+        'edits' => [
+            ['type' => 'clear_tool_uses_20250919']
+        ]
+    ],
+);
+
+echo $response;
+```
+
+```ruby Ruby
+require "anthropic"
+
+client = Anthropic::Client.new
+
+response = client.beta.messages.create(
+  model: "claude-opus-4-6",
+  max_tokens: 4096,
+  messages: [
+    { role: "user", content: "Search for recent developments in AI" }
+  ],
+  tools: [
+    { type: "web_search_20250305", name: "web_search" }
+  ],
+  context_management: {
+    edits: [
+      { type: "clear_tool_uses_20250919" }
+    ]
+  },
+  betas: ["context-management-2025-06-27"]
+)
+puts response
+```
+
 </CodeGroup>
 
 ### Advanced configuration
@@ -405,6 +527,218 @@ class Program
 }
 ```
 
+```go Go hidelines={1..13,-5..-1}
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+
+	"github.com/anthropics/anthropic-sdk-go"
+)
+
+func main() {
+	client := anthropic.NewClient()
+
+	response, err := client.Beta.Messages.New(context.TODO(), anthropic.BetaMessageNewParams{
+		Model:     anthropic.ModelClaudeOpus4_6,
+		MaxTokens: 4096,
+		Messages: []anthropic.BetaMessageParam{
+			anthropic.NewBetaUserMessage(anthropic.NewBetaTextBlock("Create a simple command line calculator app using Python")),
+		},
+		Tools: []anthropic.BetaToolUnionParam{
+			{OfTextEditor20250728: &anthropic.BetaToolTextEditor20250728Param{
+				MaxCharacters: anthropic.Int(10000),
+			}},
+			{OfWebSearchTool20250305: &anthropic.BetaWebSearchTool20250305Param{
+				MaxUses: anthropic.Int(3),
+			}},
+		},
+		Betas: []anthropic.AnthropicBeta{anthropic.AnthropicBetaContextManagement2025_06_27},
+		ContextManagement: anthropic.BetaContextManagementConfigParam{
+			Edits: []anthropic.BetaContextManagementConfigEditUnionParam{
+				{OfClearToolUses20250919: &anthropic.BetaClearToolUses20250919EditParam{
+					Trigger: anthropic.BetaClearToolUses20250919EditTriggerUnionParam{
+						OfInputTokens: &anthropic.BetaInputTokensTriggerParam{
+							Value: 30000,
+						},
+					},
+					Keep: anthropic.BetaToolUsesKeepParam{
+						Value: 3,
+					},
+					ClearAtLeast: anthropic.BetaInputTokensClearAtLeastParam{
+						Value: 5000,
+					},
+					ExcludeTools: []string{"web_search"},
+				}},
+			},
+		},
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(response)
+}
+```
+
+```java Java nocheck hidelines={1..16,-1}
+import com.anthropic.client.AnthropicClient;
+import com.anthropic.client.okhttp.AnthropicOkHttpClient;
+import com.anthropic.models.beta.messages.MessageCreateParams;
+import com.anthropic.models.beta.messages.BetaMessage;
+import com.anthropic.models.beta.messages.BetaToolTextEditor20250728;
+import com.anthropic.models.beta.messages.BetaWebSearchTool20250305;
+import com.anthropic.models.beta.messages.BetaContextManagementConfig;
+import com.anthropic.models.beta.messages.BetaClearToolUses20250919Edit;
+import com.anthropic.models.beta.messages.BetaInputTokensTrigger;
+import com.anthropic.models.beta.messages.BetaInputTokensClearAtLeast;
+import com.anthropic.models.beta.messages.BetaToolUsesKeep;
+import com.anthropic.models.beta.AnthropicBeta;
+import com.anthropic.models.messages.Model;
+
+public class ContextManagementExample {
+    public static void main(String[] args) {
+        AnthropicClient client = AnthropicOkHttpClient.fromEnv();
+
+        MessageCreateParams params = MessageCreateParams.builder()
+            .model(Model.CLAUDE_OPUS_4_6)
+            .maxTokens(4096L)
+            .addUserMessage("Create a simple command line calculator app using Python")
+            .addTool(BetaToolTextEditor20250728.builder()
+                .maxCharacters(10000L)
+                .build())
+            .addTool(BetaWebSearchTool20250305.builder()
+                .maxUses(3L)
+                .build())
+            .addBeta(AnthropicBeta.CONTEXT_MANAGEMENT_2025_06_27)
+            .contextManagement(BetaContextManagementConfig.builder()
+                .addEdit(BetaClearToolUses20250919Edit.builder()
+                    .trigger(BetaInputTokensTrigger.builder()
+                        .value(30000L)
+                        .build())
+                    .keep(BetaToolUsesKeep.builder()
+                        .value(3L)
+                        .build())
+                    .clearAtLeast(BetaInputTokensClearAtLeast.builder()
+                        .value(5000L)
+                        .build())
+                    .addExcludeTool("web_search")
+                    .build())
+                .build())
+            .build();
+
+        BetaMessage response = client.beta().messages().create(params);
+        System.out.println(response);
+    }
+}
+```
+
+```php PHP hidelines={1..6}
+<?php
+
+use Anthropic\Client;
+
+$client = new Client(apiKey: getenv("ANTHROPIC_API_KEY"));
+
+$message = $client->beta->messages->create(
+    maxTokens: 4096,
+    messages: [
+        [
+            'role' => 'user',
+            'content' => 'Create a simple command line calculator app using Python'
+        ]
+    ],
+    model: 'claude-opus-4-6',
+    betas: ['context-management-2025-06-27'],
+    tools: [
+        [
+            'type' => 'text_editor_20250728',
+            'name' => 'str_replace_based_edit_tool',
+            'max_characters' => 10000
+        ],
+        [
+            'type' => 'web_search_20250305',
+            'name' => 'web_search',
+            'max_uses' => 3
+        ]
+    ],
+    contextManagement: [
+        'edits' => [
+            [
+                'type' => 'clear_tool_uses_20250919',
+                'trigger' => [
+                    'type' => 'input_tokens',
+                    'value' => 30000
+                ],
+                'keep' => [
+                    'type' => 'tool_uses',
+                    'value' => 3
+                ],
+                'clear_at_least' => [
+                    'type' => 'input_tokens',
+                    'value' => 5000
+                ],
+                'exclude_tools' => ['web_search']
+            ]
+        ]
+    ],
+);
+
+echo $message;
+```
+
+```ruby Ruby nocheck
+require "anthropic"
+
+client = Anthropic::Client.new
+
+response = client.beta.messages.create(
+  model: "claude-opus-4-6",
+  max_tokens: 4096,
+  messages: [
+    {
+      role: "user",
+      content: "Create a simple command line calculator app using Python"
+    }
+  ],
+  tools: [
+    {
+      type: "text_editor_20250728",
+      name: "str_replace_based_edit_tool",
+      max_characters: 10000
+    },
+    {
+      type: "web_search_20250305",
+      name: "web_search",
+      max_uses: 3
+    }
+  ],
+  betas: ["context-management-2025-06-27"],
+  context_management: {
+    edits: [
+      {
+        type: "clear_tool_uses_20250919",
+        trigger: {
+          type: "input_tokens",
+          value: 30000
+        },
+        keep: {
+          type: "tool_uses",
+          value: 3
+        },
+        clear_at_least: {
+          type: "input_tokens",
+          value: 5000
+        },
+        exclude_tools: ["web_search"]
+      }
+    ]
+  }
+)
+puts response
+```
+
 </CodeGroup>
 
 ## Thinking block clearing usage
@@ -535,6 +869,145 @@ class Program
 }
 ```
 
+```go Go nocheck hidelines={1..13,-5..-1}
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+
+	"github.com/anthropics/anthropic-sdk-go"
+)
+
+func main() {
+	client := anthropic.NewClient()
+
+	response, err := client.Beta.Messages.New(context.TODO(), anthropic.BetaMessageNewParams{
+		Model:     anthropic.ModelClaudeOpus4_6,
+		MaxTokens: 1024,
+		Messages:  []anthropic.BetaMessageParam{},
+		Thinking:  anthropic.BetaThinkingConfigParamOfEnabled(10000),
+		Betas:     []anthropic.AnthropicBeta{anthropic.AnthropicBetaContextManagement2025_06_27},
+		ContextManagement: anthropic.BetaContextManagementConfigParam{
+			Edits: []anthropic.BetaContextManagementConfigEditUnionParam{
+				{OfClearThinking20251015: &anthropic.BetaClearThinking20251015EditParam{
+					Keep: anthropic.BetaClearThinking20251015EditKeepUnionParam{
+						OfThinkingTurns: &anthropic.BetaThinkingTurnsParam{
+							Value: 2,
+						},
+					},
+				}},
+			},
+		},
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(response)
+}
+```
+
+```java Java nocheck hidelines={1..13,-1}
+import com.anthropic.client.AnthropicClient;
+import com.anthropic.client.okhttp.AnthropicOkHttpClient;
+import com.anthropic.models.beta.messages.MessageCreateParams;
+import com.anthropic.models.beta.messages.BetaMessage;
+import com.anthropic.models.beta.messages.BetaThinkingConfigEnabled;
+import com.anthropic.models.beta.messages.BetaContextManagementConfig;
+import com.anthropic.models.beta.messages.BetaClearThinking20251015Edit;
+import com.anthropic.models.beta.messages.BetaThinkingTurns;
+import com.anthropic.models.beta.AnthropicBeta;
+import com.anthropic.models.messages.Model;
+
+public class Main {
+    public static void main(String[] args) {
+        AnthropicClient client = AnthropicOkHttpClient.fromEnv();
+
+        MessageCreateParams params = MessageCreateParams.builder()
+            .model(Model.CLAUDE_OPUS_4_6)
+            .maxTokens(1024L)
+            .thinking(BetaThinkingConfigEnabled.builder()
+                .budgetTokens(10000L)
+                .build())
+            .addBeta(AnthropicBeta.CONTEXT_MANAGEMENT_2025_06_27)
+            .contextManagement(BetaContextManagementConfig.builder()
+                .addEdit(BetaClearThinking20251015Edit.builder()
+                    .keep(BetaThinkingTurns.builder()
+                        .value(2L)
+                        .build())
+                    .build())
+                .build())
+            .build();
+
+        BetaMessage response = client.beta().messages().create(params);
+        System.out.println(response);
+    }
+}
+```
+
+```php PHP hidelines={1..6} nocheck
+<?php
+
+use Anthropic\Client;
+
+$client = new Client(apiKey: getenv("ANTHROPIC_API_KEY"));
+
+$message = $client->beta->messages->create(
+    maxTokens: 1024,
+    messages: [/* ... */],
+    model: 'claude-opus-4-6',
+    betas: ['context-management-2025-06-27'],
+    thinking: [
+        'type' => 'enabled',
+        'budget_tokens' => 10000
+    ],
+    contextManagement: [
+        'edits' => [
+            [
+                'type' => 'clear_thinking_20251015',
+                'keep' => [
+                    'type' => 'thinking_turns',
+                    'value' => 2
+                ]
+            ]
+        ]
+    ],
+);
+
+echo $message;
+```
+
+```ruby Ruby hidelines={4}
+require "anthropic"
+
+client = Anthropic::Client.new
+messages = [{ role: "user", content: "Explain quantum computing in simple terms" }]
+
+response = client.beta.messages.create(
+  model: "claude-opus-4-6",
+  max_tokens: 1024,
+  messages: messages,
+  thinking: {
+    type: "enabled",
+    budget_tokens: 10000
+  },
+  betas: ["context-management-2025-06-27"],
+  context_management: {
+    edits: [
+      {
+        type: "clear_thinking_20251015",
+        keep: {
+          type: "thinking_turns",
+          value: 2
+        }
+      }
+    ]
+  }
+)
+puts response
+```
+
 </CodeGroup>
 
 ### Configuration options for thinking block clearing
@@ -657,7 +1130,7 @@ public class Program
             Model = Model.ClaudeOpus4_6,
             MaxTokens = 1024,
             Messages = [],
-            Thinking = new ThinkingConfig
+            Thinking = new BetaThinkingParam
             {
                 Type = "enabled",
                 BudgetTokens = 10000
@@ -669,7 +1142,7 @@ public class Program
                 Edits = [
                     new BetaClearThinking20251015Edit()
                     {
-                        Keep = new KeepThinkingTurns
+                        Keep = new BetaThinkingTurnsKeep
                         {
                             Type = "thinking_turns",
                             Value = 2
@@ -677,12 +1150,12 @@ public class Program
                     },
                     new BetaClearToolUses20250919Edit()
                     {
-                        Trigger = new InputTokensTrigger
+                        Trigger = new BetaInputTokensTrigger
                         {
                             Type = "input_tokens",
                             Value = 50000
                         },
-                        Keep = new KeepToolUses
+                        Keep = new BetaToolUsesKeep
                         {
                             Type = "tool_uses",
                             Value = 5
@@ -696,6 +1169,192 @@ public class Program
         Console.WriteLine(message);
     }
 }
+```
+
+```go Go nocheck hidelines={1..13,-5..-1}
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+
+	"github.com/anthropics/anthropic-sdk-go"
+)
+
+func main() {
+	client := anthropic.NewClient()
+
+	response, err := client.Beta.Messages.New(context.TODO(), anthropic.BetaMessageNewParams{
+		Model:     anthropic.ModelClaudeOpus4_6,
+		MaxTokens: 1024,
+		Messages:  []anthropic.BetaMessageParam{},
+		Thinking:  anthropic.BetaThinkingConfigParamOfEnabled(10000),
+		Tools:     []anthropic.BetaToolUnionParam{},
+		Betas: []anthropic.AnthropicBeta{
+			anthropic.AnthropicBetaContextManagement2025_06_27,
+		},
+		ContextManagement: anthropic.BetaContextManagementConfigParam{
+			Edits: []anthropic.BetaContextManagementConfigEditUnionParam{
+				{OfClearThinking20251015: &anthropic.BetaClearThinking20251015EditParam{
+					Keep: anthropic.BetaClearThinking20251015EditKeepUnionParam{
+						OfThinkingTurns: &anthropic.BetaThinkingTurnsParam{
+							Value: 2,
+						},
+					},
+				}},
+				{OfClearToolUses20250919: &anthropic.BetaClearToolUses20250919EditParam{
+					Trigger: anthropic.BetaClearToolUses20250919EditTriggerUnionParam{
+						OfInputTokens: &anthropic.BetaInputTokensTriggerParam{
+							Value: 50000,
+						},
+					},
+					Keep: anthropic.BetaToolUsesKeepParam{
+						Value: 5,
+					},
+				}},
+			},
+		},
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(response)
+}
+```
+
+```java Java nocheck hidelines={1..16,-1}
+import com.anthropic.client.AnthropicClient;
+import com.anthropic.client.okhttp.AnthropicOkHttpClient;
+import com.anthropic.models.beta.messages.MessageCreateParams;
+import com.anthropic.models.beta.messages.BetaMessage;
+import com.anthropic.models.beta.messages.BetaThinkingConfigEnabled;
+import com.anthropic.models.beta.messages.BetaContextManagementConfig;
+import com.anthropic.models.beta.messages.BetaClearThinking20251015Edit;
+import com.anthropic.models.beta.messages.BetaClearToolUses20250919Edit;
+import com.anthropic.models.beta.messages.BetaThinkingTurns;
+import com.anthropic.models.beta.messages.BetaInputTokensTrigger;
+import com.anthropic.models.beta.messages.BetaToolUsesKeep;
+import com.anthropic.models.beta.AnthropicBeta;
+import com.anthropic.models.messages.Model;
+
+public class ContextManagementExample {
+    public static void main(String[] args) {
+        AnthropicClient client = AnthropicOkHttpClient.fromEnv();
+
+        MessageCreateParams params = MessageCreateParams.builder()
+            .model(Model.CLAUDE_OPUS_4_6)
+            .maxTokens(1024L)
+            .thinking(BetaThinkingConfigEnabled.builder()
+                .budgetTokens(10000L)
+                .build())
+            .addBeta(AnthropicBeta.CONTEXT_MANAGEMENT_2025_06_27)
+            .contextManagement(BetaContextManagementConfig.builder()
+                .addEdit(BetaClearThinking20251015Edit.builder()
+                    .keep(BetaThinkingTurns.builder()
+                        .value(2L)
+                        .build())
+                    .build())
+                .addEdit(BetaClearToolUses20250919Edit.builder()
+                    .trigger(BetaInputTokensTrigger.builder()
+                        .value(50000L)
+                        .build())
+                    .keep(BetaToolUsesKeep.builder()
+                        .value(5L)
+                        .build())
+                    .build())
+                .build())
+            .build();
+
+        BetaMessage response = client.beta().messages().create(params);
+        System.out.println(response);
+    }
+}
+```
+
+```php PHP hidelines={1..6} nocheck
+<?php
+
+use Anthropic\Client;
+
+$client = new Client(apiKey: getenv("ANTHROPIC_API_KEY"));
+
+$message = $client->beta->messages->create(
+    maxTokens: 1024,
+    messages: [/* ... */],
+    model: 'claude-opus-4-6',
+    betas: ['context-management-2025-06-27'],
+    thinking: ['type' => 'enabled', 'budget_tokens' => 10000],
+    tools: [/* ... */],
+    contextManagement: [
+        'edits' => [
+            [
+                'type' => 'clear_thinking_20251015',
+                'keep' => [
+                    'type' => 'thinking_turns',
+                    'value' => 2
+                ]
+            ],
+            [
+                'type' => 'clear_tool_uses_20250919',
+                'trigger' => [
+                    'type' => 'input_tokens',
+                    'value' => 50000
+                ],
+                'keep' => [
+                    'type' => 'tool_uses',
+                    'value' => 5
+                ]
+            ]
+        ]
+    ],
+);
+
+echo $message;
+```
+
+```ruby Ruby hidelines={4}
+require "anthropic"
+
+client = Anthropic::Client.new
+messages = [{ role: "user", content: "Explain quantum computing in simple terms" }]
+
+response = client.beta.messages.create(
+  model: "claude-opus-4-6",
+  max_tokens: 1024,
+  messages: messages,
+  thinking: {
+    type: "enabled",
+    budget_tokens: 10000
+  },
+  tools: [
+    # ...
+  ],
+  betas: ["context-management-2025-06-27"],
+  context_management: {
+    edits: [
+      {
+        type: "clear_thinking_20251015",
+        keep: {
+          type: "thinking_turns",
+          value: 2
+        }
+      },
+      {
+        type: "clear_tool_uses_20250919",
+        trigger: {
+          type: "input_tokens",
+          value: 50000
+        },
+        keep: {
+          type: "tool_uses",
+          value: 5
+        }
+      }
+    ]
+  }
+)
+puts response
 ```
 
 </CodeGroup>
@@ -902,6 +1561,163 @@ Console.WriteLine($"Original tokens: {response.ContextManagement?.OriginalInputT
 Console.WriteLine($"After clearing: {response.InputTokens}");
 Console.WriteLine($"Savings: {(response.ContextManagement?.OriginalInputTokens ?? 0) - response.InputTokens} tokens");
 ```
+
+```go Go hidelines={1..11,-8..-1}
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+
+	"github.com/anthropics/anthropic-sdk-go"
+)
+
+func main() {
+	client := anthropic.NewClient()
+
+	response, err := client.Beta.Messages.CountTokens(context.TODO(), anthropic.BetaMessageCountTokensParams{
+		Model: anthropic.ModelClaudeOpus4_6,
+		Messages: []anthropic.BetaMessageParam{
+			anthropic.NewBetaUserMessage(anthropic.NewBetaTextBlock("Continue our conversation...")),
+		},
+		Betas: []anthropic.AnthropicBeta{
+			anthropic.AnthropicBetaContextManagement2025_06_27,
+		},
+		ContextManagement: anthropic.BetaContextManagementConfigParam{
+			Edits: []anthropic.BetaContextManagementConfigEditUnionParam{
+				{OfClearToolUses20250919: &anthropic.BetaClearToolUses20250919EditParam{
+					Trigger: anthropic.BetaClearToolUses20250919EditTriggerUnionParam{
+						OfInputTokens: &anthropic.BetaInputTokensTriggerParam{
+							Value: 30000,
+						},
+					},
+					Keep: anthropic.BetaToolUsesKeepParam{
+						Value: 5,
+					},
+				}},
+			},
+		},
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Original tokens: %d\n", response.ContextManagement.OriginalInputTokens)
+	fmt.Printf("After clearing: %d\n", response.InputTokens)
+	fmt.Printf("Savings: %d tokens\n", response.ContextManagement.OriginalInputTokens-response.InputTokens)
+}
+```
+
+```java Java hidelines={1..13,-1}
+import com.anthropic.client.AnthropicClient;
+import com.anthropic.client.okhttp.AnthropicOkHttpClient;
+import com.anthropic.models.beta.messages.BetaMessageTokensCount;
+import com.anthropic.models.beta.messages.MessageCountTokensParams;
+import com.anthropic.models.beta.messages.BetaContextManagementConfig;
+import com.anthropic.models.beta.messages.BetaClearToolUses20250919Edit;
+import com.anthropic.models.beta.messages.BetaInputTokensTrigger;
+import com.anthropic.models.beta.messages.BetaToolUsesKeep;
+import com.anthropic.models.beta.AnthropicBeta;
+import com.anthropic.models.messages.Model;
+
+public class TokenCountExample {
+    public static void main(String[] args) {
+        AnthropicClient client = AnthropicOkHttpClient.fromEnv();
+
+        MessageCountTokensParams params = MessageCountTokensParams.builder()
+            .model(Model.CLAUDE_OPUS_4_6)
+            .addUserMessage("Continue our conversation...")
+            .addBeta(AnthropicBeta.CONTEXT_MANAGEMENT_2025_06_27)
+            .contextManagement(BetaContextManagementConfig.builder()
+                .addEdit(BetaClearToolUses20250919Edit.builder()
+                    .trigger(BetaInputTokensTrigger.builder()
+                        .value(30000L)
+                        .build())
+                    .keep(BetaToolUsesKeep.builder()
+                        .value(5L)
+                        .build())
+                    .build())
+                .build())
+            .build();
+
+        BetaMessageTokensCount response = client.beta().messages().countTokens(params);
+
+        System.out.println("Original tokens: " + response.contextManagement().get().originalInputTokens());
+        System.out.println("After clearing: " + response.inputTokens());
+        System.out.println("Savings: " + (response.contextManagement().get().originalInputTokens() - response.inputTokens()) + " tokens");
+    }
+}
+```
+
+```php PHP hidelines={1..6}
+<?php
+
+use Anthropic\Client;
+
+$client = new Client(apiKey: getenv("ANTHROPIC_API_KEY"));
+
+$response = $client->beta->messages->countTokens(
+    messages: [
+        ['role' => 'user', 'content' => 'Continue our conversation...']
+    ],
+    model: 'claude-opus-4-6',
+    betas: ['context-management-2025-06-27'],
+    contextManagement: [
+        'edits' => [
+            [
+                'type' => 'clear_tool_uses_20250919',
+                'trigger' => [
+                    'type' => 'input_tokens',
+                    'value' => 30000
+                ],
+                'keep' => [
+                    'type' => 'tool_uses',
+                    'value' => 5
+                ]
+            ]
+        ]
+    ],
+);
+
+echo "Original tokens: " . $response->contextManagement->originalInputTokens . "\n";
+echo "After clearing: " . $response->inputTokens . "\n";
+echo "Savings: " . ($response->contextManagement->originalInputTokens - $response->inputTokens) . " tokens\n";
+```
+
+```ruby Ruby
+require "anthropic"
+
+client = Anthropic::Client.new
+
+response = client.beta.messages.count_tokens(
+  model: "claude-opus-4-6",
+  messages: [
+    { role: "user", content: "Continue our conversation..." }
+  ],
+  betas: ["context-management-2025-06-27"],
+  context_management: {
+    edits: [
+      {
+        type: "clear_tool_uses_20250919",
+        trigger: {
+          type: "input_tokens",
+          value: 30000
+        },
+        keep: {
+          type: "tool_uses",
+          value: 5
+        }
+      }
+    ]
+  }
+)
+
+puts "Original tokens: #{response.context_management.original_input_tokens}"
+puts "After clearing: #{response.input_tokens}"
+puts "Savings: #{response.context_management.original_input_tokens - response.input_tokens} tokens"
+```
+
 </CodeGroup>
 
 ```json Response
@@ -1007,6 +1823,127 @@ class Program
         Console.WriteLine(response);
     }
 }
+```
+
+```go Go nocheck hidelines={1..13,-5..-1}
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+
+	"github.com/anthropics/anthropic-sdk-go"
+)
+
+func main() {
+	client := anthropic.NewClient()
+
+	response, err := client.Beta.Messages.New(context.TODO(), anthropic.BetaMessageNewParams{
+		Model:     anthropic.ModelClaudeOpus4_6,
+		MaxTokens: 4096,
+		Messages:  []anthropic.BetaMessageParam{},
+		Tools: []anthropic.BetaToolUnionParam{
+			{OfMemoryTool20250818: &anthropic.BetaMemoryTool20250818Param{}},
+		},
+		Betas: []anthropic.AnthropicBeta{anthropic.AnthropicBetaContextManagement2025_06_27},
+		ContextManagement: anthropic.BetaContextManagementConfigParam{
+			Edits: []anthropic.BetaContextManagementConfigEditUnionParam{
+				{OfClearToolUses20250919: &anthropic.BetaClearToolUses20250919EditParam{}},
+			},
+		},
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(response)
+}
+```
+
+```java Java nocheck hidelines={1..12,-1}
+import com.anthropic.client.AnthropicClient;
+import com.anthropic.client.okhttp.AnthropicOkHttpClient;
+import com.anthropic.models.beta.messages.MessageCreateParams;
+import com.anthropic.models.beta.messages.BetaMessage;
+import com.anthropic.models.beta.messages.BetaMemoryTool20250818;
+import com.anthropic.models.beta.messages.BetaContextManagementConfig;
+import com.anthropic.models.beta.messages.BetaClearToolUses20250919Edit;
+import com.anthropic.models.beta.AnthropicBeta;
+import com.anthropic.models.messages.Model;
+
+public class Main {
+    public static void main(String[] args) {
+        AnthropicClient client = AnthropicOkHttpClient.fromEnv();
+
+        MessageCreateParams params = MessageCreateParams.builder()
+            .model(Model.CLAUDE_OPUS_4_6)
+            .maxTokens(4096L)
+            .addTool(BetaMemoryTool20250818.builder().build())
+            .addBeta(AnthropicBeta.CONTEXT_MANAGEMENT_2025_06_27)
+            .contextManagement(BetaContextManagementConfig.builder()
+                .addEdit(BetaClearToolUses20250919Edit.builder().build())
+                .build())
+            .build();
+
+        BetaMessage response = client.beta().messages().create(params);
+        System.out.println(response);
+    }
+}
+```
+
+```php PHP hidelines={1..6} nocheck
+<?php
+
+use Anthropic\Client;
+
+$client = new Client(apiKey: getenv("ANTHROPIC_API_KEY"));
+
+$response = $client->beta->messages->create(
+    maxTokens: 4096,
+    messages: [],
+    model: 'claude-opus-4-6',
+    betas: ['context-management-2025-06-27'],
+    tools: [
+        [
+            'type' => 'memory_20250818',
+            'name' => 'memory'
+        ]
+    ],
+    contextManagement: [
+        'edits' => [
+            ['type' => 'clear_tool_uses_20250919']
+        ]
+    ],
+);
+
+echo $response;
+```
+
+```ruby Ruby nocheck
+require "anthropic"
+
+client = Anthropic::Client.new
+
+response = client.beta.messages.create(
+  model: "claude-opus-4-6",
+  max_tokens: 4096,
+  messages: [
+    # ...
+  ],
+  tools: [
+    {
+      type: "memory_20250818",
+      name: "memory"
+    }
+  ],
+  betas: ["context-management-2025-06-27"],
+  context_management: {
+    edits: [
+      { type: "clear_tool_uses_20250919" }
+    ]
+  }
+)
+puts response
 ```
 
 </CodeGroup>
@@ -1130,6 +2067,146 @@ public class Program
         Console.WriteLine($"Tokens used: {message.Usage.InputTokens}");
     }
 }
+```
+
+```go Go nocheck hidelines={1..13,-6..-1}
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+
+	"github.com/anthropics/anthropic-sdk-go"
+)
+
+func main() {
+	client := anthropic.NewClient()
+
+	messages := []anthropic.BetaMessageParam{
+		anthropic.NewBetaUserMessage(anthropic.NewBetaTextBlock("Analyze all the files in this directory and write a summary report.")),
+	}
+
+	response, err := client.Beta.Messages.New(context.TODO(), anthropic.BetaMessageNewParams{
+		Model:     anthropic.ModelClaudeOpus4_6,
+		MaxTokens: 4096,
+		Tools:     []anthropic.BetaToolUnionParam{},
+		Messages:  messages,
+		ContextManagement: anthropic.BetaContextManagementConfigParam{
+			Edits: []anthropic.BetaContextManagementConfigEditUnionParam{
+				{OfCompact20260112: &anthropic.BetaCompact20260112EditParam{
+					Trigger: anthropic.BetaInputTokensTriggerParam{
+						Value: 100000,
+					},
+				}},
+			},
+		},
+		Betas: []anthropic.AnthropicBeta{"compact-2026-01-12"},
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Tokens used: %d\n", response.Usage.InputTokens)
+}
+```
+
+```java Java nocheck hidelines={1..12,-1}
+import com.anthropic.client.AnthropicClient;
+import com.anthropic.client.okhttp.AnthropicOkHttpClient;
+import com.anthropic.models.beta.messages.MessageCreateParams;
+import com.anthropic.models.beta.messages.BetaMessage;
+import com.anthropic.models.beta.messages.BetaContextManagementConfig;
+import com.anthropic.models.beta.messages.BetaCompact20260112Edit;
+import com.anthropic.models.beta.messages.BetaInputTokensTrigger;
+import com.anthropic.models.messages.Model;
+import com.anthropic.helpers.BetaToolRunner;
+
+public class CompactionExample {
+    public static void main(String[] args) {
+        AnthropicClient client = AnthropicOkHttpClient.fromEnv();
+
+        BetaToolRunner toolRunner = client.beta().messages().toolRunner(
+            MessageCreateParams.builder()
+                .model(Model.CLAUDE_OPUS_4_6)
+                .maxTokens(4096L)
+                .addUserMessage("Analyze all the files in this directory and write a summary report.")
+                .addBeta("compact-2026-01-12")
+                .contextManagement(BetaContextManagementConfig.builder()
+                    .addEdit(BetaCompact20260112Edit.builder()
+                        .trigger(BetaInputTokensTrigger.builder()
+                            .value(100000L)
+                            .build())
+                        .build())
+                    .build())
+                .build());
+
+        for (BetaMessage message : toolRunner) {
+            System.out.println("Tokens used: " + message.usage().inputTokens());
+        }
+    }
+}
+```
+
+```php PHP hidelines={1..6} nocheck
+<?php
+
+use Anthropic\Client;
+
+$client = new Client(apiKey: getenv("ANTHROPIC_API_KEY"));
+
+$messages = [
+    [
+        'role' => 'user',
+        'content' => 'Analyze all the files in this directory and write a summary report.'
+    ]
+];
+
+$response = $client->beta->messages->create(
+    maxTokens: 4096,
+    messages: $messages,
+    model: 'claude-opus-4-6',
+    betas: ['compact-2026-01-12'],
+    tools: [],
+    contextManagement: [
+        'edits' => [
+            [
+                'type' => 'compact_20260112',
+                'trigger' => ['type' => 'input_tokens', 'value' => 100000]
+            ]
+        ]
+    ],
+);
+
+echo "Tokens used: " . $response->usage->inputTokens . "\n";
+```
+
+```ruby Ruby nocheck
+require "anthropic"
+
+client = Anthropic::Client.new
+
+runner = client.beta.messages.tool_runner(
+  model: "claude-opus-4-6",
+  max_tokens: 4096,
+  tools: [
+    # ...
+  ],
+  messages: [
+    {
+      role: "user",
+      content: "Analyze all the files in this directory and write a summary report."
+    }
+  ],
+  compaction_control: {
+    enabled: true,
+    context_token_threshold: 100000
+  }
+)
+
+runner.each_message do |message|
+  puts "Tokens used: #{message.usage.input_tokens}"
+end
 ```
 
 </CodeGroup>
@@ -1424,6 +2501,167 @@ class CompactionLogging
         return textBlock?.Text ?? "";
     }
 }
+```
+
+```go Go nocheck hidelines={1..13,-1}
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+
+	"github.com/anthropics/anthropic-sdk-go"
+)
+
+func main() {
+	client := anthropic.NewClient()
+
+	messages := []anthropic.BetaMessageParam{}
+
+	chat(client, &messages, "Help me build a Go application")
+	chat(client, &messages, "Add error handling")
+	chat(client, &messages, "Now add logging")
+}
+
+func chat(client anthropic.Client, messages *[]anthropic.BetaMessageParam, userMessage string) string {
+	*messages = append(*messages, anthropic.NewBetaUserMessage(anthropic.NewBetaTextBlock(userMessage)))
+
+	response, err := client.Beta.Messages.New(context.TODO(), anthropic.BetaMessageNewParams{
+		Betas:     []anthropic.AnthropicBeta{"compact-2026-01-12"},
+		Model:     anthropic.ModelClaudeOpus4_6,
+		MaxTokens: 4096,
+		Messages:  *messages,
+		ContextManagement: anthropic.BetaContextManagementConfigParam{
+			Edits: []anthropic.BetaContextManagementConfigEditUnionParam{
+				{OfCompact20260112: &anthropic.BetaCompact20260112EditParam{}},
+			},
+		},
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Append the response (including any compaction block) to continue the conversation
+	*messages = append(*messages, response.ToParam())
+
+	fmt.Printf("Token usage: %d\n", response.Usage.InputTokens)
+
+	for _, block := range response.Content {
+		switch variant := block.AsAny().(type) {
+		case anthropic.BetaTextBlock:
+			fmt.Println(variant.Text)
+			return variant.Text
+		}
+	}
+	return ""
+}
+```
+
+```java Java nocheck hidelines={1..13,-1}
+import com.anthropic.client.AnthropicClient;
+import com.anthropic.client.okhttp.AnthropicOkHttpClient;
+import com.anthropic.models.beta.messages.MessageCreateParams;
+import com.anthropic.models.beta.messages.BetaMessage;
+import com.anthropic.models.beta.messages.BetaMessageParam;
+import com.anthropic.models.beta.messages.BetaContextManagementConfig;
+import com.anthropic.models.beta.messages.BetaCompact20260112Edit;
+import com.anthropic.models.messages.Model;
+import java.util.ArrayList;
+import java.util.List;
+
+public class CompactionLogging {
+    public static void main(String[] args) {
+        AnthropicClient client = AnthropicOkHttpClient.fromEnv();
+        List<BetaMessageParam> messages = new ArrayList<>();
+
+        String response = chat(client, messages, "Help me build a Java application");
+        System.out.println(response);
+
+        response = chat(client, messages, "Add error handling");
+        System.out.println(response);
+
+        response = chat(client, messages, "Now add logging");
+        System.out.println(response);
+    }
+
+    private static String chat(AnthropicClient client, List<BetaMessageParam> messages, String userMessage) {
+        messages.add(BetaMessageParam.builder()
+            .role(BetaMessageParam.Role.USER)
+            .content(userMessage)
+            .build());
+
+        MessageCreateParams params = MessageCreateParams.builder()
+            .addBeta("compact-2026-01-12")
+            .model(Model.CLAUDE_OPUS_4_6)
+            .maxTokens(4096L)
+            .messages(messages)
+            .contextManagement(BetaContextManagementConfig.builder()
+                .addEdit(BetaCompact20260112Edit.builder().build())
+                .build())
+            .build();
+
+        BetaMessage response = client.beta().messages().create(params);
+
+        messages.add(response.toParam());
+
+        System.out.println("Token usage: " + response.usage().inputTokens());
+
+        return response.content().stream()
+            .filter(block -> block.text().isPresent())
+            .map(block -> block.text().get().text())
+            .findFirst()
+            .orElse("");
+    }
+}
+```
+
+```php PHP hidelines={1..6} nocheck
+<?php
+
+
+use Anthropic\Client;
+
+$client = new Client(apiKey: getenv("ANTHROPIC_API_KEY"));
+$messages = [];
+
+function chat($client, &$messages, $userMessage) {
+    $messages[] = ['role' => 'user', 'content' => $userMessage];
+
+    $response = $client->beta->messages->create(
+        maxTokens: 4096,
+        messages: $messages,
+        model: 'claude-opus-4-6',
+        betas: ['compact-2026-01-12'],
+        contextManagement: [
+            'edits' => [
+                ['type' => 'compact_20260112']
+            ]
+        ],
+    );
+
+    $messages[] = ['role' => 'assistant', 'content' => $response->content];
+
+    echo "Token usage: " . $response->usage->inputTokens . "\n";
+
+    foreach ($response->content as $block) {
+        if ($block->type === 'text') {
+            return $block->text;
+        }
+    }
+    return '';
+}
+
+echo chat($client, $messages, "Help me build a PHP application") . "\n";
+echo chat($client, $messages, "Add error handling") . "\n";
+echo chat($client, $messages, "Now add logging") . "\n";
+```
+
+```ruby Ruby nocheck
+# The SDK logs compaction events when verbose logging is enabled.
+# You'll see messages like:
+# Token usage 105000 has exceeded the threshold of 100000. Performing compaction.
+# Compaction complete. New token usage: 2500
 ```
 
 </CodeGroup>
