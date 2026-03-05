@@ -386,7 +386,7 @@ Settings apply in order of precedence. From highest to lowest:
 
 1. **Managed settings** ([server-managed](/en/server-managed-settings), [MDM/OS-level policies](#configuration-scopes), or [managed settings](/en/settings#settings-files))
    * Policies deployed by IT through server delivery, MDM configuration profiles, registry policies, or managed settings files
-   * Cannot be overridden by user or project settings
+   * Cannot be overridden by any other level, including command line arguments
    * Within the managed tier, precedence is: server-managed > MDM/OS-level policies > `managed-settings.json` > HKCU registry (Windows only). Only one managed source is used; sources do not merge.
 
 2. **Command line arguments**

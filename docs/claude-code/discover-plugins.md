@@ -378,6 +378,10 @@ Add `extraKnownMarketplaces` to your project's `.claude/settings.json`:
 
 For full configuration options including `extraKnownMarketplaces` and `enabledPlugins`, see [Plugin settings](/en/settings#plugin-settings).
 
+## Security
+
+Plugins and marketplaces are highly trusted components that can execute arbitrary code on your machine with your user privileges. Only install plugins and add marketplaces from sources you trust. Organizations can restrict which marketplaces users are allowed to add using [managed marketplace restrictions](/en/plugin-marketplaces#managed-marketplace-restrictions).
+
 ## Troubleshooting
 
 ### /plugin command not recognized

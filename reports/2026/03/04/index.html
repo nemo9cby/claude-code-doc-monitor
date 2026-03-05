@@ -118,9 +118,177 @@
 
         <header>
             <h1>Changes on 2026-03-04</h1>
-            <p class="meta">69 total changes in 7 runs</p>
+            <p class="meta">73 total changes in 8 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">20:44 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 总体概览
+此次更新重点关注安全强化和 MCP 的 OAuth 灵活性，并伴随 v2.1.69 的重要发布，包含关键的安全修复、性能优化（内存泄漏）以及技能和远程控制的新功能。
+
+### 关键变更主题
+
+*   **安全与信任强化**：新增了插件执行任意代码的安全警告，修复了符号链接逃逸、沙箱域名绕过以及嵌套技能发现等关键漏洞；同时明确了“受管设置”具有最高优先级，甚至覆盖命令行参数。
+*   **MCP 与 OAuth 扩展**：增加了 `--callback-port` 支持以适应需要预注册重定向 URI 的 MCP 服务器，并允许自定义 OAuth 元数据 URL。
+*   **性能与稳定性**：v2.1.69 版本修复了大量内存泄漏问题（包括长会话、React Compiler、REPL 渲染等），解决了启动慢和 UI 卡顿问题。
+
+### 影响等级：高 (High)
+
+**理由**：
+1.  **关键安全修复**：Changelog 中包含多处关于沙箱逃逸、未授权域名访问及 Git 忽略目录加载的修复，降低了安全风险。
+2.  **配置行为变更**：`settings.md` 明确指出命令行参数无法覆盖受管设置，这对依赖 CLI 参数绕过组织策略的用户是破坏性变更。
+3.  **稳定性大幅提升**：广泛的内存泄漏修复将直接改善长时间运行会话的性能。
+
+### 开发者行动项
+
+*   **审查插件安全**：阅读新的安全警告，仅信任可信来源；检查组织是否启用了 `strictKnownMarketplaces` 限制。
+*   **更新 MCP OAuth 配置**：如果你的 MCP 服务器因随机回调端口而认证失败，请使用 `--callback-port` 固定端口。
+*   **调整 macOS 代理设置**：如果在自定义代理下遇到 `gh` 或 `gcloud` 的 TLS 证书验证失败，可尝试设置 `sandbox.enableWeakerNetworkIsolation`。
+*   **遵守受管设置**：注意命令行参数（CLI）现在无法覆盖组织下发的受管设置。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Input:** 4 changed pages (`discover-plugins.md`, `mcp.md`, `settings.md`, `CHANGELOG.md.md`).
+    *   **Format:** Markdown.
+    *   **Language:** Chinese.
+    *   **Requirements:** Concise, insightful, developer-focused, specific structure (Summary, Key Themes, Impact Level, Action Items).
+
+2.  **Analyze the Input Diffs:**
+
+    *   **`discover-plugins.md`:**
+        *   Added a &#34;Security&#34; section.
+        *   Warns that plugins execute arbitrary code with user privileges.
+        *   Mentions &#34;managed marketplace restrictions&#34; for organizations.
+        *   *Significance:* Security awareness, trust boundaries, organizational control.
+
+    *   **`mcp.md`:**
+        *   Added support for a fixed OAuth callback port (`--callback-port`).
+        *   Use case: Servers requiring pre-registered redirect URIs.
+        *   Can be used with dynamic client registration or pre-configured credentials.
+        *   *Significance:* Enhanced OAuth flexibility, solves specific integration issues with MCP servers that have strict redirect URI requirements.
+
+    *   **`settings.md`:**
+        *   Updated precedence rule for &#34;Managed settings&#34;.
+        *   Clarified that managed settings cannot be overridden by *any* other level, specifically adding &#34;including command line arguments&#34;.
+        *   *Significance:* Harder enforcement of IT policies, prevents users from bypassing restrictions via CLI flags.
+
+    *   **`CHANGELOG.md.md`:**
+        *   Version 2.1.69.
+        *   *New Features:* `/claude-api` skill, new bash exit (Ctrl+U), numeric keypad support, voice language support, `sandbox.enableWeakerNetworkIsolation` (macOS proxy fix), `includeGitInstructions` setting, `/reload-plugins`, new hook events (`InstructionsLoaded`), worktree support, `pluginTrustMessage`, `oauth.authServerMetadataUrl`.
+        *   *Security Fixes:* Nested skill discovery loading from gitignored dirs (fixed), symlink bypass (fixed), interactive tools auto-allowed bypass (fixed), sandbox domain approvals (fixed).
+        *   *Bug Fixes:* OAuth keychain corruption, memory leaks (several), worktree duplicates, plugin hooks issues, UI hangs.
+        *   *Significance:* A significant release focusing on security hardening, performance (memory leaks), and configuration flexibility (OAuth, MCP, settings).
+
+3.  **Synthesize the Analysis (Drafting the Content):**
+
+    *   **Overall Summary:** The update emphasizes security enforcement and OAuth flexibility for MCP, alongside a major release (v2.1.69) containing critical security fixes, performance improvements (memory leaks), and new features for skills and remote control.
+    *   **Key Themes:**
+        *   *Security &amp; Trust:* Explicit warnings for plugin privileges, blocking symlink bypasses, strict managed settings, sandbox hardening.
+        *   *Configuration &amp; Control:* Stricter settings precedence, fixed OAuth ports for MCP, new network isolation settings.
+        *   *Performance &amp; Stability:* Extensive memory leak fixes, startup speed improvements, UI stutter fixes.
+    *   **Impact Level:** High.
+        *   *Reasoning:* The changelog contains multiple critical security fixes (arbitrary code execution, symlink escapes) and extensive memory leak resolutions that affect long-running sessions. The settings change regarding CLI arguments being overridden is a behavior shift for power users.
+    *   **Action Items:**
+        *   Review installed plugins due to new security warnings and potential restricted marketplace policies.
+        *   Update MCP server configurations to use `--callback-port` if static redirect URIs are required.
+        *   Update proxy configurations for Go tools (`gh`, `gcloud`) using `sandbox.enableWeakerNetworkIsolation` on macOS.
+        *   Be aware that command-line arguments can no longer override managed settings.
+
+4.  **Refine for Chinese Translation &amp; Conciseness:**
+
+    *   *Summary:* 此次更新重点关注安全强化和 MCP 的 OAuth 灵活性，并伴随 v2.1.69 的重要发布，包含关键的安全修复、性能优化（内存泄漏）以及技能和远程控制的新功能。
+    *   *Themes:*
+        *   **安全与信任**：加强了插件安全警告，修复了符号链接逃逸和沙箱绕过漏洞，强化了受管设置的优先级。
+        *   **配置灵活性**：增加了 MCP 固定 OAuth 回调端口支持，新增了网络隔离和 Git 指令配置选项。
+        *   **性能与稳定性**：修复了多个严重的内存泄漏问题，提升了长会话稳定性和启动速度。
+    *   *Impact:* **High (高)**。
+        *   *Reasoning:* 包含多项关键安全漏洞修复（如符号链接逃逸、未授权沙箱域名访问），且广泛的内存泄漏修复将显著提升长会话的稳定性。设置优先级的变更（CLI 参数无法覆盖受管设置）对高级用户也有影响。
+    *   *Action Items:*
+        *   审查已安装插件的安全性，留意受管市场策略的限制。
+        *   如 MCP 服务器需要预注册重定向 URI，请配置 `--callback-port`。
+        *   若在 macOS 上使用自定义代理遇到 Go 工具（`gh`, `gcloud`）证书验证问题，请尝试启用 `sandbox.enableWeakerNetworkIsolation`。
+        *   注意命令行参数现在无法覆盖受管设置。
+
+5.  **Final Review against Constraints:**
+    *   Markdown format? Yes.
+    *   Chinese? Yes.
+    *   Concise? Yes.
+    *   Developer-focused? Yes.
+    *   4 sections? Yes.
+
+6.  **Final Output Generation** (Proceed to generate output based on step 4).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/discover-plugins.html" class="page-link">discover-plugins.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+11</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+104</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">18:25 EST</div>
