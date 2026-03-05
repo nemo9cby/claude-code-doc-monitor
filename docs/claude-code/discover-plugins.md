@@ -294,6 +294,18 @@ claude plugin install formatter@your-org --scope project
 claude plugin uninstall formatter@your-org --scope project
 ```
 
+### Apply plugin changes without restarting
+
+When you install, enable, or disable plugins during a session, some changes (like new commands and hooks) take effect immediately. Others, including LSP server updates, require a restart.
+
+To activate all pending plugin changes without restarting, run:
+
+```shell  theme={null}
+/reload-plugins
+```
+
+Claude Code reloads all active plugins and reports what was loaded. If any LSP servers were added or updated, it will let you know those require a restart to take effect.
+
 ## Manage marketplaces
 
 You can manage marketplaces through the interactive `/plugin` interface or with CLI commands.
