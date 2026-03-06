@@ -118,9 +118,116 @@
 
         <header>
             <h1>Changes on 2026-03-06</h1>
-            <p class="meta">2 total changes in 1 run</p>
+            <p class="meta">3 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">18:23 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更分析
+
+### 1. 总体摘要
+文档引入了 **&#34;Setup scripts&#34;（设置脚本）** 这一新功能，允许开发者在 Claude Code Web 端的云端会话启动前自动运行 Bash 脚本以配置环境（如安装依赖）。同时，文档明确了设置脚本与 SessionStart hooks 的区别，旨在更好地分离环境级配置与项目级配置。
+
+### 2. 核心主题
+*   **新增云端环境配置能力**：现在可以通过在环境设置中添加 Bash 脚本，以 Root 权限在 Ubuntu 24.04 上预装工具（如 `apt` 包、CLI 工具），这些脚本仅在创建新会话时运行。
+*   **清晰的架构区分**：文档新增对比表格，明确界定了 **Setup scripts**（属于云端环境配置，仅限云端，在 Claude 启动前运行）与 **SessionStart hooks**（属于仓库配置，本地/云端通用，在 Claude 启动后运行）的适用场景。
+*   **自动化最佳实践更新**：推荐使用 Setup scripts 处理云端环境特有的工具安装，而 SessionStart hooks 则用于需要跨环境（本地和云端）执行的通用项目设置（如 `npm install`）。
+
+### 3. 影响等级：Medium (中等)
+**理由**：这是一个重大的功能增强，显著简化了云端环境的准备工作，解决了之前依赖 Hooks 进行环境初始化的局限性。虽然不破坏现有代码（非 Breaking Change），但它改变了配置云端环境的推荐工作流，能大幅减少重复性的手动配置工作。
+
+### 4. 开发者行动建议
+*   **迁移环境级配置**：检查现有的 SessionStart hooks，将仅用于云端环境的工具安装（如系统级包、全局 CLI）迁移到环境设置脚本中。
+*   **配置环境脚本**：在 Claude Code Web 端的环境设置对话框中，添加 Setup script 以安装默认镜像中缺失的工具（例如 `gh` CLI）。
+*   **检查网络权限**：如果设置脚本需要从外部下载包，请确保该环境配置了足够的网络访问权限（默认允许常见注册表，但禁用网络会导致安装失败）。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Output Format:** Markdown.
+    *   **Language:** Chinese (as requested in the system prompt &#34;请用中文回复&#34;).
+    *   **Input:** Diff of `claude-code-on-the-web.md`.
+    *   **Task:** Summarize changes, explain why it matters, identify themes, assess impact, and list action items.
+
+2.  **Analyze the Input Diff:**
+    *   *Page:* `claude-code-on-the-web.md`
+    *   *Change Volume:* +30 / -7 (Net +23 lines). This indicates the addition of a new feature/concept rather than just minor edits.
+    *   *Specific Changes:*
+        *   **Workflow updates:** The &#34;Environment setup&#34; step in the initial task list now mentions running &#34;setup scripts&#34;.
+        *   **Under the hood:** The environment preparation section now mentions running &#34;setup scripts&#34; instead of &#34;Claude hooks for initialization&#34;.
+        *   **Environment Configuration UI:** The instructions for adding/updating environments now include a &#34;Setup script&#34; field.
+        *   **New Section:** &#34;Setup scripts&#34; (approx. 40 lines added). This defines what setup scripts are (Bash scripts running as root on Ubuntu 24.04 before Claude launches), provides examples (`apt install gh`), explains behavior (runs only on new sessions, fails if non-zero exit), network access requirements, and comparisons with &#34;SessionStart hooks&#34;.
+        *   **Comparison Table:** Added a table comparing &#34;Setup scripts&#34; vs. &#34;SessionStart hooks&#34;. Key distinction: Setup scripts are cloud-environment specific (run before Claude launches), while hooks are repo-specific (run after launch, also locally).
+        *   **Dependency Management:** Updated to recommend setup scripts for cloud-specific installs and hooks for cross-environment (local + cloud) installs.
+        *   **Best Practices:** Updated to prioritize setup scripts for tool installation and hooks for advanced scenarios.
+
+3.  **Synthesize the Analysis (Internal Draft):**
+
+    *   *Overall Summary:* The documentation introduces a new feature called &#34;Setup scripts&#34; for Claude Code on the web. This allows developers to configure cloud environments with custom Bash scripts (running as root) before the session starts, distinguishing this capability from the existing SessionStart hooks.
+
+    *   *Key Themes:*
+        *   **New Feature - Setup Scripts:** Introduction of root-level Bash script execution during cloud environment initialization.
+        *   **Separation of Concerns:** Clear distinction between environment-level configuration (Setup scripts - cloud only) and project-level configuration (SessionStart hooks - repo/agnostic).
+        *   **Automation &amp; Customization:** Enhanced ability to automate dependency installation in cloud environments without relying solely on repo hooks.
+
+    *   *Impact:* **Medium**. It&#39;s a new feature that improves developer experience and reduces friction when setting up cloud environments. It&#39;s not &#34;Breaking&#34; because existing functionality (hooks) still works, but it significantly changes the recommended workflow for cloud-specific setup.
+
+    *   *Action Items:*
+        *   Review existing SessionStart hooks used in cloud to see if they should move to environment setup scripts.
+        *   Update environment configurations to include setup scripts for global tools (like CLI tools) not in the default image.
+        *   Ensure network access is enabled if setup scripts need to download packages.
+
+4.  **Translate and Format into Chinese:**
+
+    *   *Summary:* 文档引入了 &#34;Setup scripts&#34;（设置脚本）功能，允许开发者通过 Bash 脚本在 Claude Code Web 端云端会话启动前自动配置环境。
+    *   *Themes:*
+        *   新增功能：云端环境初始化时自动执行 Bash 脚本。
+        *   架构区分：明确了环境级配置与仓库级 Hooks 的区别。
+        *   自动化增强：提升了云端环境依赖安装和工具配置的灵活性。
+    *   *Impact:* **Medium**（中等）。这是一个重要的功能增强，它优化了云端环境的配置流程，虽然不破坏现有功能，但改变了配置云端环境的最佳实践。
+    *   *Action Items:*
+        *   评估现有的云端 SessionStart hooks，将环境级工具安装迁移至 Setup scripts。
+        *   在环境设置中配置 Setup scripts 以安装 `apt` 包或 CLI 工具。
+        *   确保网络访问权限已开启，以便脚本能访问包注册表。
+
+5.  **Final Review against Constraints:**
+    *   Markdown format? Yes.
+    *   Concise and insightful? Yes.
+    *   Focus on what matters to developers? Yes (automation, distinction of features, configuration).
+    *   Chinese language? Yes.
+
+6.  **Construct Final Output.** (Proceed to generate the markdown response).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/claude-code-on-the-web.html" class="page-link">claude-code-on-the-web.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+30</span>
+                            <span class="removed">-7</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">17:22 EST</div>
