@@ -118,9 +118,491 @@
 
         <header>
             <h1>Changes on 2026-03-05</h1>
-            <p class="meta">5 total changes in 1 run</p>
+            <p class="meta">30 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">20:46 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更分析
+
+## 1. 总体摘要
+此次更新主要包含 **SDK 的重大 API 变更**（特别是 Java 和 C# 语言），针对新功能的 **ZDR（零数据保留）合规性说明**，以及大量新增的多语言代码示例。此外，Claude Code CLI/VS Code 插件也发布了重要的错误修复和性能更新。
+
+## 2. 关键变更主题
+
+*   **SDK API 重构与破坏性变更**
+    *   **Java SDK**: 结构化输出 API `outputFormat(Class&lt;T&gt;)` 重命名为 `outputConfig(Class&lt;T&gt;)`，响应获取方式从 `response.output(Class)` 变更为 `response.content().get(0).asText().text()`。
+    *   **C# SDK**: 广泛引入了 `TryPick` 模式（如 `TryPickToolUse`, `TryPickText`）来更安全地处理联合类型，替代了原有的 LINQ 过滤和类型强制转换。
+    *   **C# SDK**: Beta 功能的命名空间调整（如 `Anthropic.Models.Beta`）及初始化语法更新。
+*   **ZDR 合规性明确化**
+    *   统一了文档中关于 ZDR 的措辞。
+    *   **关键变更**: 新版 Web Search (`web_search_20260209`) 和 Web Fetch (`web_fetch_20260209`) 默认**不**符合 ZDR 要求（因其内部涉及代码执行）。若需使用动态过滤并保持 ZDR 合规，必须配置 `allowed_callers: [&#34;direct&#34;]`。
+*   **代码示例完备性提升**
+    *   为 Vision（图片处理）、Prompt Caching、Web Search、Web Fetch 等功能补全了 C#、Go、PHP 和 Ruby 的代码示例。
+*   **C# 代码安全性增强**
+    *   JSON 构建逻辑从匿名对象改为 `Dictionary&lt;string, JsonElement&gt;`，修复了序列化问题。
+*   **Claude Code CLI/VS Code 修复**
+    *   v2.1.70 版本修复了 Windows/WSL 剪贴板乱码、SSH 慢速连接下的回车问题、VS Code 启动多窗口问题以及 Remote Control 轮询频率过高导致的负载问题。
+
+## 3. 影响等级：高
+
+**理由**:
+1.  **代码破坏性变更**: Java 和 C# SDK 的方法签名和属性访问方式发生了重大变化，现有代码如果不更新将无法编译或运行。
+2.  **合规性风险**: 使用新版 Web Search/Fetch 动态过滤功能的开发者若未正确配置 ZDR 参数，可能会违反企业的数据保留策略。
+3.  **API 行为变更**: C# 中对 Beta 功能和流式处理的处理模式变更，可能会影响现有应用的运行时行为。
+
+## 4. 开发者行动项
+
+*   **更新 Java 代码**: 将所有结构化输出调用从 `outputFormat` 迁移至 `outputConfig`，并修改响应解析逻辑以适配新的 API 返回结构。
+*   **重构 C# 工具调用与流处理代码**: 采用新的 `TryPick` 模式（如 `TryPickToolUse`）替代传统的 `Where` 过滤和属性访问，更新 `ID` 属性大小写及 Beta 命名空间引用。
+*   **审查 ZDR 配置**: 如果在生产环境中使用了 Web Search (`20260209`) 或 Web Fetch (`20260209`)，请立即检查是否添加了 `allowed_callers: [&#34;direct&#34;]` 以确保符合零数据保留要求。
+*   **更新 CLI 工具**: 将 Claude Code/VS Code 扩展更新至 v2.1.70 以解决 Windows 平台下的剪贴板、音频及连接稳定性问题。
+*   **参考新增示例**: 查阅新添加的 Go、PHP、Ruby 示例代码，优化多语言环境的集成实现。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Format:** Markdown, concise, insightful, Chinese response.
+    *   **Input:** A batch of documentation changes (25 pages total, diffs provided).
+    *   **Output Requirements:** Overall Summary, Key Themes, Impact Level with Reasoning, Action Items (max 5).
+
+2.  **Analyze the Diffs (Page by Page/Group by Group):**
+
+    *   **`about-claude/models/migration-guide.md`**:
+        *   Changes: Cleaned up code block markers (removed &#34;nocheck&#34;), updated C# imports/namespaces for Beta features (e.g., `Anthropic.Models.Beta`, `AnthropicBeta.InterleavedThinking2025_05_14`), object initializer syntax changes in C#.
+        *   Theme: Code syntax updates, SDK API refinements (specifically C# Beta namespaces).
+
+    *   **`api/errors.md`**:
+        *   Changes: Removed &#34;nocheck&#34; from Python code block.
+        *   Theme: Code syntax cleanup.
+
+    *   **`build-with-claude/overview.md`**:
+        *   Changes: Moved &#34;Memory&#34; tool from &#34;General capabilities&#34; to &#34;Developer tools&#34;. Updated availability for &#34;Compaction&#34; (added bedrockBeta, vertexAiBeta, azureAiBeta).
+        *   Theme: Feature categorization and availability updates.
+
+    *   **`build-with-claude/vision.md`**:
+        *   Changes: Added C#, Go, PHP, and Ruby code examples for base64 and URL images.
+        *   Theme: SDK expansion/completeness (adding missing language examples).
+
+    *   **`build-with-claude/extended-thinking.md`**:
+        *   Changes: C# streaming code refactored to use `TryPick` pattern (stronger typing/safety). Minor text tweaks (&#34;the&#34; instead of &#34;our&#34;). Code block marker cleanup.
+        *   Theme: SDK API improvements (pattern matching in C#).
+
+    *   **`build-with-claude/prompt-caching.md`**:
+        *   Changes: Added C#, Go, Ruby examples. Text tone changes (&#34;we&#34; to &#34;the API/the system&#34;). C# JSON serialization fix (Dictionary usage). Removed &#34;nocheck&#34;.
+        *   Theme: SDK expansion, neutral tone, code correctness.
+
+    *   **`build-with-claude/batch-processing.md`**:
+        *   Changes: Clarified ZDR eligibility text. C# code fix: `System` parameter structure change (List vs array, removal of `Type: &#34;text&#34;`), `CacheControl` initialization fix.
+        *   Theme: ZDR policy clarification, SDK syntax corrections.
+
+    *   **`build-with-claude/context-windows.md`**:
+        *   Changes: ZDR eligibility text refinement.
+        *   Theme: ZDR policy clarity.
+
+    *   **`build-with-claude/context-editing.md`**:
+        *   Changes: ZDR eligibility text refinement.
+        *   Theme: ZDR policy clarity.
+
+    *   **`build-with-claude/structured-outputs.md`**:
+        *   Changes: **Significant Java SDK changes**. `outputFormat(Class&lt;T&gt;)` renamed to `outputConfig(Class&lt;T&gt;)`. Response access method changed from `response.output(Class)` to `response.content().get(0).asText().text()`. Added `additionalProperties: false` to JSON schema examples.
+        *   Theme: **Breaking Change** in Java SDK API for Structured Outputs. JSON schema best practices.
+
+    *   **`build-with-claude/files.md`**:
+        *   Changes: ZDR eligibility text refinement.
+        *   Theme: ZDR policy clarity.
+
+    *   **`build-with-claude/working-with-messages.md`**:
+        *   Changes: ZDR eligibility text refinement.
+        *   Theme: ZDR policy clarity.
+
+    *   **`build-with-claude/claude-on-amazon-bedrock.md`**:
+        *   Changes: Added &#34;nocheck&#34; to several code blocks (Python, Go, Ruby). Formatting adjustments.
+        *   Theme: Code formatting.
+
+    *   **`build-with-claude/prompt-engineering/claude-prompting-best-practices.md`**:
+        *   Changes: Text edits for clarity/grammar (e.g., &#34;— &#34; to &#34;. &#34; in a specific spot, &#34;our&#34; to &#34;the&#34;). Swapped `nocheck` positions in code blocks.
+        *   Theme: Editorial polish.
+
+    *   **`agents-and-tools/tool-use/overview.md`**:
+        *   Changes: C# JSON serialization fix (Dictionary usage).
+        *   Theme: Code correctness.
+
+    *   **`agents-and-tools/tool-use/implement-tool-use.md`**:
+        *   Changes: **Significant C# SDK changes**. Replaced LINQ filtering (`Where`) with `TryPickToolUse` pattern (safer union handling). Changed `toolUse.Id` to `toolUse.ID`. Changed `response.Content` serialization logic for assistant messages in multi-turn. Updated `TryPickText` usage.
+        *   Theme: **Breaking Change/Refactoring** in C# SDK for Tool Use. Safer union handling patterns.
+
+    *   **`agents-and-tools/tool-use/computer-use-tool.md`**:
+        *   Changes: ZDR eligibility text refinement.
+        *   Theme: ZDR policy clarity.
+
+    *   **`agents-and-tools/tool-use/web-search-tool.md`**:
+        *   Changes: **Crucial ZDR update**. Clarified that `web_search_20260209` (dynamic filtering) is *not* ZDR eligible by default, unlike the old version. Added workaround (`allowed_callers: [&#34;direct&#34;]`). Added code examples (C#, Go, Java, PHP, Ruby) for the new tool version. Fixed `cache_control` example in Node.
+        *   Theme: **ZDR Policy Impact**, SDK expansion, tool configuration.
+
+    *   **`agents-and-tools/tool-use/web-fetch-tool.md`**:
+        *   Changes: Similar to web search. ZDR eligibility nuances for new versions. Added code examples (C#, Go, Java, PHP, Ruby).
+        *   Theme: **ZDR Policy Impact**, SDK expansion.
+
+    *   **`agents-and-tools/tool-use/code-execution-tool.md`**:
+        *   Changes: ZDR text refinement. C# property access fix (`Container!.ID` vs `Container.Id`).
+        *   Theme: ZDR policy, Code correctness.
+
+    *   **`agents-and-tools/tool-use/memory-tool.md`**:
+        *   Changes: ZDR text refinement.
+        *   Theme: ZDR policy clarity.
+
+    *   **`agents-and-tools/tool-use/fine-grained-tool-streaming.md`**:
+        *   Changes: Removed `| jq &#39;.usage&#39;` from curl example.
+        *   Theme: Example accuracy.
+
+    *   **`agents-and-tools/tool-use/programmatic-tool-calling.md`**:
+        *   Changes: ZDR text refinement. C# simplified tool definition (`new CodeExecutionTool20260120()` instead of raw JSON structure).
+        *   Theme: ZDR policy, SDK syntax sugar.
+
+    *   **`agents-and-tools/mcp-connector.md`**:
+        *   Changes: ZDR text refinement.
+        *   Theme: ZDR policy clarity.
+
+    *   **`CHANGELOG.md.md`**:
+        *   Changes: Version 2.1.70. Lots of bug fixes for Claude Code/CLI (Windows specific, performance, UI, plugin management, MCP).
+        *   Theme: CLI/Claude Code tool improvements.
+
+3.  **Synthesize Key Themes:**
+
+    *   **SDK API Refactoring (Breaking/Significant):** Major updates to Java (Structured Outputs `outputFormat` -&gt; `outputConfig`) and C# (`TryPick` pattern for unions/tool use, namespace changes for Beta).
+    *   **ZDR Policy Clarification:** Consistent text updates across tools defining eligibility. Crucially, new dynamic filtering features in Web Search/Fetch are *not* ZDR eligible by default.
+    *   **Documentation Completeness:** Massive addition of code examples in C#, Go, PHP, and Ruby for Vision, Web Search, Web Fetch, and Prompt Caching.
+    *   **Code Quality/Safety:** Shift towards safer pattern matching (`TryPick`) in C# and `Dictionary` usage for JSON building.
+    *   **CLI/Claude Code Improvements:** The Changelog shows a heavy focus on fixing bugs in the CLI/VS Code extension (Windows issues, polling rate, memory).
+
+4.  **Determine Impact Level:**
+    *   **Reasoning:** There are breaking changes in the Java and C# SDKs. Specifically, `outputFormat` to `outputConfig` in Java and the `TryPick` pattern changes in C# will break existing code if not updated. The ZDR changes for Web Search/Fetch dynamic filtering are also critical for enterprise security compliance.
+    *   **Verdict:** **High** (due to SDK breaking changes and compliance implications).
+
+5.  **Draft Action Items:**
+
+    *   Update Java Structured Outputs code (`outputFormat` -&gt; `outputConfig`, response parsing).
+    *   Refactor C# code to use `TryPick` methods for Tool Use and Extended Thinking.
+    *   Review ZDR compliance if using `web_search_20260209` or `web_fetch_20260209` (apply `allowed_callers: [&#34;direct&#34;]` if needed).
+    *   Update C# Beta namespaces (`Anthropic.Models.Beta`).
+    *   Check CLI/VS Code extension updates (v2.1.70) for performance and Windows fixes.
+
+6.  **Translate and Format (in Chinese):**
+
+    *   *Summary:* This batch updates SDK APIs (breaking changes in Java/C#), clarifies ZDR policies regarding new tool features, adds extensive multi-language code examples, and includes significant fixes to the Claude Code CLI.
+    *   *Themes:* SDK Breaking Changes (Java/C#), ZDR Eligibility Nuances, Code Example Expansion, Safety Patterns (TryPick), CLI Stability.
+    *   *Impact:* High. Breaking API changes in Java and C# SDKs require immediate code updates. ZDR policy changes affect compliance strategies.
+    *   *Action Items:* Refactor Java/C# code, Verify ZDR compliance for dynamic filtering, Update namespaces, Check CLI version.
+
+7.  **Final Polish:** Ensure the tone is professional and concise. (Self-correction: Make sure to emphasize the specific method name changes in Java as that is a direct code breaker).
+
+    *   *Java:* `outputFormat` -&gt; `outputConfig`.
+    *   *C#:* `TryPick` pattern for unions.
+
+8.  **Output Generation** (matches the drafted points).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/about-claude/models/migration-guide.html" class="page-link">about-claude/models/migration-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/errors.html" class="page-link">api/errors.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/overview.html" class="page-link">build-with-claude/overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/vision.html" class="page-link">build-with-claude/vision.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+182</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/extended-thinking.html" class="page-link">build-with-claude/extended-thinking.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+10</span>
+                            <span class="removed">-9</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-caching.html" class="page-link">build-with-claude/prompt-caching.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+21</span>
+                            <span class="removed">-7</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/batch-processing.html" class="page-link">build-with-claude/batch-processing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/context-windows.html" class="page-link">build-with-claude/context-windows.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/context-editing.html" class="page-link">build-with-claude/context-editing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/structured-outputs.html" class="page-link">build-with-claude/structured-outputs.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+39</span>
+                            <span class="removed">-45</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/files.html" class="page-link">build-with-claude/files.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/working-with-messages.html" class="page-link">build-with-claude/working-with-messages.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-on-amazon-bedrock.html" class="page-link">build-with-claude/claude-on-amazon-bedrock.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/claude-prompting-best-practices.html" class="page-link">build-with-claude/prompt-engineering/claude-prompting-best-practices.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/overview.html" class="page-link">agents-and-tools/tool-use/overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/implement-tool-use.html" class="page-link">agents-and-tools/tool-use/implement-tool-use.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+9</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/computer-use-tool.html" class="page-link">agents-and-tools/tool-use/computer-use-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/web-search-tool.html" class="page-link">agents-and-tools/tool-use/web-search-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+27</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/web-fetch-tool.html" class="page-link">agents-and-tools/tool-use/web-fetch-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+25</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/code-execution-tool.html" class="page-link">agents-and-tools/tool-use/code-execution-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/memory-tool.html" class="page-link">agents-and-tools/tool-use/memory-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/fine-grained-tool-streaming.html" class="page-link">agents-and-tools/tool-use/fine-grained-tool-streaming.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/programmatic-tool-calling.html" class="page-link">agents-and-tools/tool-use/programmatic-tool-calling.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/mcp-connector.html" class="page-link">agents-and-tools/mcp-connector.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+30</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">18:47 EST</div>
