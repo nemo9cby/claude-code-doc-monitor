@@ -118,9 +118,363 @@
 
         <header>
             <h1>Changes on 2026-03-06</h1>
-            <p class="meta">3 total changes in 2 runs</p>
+            <p class="meta">21 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">20:27 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 文档变更分析
+
+#### 1. 总体概述
+本次文档更新引入了新的定时任务功能 (`/loop` 命令)，将所有代码示例中的默认模型升级为 `claude-opus-4-6`，并着重优化了视觉 API 的最佳实践建议（推荐使用 Files API 以减少传输开销），同时修复了多处代码示例的语法和格式问题。
+
+#### 2. 核心变更主题
+
+*   **新增定时任务与 Cron 支持**:
+    *   引入了 `/loop` 斜杠命令，允许按固定间隔重复执行提示词（例如轮询部署状态）。
+    *   新增 `CLAUDE_CODE_DISABLE_CRON` 环境变量用于禁用该功能。
+*   **模型版本更新**:
+    *   所有 API 调用示例中的模型名称已从 `claude-3-7-sonnet-latest` 统一更新为 `claude-opus-4-6`，标志着该模型已成为当前推荐的实现标准。
+*   **视觉与文件处理优化**:
+    *   强烈建议在多轮对话或 Agent 工作流中使用 Files API 处理图片，而非 Base64，以显著降低 Payload 大小和延迟。
+    *   修正了 Base64 编码命令，增加了 `tr -d &#39;\n&#39;` 以确保生成的字符串符合 JSON 格式要求。
+*   **文档代码清理与修复**:
+    *   移除了代码块中冗余的 `theme={null}` 属性。
+    *   将代码示例中的占位符（如 `[/* ... */]`）替换为具体的最小可用代码，提高了示例的可复制性。
+    *   为 Shell 代码块添加了 `nocheck` 标记，以避免文档系统对 API Key 等内容的误报。
+
+#### 3. 影响级别
+**Medium (中等)**
+
+**理由**:
+尽管大部分更改属于文档格式清理，但 `/loop` 命令的引入改变了 Claude Code 的交互方式（从单次请求变为长期会话监控），且示例模型统一切换至 `claude-opus-4-6` 对开发者具有明确的指导意义。Base64 命令的修复和 Files API 的推荐也是解决实际开发痛点的重要更新。
+
+#### 4. 开发者行动项
+
+*   **试用 `/loop` 命令**: 在需要监控部署、长时间运行任务或周期性检查代码库状态时，使用 `/loop &lt;interval&gt; &lt;prompt&gt;` 替代手动轮询。
+*   **更新模型引用**: 在现有代码和示例中，考虑将模型字符串更新为 `claude-opus-4-6` 以获得最新性能。
+*   **优化图像处理流程**: 如果应用涉及多轮图片对话，迁移至 Files API（上传一次，通过 `file_id` 引用），避免每次请求都重复传输 Base64 数据。
+*   **修正 Base64 编码**: 检查现有的 Shell 脚本，确保在生成图片 Base64 时使用 `tr -d &#39;\n&#39;` 去除换行符，防止 JSON 解析错误。
+*   **审查 Cron 设置**: 如果环境不支持或不需要后台定时任务，设置 `CLAUDE_CODE_DISABLE_CRON=1` 环境变量以禁用相关行为。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Input:** A batch of 18 changed pages (diffs provided).
+    *   **Output Format:** Markdown (Concise, insightful).
+    *   **Language:** Chinese (as requested by &#34;请用中文回复&#34;).
+    *   **Structure:**
+        1.  Overall Summary.
+        2.  Key Themes.
+        3.  Impact Level.
+        4.  Action Items.
+
+2.  **Analyze the Diffs (Page by Page):**
+
+    *   `overview.md`: Cleanup of code blocks (removing duplicate `theme={null}` attributes).
+    *   `settings.md`: Added `CLAUDE_CODE_DISABLE_CRON` to disable scheduled tasks/cron.
+    *   `skills.md` &amp; `slash-commands.md`: Added `/loop` command description (recurring prompts via cron).
+    *   `build-with-claude/vision.md`:
+        *   Improved Base64 image example (cleaned up variable handling).
+        *   Added strong recommendation for Files API for images to avoid payload bloat in multi-turn conversations.
+        *   Updated text in `working-with-messages.md` (see below) to reflect `file` source type for images.
+    *   `build-with-claude/prompt-caching.md`: Minor cleanup (removed comment, fixed punctuation).
+    *   `build-with-claude/batch-processing.md`: Updated polling examples. Added `break` in loop (likely to prevent infinite loops in example code), added code to create a batch ID.
+    *   `build-with-claude/context-editing.md`: Filled in placeholders (`[/* ... */]`, `[...]`) with actual minimal valid JSON/content. This is likely for better copy-paste usability.
+    *   `build-with-claude/files.md`: Replaced `jq` command with a static string for better example readability.
+    *   `build-with-claude/working-with-messages.md`:
+        *   Mentioned `file` source type for images.
+        *   Added `tr -d &#39;\n&#39;` to base64 encoding command (crucial for valid JSON).
+    *   `build-with-claude/claude-on-vertex-ai.md` &amp; `claude-in-microsoft-foundry.md`: Added `nocheck` attribute to code blocks (likely to bypass linters checking API keys or similar checks in the documentation system).
+    *   `agents-and-tools/tool-use/overview.md`: Escaped apostrophe in a string.
+    *   `agents-and-tools/tool-use/implement-tool-use.md`: *Significant change*: Updated all model names from `claude-3-7-sonnet-latest` to `claude-opus-4-6` (or `ModelClaudeOpus4_6` etc.). This suggests a shift in default examples to the newer/better model.
+    *   `agents-and-tools/tool-use/text-editor-tool.md` &amp; `tool-search-tool.md` &amp; `mcp-connector.md`: Added `nocheck` attribute.
+    *   `CHANGELOG.md.md`: New version `2.1.71`.
+        *   Added `/loop` command.
+        *   Added cron scheduling tools.
+        *   `CLAUDE_CODE_DISABLE_CRON` added.
+        *   Model updates? (Changelog doesn&#39;t explicitly mention `claude-opus-4-6` default switch, but code diffs show it).
+        *   Bug fixes (stdin freeze, startup freeze, forked conversations, image processing, etc.).
+        *   Plugin improvements.
+
+3.  **Synthesize Themes:**
+
+    *   **Feature Addition:** Scheduled Tasks / Cron. The `/loop` command, cron tools, and the disable environment variable are the big new features.
+    *   **Model Updates:** Documentation examples are now using `claude-opus-4-6` instead of `claude-3-7-sonnet-latest`.
+    *   **Vision/Files Best Practices:** Stronger guidance on using the Files API for images to optimize performance and payload size.
+    *   **Code Quality/UX:** Cleanup of `theme` attributes, fixing base64 commands (`tr -d &#39;\n&#39;`), replacing placeholders with valid code, and adding `nocheck` flags.
+    *   **Bug Fixes/Stability:** The changelog lists many fixes related to freezing, session management, and plugins.
+
+4.  **Determine Impact:**
+
+    *   **Impact Level:** **Medium**.
+    *   **Reasoning:** While there are many minor formatting fixes (low impact), the introduction of Cron scheduling (`/loop`) and the default model switch to `claude-opus-4-6` in examples are notable. The `/loop` feature changes how developers can interact with the agent (long-running tasks), and the model change indicates the current &#34;gold standard&#34; for implementation examples.
+
+5.  **Draft Action Items:**
+
+    *   Explore `/loop` for monitoring/deployment tasks.
+    *   Switch to `claude-opus-4-6` in code examples or production.
+    *   Use Files API for images in multi-turn chats.
+    *   Update `base64` encoding commands to remove newlines (`tr -d &#39;\n&#39;`).
+    *   Review `CLAUDE_CODE_DISABLE_CRON` if auto-scheduling is undesired.
+
+6.  **Translate to Chinese &amp; Format:**
+
+    *   *Summary:* 文档主要引入了 Cron 定时任务功能（`/loop` 命令），更新了示例模型为 `claude-opus-4-6`，并优化了视觉 API 相关的最佳实践建议，同时修复了大量代码示例中的格式和有效性问题。
+    *   *Themes:*
+        *   新增定时任务功能 (`/loop`)
+        *   模型更新 (`claude-opus-4-6`)
+        *   视觉/文件 API 最佳实践优化
+        *   文档代码示例清理与修复
+    *   *Impact:* Medium.
+    *   *Action Items:* (As drafted above).
+
+7.  **Refine the Output (Self-Correction during drafting):**
+    *   Make sure to explicitly mention the `tr -d &#39;\n&#39;` fix for base64, as that&#39;s a common pitfall for developers.
+    *   Highlight the connection between `/loop` and the settings change.
+    *   Note that the `overview.md` changes are just formatting noise, but represent a systematic cleanup.
+
+8.  **Final Polish:** Check against the requested markdown structure.
+
+    (Drafting the Chinese response...)
+    - Summary: 本次文档更新引入了定时任务功能，将示例模型全面切换至 `claude-opus-4-6`，并强调了文件 API 在多轮对话中的性能优势。
+    - Themes: ... (list)
+    - Impact: Medium. (Reasoning)
+    - Action Items: ... (list)
+
+    Looks good. Ready to generate.</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/overview.html" class="page-link">overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/vision.html" class="page-link">build-with-claude/vision.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+23</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-caching.html" class="page-link">build-with-claude/prompt-caching.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/batch-processing.html" class="page-link">build-with-claude/batch-processing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+14</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/context-editing.html" class="page-link">build-with-claude/context-editing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/files.html" class="page-link">build-with-claude/files.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/working-with-messages.html" class="page-link">build-with-claude/working-with-messages.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-on-vertex-ai.html" class="page-link">build-with-claude/claude-on-vertex-ai.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-in-microsoft-foundry.html" class="page-link">build-with-claude/claude-in-microsoft-foundry.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/overview.html" class="page-link">agents-and-tools/tool-use/overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/implement-tool-use.html" class="page-link">agents-and-tools/tool-use/implement-tool-use.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            <span class="removed">-13</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/text-editor-tool.html" class="page-link">agents-and-tools/tool-use/text-editor-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/tool-search-tool.html" class="page-link">agents-and-tools/tool-use/tool-search-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/mcp-connector.html" class="page-link">agents-and-tools/mcp-connector.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+29</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">18:23 EST</div>
