@@ -118,9 +118,141 @@
 
         <header>
             <h1>Changes on 2026-03-10</h1>
-            <p class="meta">9 total changes in 3 runs</p>
+            <p class="meta">11 total changes in 4 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">19:22 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">1.  **Overall Summary**
+    引入了新的斜杠命令 `/btw`，允许开发者在 AI 处理长任务时并行提问，利用当前上下文获取信息，且不污染对话历史或消耗额外 Token。
+
+2.  **Key Themes**
+    *   **非阻塞式工作流**：`/btw` 允许在主任务运行时插入临时查询，结果以浮层形式展示，按 Space/Esc 即可关闭，不中断主线程。
+    *   **上下文与工具的权衡**：明确了该命令的权限边界——拥有完整的对话上下文可见性，但**没有任何工具访问权限**（不能读文件、跑命令）。
+    *   **成本优化**：通过复用父对话的 Prompt 缓存，将单次提问的额外成本降至最低。
+    *   **架构定位**：文档中将 `/btw` 定义为 Subagents 的“反向操作”——前者是“有眼无手”（看得到上下文但干不了活），后者是“有手无眼”（能干活但不知道上下文）。
+
+3.  **Impact level**
+    **Medium**
+    *   **理由**：这是一个全新的功能增强，而非破坏性变更。它极大地改善了长时间交互会话的体验，解决了开发者“想问个小事又怕打断思路”的痛点，但需要开发者学习其特定的限制（无工具权限）。
+
+4.  **Action items for developers**
+    *   **利用 `/btw` 查询记忆**：当你需要询问刚才提到的配置文件名、变量定义或之前的决策逻辑时，使用此命令。
+    *   **避免用于执行操作**：不要尝试用 `/btw` 让 AI 读取新文件或运行测试，它只能基于已知信息回答。
+    *   **区分查询场景**：如果是“这行代码是什么意思”用 `/btw`；如果是“帮我找个文件”或“运行个命令”，请继续使用 Subagent 或主对话。
+    *   **注意单次交互**：由于不支持多轮对话，确保问题一次性表述清晰。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Understand the Goal**: The user wants a concise analysis of documentation changes (two pages) focusing on what matters to developers, written in Chinese.
+
+2.  **Analyze the Input**:
+    *   **Page 1: `interactive-mode.md`**:
+        *   Added a command `/btw &lt;question&gt;` to the command table.
+        *   Added a new section &#34;Side questions with /btw&#34;.
+        *   Key features of `/btw`:
+            *   Ask quick questions without adding to history.
+            *   Full visibility into current conversation.
+            *   Ephemeral (appears in overlay).
+            *   Available while Claude is working (non-blocking).
+            *   No tool access (can&#39;t read files, run commands).
+            *   Single response (no follow-up).
+            *   Low cost (reuses prompt cache).
+            *   Dismissible via Space/Enter/Esc.
+            *   Comparison: Inverse of subagents (full context + no tools vs. empty context + tools).
+
+    *   **Page 2: `sub-agents.md`**:
+        *   Added a tip/suggestion in the considerations section.
+        *   Advice: Use `/btw` for quick questions about existing context instead of a subagent.
+        *   Reason: `/btw` sees full context but no tools, answer discarded.
+
+3.  **Synthesize the Analysis**:
+
+    *   **Overall Summary**: A new `/btw` slash command has been introduced for asking ephemeral side questions that have full visibility into the current conversation but do not use tools or affect history.
+    *   **Key Themes**:
+        *   *Workflow Efficiency*: Adding a way to interrupt/query without derailing main tasks.
+        *   *Context Management*: Distinguishing between &#34;tools but empty context&#34; (subagents) and &#34;no tools but full context&#34; (`/btw`).
+        *   *Cost/Performance*: Emphasizing low cost via prompt cache reuse and non-blocking execution.
+    *   **Impact Level**: **Low/Medium**. It&#39;s a feature addition (new command), not a breaking change. It significantly improves developer experience (DX) for complex sessions.
+    *   **Action Items**:
+        *   Try using `/btw` for quick reminders or clarifications during long tasks.
+        *   Understand the limitation: it cannot run terminal commands or read new files.
+        *   Choose between `/btw` and subagents based on whether you need *knowledge from context* (`/btw`) or *actions/tools* (subagents).
+
+4.  **Drafting the Response (in Chinese)**:
+
+    *   *Summary*: 引入了新的斜杠命令 `/btw`，用于在不中断主任务或污染对话历史的情况下，询问基于当前上下文的临时问题。
+    *   *Themes*:
+        *   非阻塞交互：允许在 AI 处理任务时并行提问。
+        *   上下文复用：利用现有对话记忆，无权使用外部工具。
+        *   架构区分：明确了 `/btw`（全上下文、无工具）与 Subagent（无上下文、全工具）的互补关系。
+    *   *Impact*: Medium. It&#39;s a UX improvement that optimizes workflow but doesn&#39;t change existing code logic.
+    *   *Action Items*:
+        *   利用 `/btw` 快速检索记忆中的信息（如变量名、之前的决策）。
+        *   避免用它执行需要文件读取或命令运行的操作。
+        *   在需要“获取新信息”时继续使用 Subagent，需要“查询旧信息”时使用 `/btw`。
+
+5.  **Refining the Language**: Ensure professional, concise, developer-centric tone.
+
+    *   *Summary*: 新增 `/btw` 命令，允许开发者在不中断主任务、不污染对话历史的前提下，基于当前上下文快速提问。
+    *   *Themes*:
+        *   **非阻塞式查询**：可在 AI 处理过程中并行提问，结果以浮层展示。
+        *   **工具限制与上下文复用**：该命令拥有完整上下文可见性，但无法读取文件或执行命令，且成本极低（复用 Prompt 缓存）。
+        *   **功能边界界定**：明确了 `/btw` 与 Subagents 的互斥关系（前者“有眼无手”，后者“有手无眼”）。
+    *   *Impact*: **Medium**. (Reason: New feature, improves DX significantly for complex workflows, but isn&#39;t a breaking change).
+    *   *Action Items*:
+        *   在需要快速确认代码细节或过往决策时使用 `/btw`。
+        *   理解其单次回复限制，无需交互时使用。
+        *   区分使用场景：需要查询已知信息用 `/btw`，需要探索外部环境用 Subagents。
+
+6.  **Final Check against constraints**:
+    *   Markdown format? Yes.
+    *   Chinese? Yes.
+    *   Concise? Yes.
+    *   Focus on developers? Yes.
+
+7.  **Final Output Generation**. (Proceed to generate output based on the refined draft).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/interactive-mode.html" class="page-link">interactive-mode.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+11</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">18:23 EST</div>
