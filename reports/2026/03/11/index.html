@@ -118,9 +118,160 @@
 
         <header>
             <h1>Changes on 2026-03-11</h1>
-            <p class="meta">4 total changes in 1 run</p>
+            <p class="meta">5 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">14:47 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 1. Overall Summary
+本次 2.1.73 版本更新是一次重要的维护与稳定性增强版本，重点修复了导致应用卡死、死锁及高 CPU 占用的严重 Bug，并大幅改善了企业级云服务（Bedrock/Vertex/Foundry）的兼容性及网络代理环境下的错误提示。同时，更新引入了交互体验优化（如 Up Arrow 键逻辑）、默认模型升级（Opus 4.6）以及配置管理的结构性调整（弃用 `/output-style`）。
+
+### 2. Key Themes
+*   **核心稳定性修复**：解决了复杂 Bash 命令引发的无限循环、技能文件批量变更时的死锁、以及子代理后台进程未清理等资源泄漏问题。
+*   **企业环境与云平台支持**：增强了 AWS Bedrock、Google Vertex 和 Microsoft Foundry 的集成（新增 `modelOverrides`、修复模型降级、升级默认 Opus 至 4.6），并提供了针对 SSL 证书和代理问题的具体错误排查指引。
+*   **跨平台兼容性**：修复了 Linux (ripgrep 缺失、glibc 版本) 和 Windows (heapdump 错误) 环境下的启动失败问题。
+*   **工作流与交互优化**：改进了 `/effort`、`/loop` 等命令的可用性，优化了中断后的会话恢复逻辑（Up Arrow 键），提升了语音模式和剪贴板的响应速度。
+*   **架构与配置调整**：为了优化提示词缓存，弃用了 `/output-style` 命令，将输出风格固定在会话开始时，统一迁移至 `/config` 管理。
+
+### 3. Impact Level
+**High (高)**
+*   **理由**：此次更新修复了多个会导致 Claude Code 完全冻结或资源耗尽的关键 Bug，对日常开发体验有直接影响。同时，默认模型版本的变更和命令弃用属于 Breaking Changes，要求开发者调整现有配置。此外，对企业用户关注的代理连接和 Bedrock 集成问题的修复也显著提升了工具的可用性。
+
+### 4. Action items for developers
+*   **更新命令用法**：如果你习惯使用 `/output-style`，请立即改用 `/config` 命令，因为前者已被弃用且不再生效。
+*   **验证模型版本**：请注意 Bedrock、Vertex 和 Foundry 上的默认 Opus 模型已升级至 4.6，请确认其行为和成本是否符合预期。
+*   **配置自定义模型**：如果你使用 Bedrock 等服务，请查阅新的 `modelOverrides` 设置，以便将模型选择器映射到特定的推理配置文件 ARN。
+*   **排查网络连接**：若在企业代理环境下遇到 OAuth 登录失败，请根据新增的错误提示检查 `NODE_EXTRA_CA_CERTS` 或证书配置。
+*   **利用恢复功能**：在尝试新版本时，体验改进后的 Up Arrow 键功能，它现在可以在中断后一步恢复提示词并回滚对话上下文。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **分析请求：**
+    *   **角色：** 世界级程序员，精通开发者工具和文档。
+    *   **任务：** 分析文档变更（单一批次）并进行总结。
+    *   **输入：** 来自 `CHANGELOG.md.md` 的单个差异块（版本 2.1.73）。
+    *   **输出语言：** 中文。
+    *   **输出格式：** Markdown，包含以下特定部分：
+        1.  Overall Summary (总体摘要)
+        2.  Key Themes (关键主题)
+        3.  Impact Level (影响程度)
+        4.  Action Items for Developers (开发者行动项)
+
+2.  **分析输入数据 (CHANGELOG.md.md - 版本 2.1.73)：**
+
+    *   *新增内容：*
+        *   `modelOverrides`：允许将模型选择器映射到自定义提供商 ID（例如 Bedrock ARN）。
+        *   SSL/OAuth 故障：关于证书错误（代理、`NODE_EXTRA_CA_CERTS`）的指导。
+
+    *   *修复内容：*
+        *   复杂 Bash 命令导致的冻结/100% CPU 循环。
+        *   大量技能文件变更时的死锁（例如 `.claude/skills/` 上的 `git pull`）。
+        *   多个 Claude Code 会话丢失 Bash 工具输出。
+        *   Bedrock/Vertex/Foundry 上子代理模型降级。
+        *   子代理的后台 Bash 进程未清理。
+        *   `/resume` 显示当前会话（逻辑错误）。
+        *   `/ide` 崩溃（`onInstall is not defined`）。
+        *   `/loop` 在 Bedrock/Vertex 上不可用或遥测被禁用时无法使用。
+        *   SessionStart 钩子触发两次。
+        *   JSON 输出钩子注入无操作消息（Token 浪费/污染）。
+        *   慢速连接时的语音模式会话损坏。
+        *   Linux sandbox 缺少 `ripgrep`。
+        *   Linux native modules 在 Amazon Linux 2 上的兼容性。
+        *   通过 Remote Control 接收图像时的 API 错误。
+        *   Windows 上的 `/heapdump` 失败。
+        *   VSCode 中代理/Bedrock 上的 HTTP 400 错误。
+
+    *   *改进内容：*
+        *   `Up arrow`（上箭头）行为：恢复提示并回滚对话。
+        *   IDE 检测速度。
+        *   macOS 剪贴板粘贴性能。
+        *   `/effort` 在响应期间可用。
+        *   语音模式针对连接失败的自动重试。
+        *   Remote Control 提示。
+
+    *   *变更/弃用：*
+        *   Opus 默认值：在 Bedrock/Vertex/Foundry 上更改为 Opus 4.6。
+        *   `/output-style` 已弃用 -&gt; 使用 `/config`。样式在会话开始时固定以利于缓存。
+
+3.  **综合分析：**
+
+    *   **总体摘要：** 版本 2.1.73 是一次重大维护更新，重点解决了稳定性问题（冻结、死锁、进程泄漏）、平台兼容性（Linux、AWS Bedrock、代理环境）以及用户体验改进（语音、CLI 命令如 `/effort` 和箭头键导航）。它还引入了一个重大变更，即弃用 `/output-style` 并将模型默认版本更新为 4.6。
+
+    *   **关键主题：**
+        *   *稳定性与性能：* 修复了严重的卡顿（CPU 循环）、死锁以及 Linux/Windows 环境下的崩溃。
+        *   *企业/云集成：* 增强了对 Bedrock、Vertex 和 Microsoft Foundry 的支持（模型映射、Opus 4.6、代理错误处理）。
+        *   *工作流优化：* 改进的 CLI 交互（箭头键恢复、动态 `/effort`）和后台进程管理。
+        *   *弃用：* 将配置迁移到 `/config` 以更好地支持提示缓存。
+
+    *   **影响程度：** 高。
+        *   *原因：*
+            *   *崩溃修复：* 冻结和 CPU 循环对开发者生产力影响巨大。
+            *   *重大变更：* 弃用 `/output-style` 和默认模型变更需要开发者关注。
+            *   *企业就绪性：* SSL/代理修复和 Bedrock 集成改进对于企业用户至关重要。
+
+    *   **行动项：**
+        *   迁移命令：如果你在使用 `/output-style`，则切换到 `/config`。
+        *   检查模型：验证 Opus 4.6 是否符合你的预期（因为默认值已更改）。
+        *   验证环境：如果在 Bedrock/Vertex 上遇到 HTTP 400 错误或连接失败，请更新。
+        *   配置清理：如果使用自定义提供商，请检查 `modelOverrides`。
+
+4.  **起草回复（中文）：**
+
+    *   *总体摘要：* 本次 2.1.73 版本更新主要解决了稳定性问题（修复了死锁、CPU 占用过高及 Bash 进程泄漏），并显著提升了企业级云服务（Bedrock, Vertex）的兼容性与网络代理环境下的用户体验。此外，引入了模型版本默认升级及命令行交互的改进，同时弃用了 `/output-style` 命令。
+
+    *   *关键主题：*
+        *   **稳定性与性能修复**：解决了复杂的 Bash 命令导致的冻结、技能文件变更时的死锁以及 Linux/Windows 平台下的兼容性问题（如 ripgrep 缺失、heapdump 失败）。
+        *   **企业级集成增强**：针对 Bedrock、Vertex 和 Microsoft Foundry 进行了多项修复，包括模型映射 (`modelOverrides`)、SSL 证书错误提示以及 Opus 模型默认升级至 4.6。
+        *   **交互体验优化**：改进了 CLI 行为（如 Up Arrow 键恢复对话、`/effort` 动态可用）、语音模式的重试机制以及 macOS 剪贴板性能。
+        *   **架构调整**：弃用 `/output-style` 以支持 `/config`，从而优化提示词缓存机制。
+
+    *   *影响程度：* **High (高)**。
+        *   **原因**：修复了会导致应用无响应的严重 Bug（死锁、CPU 100%）；涉及默认模型版本的变更和命令弃用，直接改变现有工作流；修复了企业代理环境下的连接错误，对企业开发者影响显著。
+
+    *   *行动项：*
+        *   **更新命令用法**：如果你使用了 `/output-style`，请立即迁移至 `/config` 命令，因为前者已被弃用。
+        *   **验证模型行为**：注意 Bedrock/Vertex/Foundry 上的默认 Opus 模型已升级至 4.6，请验证其输出是否符合预期。
+        *   **利用新配置**：如需映射自定义模型 ID（如 Bedrock ARN），请查看新的 `modelOverrides` 设置。
+        *   **排查网络问题**：如果在企业代理下遇到 OAuth 或连接失败，请参考新增的 SSL 证书错误提示（`NODE_EXTRA_CA_CERTS`）进行修复。
+
+5.  **根据约束条件进行最终审查：**
+    *   世界级程序员语气？是。
+    *   中文？是。
+    *   Markdown 格式？是。
+    *   简洁？是。
+    *   最多 5 个行动项？是。
+
+6.  **最终输出生成。**（与起草的回复一致）。</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+27</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">00:05 EST</div>
