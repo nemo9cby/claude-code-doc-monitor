@@ -66,16 +66,16 @@ Scopes apply to many Claude Code features:
 | Feature         | User location             | Project location                   | Local location                 |
 | :-------------- | :------------------------ | :--------------------------------- | :----------------------------- |
 | **Settings**    | `~/.claude/settings.json` | `.claude/settings.json`            | `.claude/settings.local.json`  |
-| **Subagents**   | `~/.claude/agents/`       | `.claude/agents/`                  | —                              |
+| **Subagents**   | `~/.claude/agents/`       | `.claude/agents/`                  | None                           |
 | **MCP servers** | `~/.claude.json`          | `.mcp.json`                        | `~/.claude.json` (per-project) |
 | **Plugins**     | `~/.claude/settings.json` | `.claude/settings.json`            | `.claude/settings.local.json`  |
-| **CLAUDE.md**   | `~/.claude/CLAUDE.md`     | `CLAUDE.md` or `.claude/CLAUDE.md` | —                              |
+| **CLAUDE.md**   | `~/.claude/CLAUDE.md`     | `CLAUDE.md` or `.claude/CLAUDE.md` | None                           |
 
 ***
 
 ## Settings files
 
-The `settings.json` file is our official mechanism for configuring Claude
+The `settings.json` file is the official mechanism for configuring Claude
 Code through hierarchical settings:
 
 * **User settings** are defined in `~/.claude/settings.json` and apply to all
@@ -91,9 +91,14 @@ Code through hierarchical settings:
     * Windows: `HKLM\SOFTWARE\Policies\ClaudeCode` registry key with a `Settings` value (REG\_SZ or REG\_EXPAND\_SZ) containing JSON (deployed via Group Policy or Intune)
     * Windows (user-level): `HKCU\SOFTWARE\Policies\ClaudeCode` (lowest policy priority, only used when no admin-level source exists)
   * **File-based**: `managed-settings.json` and `managed-mcp.json` deployed to system directories:
+
     * macOS: `/Library/Application Support/ClaudeCode/`
     * Linux and WSL: `/etc/claude-code/`
     * Windows: `C:\Program Files\ClaudeCode\`
+
+    <Warning>
+      The legacy Windows path `C:\ProgramData\ClaudeCode\managed-settings.json` is no longer supported as of v2.1.75. Administrators who deployed settings to that location must migrate files to `C:\Program Files\ClaudeCode\managed-settings.json`.
+    </Warning>
 
   See [managed settings](/en/permissions#managed-only-settings) and [Managed MCP configuration](/en/mcp#managed-mcp-configuration) for details.
 
