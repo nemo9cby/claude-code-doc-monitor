@@ -118,9 +118,306 @@
 
         <header>
             <h1>Changes on 2026-03-13</h1>
-            <p class="meta">17 total changes in 1 run</p>
+            <p class="meta">33 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">13:30 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更分析
+
+## 1. 总体摘要
+**Claude Opus 4.6 和 Sonnet 4.6 的 100万 token 上下文窗口现已正式发布（GA），不再标记为 Beta，且以标准价格提供，不再有专门的速率限制 tiers。** 相比之下，Sonnet 4.5 和 Sonnet 4 的长上下文功能仍处于 Beta 阶段，并在超过 200k tokens 时适用高级定价。此外，多模态内容（图片/PDF）的处理限制已随上下文扩展而显著增加。
+
+## 2. 核心主题
+*   **1M 上下文窗口的 GA (Opus 4.6 / Sonnet 4.6)**：这两款模型的 1M 上下文窗口现已全面可用，移除了 Beta 标签，且不再需要特定的 `context-1m-2025-08-07` header 即可访问完整容量。
+*   **定价与计费标准化**：对于 Opus 4.6 和 Sonnet 4.6，无论输入 token 数量多少（即使在 200k 以上），均按标准费率计费，不再收取“长上下文”溢价。Sonnet 4.5/4 超过 200k 仍保留溢价（2x 输入 / 1.5x 输出）。
+*   **速率限制简化**：文档中移除了专门针对长上下文请求（&gt;200k tokens）的独立速率限制章节，意味着 Opus 4.6 和 Sonnet 4.6 的长上下文请求现在消耗标准的速率限制配额。
+*   **多模态限制提升**：API 对图片和 PDF 页面的处理限制从 100 提升至 **600**（针对 1M 上下文模型），以匹配新的上下文容量；200k 上下文模型仍限制为 100。
+*   **第三方平台请求大小限制**：明确指出了第三方平台的负载限制（Vertex AI 为 30 MB，Amazon Bedrock 为 20 MB），警告开发者在发送大量文件时可能会先触及这些大小限制而非 token 限制。
+
+## 3. 影响等级
+**高**
+
+**理由**：对于使用 Opus 4.6 或 Sonnet 4.6 的开发者来说，这是成本和架构层面的重大利好。消除了长上下文的高昂溢价费用，使得处理大规模文档或代码库变得更加经济可行，无需复杂的逻辑来分段处理或管理 Beta 功能。这降低了构建复杂 RAG 或大规模代码分析应用的门槛。
+
+## 4. 开发者行动项
+*   **更新成本预期**：如果您使用 Opus 4.6 或 Sonnet 4.6 处理超过 200k tokens 的上下文，请更新您的预算模型，因为不再有额外的“长上下文”费用。
+*   **移除 Beta 逻辑**：对于 Opus 4.6 和 Sonnet 4.6，您可以移除代码中 `context-1m-2025-08-07` 的 beta header 处理逻辑（除非您也在使用 Sonnet 4.5/4）。
+*   **使用 Claude Code 别名**：在 Claude Code 配置中，现在可以使用 `/model opus[1m]` 来显式选择 1M 上下文变体。
+*   **注意平台负载限制**：在 Vertex AI 或 Bedrock 上处理大量图片/PDF 时，如果遇到 413 错误，请优先考虑使用 Files API 上传文件并通过 `file_id` 引用，以绕过 20-30 MB 的请求体大小限制。
+*   **检查模型选择**：确认您的应用在需要长上下文时优先使用 Opus 4.6 或 Sonnet 4.6，以享受标准定价，避免在旧版模型上产生意外的高昂费用。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Understand the Goal**: The user wants a concise, insightful analysis of documentation changes in markdown format, focusing on developer impact, responding in Chinese. The input consists of diffs from 16 documentation pages (though the specific diff content is provided for a subset, I should focus on the patterns visible). The changes mostly revolve around the 1M token context window, pricing, rate limits, and model configurations.
+
+2.  **Analyze the Input Data**:
+    *   `google-vertex-ai.md`: Opus 4.6 now supports 1M context (previously just Sonnet 4/4.6). Beta header requirement removed for supported models (or at least text simplified). Instructions to use `[1m]` suffix added.
+    *   `model-config.md`: Added `opus[1m]` alias. Updated availability chart (Max/Team/Enterprise get Opus 1M included; Sonnet still requires extra usage on some plans). Pricing clarified (standard pricing for 1M, no premium beyond 200k for Opus/Sonnet 4.6? Wait, pricing.md contradicts this, need to check carefully). Actually, `model-config.md` says &#34;standard model pricing with no premium for tokens beyond 200K&#34;. *Correction*: `pricing.md` says Opus 4.6 and Sonnet 4.6 have standard pricing. Sonnet 4.5 and 4 still have premiums for &gt;200k.
+    *   `about-claude/models/overview.md`: Opus 4.6 and Sonnet 4.6 default to 1M context in the table (removing the &#34;(beta)&#34; label for the 1M column implies GA or wider availability). Previous models (Opus 4.5, Haiku) remain at 200k. Sonnet 4.5/4 need beta header for 1M.
+    *   `about-claude/pricing.md`: **Major Change**: Claude Opus 4.6 and Sonnet 4.6 now have 1M context at *standard pricing* (no premium). Sonnet 4.5 and 4 still have premium pricing (&gt;200k). &#34;Long context rate limits&#34; section removed from `api/rate-limits.md`.
+    *   `api/overview.md`: Added note about third-party request size limits (Vertex AI 30MB, Bedrock 20MB).
+    *   `api/rate-limits.md`: Removed the dedicated &#34;Long context rate limits&#34; section. &#34;Beta&#34; note about 1M context removed/reduced.
+    *   `api/service-tiers.md`: Burndown rates updated. Long context multipliers (2x input, 1.5x output) apply *only* to Sonnet 4.5 and 4. Opus 4.6 and Sonnet 4.6 use standard 1x multipliers. US-only inference multiplier clarified for newer models (Opus 4.6+).
+    *   `build-with-claude/overview.md`: 1M context status changed from Beta to GA for main API (implied by icon change). Compaction now supported on Opus 4.6 and Sonnet 4.6.
+    *   `build-with-claude/vision.md`: API image limit increased to 600 (up from 100) for 1M context models. 100 limit remains for 200k models.
+    *   `build-with-claude/pdf-support.md`: PDF limit increased to 600 pages (up from 100) for 1M context models. 100 limit remains for 200k models.
+    *   `build-with-claude/extended-thinking.md`: Formatting updates (capitalization K -&gt; k).
+    *   `build-with-claude/context-windows.md`: Massive content reduction. Removed detailed code examples for 1M context usage. Simplified availability. Opus 4.6 and Sonnet 4.6 are now standard 1M. Sonnet 4.5/4 require beta header.
+    *   `build-with-claude/claude-on-amazon-bedrock.md`: Updated context window section. Note about 20MB request limit added.
+    *   `build-with-claude/claude-on-vertex-ai.md`: Added context window section. Note about 30MB request limit added.
+    *   `build-with-claude/claude-in-microsoft-foundry.md`: Added context window section.
+    *   `CHANGELOG.md.md`: Added `opus[1m]` alias. Opus 4.6 1M context included for Max/Team/Enterprise.
+
+3.  **Synthesize the Changes**:
+    *   **Core Theme**: The 1M Token Context Window is now **Generally Available (GA) for Opus 4.6 and Sonnet 4.6** at **standard pricing** and standard rate limits. The &#34;Beta&#34; label and specific rate limit tiers are gone for these models.
+    *   **Pricing/Rate Limits**: Previously, &gt;200k tokens cost more (2x/1.5x) and had separate rate limits. Now, for Opus 4.6 and Sonnet 4.6, 1M is the default, no extra cost per token, standard rate limits. This is huge for developers.
+    *   **Sonnet 4.5/4**: These still retain the &#34;Beta&#34; status and premium pricing/rate limits for &gt;200k tokens.
+    *   **Claude Code**: New `opus[1m]` alias.
+    *   **Multimodal**: Limits for images/PDFs increased significantly (to 600) to match the new 1M capacity.
+    *   **Third-party limits**: Explicit mention of Bedrock (20MB) and Vertex (30MB) request size caps, which act as hard stops before token limits are reached.
+
+4.  **Determine Impact**:
+    *   **Impact Level**: **High**. The removal of premium pricing and specific rate limits for Opus 4.6 and Sonnet 4.6 1M context fundamentally changes the cost structure and usability of these models for large-scale document processing. It lowers the barrier to entry significantly.
+
+5.  **Draft Action Items**:
+    *   Review pricing if using Sonnet 4.5/4 for long context (still premium).
+    *   Update Claude Code config to use `opus[1m]` if desired.
+    *   Be aware of 20MB/30MB payload limits on AWS/Vertex when sending large files (Files API recommended).
+    *   Update logic regarding &#34;Long context&#34; exceptions in code (removing checks for special beta headers or pricing multipliers for Opus 4.6/Sonnet 4.6).
+
+6.  **Translate to Chinese and Format**:
+
+    *   *Summary*: Opus 4.6 和 Sonnet 4.6 的 1M 上下文窗口现已正式发布（GA），不再收取额外费用，且不再受限于特定的速率限制 tiers。Sonnet 4.5 和 Sonnet 4 的长上下文仍处于 Beta 阶段并适用高级定价。
+    *   *Themes*: 1M Context Window GA (Opus/Sonnet 4.6), Pricing Standardization, Rate Limit Simplification, Multimodal Limit Increases (600 images/pages), Third-party Payload Constraints.
+    *   *Impact*: High. Cost reduction for heavy users on Opus/Sonnet 4.6.
+    *   *Action Items*: Update billing expectations, remove beta header logic for Opus/Sonnet 4.6, use Files API for large docs on Bedrock/Vertex, update Claude Code aliases.
+
+7.  **Refine the Output**:
+    *   Make it concise.
+    *   Use bold for emphasis.
+    *   Ensure the distinction between Opus 4.6/Sonnet 4.6 and Sonnet 4.5/4 is clear.
+
+    *Self-Correction during drafting*: I initially thought all models moved to GA. Re-reading `pricing.md` and `context-windows.md`: &#34;For Claude Sonnet 4.5 and Sonnet 4, the 1M token context window is in beta... requests that exceed 200k input tokens are automatically charged at premium long context rates.&#34; So, only Opus 4.6 and Sonnet 4.6 got the upgrade to standard pricing.
+
+    *Claude Code specific*: The `CHANGELOG.md` mentions `opus[1m]` alias and UI improvements. The `google-vertex-ai.md` mentions appending `[1m]` to model IDs.
+
+8.  **Final Polish (Markdown)**:
+    *   Summary: Clear distinction between models.
+    *   Themes: Bullet points.
+    *   Impact: High (Cost/Access).
+    *   Actions: Concrete steps.
+
+    (Proceed to generate output based on these thoughts.)</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/google-vertex-ai.html" class="page-link">google-vertex-ai.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/model-config.html" class="page-link">model-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+14</span>
+                            <span class="removed">-7</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/about-claude/models/overview.html" class="page-link">about-claude/models/overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/about-claude/pricing.html" class="page-link">about-claude/pricing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+11</span>
+                            <span class="removed">-15</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/overview.html" class="page-link">api/overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/rate-limits.html" class="page-link">api/rate-limits.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-10</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/service-tiers.html" class="page-link">api/service-tiers.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/overview.html" class="page-link">build-with-claude/overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/vision.html" class="page-link">build-with-claude/vision.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/pdf-support.html" class="page-link">build-with-claude/pdf-support.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/extended-thinking.html" class="page-link">build-with-claude/extended-thinking.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/context-windows.html" class="page-link">build-with-claude/context-windows.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-130</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-on-amazon-bedrock.html" class="page-link">build-with-claude/claude-on-amazon-bedrock.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-on-vertex-ai.html" class="page-link">build-with-claude/claude-on-vertex-ai.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-in-microsoft-foundry.html" class="page-link">build-with-claude/claude-in-microsoft-foundry.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+20</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">12:34 EST</div>
