@@ -118,9 +118,254 @@
 
         <header>
             <h1>Changes on 2026-03-16</h1>
-            <p class="meta">6 total changes in 1 run</p>
+            <p class="meta">17 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">15:52 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">## 文档变更分析报告
+
+### 1. 整体摘要
+本次更新主要优化了插件与 Hooks 的动态重载机制（现在支持 LSP 服务器热重载），并引入了 Extended Thinking 的 `display` 控制 API 以降低延迟。同时，对数据收集和反馈调查的控制进行了更细粒度的调整。
+
+### 2. 关键变更主题
+
+- **插件与 Hooks 自动化增强**：文件监视器现在会自动检测并加载 Hooks 配置变更，无需手动审查或重启；`/reload-plugins` 现已支持热重载插件关联的 LSP 服务器，而不仅仅是 MCP 服务器和命令。
+- **API 延迟优化**：新增 Extended Thinking 的 `display: &#34;omitted&#34;` 选项，允许在流式响应中跳过思考内容的传输，显著降低首字延迟（TTFT），适用于无需向用户展示思考过程的自动化场景。
+- **隐私与控制细化**：明确了 Bedrock/Vertex/Foundry 环境下的默认行为——虽然默认禁用遥测，但会话质量调查除外；新增 `feedbackSurveyRate` 设置允许精确控制调查出现频率。
+- **流式事件更新**：当使用 `display: &#34;omitted&#34;` 时，流式响应将不再发送 `thinking_delta` 事件，仅发送 `signature_delta`。
+
+### 3. 影响级别：中高
+
+**理由**：
+- **插件开发者**：工作流显著简化，LSP 配置变更不再需要重启 Claude Code，大幅提升开发效率。
+- **API 集成者**：新引入的 `display` 参数为高性能/延迟敏感的应用提供了重要的优化路径（需注意 SDK 类型支持情况）。
+- **企业用户**：对第三方提供商下的数据收集行为有了更明确的控制权，有助于合规管理。
+
+### 4. 开发者行动项
+
+- **插件开发**：利用 `/reload-plugins` 热重载 LSP 配置，无需重启会话即可测试变更。
+- **API 调优**：对于不需要向终端用户展示“思考”内容的后台任务或自动化流程，设置 `thinking.display: &#34;omitted&#34;` 以减少首字延迟。
+- **隐私配置**：在 Bedrock/Vertex/Foundry 环境中，若需完全禁用调查，请在设置中配置 `CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY=1` 或调整 `feedbackSurveyRate`。
+- **流式处理逻辑**：更新流式解析代码以处理 `content_block_start` 中新增的 `signature` 字段，并适配无 `thinking_delta` 事件的情况。
+- **Hooks 管理**：移除关于 Hooks 变更需要手动审查的旧逻辑，依赖文件监视器的自动加载机制；若变更未生效，再考虑重启。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">用户希望我以世界级程序员的角度分析这批文档变更，并用中文提供简洁的洞察。我需要关注对开发者重要的内容。
+
+让我分析这11页的变更：
+
+1. **data-usage.md**：
+   - 改进了反馈调查的控制机制
+   - 明确了Bedrock/Vertex/Foundry默认关闭非必要流量，但会话质量调查是个例外
+   - 添加了`feedbackSurveyRate`设置来控制调查频率
+
+2. **discover-plugins.md**：
+   - 插件安装后需要运行`/reload-plugins`来激活
+   - 改进了`/reload-plugins`的说明
+
+3. **hooks.md**：
+   - hooks的文件监视器现在自动检测变更，不需要手动审查
+
+4. **hooks-guide.md**：
+   - 与hooks.md类似，说明hooks变更会自动生效
+
+5. **mcp.md**：
+   - 插件MCP服务器的生命周期管理更新
+   - 插件变更后需要运行`/reload-plugins`
+
+6. **plugins.md**：
+   - `/reload-plugins`现在也能重新加载LSP服务器
+   - 之前需要完全重启
+
+7. **settings.md**：
+   - `feedbackSurveyRate`设置更新了说明
+
+8. **build-with-claude/vision.md**：
+   - 小幅语言改进
+   - 强调了文件大小限制
+
+9. **build-with-claude/pdf-support.md**：
+   - 小幅语言改进
+   - PDF大小限制说明
+
+10. **build-with-claude/extended-thinking.md**：
+    - 重大新增：`display`字段控制思考内容的显示
+    - 新增&#34;omitted&#34;选项可以减少延迟
+    - 提供了多语言代码示例
+
+11. **build-with-claude/streaming.md**：
+    - 与extended-thinking.md相关的流式更新
+    - 当`display: &#34;omitted&#34;`时没有`thinking_delta`事件
+
+**关键主题**：
+1. **插件和hooks的自动重载**：文件监视器现在自动检测变更，简化了开发工作流
+2. **反馈调查控制**：更细粒度的控制，包括频率设置
+3. **思考显示控制**：新增API功能，允许省略思考内容以减少延迟
+4. **MCP服务器生命周期**：与插件重载集成
+
+**影响级别**：
+- **中等到高**：
+  - 插件开发者需要知道`/reload-plugins`的行为变化
+  - API使用者需要注意新的`display`字段用于思考控制
+  - hooks自动检测变更简化了开发流程
+
+**开发者行动项**：
+1. 了解`/reload-plugins`现在会重新加载LSP服务器（不仅仅是MCP）
+2. 考虑使用新的`display: &#34;omitted&#34;`选项来减少延迟，如果不向用户展示思考内容
+3. 注意hooks现在通过文件监视器自动更新，无需手动干预
+4. 使用`feedbackSurveyRate`来控制反馈调查的频率
+5. 对于大型文档/图片，注意文件大小限制
+
+让我用中文整理成要求的markdown格式。</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/data-usage.html" class="page-link">data-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-8</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/discover-plugins.html" class="page-link">discover-plugins.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins.html" class="page-link">plugins.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/vision.html" class="page-link">build-with-claude/vision.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-10</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/pdf-support.html" class="page-link">build-with-claude/pdf-support.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/extended-thinking.html" class="page-link">build-with-claude/extended-thinking.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+206</span>
+                            <span class="removed">-8</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/streaming.html" class="page-link">build-with-claude/streaming.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">13:56 EST</div>
