@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026-03-16 - Documentation Changes</title>
+    <style>
+        :root {
+            --bg-color: #1a1a2e;
+            --card-bg: #16213e;
+            --text-color: #eee;
+            --accent: #0f3460;
+            --add-text: #4ade80;
+            --del-text: #f87171;
+            --time-color: #60a5fa;
+        }
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg-color: #f5f5f5;
+                --card-bg: #fff;
+                --text-color: #333;
+                --accent: #e0e0e0;
+                --add-text: #155724;
+                --del-text: #721c24;
+                --time-color: #2563eb;
+            }
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+        .container { max-width: 800px; margin: 0 auto; }
+        header { margin-bottom: 2rem; }
+        h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+        .meta { color: #888; }
+        .batch { margin-bottom: 2rem; }
+        .batch-header {
+            color: var(--time-color);
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--accent);
+        }
+        .page-list { list-style: none; }
+        .page-item {
+            background: var(--card-bg);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .page-item:hover { background: var(--accent); }
+        .page-link {
+            color: var(--text-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .page-summary { color: #888; font-size: 0.9rem; }
+        .added { color: var(--add-text); }
+        .removed { color: var(--del-text); }
+        a { color: #60a5fa; }
+        .back-link { margin-bottom: 1rem; display: inline-block; }
+        .page-item-content { flex: 1; }
+        .page-analysis {
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: 0.25rem;
+        }
+        .source-section {
+            margin-bottom: 1.5rem;
+        }
+        .source-header {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: #8b5cf6;
+        }
+        .batch-analysis {
+            background: var(--card-bg);
+            border-left: 3px solid #22c55e;
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            margin: 0.75rem 0 1rem 0;
+        }
+        .batch-analysis h4 {
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+        .batch-analysis-content {
+            white-space: pre-wrap;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        .reasoning-section {
+            margin-top: 1rem;
+            padding-top: 0.75rem;
+            border-top: 1px dashed var(--accent);
+            font-size: 0.85rem;
+            color: #888;
+        }
+        .reasoning-section summary {
+            cursor: pointer;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../../../index.html" class="back-link">&larr; All reports</a>
+
+        <header>
+            <h1>Changes on 2026-03-16</h1>
+            <p class="meta">6 total changes in 1 run</p>
+        </header>
+
+        
+        <div class="batch">
+            <div class="batch-header">13:56 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">1.  **Overall Summary**
+    本次文档更新主要围绕 **Hooks 权限系统的重大增强** 和 **插件子代理的安全限制** 展开。新的权限控制模型允许开发者通过 Hooks 进行细粒度的规则管理（如自动批准、模式切换），同时为了安全性，移除了插件子代理对敏感配置字段的支持。
+
+2.  **Key Themes**
+    *   **细粒度权限控制**: `PermissionRequest` Hook 引入了 `updatedPermissions` 数组，支持 `addRules`、`setMode`、`addDirectories` 等操作，并允许将更改持久化到不同层级的设置文件中。
+    *   **安全加固**: 插件定义的子代理出于安全原因不再支持 `hooks`、`mcpServers` 和 `permissionMode` 字段，强制开发者将敏感逻辑移至本地配置。
+    *   **自动化工作流**: 增加了通过 Hooks 自动批准特定权限（如 `ExitPlanMode`）的实战指南，减少了手动中断。
+    *   **API 账务透明化**: 新增 API `402` 错误码及各层级用户的“月度消费上限”说明。
+    *   **文档代码优化**: 优化了 Statusline 示例中的 Shell 脚本，使用更高效的 Bash 参数扩展替代管道操作。
+
+3.  **Impact Level**
+    **Medium**
+    *   **Reasoning**: `PermissionRequest` Hook 的数据结构发生了显著变化（从简单的布尔建议转向结构化的规则数组），现有自定义 Hook 需要适配。此外，插件子代理的限制属于功能性缩减，插件开发者必须修改代码。API 变更仅为信息性补充。
+
+4.  **Action items for developers**
+    *   **适配新 Hook Schema**: 检查并更新现有的 `PermissionRequest` Hooks，将旧的 `permission_suggestions` 逻辑迁移至新的 `updatedPermissions` 结构（支持 `destination` 和 `type` 字段）。
+    *   **重构插件代理**: 若您维护插件，请确保移除插件定义的 Subagent 中的 `hooks`、`mcpServers` 和 `permissionMode` frontmatter 字段，并在文档中引导用户将其添加至本地 `.claude` 配置。
+    *   **实现自动批准**: 利用新的 `decision` 对象和 `setMode` 类型，编写 Hooks 以自动批准常用操作（如退出规划模式），提升开发流程度。
+    *   **处理 API 错误**: 在 API 客户端中增加对 `402 billing_error` 的捕获和处理逻辑。
+    *   **监控账单**: 根据新的“月度消费上限”表，审查您的 API 使用层级，防止服务因超出额度而中断。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer, expert in dev tools/docs.
+    *   **Task:** Analyze documentation changes as a single batch.
+    *   **Input:** 6 pages with diffs (hooks.md, hooks-guide.md, statusline.md, sub-agents.md, api/rate-limits.md, api/errors.md).
+    *   **Output Format:** Markdown, Chinese language, specific structure (Overall Summary, Key Themes, Impact Level, Action Items).
+
+2.  **Analyze the Diffs:**
+
+    *   **Page: hooks.md (+28 / -8)**
+        *   *Change:* Updated the `PermissionRequest` hook mechanism. It replaces the old `toolAlwaysAllow` in `permission_suggestions` with a more structured `addRules` approach.
+        *   *New Schema:* Introduced `updatedPermissions` with entry types (`addRules`, `replaceRules`, `removeRules`, `setMode`, `addDirectories`, `removeDirectories`).
+        *   *Destinations:* Added `destination` field (`session`, `localSettings`, `projectSettings`, `userSettings`) to control persistence.
+        *   *Significance:* Significant overhaul of how hooks handle permissions, moving from simple &#34;allow/deny&#34; to granular rule management (modes, directories) with persistent storage options.
+
+    *   **Page: hooks-guide.md (+18 / -0)**
+        *   *Change:* Added a new section &#34;Auto-approve specific permission prompts&#34;.
+        *   *Content:* Examples of how to use `PermissionRequest` hooks to auto-approve `ExitPlanMode` or switch permission modes (e.g., to `acceptEdits`).
+        *   *Significance:* Practical guide on using the new granular permission control features introduced in `hooks.md`. It explicitly warns about security (narrow matchers).
+
+    *   **Page: statusline.md (+6 / -4)**
+        *   *Change:* Updated shell script examples for progress bars.
+        *   *Content:* Switched from using `printf ... | tr &#39; &#39; &#39;char&#39;` to `printf -v var ...` and bash parameter expansion `${var// /char}`.
+        *   *Significance:* Code quality improvement (performance/readability) in documentation examples. `tr` involves subshells/pipes; the new way is pure bash and generally faster. This is a minor improvement to examples.
+
+    *   **Page: sub-agents.md (+1 / -0)**
+        *   *Change:* Added a note about security restrictions on Plugin subagents.
+        *   *Content:* Plugin subagents ignore `hooks`, `mcpServers`, and `permissionMode` frontmatter fields.
+        *   *Significance:* Breaking change/clarification for plugin developers. If a developer tried to define a custom hook or permission mode inside a plugin agent, it won&#39;t work anymore (or was clarified to not work). This is a security hardening measure.
+
+    *   **Page: api/rate-limits.md (+3 / -0)**
+        *   *Change:* Added &#34;Monthly Spend Limit&#34; column to the tier table.
+        *   *Content:* Explicitly states the cap per month for each tier.
+        *   *Significance:* Clarification on billing constraints for API users.
+
+    *   **Page: api/errors.md (+1 / -0)**
+        *   *Change:* Added 402 `billing_error` to the error list.
+        *   *Significance:* Standardization of billing error handling.
+
+3.  **Synthesize and Structure:**
+
+    *   **Overall Summary:** The documentation update primarily focuses on significantly enhancing the granular control over permissions via hooks, tightening security for plugin subagents, and clarifying API billing limits. It refines examples for better code quality.
+    *   **Key Themes:**
+        *   *Enhanced Hook System:* Granular permission control (modes, directories, persistence).
+        *   *Security Hardening:* Restrictions on plugin subagents regarding hooks/MCP.
+        *   *API Clarity:* Billing limits and error codes.
+        *   *Code Quality:* Optimization of shell scripting examples.
+    *   **Impact Level:** **Medium**.
+        *   Reasoning: The permission hook changes are substantial (`addRules` replacing older structures, though the diff shows it evolving from `permission_suggestions` type definitions). The plugin subagent restriction is a potential breaking change for plugin authors. The API changes are informative.
+    *   **Action Items:**
+        *   Review and update custom `PermissionRequest` hooks to use the new `updatedPermissions` schema.
+        *   Plugin developers need to remove `hooks`/`mcpServers`/`permissionMode` from plugin subagent definitions and move them to global settings or local files.
+        *   API users should check billing limits in the updated table.
+        *   Developers can implement auto-approval workflows using the new hook examples.
+
+4.  **Drafting the Response (in Chinese):**
+
+    *   *Summary:* 本次文档更新主要集中在大幅增强 Hooks 对权限控制的细粒度管理能力，加强了插件子代理的安全性限制，并明确了 API 的账单限制。
+    *   *Themes:*
+        *   Hooks 权限系统升级：从简单的允许/拒绝升级为支持规则增删改、模式切换及目录管理的复杂操作。
+        *   安全性限制：插件子代理不再支持特定敏感字段。
+        *   API 账单透明化：明确了月度消费上限。
+    *   *Impact:* Medium. 因为 Hooks 系统的 JSON 结构发生了显著变化，且插件开发者需要适配新的安全限制。
+    *   *Actions:*
+        1.  更新 `PermissionRequest` hook 代码以适配新的 `updatedPermissions` 结构。
+        2.  插件开发者需移除插件子代理中的 `hooks`、`mcpServers` 等字段。
+        3.  利用新特性实现特定权限的自动批准（如 `ExitPlanMode`）。
+        4.  API 调用者注意新增的 `402` 错误码及月度消费上限。
+
+5.  **Refining the Output:**
+    *   Make it concise and &#34;world-class&#34;. Use precise terminology.
+    *   Highlight the distinction between the new hook schema (`addRules`, `destination`) and the old implicit behavior.
+    *   Ensure the plugin security note is highlighted as a necessary action for that specific group.
+
+6.  **Final Polish (Self-Correction during drafting):**
+    *   The statusline change is minor optimization. I&#39;ll group it under &#34;Code Quality&#34; or ignore it in the high-level summary if space is tight, but I&#39;ll mention it in themes or just focus on the big changes. *Decision:* Focus on the big changes in themes, maybe mention the statusline fix as a side note or omit if it&#39;s too trivial for a &#34;world-class&#34; summary. I will omit it from the main themes to keep focus on high impact, but it&#39;s part of the batch. Actually, the prompt asks for &#34;Key Themes&#34;, so code quality in docs is a valid theme.
+
+7.  **Final Output Generation:** (matches the requested markdown structure).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+28</span>
+                            <span class="removed">-8</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+18</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/statusline.html" class="page-link">statusline.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/rate-limits.html" class="page-link">api/rate-limits.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/errors.html" class="page-link">api/errors.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
+        
+    </div>
+</body>
+</html>
