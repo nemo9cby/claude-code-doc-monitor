@@ -118,9 +118,292 @@
 
         <header>
             <h1>Changes on 2026-03-17</h1>
-            <p class="meta">1 total change in 1 run</p>
+            <p class="meta">14 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">14:55 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 总体概览
+此次文档更新重点在于增强**容器化与 CI/CD 环境下的插件支持**，引入了更精细的**沙箱文件读写控制**，并明确了**新模型与旧模型在推理令牌计费上的差异**。同时，对权限钩子的行为进行了安全层面的澄清，改进了初始化流程和 API 错误处理机制。
+
+### 关键主题
+
+*   **插件系统与容器化**：新增 `CLAUDE_CODE_PLUGIN_SEED_DIR` 环境变量，支持在构建时预填充插件市场与缓存，优化容器启动速度；增强了插件验证工具（支持 YAML frontmatter 和 hooks.json 检查）。
+*   **沙箱与安全控制**：引入 `sandbox.filesystem.allowRead` 配置，允许在 `denyRead` 区域内重新开放特定路径；明确了 `PreToolUse` 钩子返回 `&#34;allow&#34;` 时不会绕过拒绝规则（包括企业级托管设置）。
+*   **推理与成本优化**：大幅修正了关于扩展思考的文档，明确 Opus 4.6 和 Sonnet 4.6 使用自适应推理（默认忽略 `MAX_THINKING_TOKENS`，除非设为 0），旧模型则使用固定预算。
+*   **开发体验提升**：新增 `/init` 的交互式多阶段流程；支持会话计划自动命名；Headless 模式新增 API 重试事件 (`system/api_retry`)。
+*   **资源限制**：后台任务若输出超过 5GB 将自动终止；增加了对慢速 `apiKeyHelper` 脚本的警告。
+
+### 影响级别: **High**
+
+**理由**：
+1.  **容器支持**：对于在 Docker 或 CI 中使用 Claude Code 的开发者，预填充插件目录是一个重大的架构改进，显著提升了冷启动速度和稳定性。
+2.  **安全与权限**：沙箱 `allowRead` 的引入和钩子权限优先级的澄清直接影响企业级安全策略的实施，配置不当可能导致意外的访问拒绝或安全绕过。
+3.  **成本控制**：关于新模型令牌计费行为的澄清对运营成本至关重要，错误的配置可能导致预算超支或性能未达预期。
+
+### 开发者行动项
+
+*   **优化容器镜像**：如果你在 Docker 或 CI 环境中使用插件，请利用 `CLAUDE_CODE_PLUGIN_SEED_DIR` 在构建时预装插件，以避免运行时克隆。
+*   **审查钩子权限**：检查你的 `PreToolUse` 钩子逻辑，确保理解返回 `&#34;allow&#34;` 并不意味着绕过所有的拒绝规则，特别是企业托管设置。
+*   **调整思考配置**：针对 Opus 4.6 和 Sonnet 4.6，使用 `/effort` 而非 `MAX_THINKING_TOKENS` 来控制成本，除非你需要完全禁用思考或禁用自适应推理。
+*   **利用新沙箱能力**：如果你使用了 `denyRead` 锁定目录（如 `~/`），现在可以通过 `allowRead` 重新开放特定项目路径，实现更灵活的安全策略。
+*   **尝试新的初始化流程**：设置 `CLAUDE_CODE_NEW_INIT=true` 体验增强的 `/init` 流程，以便更全面地配置项目技能和钩子。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Understand the Goal:** The user wants a concise, insightful analysis of 13 documentation changes for a developer tool (Claude Code). The output must be in Markdown and in Chinese.
+
+2.  **Analyze the Changes (Page by Page):**
+
+    *   `common-workflows.md`:
+        *   Plan Mode: Auto-naming sessions based on plan content (preserving existing names).
+        *   Thinking Mode: Refinement on `MAX_THINKING_TOKENS`. Newer models (Opus 4.6/Sonnet 4.6) use adaptive reasoning. `MAX_THINKING_TOKENS` is mostly ignored unless set to 0 or `CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING=1` is set. Older models use fixed budgets. Clarified per-model ceilings.
+        *   Sessions: Added `/branch` to the list of session types. Minor text changes.
+        *   Container text: &#34;Clone our...&#34; -&gt; &#34;Clone the...&#34;.
+
+    *   `costs.md`:
+        *   Updated &#34;Adjust extended thinking&#34; text to remove specific token count (31,999) and clarify that budgets vary by model.
+
+    *   `headless.md`:
+        *   New event: `system/api_retry`. Emits info about retries (attempt number, max retries, delay, error status, etc.). Useful for custom backoff or progress UI.
+
+    *   `hooks.md`:
+        *   `InstructionsLoaded`: Added `&#34;compact&#34;` to `load_reason`.
+        *   `PreToolUse`: Clarified that returning `&#34;allow&#34;` skips the *interactive* prompt but *does not* override deny/ask rules (including enterprise managed deny lists).
+
+    *   `hooks-guide.md`:
+        *   Reinforced the `PreToolUse` behavior: `&#34;allow&#34;` skips interactive prompts but strict permission rules (deny lists) still take precedence.
+
+    *   `iam.md`:
+        *   Slow helper notice: Warns if `apiKeyHelper` takes &gt; 10s.
+        *   Clarified that `apiKeyHelper` and API keys only apply to CLI, not Desktop/remote (which use OAuth).
+
+    *   `interactive-mode.md`:
+        *   Background tasks: Auto-terminated if output exceeds 5GB.
+
+    *   `memory.md`:
+        *   `/init`: New env var `CLAUDE_CODE_NEW_INIT=true` enables a multi-phase interactive flow (setup CLAUDE.md, skills, hooks, subagent exploration, reviewable proposal).
+
+    *   `plugin-marketplaces.md`:
+        *   **New Feature**: Pre-populate plugins for containers using `CLAUDE_CODE_PLUGIN_SEED_DIR`. Mirrors `~/.claude/plugins` structure. Read-only. Seed entries take precedence.
+        *   Validation: Enhanced validator now checks frontmatter (YAML) and `hooks/hooks.json`, not just JSON.
+        *   Added specific errors for YAML parsing and JSON hooks.
+        *   Added warning about Kebab-case naming for Claude.ai marketplace sync.
+
+    *   `plugins-reference.md`:
+        *   Troubleshooting: Updated &#34;Plugin not loading&#34; to reflect the enhanced validator (checks frontmatter/hooks).
+
+    *   `sandboxing.md`:
+        *   **New Feature**: `sandbox.filesystem.allowRead`. Can re-allow specific paths within a `denyRead` region.
+        *   Merging behavior: Now applies to `allowRead` too.
+        *   Clarification: When `allowManagedReadPathsOnly` is on, only managed `allowRead` entries count.
+
+    *   `settings.md`:
+        *   Added `sandbox.filesystem.allowRead` to the config table. (Note: The diff cuts off at the table, but the change is clear based on `sandboxing.md` and the start of the row).
+
+    *   `sub-agents.md`:
+        *   Resuming subagents: Clarified that if a background subagent fails due to permissions, start a *new* foreground one rather than &#34;resuming&#34; (likely because resuming a failed one might be tricky or just phrasing update).
+        *   Clarified how `SendMessage` works with stopped subagents (auto-resumes in background).
+
+3.  **Synthesize and Group Themes:**
+
+    *   **Sandboxing &amp; Security**: New `allowRead` capability, clear precedence rules for permissions in hooks.
+    *   **Plugin System**: Container pre-seeding (`PLUGIN_SEED_DIR`), robust validation (YAML/hooks), naming conventions.
+    *   **Thinking/Cost**: Clarification on adaptive reasoning vs. fixed budgets across model versions.
+    *   **Infrastructure/Operations**: Headless mode retries (`api_retry`), slow credential warnings, background task limits (5GB).
+    *   **Workflow Enhancements**: Session naming, new `/init` flow, subagent resumption details.
+
+4.  **Assess Impact:**
+
+    *   **High**: The plugin pre-seeding and sandbox `allowRead` are significant structural changes for enterprise/container users. The permission rule precedence clarification in hooks is critical for security configurations.
+    *   **Medium**: Thinking token clarifications affect cost management. The `/init` flow change alters the developer onboarding experience.
+    *   **Low**: Text tweaks, minor bug fixes (like subagent resumption phrasing), 5GB background task limit (edge case).
+
+    *Overall Verdict*: **High** because of the container support for plugins and the refined sandboxing permissions, plus the critical security clarification regarding hooks.
+
+5.  **Draft Action Items:**
+
+    *   Review hook configurations if they rely on `PreToolUse` returning `&#34;allow&#34;` bypassing *all* security (it doesn&#39;t anymore/never did for managed rules).
+    *   Consider using `CLAUDE_CODE_PLUGIN_SEED_DIR` for container images/Dockerfiles.
+    *   Check sandbox settings to utilize `allowRead` if using broad `denyRead`.
+    *   Update scripts/documentation regarding `MAX_THINKING_TOKENS` for newer models.
+    *   Use the new `/init` flow for better project setup.
+
+6.  **Translate to Chinese and Format:**
+
+    *   *Summary*: 此次更新聚焦于增强插件系统的容器化支持、细化沙箱权限控制、澄清成本与推理模型的令牌行为，并改进了会话管理和自动化初始化流程。
+    *   *Themes*: 插件系统, 沙箱与安全, 成本与推理, 基础设施.
+    *   *Impact*: High.
+    *   *Actions*: Update Dockerfiles for plugins, review hook permissions, adjust thinking token settings, try new `/init`, check sandbox configs.
+
+7.  **Refine the Output (Self-Correction during drafting):**
+    *   Ensure distinction between &#34;Breaking&#34; and &#34;High&#34;. It&#39;s not &#34;Breaking&#34; code, but &#34;High&#34; impact for maintainers/admins.
+    *   Make sure to emphasize the `allowRead` addition in sandboxing as it&#39;s a new capability.
+    *   The change regarding `PreToolUse` hook clarifying that &#34;allow&#34; doesn&#39;t bypass deny lists is a security nuance that matters significantly to enterprise users.
+
+8.  **Final Polish (Markdown Structure):** Matches the user&#39;s request.</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/common-workflows.html" class="page-link">common-workflows.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+13</span>
+                            <span class="removed">-12</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/costs.html" class="page-link">costs.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/headless.html" class="page-link">headless.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+12</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+14</span>
+                            <span class="removed">-14</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/iam.html" class="page-link">iam.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/interactive-mode.html" class="page-link">interactive-mode.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/memory.html" class="page-link">memory.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugin-marketplaces.html" class="page-link">plugin-marketplaces.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+25</span>
+                            <span class="removed">-8</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-8</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sandboxing.html" class="page-link">sandboxing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+21</span>
+                            <span class="removed">-19</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">00:13 EST</div>
