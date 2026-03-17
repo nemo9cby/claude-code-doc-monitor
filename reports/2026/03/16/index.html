@@ -118,9 +118,146 @@
 
         <header>
             <h1>Changes on 2026-03-16</h1>
-            <p class="meta">17 total changes in 2 runs</p>
+            <p class="meta">18 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">21:46 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">```markdown
+1. **Overall Summary**
+本次更新（2.1.77）主要侧重于**性能优化**（启动与恢复速度大幅提升）和**关键安全性修复**（修复了权限绕过漏洞），同时显著改善了 **Vim 与 tmux 环境下的兼容性**及用户体验。
+
+2. **Key Themes**
+*   **安全与权限强化**：修复了 `PreToolUse` 钩子可能绕过 `deny` 权限规则的严重漏洞，以及复合 Bash 命令（如 `cd src &amp;&amp; npm test`）保存单一规则导致的失效问题。
+*   **性能与稳定性**：修复了自动更新器可能导致数 GB 内存泄漏的问题；macOS 启动提速约 60ms，`--resume` 加载速度提升 45% 并降低内存峰值。
+*   **终端与编辑器兼容性**：修复了 Vim 模式下按键失灵、tmux 会话崩溃/剪贴板失效、以及 iTerm2 和 xterm.js 终端下的多项渲染与交互问题。
+*   **功能增强**：提升了 Claude Opus 4.6 和 Sonnet 4.6 的输出 Token 上限；新增 `/copy N` 命令；改进了插件验证工具 `claude plugin validate`。
+*   **Agent 行为变更**：移除了 Agent 工具的 `resume` 参数，改为使用 `SendMessage` 自动恢复。
+
+3. **Impact Level** **High**
+*   **Reasoning**：此次更新修复了可能导致安全策略失效（绕过 `deny` 规则）和系统资源耗尽（内存泄漏）的高严重性问题。同时，Agent 工具的 API 变更要求开发者修改相关代码，且 `--resume` 的性能提升对大型项目工作流影响显著。
+
+4. **Action Items for Developers**
+*   **修改 Agent 调用代码**：停止在 Agent 工具中使用 `resume` 参数，改用 `SendMessage({to: agentId})` 来恢复已停止的 Agent。
+*   **验证插件配置**：使用改进后的 `claude plugin validate` 命令检查你的技能和 Agent 配置，修复 YAML 解析错误或架构违规。
+*   **更新命令脚本**：将脚本中的 `/fork` 命令逐步迁移至新的 `/branch` 命令（虽然 `/fork` 仍作为别名可用）。
+*   **测试复杂 Bash 命令**：在更新后重新测试包含 `&amp;&amp;` 或 `;` 的复合命令，确认 &#34;Always Allow&#34; 权限规则是否正确拆分和应用。
+```</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Input:** A diff from `CHANGELOG.md.md` (version 2.1.77).
+    *   **Output Format:** Concise, insightful analysis in Markdown.
+    *   **Language:** Chinese.
+    *   **Structure:**
+        1.  Overall Summary (1-2 sentences).
+        2.  Key Themes (bullets).
+        3.  Impact Level (Low/Medium/High/Breaking) with reasoning.
+        4.  Action Items for Developers (max 5 bullets).
+
+2.  **Analyze the Input (Diff):**
+    *   **Version:** 2.1.77.
+    *   **New Features/Enhancements:**
+        *   Increased output token limits (Opus 4.6 default to 64k, upper bound to 128k).
+        *   New sandbox filesystem setting `allowRead`.
+        *   `/copy` command accepts index (`/copy N`).
+        *   Faster startup (macOS ~60ms).
+        *   Faster `--resume` (up to 45% faster, less memory).
+        *   Auto-naming sessions from plan content.
+        *   Improved `claude plugin validate`.
+        *   Renamed `/fork` to `/branch` (alias exists).
+        *   VSCode improvements (plan titles, option+click hint).
+    *   **Bug Fixes (Security/Permissions):**
+        *   Fixed &#34;Always Allow&#34; for compound bash commands (saving single rule -&gt; per subcommand). This is a major security/UX fix.
+        *   Fixed `PreToolUse` hooks bypassing `deny` rules (Critical security fix).
+        *   Fixed Write tool line ending conversions (CRLF).
+        *   Fixed `--resume` truncating history (Data loss risk).
+    *   **Bug Fixes (Stability/Memory):**
+        *   Fixed auto-updater memory leak (tens of GBs).
+        *   Fixed memory growth in long sessions.
+        *   Fixed race condition deleting worktrees.
+        *   Fixed background bash tasks exceeding 5GB.
+    *   **Bug Fixes (UI/UX/Terminal):**
+        *   Fixed Vim mode issues (Backspace/Delete, status line).
+        *   Fixed tmux compatibility (crashes, clipboard, colors).
+        *   Fixed IDE integration connection.
+        *   Fixed CJK character clipping.
+        *   Fixed input deadlock.
+    *   **API/Tooling Changes:**
+        *   Agent tool no longer accepts `resume` parameter (Breaking change behavior).
+        *   `SendMessage` auto-resumes agents.
+
+3.  **Drafting the Analysis (Internal Monologue -&gt; Translation to Chinese):**
+
+    *   **Overall Summary:** This release (2.1.77) focuses heavily on stability, performance improvements (startup/resume speed), and critical security fixes regarding permissions. It also introduces minor feature enhancements and resolves numerous UI/terminal compatibility issues (especially for Vim and tmux).
+    *   **Key Themes:**
+        *   *Security &amp; Permissions:* Fixes to bash command permissions (&#34;Always Allow&#34;) and `PreToolUse` hooks bypassing denials.
+        *   *Performance &amp; Stability:* Faster startup/resume, fixed memory leaks (auto-updater), and handling large files/tasks.
+        *   *Terminal/Editor Compatibility:* Major fixes for Vim, tmux, and various terminal emulators (iTerm2, VS Code).
+        *   *Feature Tweaks:* Increased token limits, `/copy` index support, renamed `/fork`.
+
+    *   **Impact Level:** High.
+        *   *Reasoning:* The fixes to `PreToolUse` bypassing `deny` rules and the memory leak in the auto-updater are critical. The performance gains are significant. The changes to Agent tool parameters require attention from plugin developers.
+
+    *   **Action Items:**
+        *   Review agent-related code: Update to use `SendMessage({to: agentId})` instead of the `resume` parameter in the Agent tool.
+        *   Update documentation/scripts: Note that `/fork` is now primarily `/branch`.
+        *   Test complex bash workflows: Verify that permission prompts behave correctly with compound commands.
+        *   Plugin developers: Use the improved `claude plugin validate` to catch schema errors.
+
+4.  **Refining the Chinese Output:**
+
+    *   *Summary:* 本次更新（2.1.77）主要侧重于**性能提升**（启动和恢复速度显著加快）、**关键安全修复**（权限系统漏洞）以及**终端兼容性**的大幅改进（特别是 Vim 和 tmux 支持）。
+    *   *Themes:*
+        *   **安全与权限**：修复了 &#34;Always Allow&#34; 在复合命令中的错误逻辑，以及 `PreToolUse` 钩子可能绕过 `deny` 规则的严重漏洞。
+        *   **性能与稳定性**：修复了自动更新器的内存泄漏问题，提升了 macOS 启动速度和 `--resume` 恢复速度。
+        *   **终端与编辑器体验**：解决了 Vim 模式按键失效、tmux 会话崩溃/剪贴板问题及 CJK 字符显示异常。
+        *   **功能迭代**：提升了 Claude Opus/Sonnet 的输出 Token 限制，增强了插件验证工具。
+    *   *Impact:* **High** (高)。
+        *   *Reasoning:* 修复了绕过 `deny` 权限规则的安全漏洞以及严重的内存泄漏问题。Agent 工具参数变更涉及开发层面的修改，且性能提升对日常使用体验影响显著。
+    *   *Action Items:*
+        *   **更新 Agent 调用逻辑**：如果你使用了 Agent 工具的 `resume` 参数，请改为使用 `SendMessage({to: agentId})` 来恢复已停止的 Agent。
+        *   **检查权限设置**：重新测试包含复合命令（如 `cd src &amp;&amp; npm test`）的 Bash 工具，确认权限提示逻辑已修复。
+        *   **使用新工具验证插件**：运行 `claude plugin validate` 以检查新的 Skill 和 Agent frontmatter 规范。
+        *   **注意命令别名**：将脚本中的 `/fork` 命令更新为 `/branch`（虽然旧命令仍可用，但建议迁移）。
+
+5.  **Final Polish:** Check against constraints (concise, markdown, max 5 action items).
+
+    *   *Self-Correction during drafting:* Ensure I explicitly mention the `resume` parameter removal as it&#39;s a breaking change behavior. Make sure to highlight the &#34;Always Allow&#34; fix as it&#39;s annoying for developers.
+
+6.  **Final Output Generation** (Matches the thought process above).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+45</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">15:52 EST</div>
