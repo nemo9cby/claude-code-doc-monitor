@@ -118,9 +118,210 @@
 
         <header>
             <h1>Changes on 2026-03-18</h1>
-            <p class="meta">15 total changes in 2 runs</p>
+            <p class="meta">22 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">15:01 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更分析
+
+### 1. 总体摘要
+本次更新显著增强了 API 的程序化控制能力，特别是针对模型能力的动态发现和扩展思考过程的可见性管理。同时，新增了一个支持绕过缓存的 Web 抓取工具版本，并将组织文件存储限制提升至 500 GB。
+
+### 2. 关键变更主题
+*   **扩展思考可见性控制**
+    *   在 `ThinkingConfig`（包括 `enabled` 和 `adaptive` 类型）中新增了 `display` 参数。
+    *   允许开发者将思考过程设置为 `&#34;omitted&#34;`（省略但保留签名以维持多轮对话连续性）或 `&#34;summarized&#34;`（默认，正常返回）。
+*   **模型能力的程序化发现**
+    *   `Models API` (`/api/models/list`) 返回对象进行了大幅增强。
+    *   新增 `capabilities` 对象，涵盖批处理、引用生成、代码执行、上下文管理、PDF 输入、结构化输出、思考配置等具体支持的细粒度特性。
+    *   新增 `max_input_tokens` 和 `max_tokens` 字段，允许通过 API 动态获取上下文窗口限制。
+*   **Web 抓取工具更新**
+    *   引入了 `WebFetchTool20260309` 工具定义。
+    *   新增 `use_cache` 参数，允许显式绕过缓存以获取实时内容，适用于快速变化的数据源。
+*   **基础设施容量提升**
+    *   组织文件存储限制从 100 GB 提升至 500 GB。
+
+### 3. 影响级别
+**中 (Medium)**
+
+*   **理由：** 大部分变更是新增功能或增强型 API 响应字段，属于非破坏性变更。`ThinkingConfig` 的新参数有默认值，旧代码无需修改即可运行。`Models API` 的增强仅影响需要动态检测能力的开发者。存储上限提升对开发者纯粹是利好。
+
+### 4. 开发者行动建议
+*   **利用模型能力 API：** 更新客户端代码，使用 `Models API` 动态查询模型是否支持特定功能（如 `citations`、`pdf_input` 或特定的 `reasoning_effort` 级别），避免在代码中硬编码模型名称与特性的映射关系。
+*   **管理思考过程暴露：** 如果您的应用场景需要保护模型的推理链（例如防止向终端用户展示原始思考过程），请在调用 API 时配置 `thinking.display: &#34;omitted&#34;`。
+*   **集成新版 Web 抓取工具：** 更新工具调用逻辑以支持 `web_fetch_20260309` 类型。在需要抓取实时数据（如股市、新闻）时，显式设置 `use_cache: false`。
+*   **检查存储限制：** 鉴于存储上限提升了 5 倍，可重新评估文件管理策略，考虑上传更多资源文件而无需担心触及 100 GB 的旧限制。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Input:** Diff for 7 pages.
+    *   **Output:** Concise, insightful markdown analysis.
+    *   **Language:** Chinese.
+    *   **Structure:** 1. Overall Summary, 2. Key Themes, 3. Impact Level, 4. Action Items.
+
+2.  **Analyze the Diffs (Page by Page):**
+
+    *   **Page 1: `about-claude/models/overview.md`**
+        *   Change: Added a Tip about the Models API (`/api/models/list`) allowing programmatic querying of model capabilities (`max_input_tokens`, `max_tokens`, `capabilities`).
+        *   Significance: Points developers to a new or enhanced programmatic way to check model specs.
+
+    *   **Page 2: `api/messages.md`**
+        *   Change 1 (Thinking): Added `display` parameter to `ThinkingConfigEnabled` and `ThinkingConfigAdaptive`. Options: `&#34;summarized&#34;` (default) or `&#34;omitted&#34;`.
+        *   Significance: Allows developers to control how much of the &#34;thinking&#34; process is exposed in the API response. `omitted` hides the content but keeps a signature for continuity.
+        *   Change 2 (Web Fetch Tool): Added `WebFetchTool20260309` definition.
+        *   Significance: New version of the web fetch tool. Includes a `use_cache` parameter (to bypass cache) and standard params like `allowed_domains`, `citations`, etc. It seems to be a specific tool definition for the API schema.
+
+    *   **Page 3: `api/messages/count_tokens.md`**
+        *   Change: Same as Page 2 (Thinking `display` param, `WebFetchTool20260309` definition).
+        *   Significance: Propagates the changes to the count tokens endpoint documentation.
+
+    *   **Page 4: `api/messages/batches/create.md`**
+        *   Change: Same as Page 2 (Thinking `display` param, `WebFetchTool20260309` definition).
+        *   Significance: Propagates the changes to the batch processing endpoint documentation.
+
+    *   **Page 5: `api/models/list.md`**
+        *   Change: Added extensive details to the response object of the Models API.
+        *   Specifics: Added `capabilities` object (batch, citations, code_execution, context_management, effort, image_input, pdf_input, structured_outputs, thinking). Added `max_input_tokens` and `max_tokens`.
+        *   Significance: This is the core of the &#34;programmatic capabilities&#34; feature mentioned in Page 1. It makes the API much richer for feature detection.
+
+    *   **Page 6: `build-with-claude/overview.md`**
+        *   Change: Added a Tip (same as Page 1) about using the Models API to discover capabilities.
+        *   Significance: Reinforces the new capability discovery feature.
+
+    *   **Page 7: `build-with-claude/files.md`**
+        *   Change: Updated storage limits from **100 GB** to **500 GB** per organization.
+        *   Significance: Administrative/operational change, increases available space.
+
+3.  **Synthesize Findings:**
+
+    *   *Theme 1: Enhanced Extended Thinking Control.* The `display` parameter in thinking configs allows developers to redact the reasoning chain (`omitted`) while maintaining conversation state, which is useful for privacy or reducing output size.
+    *   *Theme 2: Programmatic Model Discovery.* The Models API (`list`) is now the single source of truth for model limits (`max_tokens`) and capabilities (supports PDF? supports citations? supports thinking?). This replaces hardcoding values in client libraries.
+    *   *Theme 3: Web Fetch Tool Update.* A new version (`web_fetch_20260309`) of the web fetch tool is defined, likely with a `use_cache` control to force fresh fetches.
+    *   *Theme 4: Infrastructure Update.* File storage limit increased 5x (100GB -&gt; 500GB).
+
+4.  **Draft the Content (in Chinese):**
+
+    *   **Overall Summary:** The update primarily focuses on enhancing programmatic control over model capabilities and thinking processes, alongside infrastructure upgrades (storage). Specifically, it introduces a way to query model features via API, adds control over &#34;thinking&#34; visibility, and defines a new web fetch tool version.
+
+    *   **Key Themes:**
+        *   *Thinking Control:* New `display` option (`summarized` vs `omitted`) for extended thinking configurations.
+        *   *Model Discovery:* The Models API now returns detailed `capabilities`, `max_input_tokens`, and `max_tokens`, enabling dynamic feature detection.
+        *   *Tool Definition:* Introduction of `WebFetchTool20260309` with cache bypassing capabilities.
+        *   *Storage:* Organization storage limit increased from 100 GB to 500 GB.
+
+    *   **Impact Level:** Medium.
+        *   *Reasoning:* Most changes are additive (new parameters, new API fields). The storage increase is positive. The `display` parameter is optional with a default (`summarized`), so it&#39;s not breaking. The new Models API fields are additive. The `WebFetchTool20260309` is a new tool type definition, likely additive.
+
+    *   **Action Items:**
+        *   Update integration to use the Models API (`/api/models/list`) to dynamically detect supported features (like PDF input, citations, reasoning effort levels) instead of hardcoding model names.
+        *   Implement the `display` parameter in extended thinking configurations if you need to redact the reasoning chain in API responses while maintaining context continuity.
+        *   Update code handling web fetch tools to recognize `web_fetch_20260309` type, especially the `use_cache` parameter for fresh content fetching.
+        *   (Optional) Review file storage management given the 5x increase in limits.
+
+5.  **Refine Language and Formatting:** Ensure professional tone and clear markdown structure.
+
+    *   *Self-Correction during drafting:* Make sure to emphasize that the &#34;display&#34; parameter for thinking is crucial for scenarios where the raw thought process shouldn&#39;t be exposed to the end-user but is needed for the model&#39;s internal state continuity. The &#34;capabilities&#34; object in Models API is a big deal for building robust agentic systems.
+
+6.  **Final Output Generation** (Proceed to generate the Chinese response based on these steps).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/about-claude/models/overview.html" class="page-link">about-claude/models/overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/messages.html" class="page-link">api/messages.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+39</span>
+                            <span class="removed">-8</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/messages/count_tokens.html" class="page-link">api/messages/count_tokens.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+12</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/messages/batches/create.html" class="page-link">api/messages/batches/create.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+12</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/models/list.html" class="page-link">api/models/list.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+48</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/overview.html" class="page-link">build-with-claude/overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/files.html" class="page-link">build-with-claude/files.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">06:46 EST</div>
