@@ -118,9 +118,218 @@
 
         <header>
             <h1>Changes on 2026-03-17</h1>
-            <p class="meta">20 total changes in 4 runs</p>
+            <p class="meta">27 total changes in 5 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">21:50 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更分析
+
+## 1. Overall Summary (总体摘要)
+本次更新显著改进了插件的生命周期管理，引入了 `${CLAUDE_PLUGIN_DATA}` 持久化目录机制以解决插件更新时的数据丢失问题；同时增强了 Subagent 的控制能力，支持通过 CLI 参数和配置项将会话整体切换为特定 Agent 运行。
+
+## 2. Key Themes (关键主题)
+*   **插件数据持久化机制**：新增环境变量 `${CLAUDE_PLUGIN_DATA}`，用于存放依赖库（如 `node_modules`）、缓存和状态文件。这将其与随插件版本变化的 `${CLAUDE_PLUGIN_ROOT}` 明确区分，防止用户在更新插件时丢失数据。
+*   **显式 Subagent 调用与控制**：新增通过 `--agent` CLI 标志或 `agent` 设置项将会话主线程完全切换为特定 Subagent 的能力，并支持通过 `@-mention` 语法显式指定 Agent 执行任务。
+*   **插件卸载体验优化**：`/plugin uninstall` 现在会提示是否删除持久化数据，并新增 `--keep-data` 选项，方便开发者在测试版本回滚时保留数据。
+
+## 3. Impact Level (影响程度)
+**High (High for Plugin Developers, Medium for Users)**
+
+*   **Reasoning**:
+    *   **对于插件开发者**：这是一个关键变更。如果插件仍在 `${CLAUDE_PLUGIN_ROOT}` 中写入状态或安装依赖，用户更新插件后这些数据将被清除。开发者必须立即适配新的持久化目录模式。
+    *   **对于普通用户**：影响中等，主要获得了防止插件数据丢失的保护，以及更灵活的 Agent 交互方式。
+
+## 4. Action Items for Developers (开发者行动项)
+*   **[必做] 迁移插件数据存储路径**：审查现有插件代码，将所有运行时生成的状态、配置及依赖安装路径（如 Python venv、npm modules）从 `${CLAUDE_PLUGIN_ROOT}` 更改为 `${CLAUDE_PLUGIN_DATA}`。
+*   **[建议] 优化依赖安装逻辑**：参考文档中的 `diff` 模式，在 `SessionStart` hook 中实现仅在 `package.json` 或依赖清单变更时才重新安装依赖的逻辑，以提升启动速度。
+*   **[探索] 使用会话级 Agent**：在 `.claude/settings.json` 中设置 `&#34;agent&#34;: &#34;code-reviewer&#34;` 或使用 `--agent` 标志，为特定工作流（如代码审查或测试运行）预设专用的会话模式。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request**:
+    *   Role: World-class programmer.
+    *   Task: Analyze a batch of documentation changes (7 pages).
+    *   Output Format: Markdown, concise, insightful, Chinese.
+    *   Content: Diffs for `hooks.md`, `mcp.md`, `plugin-marketplaces.md`, `plugins-reference.md`, `settings.md`, `sub-agents.md`, `CHANGELOG.md.md`.
+
+2.  **Analyze Each Diff**:
+
+    *   **hooks.md**:
+        *   *Change*: Updated description of `${CLAUDE_PLUGIN_ROOT}` (adds &#34;Changes on each plugin update&#34;). Added new variable `${CLAUDE_PLUGIN_DATA}` for persistent data/state that survives updates.
+        *   *Context*: Managing plugin lifecycle and file persistence.
+
+    *   **mcp.md**:
+        *   *Change*: Updated &#34;Environment variables&#34; section. Clarifies `${CLAUDE_PLUGIN_ROOT}` for bundled files and introduces `${CLAUDE_PLUGIN_DATA}` for persistent state.
+        *   *Context*: MCP server configuration within plugins.
+
+    *   **plugin-marketplaces.md**:
+        *   *Change*: Clarified `${CLAUDE_PLUGIN_ROOT}` usage. Added recommendation to use `${CLAUDE_PLUGIN_DATA}` for dependencies/state that needs to survive updates.
+        *   *Context*: Plugin marketplace configuration.
+
+    *   **plugins-reference.md**:
+        *   *Change*: Major update to Environment Variables section.
+            *   Distinguishes between `ROOT` (bundled, volatile) and `DATA` (persistent).
+            *   Added &#34;Persistent data directory&#34; section explaining the path structure (`~/.claude/plugins/data/{id}/`).
+            *   Added complex code examples for managing dependencies (checking `package.json` diff to trigger `npm install`).
+            *   Updated `plugin uninstall` command to include `--keep-data` flag and warning about data deletion.
+        *   *Context*: The core reference for plugin developers.
+
+    *   **settings.md**:
+        *   *Change*: Added `agent` setting to run the main thread as a named subagent.
+        *   *Context*: Global configuration.
+
+    *   **sub-agents.md**:
+        *   *Change*: New section &#34;Invoke subagents explicitly&#34;. Details three patterns: natural language, @-mention (syntax: `@agent-name`), and session-wide via `--agent` flag or `agent` setting.
+        *   *Context*: Agent usage and control flow.
+
+    *   **CHANGELOG.md.md**:
+        *   *Change*: Added entry for version 2.1.78.
+        *   *Key items confirming docs*:
+            *   Added `${CLAUDE_PLUGIN_DATA}` variable.
+            *   `plugin uninstall` prompts for deletion.
+            *   Added `effort`, `maxTurns`, `disallowedTools` frontmatter for agents.
+            *   Bug fixes (git log, infinite loop, sandbox, etc.).
+
+3.  **Synthesize and Group**:
+
+    *   *Theme 1: Plugin Data Persistence &amp; Lifecycle*. The biggest change. Developers now need to distinguish between files bundled with the plugin (`ROOT`) and user-generated/dependency data (`DATA`). This prevents data loss during updates.
+    *   *Theme 2: Subagent Control*. Expanded capabilities to run the whole session as a specific subagent (`--agent` flag, `agent` setting) and explicit invocation via @-mentions.
+    *   *Theme 3: Minor Fixes &amp; Refinements*. Changelog lists various bug fixes (security, git, sandbox, voice mode).
+
+4.  **Draft the Analysis (Iterative Refinement)**:
+
+    *   *Summary*: This update significantly enhances plugin lifecycle management by introducing persistent storage for dependencies, and expands developer control over subagents by allowing session-wide agent invocation.
+    *   *Key Themes*:
+        *   **Plugin Data Persistence**: Introduced `${CLAUDE_PLUGIN_DATA}` to separate volatile bundled files from persistent state (like `node_modules`), solving data loss issues on plugin updates.
+        *   **Explicit Subagent Invocation**: Added support for running the entire session as a specific agent (`--agent`, `agent` setting) and explicit @-mentioning agents.
+        *   **Plugin Maintenance**: Added `--keep-data` flag for uninstall commands to prevent accidental data loss.
+    *   *Impact*: **High** (for plugin developers). This is a breaking pattern change for plugin authors who currently write state to `ROOT`. They *must* migrate to `DATA` to avoid user data loss during updates. For general users, impact is **Medium** (new agent controls).
+    *   *Action Items*:
+        *   Update plugin scripts to use `${CLAUDE_PLUGIN_DATA}` for dependencies and state.
+        *   Modify `plugin uninstall` workflows or inform users about the new data deletion prompts.
+        *   Explore using the `agent` setting or `--agent` flag for dedicated sessions (e.g., code review).
+
+5.  **Format into Markdown (Translate to Chinese)**:
+
+    *   *Overall Summary*: 本次更新重点优化了插件的生命周期管理，引入了持久化存储目录以解决更新时数据丢失的问题，同时增强了 Subagent 的控制能力，支持会话级别的显式调用。
+    *   *Key Themes*:
+        *   **插件数据持久化**: 新增 `${CLAUDE_PLUGIN_DATA}` 环境变量，用于存放依赖（如 `node_modules`）和状态文件，确保在插件更新时数据不丢失。
+        *   **显式 Subagent 调用**: 新增通过 `--agent` 参数或 `agent` 配置项将整个会话以特定 Subagent 身份运行，并支持通过 `@` 提及显式调用。
+        *   **插件卸载改进**: 卸载插件时默认会提示删除持久化数据，新增 `--keep-data` 选项以保留数据。
+    *   *Impact*: **High (for Plugin Devs)** / **Medium (for Users)**.
+        *   Reasoning: Plugin developers必须调整目录结构以适应新的持久化机制，否则用户更新插件时将丢失关键数据（如虚拟环境）。普通用户获得了更强大的角色控制能力。
+    *   *Action Items*:
+        *   [迁移插件状态存储] 将所有需要持久化的数据（依赖、缓存、配置）从 `${CLAUDE_PLUGIN_ROOT}` 迁移至 `${CLAUDE_PLUGIN_DATA}`。
+        *   [更新依赖安装脚本] 参考文档中的 `diff` 模式，实现仅在依赖清单变更时重新安装依赖的逻辑。
+        *   [利用 Subagent 模式] 尝试在 `.claude/settings.json` 中配置 `agent` 字段，为特定项目（如代码审查）预设专用 Agent。
+
+6.  **Final Review**: Does the content match the diffs? Yes. Is it concise? Yes. Is it in Chinese? Yes.
+
+7.  **Final Output Generation** (matches the thought process above).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugin-marketplaces.html" class="page-link">plugin-marketplaces.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+22</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+18</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+27</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">19:27 EST</div>
