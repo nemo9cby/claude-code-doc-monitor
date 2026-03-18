@@ -118,9 +118,299 @@
 
         <header>
             <h1>Changes on 2026-03-18</h1>
-            <p class="meta">23 total changes in 4 runs</p>
+            <p class="meta">35 total changes in 5 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">19:26 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">###1. 总体总结
+本次更新显著增强了 Claude Code 的自动化与集成能力，引入了 `http` 类型的 Hook 和 `StopFailure` 事件以处理 API 错误，同时优化了配置管理（如自定义模型选项、多路径插件目录），并规范化了沙箱文件路径的语法格式。
+
+### 2. 关键变更主题
+
+*   **Hooks 与插件生态扩展**
+    *   **新增 `http` Hook 类型**：支持将事件数据以 POST 请求发送到外部 URL，极大便利了与外部系统的集成。
+    *   **新增 `StopFailure` 事件**：当 API 错误导致响应结束时触发，允许开发者针对限流、认证失败等情况编写恢复逻辑。
+    *   **增强匹配器（Matcher）**：`InstructionsLoaded` 现在支持按加载原因（如 `session_start`）过滤，`Elicitation` 事件支持按 MCP 服务器名称过滤。
+
+*   **配置灵活性与自定义**
+    *   **自定义模型选项**：通过 `ANTHROPIC_CUSTOM_MODEL_OPTION` 系列环境变量，开发者可以在 `/model` 选择器中添加自定义模型（如通过 LLM 网关路由的模型），无需替换内置别名。
+    *   **插件种子目录分层**：`CLAUDE_CODE_PLUGIN_SEED_DIR` 现在支持通过分隔符（Unix 用 `:`，Windows 用 `;`）指定多个路径，实现插件配置的分层合并。
+
+*   **语法规范化与体验提升**
+    *   **沙箱路径语法变更**：沙箱文件系统路径配置中，绝对路径前缀从 `//` 更新为标准 `/`（旧语法仍向后兼容），明确了相对路径 `./` 的解析规则。
+    *   **Sub-agent 记忆策略调整**：官方建议将 Sub-agent 的持久化记忆默认范围从 `user` 改为 `project`，以便知识库可以通过版本控制共享。
+    *   **CLI 修复**：修复了 `claude -p` 模式下的挂起和 Ctrl+C 失效问题，新增 `--console` 认证标志。
+
+### 3. 影响程度
+**Medium (中等)**
+
+**理由**：
+*   **非破坏性**：大部分变更为新增功能或格式优化，如 `http` Hook 和自定义模型配置均需显式启用。
+*   **最佳实践建议**：虽然 `//` 路径前缀仍被支持，但文档明确推荐迁移到标准 `/` 前缀；Sub-agent 记忆范围的建议变更也影响长期使用策略。
+*   **错误处理增强**：`StopFailure` 事件的引入为构建健壮的自动化工作流提供了关键钩子，对重度用户价值较高。
+
+### 4. 开发者行动项
+
+*   **更新沙箱配置语法**：检查 `settings.json` 中的沙箱文件路径，将绝对路径的 `//path` 前缀更新为标准 `/path`，以符合最新规范。
+*   **调整 Sub-agent 记忆作用域**：将常用 Sub-agent 的记忆范围从 `user` 改为 `project`，以便通过 Git 共享其积累的知识库。
+*   **利用 HTTP Hook 进行集成**：使用新增的 `http` hook 类型将 `PostToolUse` 或 `StopFailure` 事件发送至 Webhook 或监控系统。
+*   **配置自定义模型入口**：若通过网关或私有部署使用模型，设置 `ANTHROPIC_CUSTOM_MODEL_OPTION` 环境变量以简化模型切换流程。
+*   **完善 API 错误处理**：利用 `StopFailure` 事件及其错误类型匹配器（如 `rate_limit`），在自动化脚本中添加针对 API 限流的自动重试或降级逻辑。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the User&#39;s Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Format:** Markdown, concise, insightful.
+    *   **Focus:** What matters to developers.
+    *   **Input:** 12 pages of diffs.
+    *   **Output Language:** Chinese (as requested: &#34;请用中文回复&#34;).
+    *   **Structure:**
+        1.  Overall Summary (1-2 sentences).
+        2.  Key Themes (bullets).
+        3.  Impact Level (Low/Medium/High/Breaking) with reasoning.
+        4.  Action Items (max 5 bullets).
+
+2.  **Analyze the Diff Content:**
+
+    *   `cli-reference.md`: Mostly whitespace changes (indentation). The actual content looks largely identical, except maybe table formatting. *Wait, looking closely...* It&#39;s just whitespace/trailing spaces or column alignment. No functional command changes visible here. *Correction*: The diff shows a lot of changes, but they seem to be formatting/whitespace. Let&#39;s look at the text. &#34;Update to latest versi&#34; is cut off. It seems to be a formatting artifact in the provided diff snippet. I should assume this is minor formatting or a partial diff, but given the context of other files, CLI reference usually aligns with new features.
+
+    *   `hooks.md` &amp; `hooks-guide.md`:
+        *   **New Event:** `StopFailure` - when a turn ends due to an API error. Output/exit code ignored.
+        *   **Matcher Updates:** `StopFailure` supports error types (`rate_limit`, `authentication_failed`, etc.).
+        *   **Matcher Updates:** `InstructionsLoaded` supports load reasons (`session_start`, `nested_traversal`, etc.).
+        *   **Matcher Updates:** `Elicitation` / `ElicitationResult` support MCP server names.
+        *   **Diagram Updated:** New lifecycle diagram reflecting `StopFailure` and `TeammateIdle`, `PreCompact`, `PostCompact` ordering or inclusion.
+        *   **Clarification:** `ConfigChange` source list updated to include `skills`.
+
+    *   `model-config.md`:
+        *   **New Env Vars:** `ANTHROPIC_CUSTOM_MODEL_OPTION`, `ANTHROPIC_CUSTOM_MODEL_OPTION_NAME`, `ANTHROPIC_CUSTOM_MODEL_OPTION_DESCRIPTION`. Allows adding a single custom model to the `/model` picker without replacing built-ins. Useful for gateways.
+
+    *   `overview.md`:
+        *   **Formatting Fix:** Removed duplicate `theme={null}` attributes in code blocks. Affects rendering, not functionality.
+
+    *   `plugin-marketplaces.md`:
+        *   **Table Update:** &#34;Fields&#34; column changed from &#34;—&#34; to &#34;none&#34;.
+        *   **New Feature:** `CLAUDE_CODE_PLUGIN_SEED_DIR` now supports multiple paths (layering) using `:` (Unix) or `;` (Windows).
+
+    *   `plugins-reference.md`:
+        *   **New Hook Type:** `http` - send event JSON as POST request to a URL.
+        *   **Event List:** Updated to match `hooks.md` (added `StopFailure`, etc.).
+        *   **Troubleshooting:** Updated to include `http` as a valid hook type.
+
+    *   `sandboxing.md` &amp; `settings.md`:
+        *   **Path Prefix Change:** Changed from `//path` to `/path` for absolute paths in sandbox settings. The `//` prefix is deprecated but still works (backward compatible).
+        *   **Prefix Clarification:** Clarified meaning of `/` (absolute), `~` (home), `./` (relative).
+        *   **Note:** Distinguish from Read/Edit permission rules which still use `//path` for absolute. This is a bit confusing, need to highlight the distinction. Sandbox uses standard conventions now.
+
+    *   `sub-agents.md`:
+        *   **Recommendation Change:** &#34;Persistent memory tips&#34; - `project` is now recommended over `user` as default scope for better shareability.
+
+    *   `vs-code.md`:
+        *   **New Command:** `/remote-control` in the command menu.
+        *   **Feature:** New sessions get AI-generated titles.
+
+    *   `CHANGELOG.md.md`:
+        *   Confirms: `--console` flag for auth, &#34;Show turn duration&#34; toggle, `-p` mode fixes, Ctrl+C fixes, plugin seed dir layering, VS Code remote control, AI titles, etc.
+        *   Confirms 2.1.79 release.
+
+3.  **Synthesize Key Themes:**
+    *   **Enhanced Hooks &amp; Plugins:** New `StopFailure` event, `http` hook type, more granular matchers for instructions and elicitation.
+    *   **Configuration &amp; Customization:** Custom model options via env vars, multi-path plugin seeding, clearer sandbox path syntax (`/` vs `//`).
+    *   **Usability &amp; Fixes:** AI-generated session titles in VS Code, new `/remote-control` command, various bug fixes (stdin handling, rate limits).
+
+4.  **Determine Impact Level:**
+    *   **Reasoning:** The changes add new features (HTTP hooks, custom models) and refine existing ones (sandbox paths, sub-agent memory). The sandbox path syntax change is notable but backward compatible. Nothing appears strictly &#34;Breaking&#34; in a way that stops code from running, though `//` -&gt; `/` is a deprecation/warning to users to update configs. New hooks are opt-in.
+    *   **Level:** Medium. (New capabilities + configuration clarification/evolution).
+
+5.  **Formulate Action Items (Chinese):**
+    *   Update sandbox config if using `//` for absolute paths (migrate to `/`).
+    *   Check `sub-agents` config: switch memory scope to `project` if shareability is desired.
+    *   Explore new `http` hook type for external integrations.
+    *   Update VS Code extension to use `/remote-control`.
+    *   Review `StopFailure` hooks for better error handling.
+
+6.  **Drafting the Response (in Chinese):**
+
+    *   *Summary*: 这次更新为 Claude Code 带来了更强大的 Hooks 与插件生态（新增 HTTP hook 和 `StopFailure` 事件），优化了配置灵活性（支持自定义模型选项、多路径插件种子目录），并明确了沙箱路径语法规范。
+    *   *Themes*:
+        *   **Hooks &amp; Plugins 扩展**: 新增 `StopFailure` 事件用于 API 错误处理，支持 `http` 类型 Hook 实现远程通知，细化了 `InstructionsLoaded` 等事件的匹配规则。
+        *   **配置与集成优化**: 新增环境变量支持向模型选择器添加自定义条目（如网关部署），插件种子目录支持多层路径合并。
+        *   **语法规范化与修正**: 沙箱文件路径配置中，绝对路径前缀从 `//` 正式推荐为标准 `/`（旧写法仍兼容），VS Code 新增 AI 生成会话标题和远程控制命令。
+    *   *Impact*: Medium. 虽然主要是功能增强和配置优化，但沙箱路径语法的变更涉及配置文件更新，且新增的 Hook 事件为开发者提供了新的错误处理机制，建议关注。
+    *   *Action Items*:
+        *   **检查沙箱配置**: 如果配置文件中使用了 `//path` 表示绝对路径，建议逐步迁移为标准的 `/path`。
+        *   **调整 Sub-agent 记忆范围**: 参考 Sub-agent 文档建议，将默认记忆范围从 `user` 改为 `project` 以便通过版本控制共享知识。
+        *   **利用 HTTP Hooks**: 尝试使用新的 `http` hook 类型，将事件数据 POST 到外部 URL 以实现集成或监控。
+        *   **设置自定义模型**: 若使用 LLM 网关，配置 `ANTHROPIC_CUSTOM_MODEL_OPTION` 环境变量以便在 `/model` 菜单中直接选择。
+        *   **处理 API 错误**: 利用新增的 `StopFailure` 事件改进 API 错误（如限流）发生时的自动化处理逻辑。
+
+7.  **Refine Content:** Ensure tone is professional and concise. The `cli-reference.md` whitespace changes are noise, so ignore them in the summary but acknowledge the file was touched.
+
+    *Self-Correction during drafting:* The diff for `cli-reference.md` shows mostly whitespace but cuts off at &#34;Update to latest versi&#34;. I shouldn&#39;t claim specific CLI changes based on that snippet. Stick to the CHANGELOG for CLI facts (which mentions `--console` flag). The CHANGELOG confirms `--console` flag.
+
+    *Refining Sandbox Path:* The documentation says &#34;The older `//path` prefix for absolute paths still works.&#34; but says &#34;If you previously used single-slash `/path` expecting project-relative resolution, switch to `./path`.&#34; This implies a change in behavior/interpretation for single slash in some contexts or just clarification. Let&#39;s look closely: &#34;Sandbox filesystem paths use standard conventions: `/tmp/build` is an absolute path.&#34; The change is moving away from `//` to `/`. So `//` -&gt; `/` is the migration path.
+
+8.  **Final Polish (Markdown format):** (Proceeding to generate output).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/cli-reference.html" class="page-link">cli-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+16</span>
+                            <span class="removed">-16</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+55</span>
+                            <span class="removed">-33</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+17</span>
+                            <span class="removed">-12</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/model-config.html" class="page-link">model-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/overview.html" class="page-link">overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugin-marketplaces.html" class="page-link">plugin-marketplaces.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+30</span>
+                            <span class="removed">-20</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sandboxing.html" class="page-link">sandboxing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-8</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+11</span>
+                            <span class="removed">-11</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/vs-code.html" class="page-link">vs-code.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+19</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">18:28 EST</div>
