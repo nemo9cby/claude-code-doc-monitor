@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026-03-18 - Documentation Changes</title>
+    <style>
+        :root {
+            --bg-color: #1a1a2e;
+            --card-bg: #16213e;
+            --text-color: #eee;
+            --accent: #0f3460;
+            --add-text: #4ade80;
+            --del-text: #f87171;
+            --time-color: #60a5fa;
+        }
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg-color: #f5f5f5;
+                --card-bg: #fff;
+                --text-color: #333;
+                --accent: #e0e0e0;
+                --add-text: #155724;
+                --del-text: #721c24;
+                --time-color: #2563eb;
+            }
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+        .container { max-width: 800px; margin: 0 auto; }
+        header { margin-bottom: 2rem; }
+        h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+        .meta { color: #888; }
+        .batch { margin-bottom: 2rem; }
+        .batch-header {
+            color: var(--time-color);
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--accent);
+        }
+        .page-list { list-style: none; }
+        .page-item {
+            background: var(--card-bg);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .page-item:hover { background: var(--accent); }
+        .page-link {
+            color: var(--text-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .page-summary { color: #888; font-size: 0.9rem; }
+        .added { color: var(--add-text); }
+        .removed { color: var(--del-text); }
+        a { color: #60a5fa; }
+        .back-link { margin-bottom: 1rem; display: inline-block; }
+        .page-item-content { flex: 1; }
+        .page-analysis {
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: 0.25rem;
+        }
+        .source-section {
+            margin-bottom: 1.5rem;
+        }
+        .source-header {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: #8b5cf6;
+        }
+        .batch-analysis {
+            background: var(--card-bg);
+            border-left: 3px solid #22c55e;
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            margin: 0.75rem 0 1rem 0;
+        }
+        .batch-analysis h4 {
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+        .batch-analysis-content {
+            white-space: pre-wrap;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        .reasoning-section {
+            margin-top: 1rem;
+            padding-top: 0.75rem;
+            border-top: 1px dashed var(--accent);
+            font-size: 0.85rem;
+            color: #888;
+        }
+        .reasoning-section summary {
+            cursor: pointer;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../../../index.html" class="back-link">&larr; All reports</a>
+
+        <header>
+            <h1>Changes on 2026-03-18</h1>
+            <p class="meta">8 total changes in 1 run</p>
+        </header>
+
+        
+        <div class="batch">
+            <div class="batch-header">03:10 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 总体摘要
+本次文档更新重点在于明确了认证凭证的优先级解析顺序，分离了用户配置与全局 UI 配置的存储位置，并扩展了钩子系统以支持历史记录压缩后的事件。
+
+### 关键主题
+*   **认证优先级与故障排查**：详细定义了 `ANTHROPIC_API_KEY`、OAuth 等多种认证方式的加载顺序。新增了针对“组织已禁用”错误的排查指南，指出旧的环境变量可能会意外覆盖订阅认证。
+*   **配置文件结构重构**：将 UI 显示偏好设置（如 `showTurnDuration`、`terminalProgressBarEnabled`）从项目级 `settings.json` 迁移至全局级 `~/.claude.json`，防止架构校验错误。
+*   **可观测性增强**：新增 `PostCompact` 钩子事件，允许开发者在对话历史记录压缩完成后执行自定义逻辑。
+*   **示例与最佳实践修正**：修正了 `overview` 中的管道示例（将 `tail -f` 改为 `tail -200`）以避免命令挂起，并补充了 VS Code 终端的 Meta 键配置细节。
+
+### 影响等级
+**高**  
+**理由**：认证优先级的澄清直接关乎开发者在混合使用订阅和 API Key 时的连接稳定性；配置文件的迁移如果未处理好，会导致启动时的 Schema 校验错误，阻碍工具正常使用。
+
+### 开发者行动项
+1.  **检查环境变量**：若遇到认证错误，请检查 Shell 配置文件中是否有残留的 `ANTHROPIC_API_KEY` 导致覆盖了订阅认证。
+2.  **迁移配置项**：如果你曾手动在 `settings.json` 中配置 `showTurnDuration` 或 `terminalProgressBarEnabled`，请将其移至 `~/.claude.json`。
+3.  **利用新钩子**：检查是否可以利用 `PostCompact` 钩子来监控或记录内存压缩后的状态。
+4.  **更新管道脚本**：审查使用 `tail -f | claude` 的自动化脚本，将其修改为读取固定行数（如 `tail -200`）以避免进程挂起。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Understand the Goal**: The user wants a concise, insightful analysis of documentation changes for a developer tool (Claude Code). The output must be in markdown and Chinese.
+
+2.  **Analyze the Input Data**:
+    *   **hooks.md** &amp; **hooks-guide.md**: Added `PostCompact` to the list of hooks alongside `PreCompact`. The trigger description remains the same (`manual`, `auto`).
+    *   **iam.md**:
+        *   Clarified credential storage locations (macOS Keychain vs. `~/.claude/.credentials.json` on Linux/Windows).
+        *   Added &#34;Authentication precedence&#34; section detailing the priority order: Cloud providers &gt; `ANTHROPIC_AUTH_TOKEN` &gt; `ANTHROPIC_API_KEY` &gt; `apiKeyHelper` &gt; OAuth.
+        *   Warned about `ANTHROPIC_API_KEY` overriding subscriptions and potentially causing errors.
+    *   **overview.md**:
+        *   Weird repetition of `theme={null}` in code blocks (likely a formatting glitch/tooling artifact, not a functional change to the tool itself, but worth noting as noise).
+        *   Changed `tail -f` to `tail -200` in an example. Reasoning: `tail -f` never exits, so piping into `claude -p` would hang. `tail -200` provides a finite snapshot to analyze.
+    *   **plugins-reference.md**: Mirrors the hooks change, adding `PostCompact`.
+    *   **settings.md**:
+        *   Moved `showTurnDuration` and `terminalProgressBarEnabled` to a &#34;Global config settings&#34; section.
+        *   Clarified these go in `~/.claude.json`, not `settings.json`. Added a warning that putting them in `settings.json` causes validation errors.
+    *   **terminal-config.md**: Split iTerm2 and VS Code terminal instructions for setting the Meta key. Added specific JSON config for VS Code.
+    *   **troubleshooting.md**: Added a specific troubleshooting section for the error &#34;This organization has been disabled&#34; linked to the `ANTHROPIC_API_KEY` precedence issue mentioned in `iam.md`.
+
+3.  **Synthesize Themes**:
+    *   **Observability/Extensibility**: New `PostCompact` hook allows actions after memory/history compaction.
+    *   **Auth/Config Clarity &amp; Precedence**: Major cleanup of how auth works. Clear hierarchy of credentials. Distinction between user settings (`settings.json`) and global UI config (`~/.claude.json`).
+    *   **Usability/Best Practices**: Corrected the `tail -f` example (preventing hangs) and clarified terminal setup (VS Code).
+
+4.  **Determine Impact**:
+    *   **High**: The auth precedence change is critical. Developers relying on subscriptions might find their tool broken if they have old env vars set. The distinction between `settings.json` and `~/.claude.json` prevents validation errors.
+    *   **Medium**: The new hook is useful but non-breaking.
+    *   **Low**: The `tail` example fix and VS Code config are minor improvements.
+
+5.  **Draft Action Items**:
+    *   Check env vars (`ANTHROPIC_API_KEY`) if auth fails with active subscription.
+    *   Move `showTurnDuration` and `terminalProgressBarEnabled` to `~/.claude.json` if facing validation errors.
+    *   Update hook implementations to utilize `PostCompact` if post-compaction logic is needed.
+    *   Review auth precedence docs to understand credential priority.
+
+6.  **Translate to Chinese &amp; Format**:
+
+    *   *Summary*: 文档更新主要聚焦于明确认证凭证的优先级顺序、新增钩子事件以及修正配置文件的存放位置和用法。
+    *   *Key Themes*:
+        *   **Authentication Precedence**: 明确定义了 `ANTHROPIC_API_KEY`、OAuth 等认证方式的优先级，并解释了为何订阅用户可能遇到“组织已禁用”错误。
+        *   **Configuration Separation**: 将 UI 显示偏好（如进度条、耗时提示）从 `settings.json` 移至 `~/.claude.json`，避免校验错误。
+        *   **Extensibility**: 新增 `PostCompact` 钩子事件，允许在历史记录压缩后执行操作。
+        *   **UX Fixes**: 修正了 `tail -f` 示例代码以防止命令挂起，并细化了终端配置说明。
+    *   *Impact*: **High**. 认证优先级的明确和配置文件的分离直接影响用户能否正常登录和配置环境，尤其是对于混合使用订阅和 API 密钥的用户。
+    *   *Action Items*:
+        *   检查环境变量中是否残留旧的 `ANTHROPIC_API_KEY`，以防覆盖订阅认证。
+        *   若配置 `showTurnDuration` 等选项报错，请将其移动到 `~/.claude.json` 而非 `settings.json`。
+        *   利用新增的 `PostCompact` 钩子来监控对话历史压缩后的状态。
+        *   更新脚本中的管道命令示例，将 `tail -f` 改为 `tail -200` 以避免死锁。
+
+7.  **Review against constraints**:
+    *   World-class programmer tone? Yes.
+    *   Concise/Insightful? Yes.
+    *   Markdown? Yes.
+    *   Chinese? Yes.
+    *   Action items max 5? Yes.
+
+8.  **Final Polish**: Ensure terms like &#34;validation error&#34; and &#34;precedence&#34; are translated naturally. (e.g., 校验错误, 优先级).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/iam.html" class="page-link">iam.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+10</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/overview.html" class="page-link">overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/terminal-config.html" class="page-link">terminal-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/troubleshooting.html" class="page-link">troubleshooting.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
+        
+    </div>
+</body>
+</html>
