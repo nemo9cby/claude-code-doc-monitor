@@ -118,9 +118,264 @@
 
         <header>
             <h1>Changes on 2026-03-19</h1>
-            <p class="meta">14 total changes in 4 runs</p>
+            <p class="meta">24 total changes in 5 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">19:25 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更分析报告
+
+## 总体摘要
+此次更新主要涉及将 Java SDK 系列版本统一升级至 2.18.0，并显著重写了 Prompt Caching（提示缓存）的核心逻辑文档以纠正常见误区，从而优化成本控制。此外，Shell 脚本示例得到了增强，增加了自动创建临时目录和测试文件的逻辑，提升了代码示例的可复用性。
+
+## 关键变更主题
+*   **依赖项版本统一升级**：
+    *   Java SDK 全家桶（包括 Bedrock, Vertex AI, Microsoft Foundry 适配器）从 `2.15.0` 升级至 `2.18.0`。
+    *   Go SDK 的最低版本要求从 `1.22+` 提升至 `1.23+`。
+*   **Prompt Caching 机制深度澄清**：
+    *   彻底重写了关于“自动前缀检查”和“20块回溯窗口”的说明。
+    *   明确了缓存写入仅发生在断点处，而读取是向后查找的逻辑。
+    *   新增了“常见错误”章节，指出将断点设置在每次请求都会变更的内容（如时间戳）会导致无法命中缓存。
+*   **代码示例健壮性增强**：
+    *   在 Vision, PDF Support, Code Execution 等页面的 Shell 示例中，统一加入了 `cd &#34;$(mktemp -d)&#34;` 和下载/生成测试文件的步骤。
+    *   使用 `hidelines` 属性隐藏了环境准备代码，使核心逻辑更清晰。
+
+## 影响等级：中等
+*   **理由**：虽然 SDK 升级是常规维护，但 **Prompt Caching 文档的修正对成本控制有直接影响**。之前的描述可能导致开发者误解缓存命中逻辑，从而在长对话中产生不必要的 Token 消耗。Go 版本要求的提升可能影响旧版 CI/CD 流水线。
+
+## 开发者行动项
+1.  **升级依赖**：将 Java 构建文件中的 `anthropic-java` 及相关模块版本更新至 `2.18.0`。
+2.  **检查 Go 环境**：确保开发和生产环境的 Go 版本至少为 1.23，以避免兼容性问题。
+3.  **重读缓存策略**：务必阅读 Prompt Caching 文档中关于 **&#34;Common mistake&#34;** 和 **&#34;Lookback window&#34;** 的部分，确保你的 `cache_control` 断点设置在真正的静态内容末尾，而非动态内容上。
+4.  **参考 Shell 最佳实践**：在编写涉及文件上传的测试脚本时，参考文档中 `mktemp` 的用法，确保测试环境的隔离和清洁。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer.
+    *   **Task:** Analyze documentation changes (single batch) and summarize.
+    *   **Output:** Concise, insightful analysis in Markdown format.
+    *   **Language:** Chinese.
+    *   **Focus:** What matters to developers.
+    *   **Input:** Diffs for 10 pages.
+
+2.  **Review the Diffs (Page by Page):**
+
+    *   **Page: `get-started.md`**
+        *   *Change:* Java SDK version updated from `2.15.0` to `2.18.0` (Gradle and Maven).
+        *   *Relevance:* Dependency update.
+
+    *   **Page: `api/client-sdks.md`**
+        *   *Change 1:* Java SDK version updated from `2.15.0` to `2.18.0`.
+        *   *Change 2:* Go minimum version requirement updated from `1.22+` to `1.23+`.
+        *   *Relevance:* Dependency updates, environment requirement changes.
+
+    *   **Page: `build-with-claude/vision.md`**
+        *   *Change:* Added `cd &#34;$(mktemp -d)&#34;` and `curl ...` to download an image before the example command. Added `hidelines={1..2}` attribute to the code block.
+        *   *Relevance:* Improves example reproducibility by setting up a temp directory and dummy data automatically.
+
+    *   **Page: `build-with-claude/pdf-support.md`**
+        *   *Change:* Multiple instances of adding `cd &#34;$(mktemp -d)&#34;` and download commands before `curl` commands to upload/process PDFs. Also adding `hidelines` attributes.
+        *   *Relevance:* Similar to vision.md, improves example code robustness/copy-paste usability.
+
+    *   **Page: `build-with-claude/prompt-caching.md`**
+        *   *Change:* Major re-write of the &#34;How automatic prefix checking works&#34; section.
+        *   *Details:*
+            *   Clarified &#34;Cache keys are cumulative&#34; -&gt; &#34;Cache writes happen only at your breakpoint&#34;.
+            *   Clarified &#34;Backward sequential checking&#34; -&gt; &#34;Cache reads look backward...&#34;.
+            *   Clarified &#34;20-block lookback window&#34;.
+            *   Rewrote examples to be clearer (Turn 1, 2, 3).
+            *   Added &#34;Common mistake&#34; section (placing breakpoint on changing content).
+            *   Updated &#34;When to use multiple breakpoints&#34;.
+            *   Updated &#34;Important limitation&#34;.
+            *   Updated &#34;Best practices&#34;.
+        *   *Relevance:* **High Impact**. Deeply technical clarification of a cost-critical feature (prompt caching). Misunderstanding this costs money.
+
+    *   **Page: `build-with-claude/claude-on-amazon-bedrock.md`**
+        *   *Change:* Java Bedrock SDK version updated from `2.15.0` to `2.18.0`.
+        *   *Relevance:* Dependency update.
+
+    *   **Page: `build-with-claude/claude-on-vertex-ai.md`**
+        *   *Change:* Java Vertex SDK version updated from `2.15.0` to `2.18.0`.
+        *   *Relevance:* Dependency update.
+
+    *   **Page: `build-with-claude/claude-in-microsoft-foundry.md`**
+        *   *Change:* Java Foundry SDK version updated from `2.15.0` to `2.18.0`.
+        *   *Relevance:* Dependency update.
+
+    *   **Page: `agents-and-tools/tool-use/code-execution-tool.md`**
+        *   *Change 1:* Typo/grammar fix in intro text (removed dash before &#34;improving&#34;).
+        *   *Change 2:* Added `cd &#34;$(mktemp -d)&#34;` and `printf ...` to create dummy CSV files in examples. Added `hidelines`.
+        *   *Relevance:* Improves example usability.
+
+    *   **Page: `agents-and-tools/mcp-connector.md`**
+        *   *Change:* Added `nocheck` attribute to a TypeScript code block.
+        *   *Relevance:* Likely to suppress type checking warnings/linter errors in the documentation rendering, less impact on actual code logic.
+
+3.  **Synthesize Findings:**
+
+    *   **Theme 1: Dependency Updates.** Java SDKs (standard, Bedrock, Vertex, Foundry) jumped from 2.15.0 to 2.18.0. Go requirement bumped to 1.23.
+    *   **Theme 2: Documentation Code Quality.** Shell script examples now include setup steps (`cd &#34;$(mktemp -d)&#34;`, creating files) to ensure they work immediately without manual prep. This applies to Vision, PDF, and Code Execution.
+    *   **Theme 3: Deep Technical Clarification.** Prompt caching documentation received a significant overhaul to explain how the lookback window works and where to place breakpoints to save money.
+
+4.  **Draft the Analysis (in Chinese):**
+
+    *   *Overall Summary:* The updates primarily focus on upgrading Java SDKs to version 2.18.0 and significantly refining the Prompt Caching documentation to clarify cost-optimization logic. Additionally, shell script examples have been improved to be more robust and self-contained.
+
+    *   *Key Themes:*
+        *   **Dependency Updates:** Consistent bump of Java SDKs (standard, Bedrock, Vertex, Foundry) to 2.18.0. Go minimum version requirement raised to 1.23+.
+        *   **Prompt Caching Optimization:** Critical rewrites explaining the 20-block lookback window, write vs. read logic, and common pitfalls to avoid unnecessary costs.
+        *   **Example Robustness:** Shell examples (Vision, PDF, Code Execution) now include temp directory creation and dummy file generation (`mktemp -d`, `printf`, `curl`) for better usability.
+
+    *   *Impact Level:* **Medium** (leaning towards High for Prompt Caching users).
+        *   *Reasoning:* The prompt caching changes fix conceptual misunderstandings that directly lead to increased costs (missed cache hits). Dependency updates are routine but necessary. Example improvements are quality-of-life enhancements.
+
+    *   *Action Items:*
+        *   Update Java dependencies to `2.18.0` in your build files.
+        *   Ensure Go runtime is upgraded to version 1.23 or later.
+        *   **Critical:** Re-read the Prompt Caching section, specifically regarding breakpoint placement and the 20-block lookback limit, to ensure you are actually hitting the cache and saving money.
+        *   Review the new shell examples for patterns on handling file uploads in temporary directories.
+
+5.  **Refine and Format:**
+
+    *   Ensure tone is professional (&#34;world-class programmer&#34;).
+    *   Check markdown syntax.
+    *   Verify translation to Chinese is natural and technical terms are used correctly (e.g., &#34;Prompt Caching&#34;, &#34;SDK&#34;, &#34;Dependency&#34;).
+
+6.  **Final Polish (Self-Correction during drafting):**
+    *   *Correction:* Make sure to emphasize that the Prompt Caching change isn&#39;t just a wording tweak; it corrects a &#34;common mistake&#34; description that implies previous docs might have been misleading about how the system behaves automatically.
+    *   *Correction:* The Go version change is small but breaking for CI/CD pipelines stuck on 1.22.
+
+7.  **Final Output Generation** (Proceed to generate the markdown response).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/get-started.html" class="page-link">get-started.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/client-sdks.html" class="page-link">api/client-sdks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/vision.html" class="page-link">build-with-claude/vision.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/pdf-support.html" class="page-link">build-with-claude/pdf-support.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-caching.html" class="page-link">build-with-claude/prompt-caching.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+22</span>
+                            <span class="removed">-18</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-on-amazon-bedrock.html" class="page-link">build-with-claude/claude-on-amazon-bedrock.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-on-vertex-ai.html" class="page-link">build-with-claude/claude-on-vertex-ai.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-in-microsoft-foundry.html" class="page-link">build-with-claude/claude-in-microsoft-foundry.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/code-execution-tool.html" class="page-link">agents-and-tools/tool-use/code-execution-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/mcp-connector.html" class="page-link">agents-and-tools/mcp-connector.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">18:22 EST</div>
