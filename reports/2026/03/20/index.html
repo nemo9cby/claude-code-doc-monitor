@@ -118,9 +118,186 @@
 
         <header>
             <h1>Changes on 2026-03-20</h1>
-            <p class="meta">4 total changes in 1 run</p>
+            <p class="meta">9 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">12:37 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更分析
+
+### 1. 总体概述
+这批更新主要集中在增强 CLI 对 MCP (Model Context Protocol) 的集成、提升本地配置的灵活性（支持内联插件市场）以及为技能/命令增加更细粒度的模型控制能力。
+
+### 2. 关键主题
+*   **MCP 通道功能明确化与限制**: `--channels` 参数被标记为“研究预览”，明确了其针对 MCP 服务器的用途，并强制要求使用 Claude.ai 认证（不再仅支持 API Key 用户）。
+*   **插件分发机制简化**: 新增 `settings` 源类型，允许开发者直接在 `settings.json` 中声明少量插件，无需搭建独立的外部托管仓库。
+*   **性能控制粒度提升**: 在技能和斜杠命令配置中新增 `effort` 字段，允许针对特定任务覆盖会话级别的模型计算力度，从而在速度和成本之间做更精细的权衡。
+*   **状态栏数据接口更新**: 传递给状态栏脚本的 JSON 数据结构进行了调整（尽管具体变更被截断，但可见字段定义正在重构）。
+
+### 3. 影响级别
+**中等**
+
+*   **理由**: 虽然主要是新增功能，但 `--channels` 的认证机制变更可能影响现有的自动化工作流。新增的内联市场配置和 `effort` 字段为开发者提供了显著的生产力提升和优化空间，值得立即关注。
+
+### 4. 开发者行动项
+*   **更新 CLI 脚本**: 检查使用 `--channels` 的脚本，确保已适配 Claude.ai 认证要求，并留意该功能目前处于研究预览状态。
+*   **简化插件配置**: 如果团队维护着少量内部插件，利用新增的 `source: &#39;settings&#39;` 功能直接在配置文件中定义，免去维护独立仓库的麻烦。
+*   **优化任务性能**: 在高消耗或低延迟要求的 Skill/Slash Command 中，通过设置 `effort` 字段来覆盖默认模型行为（例如将自动化脚本设为 `low`，复杂分析设为 `high`）。
+*   **检查状态栏脚本**: 审阅自定义状态栏脚本，确保兼容更新后的 JSON 输入字段（特别是 `cwd` 相关字段）。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Task:** Analyze a batch of 5 documentation changes.
+    *   **Format:** Markdown, concise, insightful, focused on developer impact.
+    *   **Language:** Chinese (Simplified).
+
+2.  **Analyze the Input Data (Page by Page):**
+
+    *   **Page 1: `cli-reference.md`**
+        *   *Change:* `--channels` flag description updated.
+        *   *Old:* &#34;Enable named channel servers to push messages... from the approved allowlist.&#34;
+        *   *New:* &#34;(Research preview) MCP servers whose channel notifications Claude should listen for... Requires Claude.ai authentication.&#34; Also, the example changed from `plugin:fakechat@claude-plugins-official` to `plugin:my-notifier@my-marketplace`.
+        *   *Impact:* The feature is now explicitly marked as &#34;Research preview&#34;, terminology shifted slightly (from &#34;channel servers&#34; to &#34;MCP servers whose channel notifications&#34;), and authentication requirements changed/clarified (Claude.ai authentication required).
+
+    *   **Page 2: `settings.md`**
+        *   *Change:* Added new source type for `extraKnownMarketplaces`: `settings`.
+        *   *Details:* Allows declaring a small set of plugins inline in `settings.json` without a separate hosted repository.
+        *   *Syntax:* JSON example provided showing `source: &#39;settings&#39;`, `name`, and `plugins` list.
+        *   *Impact:* Easier distribution of custom plugins within a team without setting up a full marketplace server.
+
+    *   **Page 3: `skills.md`**
+        *   *Change:* Added new field `effort` to skill configuration.
+        *   *Details:* Allows overriding session effort level. Options: `low`, `medium`, `high`, `max` (Opus 4.6 only).
+        *   *Impact:* More granular control over model behavior/speed/cost per specific skill.
+
+    *   **Page 4: `slash-commands.md`**
+        *   *Change:* Identical to `skills.md`. Added `effort` field.
+        *   *Impact:* Consistent feature addition across slash commands and skills.
+
+    *   **Page 5: `statusline.md`**
+        *   *Change:* Table update for JSON fields sent to script via stdin. The diff cuts off, but I can see the first field changed: `cwd`, `w...` (truncated). Wait, looking closer at the diff: The table header structure changed slightly, or at least the formatting. The text `cwd`, `w` suggests the list is continuing.
+        *   *Observation:* The diff is cut off (`+| `cwd`, `w...`), but clearly there are modifications or additions to the fields available in the statusline script interface. *Self-correction*: The diff provided is truncated/incomplete. I should analyze what&#39;s visible. The first line change is `cwd`, `w...` which implies `workspace.current_dir` might be changing or being grouped differently, or it&#39;s just a continuation. Given the &#34;Total changed pages: 5&#34; context, I should focus on the fact that the statusline data interface is being updated. *Correction:* Looking at the old vs new, the row for `cwd`, `workspace.current_dir` is being replaced/updated. The new row starts with `cwd`, `w`. This likely means the data structure or description is evolving.
+        *   *Wait, let me re-read the diff snippet:*
+            Old: `| cwd, workspace.current_dir | ...`
+            New: `| cwd, w`
+            The diff is incomplete. I will note that the statusline JSON schema is being updated based on the visible change, but I can&#39;t see the full extent. *However*, usually, in these summaries, I focus on the *intent*. The intent is &#34;Data schema for statusline scripts updated&#34;.
+
+3.  **Synthesize and Structure (in Chinese):**
+
+    *   **Overall Summary:**
+        This batch updates CLI capabilities (Channels), configuration flexibility (Inline Marketplaces, Skill Effort levels), and internal statusline data structures. The focus is on refining the developer experience for plugins/skills and integrating with the MCP (Model Context Protocol) ecosystem.
+
+    *   **Key Themes:**
+        *   **MCP &amp; Channels Evolution:** The `--channels` flag is refined as a &#34;Research preview&#34; feature specifically for MCP servers, requiring Claude.ai auth.
+        *   **Configuration Granularity:** Added inline marketplace definitions (no external repo needed) and per-skill `effort` level control.
+        *   **Data Interface Updates:** The statusline script input schema is undergoing changes (though the diff is truncated).
+
+    *   **Impact Level:**
+        *   **Medium.** The inline marketplace definition is a significant convenience improvement for teams distributing internal tools. The `effort` field adds granular control. The `--channels` change signals a shift in how notifications/MCP are handled, potentially affecting existing workflows if they relied on specific allowlist behaviors or API keys (since it now requires Claude.ai auth).
+
+    *   **Action Items:**
+        *   Update `settings.json` to use inline marketplace definitions if you manage a small team plugin set without a public repo.
+        *   Review skill/slash-command configurations to utilize the new `effort` field for performance tuning.
+        *   Adjust CLI scripts using `--channels` to account for the new authentication requirement and &#34;Research preview&#34; status.
+        *   Check statusline custom scripts for compatibility with the updated JSON schema (pending full documentation review).
+
+4.  **Refining the Output (Language Polish):**
+
+    *   *Summary:* 这批更新主要集中在 CLI 功能、插件配置的灵活性以及内部数据接口的调整。核心变化包括 MCP 通道功能的标记、内联市场插件的配置支持，以及技能/命令中新增的“努力级别”控制。
+    *   *Themes:*
+        *   **MCP 通道演进**: `--channels` 被标记为“研究预览”，明确了与 MCP 服务器的集成并要求 Claude.ai 认证。
+        *   **配置粒度增强**: 引入 `settings` 类型的内联市场定义（无需外部仓库），并在技能配置中增加 `effort` 字段以覆盖会话级别的模型计算力度。
+        *   **状态栏数据接口变更**: 状态栏脚本接收的 JSON 字段格式正在更新。
+    *   *Impact:* **中等**。内联市场定义极大方便了团队内部工具的分发；`effort` 字段提供了细粒度的性能控制；`--channels` 的认证方式变更可能影响现有的自动化脚本。
+    *   *Action Items:*
+        *   利用新的 `settings` 源类型，在 `settings.json` 中直接配置小型团队插件集。
+        *   审查并更新 Skill 和 Slash Command 配置，利用 `effort` 字段优化特定任务的计算成本与响应速度。
+        *   更新使用 `--channels` 的 CLI 脚本，确保兼容新的认证要求和研究预览状态。
+        *   检查自定义状态栏脚本的兼容性，适配更新的 JSON schema。
+
+5.  **Final Review against Constraints:**
+    *   Markdown format? Yes.
+    *   Chinese? Yes.
+    *   Concise? Yes.
+    *   Insightful? Yes, identified the MCP link and the convenience of inline config.
+
+6.  **Construct Final Output.**</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/cli-reference.html" class="page-link">cli-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+14</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+13</span>
+                            <span class="removed">-12</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+13</span>
+                            <span class="removed">-12</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/statusline.html" class="page-link">statusline.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+63</span>
+                            <span class="removed">-26</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">11:38 EST</div>
