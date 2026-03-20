@@ -118,9 +118,271 @@
 
         <header>
             <h1>Changes on 2026-03-19</h1>
-            <p class="meta">24 total changes in 5 runs</p>
+            <p class="meta">33 total changes in 6 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">21:45 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 整体摘要
+
+本次文档更新主要增强了会话管理的灵活性，特别是 `/resume` 命令现在会触发生命周期钩子；同时扩展了配置粒度，允许在技能和子代理层面单独设置 `effort`（努力程度）和 `isolation`（隔离）参数。
+
+### 关键变更主题
+
+*   **生命周期钩子行为扩展**：`SessionEnd` 钩子现在会在通过交互式 `/resume` 命令切换会话时触发（原因为 `resume`）。这意味着开发者需要确保其清理逻辑能正确处理会话切换场景，而不仅仅是退出或清除。
+*   **配置层级与精细控制**：引入了在技能和子代理的 frontmatter 中设置 `effort` 的能力。这允许开发者为特定任务或代理指定不同的计算强度，覆盖会话级别的设置（环境变量优先级最高）。
+*   **子代理功能增强**：通过 `--agents` CLI 标志或 frontmatter，子代理现在支持更多配置项，包括 `memory`（记忆范围）、`effort`、`background`（后台运行）和 `isolation`（Git worktree 隔离环境）。
+*   **安全与信任机制**：文档明确了自定义状态栏脚本的执行需要工作区信任，如果信任未授予，将显示跳过提示而非报错。
+*   **生态规范更新**：新增 `knowledge-work-plugins` 为保留的 Marketplace 名称，防止第三方冒充。
+
+### 影响等级
+
+**中等**
+
+**理由**：
+虽然大部分变更是新增功能（如 `effort` 配置），但 `SessionEnd` 钩子行为的改变（现由 `/resume` 触发）属于逻辑上的扩展，可能会影响现有钩子脚本的执行频率和上下文。子代理配置项的增加则改变了开发者定义高级工作流的方式。
+
+### 开发者行动项
+
+*   **审查钩子逻辑**：检查您的 `SessionEnd` 钩子是否兼容 `resume` 事件，确保在用户切换会话时不会意外执行不该运行的清理操作。
+*   **利用精细化 Effort 设置**：在需要深度推理的特定 Skill 或 Subagent frontmatter 中添加 `effort: &#34;high&#34;` 或 `&#34;max&#34;`，以在关键时刻获取更好的模型表现。
+*   **测试子代理隔离**：如果您需要子代理在独立的 Git worktree 中运行以避免污染主仓库，尝试在配置中启用 `isolation: &#34;worktree&#34;`。
+*   **排查状态栏问题**：若自定义状态栏显示 `skipped`，请确保您已接受当前工作区的信任提示并重启 Claude Code。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request**:
+    *   **Role**: World-class programmer, documentation expert.
+    *   **Task**: Analyze documentation changes (single batch).
+    *   **Input**: 9 markdown files with diffs.
+    *   **Output Format**: Markdown, Concise, Insightful, Chinese language.
+    *   **Structure**: Overall Summary, Key Themes, Impact Level, Action Items.
+
+2.  **Analyze the Diffs (Page by Page)**:
+
+    *   **`discover-plugins.md`**:
+        *   Change: &#34;reloads commands, skills...&#34; -&gt; &#34;reloads plugins, skills...&#34;.
+        *   Meaning: `/reload-plugins` output text updated. The count is now &#34;plugins&#34; instead of &#34;commands&#34;. Slight wording adjustment, but functionality seems the same (counts what was reloaded).
+
+    *   **`hooks.md`**:
+        *   Change: `SessionEnd` reasons table adds `resume`.
+        *   Change: Description table adds `resume` (Session switched via interactive `/resume`).
+        *   Change: Timeout text mentions &#34;switching sessions via interactive `/resume`&#34;.
+        *   Meaning: The interactive `/resume` command now triggers `SessionEnd` hooks (and presumably `SessionStart` hooks on resumption). This is a behavioral change for hook developers.
+
+    *   **`hooks-guide.md`**:
+        *   Change: `SessionEnd` reasons table adds `resume`.
+        *   Meaning: Consistency update to match `hooks.md`.
+
+    *   **`model-config.md`**:
+        *   Change: Added bullet point about &#34;Skill and subagent frontmatter&#34; overriding effort level.
+        *   Change: Precedence text updated to include frontmatter overrides (Env &gt; Config &gt; Frontmatter &gt; Model default).
+        *   Meaning: You can now set `effort` in skill/subagent frontmatter. This is a new feature for fine-tuning model behavior per skill/agent.
+
+    *   **`plugin-marketplaces.md`**:
+        *   Change: Added `knowledge-work-plugins` to reserved names list.
+        *   Meaning: Policy update to prevent namespace squatting/impersonation for a new official marketplace.
+
+    *   **`plugins.md`**:
+        *   Change: `/reload-plugins` description text updated (commands -&gt; plugins). Consistency with `discover-plugins.md`.
+
+    *   **`settings.md`**:
+        *   Change: &#34;seven marketplace source types&#34; -&gt; &#34;multiple marketplace source types&#34;.
+        *   Meaning: Documentation softening. Likely because the number changed or they don&#39;t want to maintain a specific count in the text.
+
+    *   **`statusline.md`**:
+        *   Change: Added section &#34;Workspace trust required&#34;.
+        *   Meaning: Statusline custom scripts require workspace trust. If not trusted, it shows a specific message. This clarifies behavior for users writing statusline scripts.
+
+    *   **`sub-agents.md`**:
+        *   Change: &#34;Enable&#34; (memory) -&gt; &#34;User scope&#34; (memory). UI text update.
+        *   Change: `--agents` flag list adds `memory`, `effort`, `background`, `isolation`.
+        *   Change: Table adds `effort` and `isolation` rows.
+        *   Meaning: New JSON arguments for `--agents` flag and new frontmatter options. Specifically `effort` and `isolation` are new features.
+
+3.  **Synthesize and Categorize**:
+
+    *   **Theme 1: `/resume` behavior refinement.** Hooks now fire when switching sessions via interactive `/resume`.
+    *   **Theme 2: Effort Level granularity.** `effort` can now be set in skill/subagent frontmatter or CLI flags.
+    *   **Theme 3: Subagent features expansion.** Subagents now support `isolation` (git worktree) and `effort` configuration via frontmatter/CLI.
+    *   **Theme 4: Documentation clean-up/Policies.** Reserved names, statusline trust, and text consistency (reload plugins).
+
+4.  **Draft the Analysis (in Chinese)**:
+
+    *   *Summary*: 本次更新主要集中在增强 `/resume` 的生命周期钩子支持、扩展子代理和技能的 `effort`（努力程度）配置能力，以及明确了状态栏脚本的信任要求。
+
+    *   *Key Themes*:
+        *   **生命周期钩子扩展**：`SessionEnd` 现在会在通过交互式 `/resume` 切换会话时触发（原因标识为 `resume`），这意味着切换会话也会执行清理逻辑。
+        *   **配置粒度细化**：引入了在技能和子代理的 frontmatter 中设置 `effort` 级别的能力，允许更精细地控制特定组件的资源消耗或模型行为。
+        *   **子代理功能增强**：通过 CLI `--agents` 标志或 frontmatter，子代理现在支持 `isolation`（Git worktree 隔离）和 `effort` 设置。
+        *   **安全与信任**：自定义状态栏脚本现在明确要求工作区信任，否则会显示跳过提示。
+
+    *   *Impact Level*: Medium. (Behavioral changes in hooks affect existing scripts, new configuration options are additive but important for advanced users).
+    *   *Action Items*:
+        *   检查 `SessionEnd` 钩子，确保它们能正确处理 `resume` 事件。
+        *   利用新的 frontmatter `effort` 字段优化特定技能或子代理的性能。
+        *   如果使用 `--agents` 标志或定义子代理，考虑利用新增的 `isolation` 和 `effort` 选项。
+        *   若状态栏未显示，请检查是否授予了工作区信任。
+
+5.  **Refine Language (Professional &amp; Concise)**:
+
+    *   Translate concepts accurately:
+        *   &#34;Hooks&#34; -&gt; 钩子
+        *   &#34;Frontmatter&#34; -&gt; Frontmatter (or 前置元数据, usually kept as frontmatter in dev context)
+        *   &#34;Sub-agents&#34; -&gt; 子代理
+        *   &#34;Workspace trust&#34; -&gt; 工作区信任
+        *   &#34;Isolation&#34; -&gt; 隔离 (Git worktree context)
+
+6.  **Final Output Generation**: (Proceeding to generate the markdown response).
+
+    *   *Self-Correction during drafting*: Make sure to highlight the `resume` hook change as it&#39;s a subtle behavioral shift. Make sure to link the `effort` config in `model-config` and `sub-agents` as a cohesive feature addition.
+
+7.  **Final Polish**:
+    *   Summary: Concise.
+    *   Themes: Clear bullets.
+    *   Impact: Medium with solid reasoning.
+    *   Action Items: actionable.
+
+    *(Self-Correction on `discover-plugins.md` and `plugins.md` change)*: It&#39;s just a text change from &#34;commands&#34; to &#34;plugins&#34; in the description of what is reloaded. Not huge, but indicates internal grouping shift. I will group it under &#34;Doc refinements&#34; rather than a major theme, or omit it if space is tight (but request asks for &#34;what changed&#34;). I&#39;ll focus on the functional changes.
+
+    *(Check `sub-agents.md` diff again)*:
+    - `--agents` flag now accepts `memory`, `effort`, `background`, `isolation`.
+    - Frontmatter table adds `effort`, `isolation`.
+    - `memory` config changed UI text &#34;Enable&#34; -&gt; &#34;User scope&#34;.
+    This confirms the expansion of subagent capabilities.
+
+    *(Check `hooks.md` diff again)*:
+    `SessionEnd` gets `resume`.
+    Timeout text mentions `/resume`.
+    This is a concrete functional change for hook developers.
+
+    *(Check `statusline.md`)*:
+    Workspace trust required section added.
+    This is a troubleshooting/behavior clarification.
+
+    *Conclusion*: Medium impact is appropriate.
+
+    *Language Check*: Chinese.
+
+    Let&#39;s write it out.</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/discover-plugins.html" class="page-link">discover-plugins.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/model-config.html" class="page-link">model-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugin-marketplaces.html" class="page-link">plugin-marketplaces.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins.html" class="page-link">plugins.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/statusline.html" class="page-link">statusline.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">19:25 EST</div>
