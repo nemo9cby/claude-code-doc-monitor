@@ -118,9 +118,199 @@
 
         <header>
             <h1>Changes on 2026-03-25</h1>
-            <p class="meta">3 total changes in 2 runs</p>
+            <p class="meta">11 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">15:43 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更分析
+
+## 整体摘要
+本次更新引入了环境响应式 Hooks (`CwdChanged` / `FileChanged`)，改进了监控可观测性，调整了交互模式快捷键，并增强了配置管理灵活性。
+
+## 核心主题
+
+- **环境响应式自动化**：新增 `CwdChanged` 和 `FileChanged` 两个 Hook 事件，使开发者能够响应目录或文件变化自动重载环境（如与 direnv 集成）
+- **可观测性增强**：`OTEL_LOG_TOOL_DETAILS` 现在会记录工具输入参数（`tool_input`），但包含敏感数据截断与安全警告
+- **交互体验优化**：重构部分快捷键（如 `Ctrl+F`→`Ctrl+X Ctrl+K`），新增转录查看器快捷键，支持 Fast Mode 切换（`Option+O` / `Alt+O`）
+- **配置管理改进**：支持 `managed-settings.d/` 目录式配置片段合并（systemd 风格），新增沙箱严格模式 `sandbox.failIfUnavailable`
+- **Subagents 能力扩展**：`--agents` JSON 参数新增 `initialPrompt` 字段，支持自动提交初始提示
+
+## 影响程度：**中等**
+
+**理由**：
+- 新增 Hooks 属于功能增强，向后兼容
+- 快捷键变更可能影响肌肉记忆，但旧键位可能仍有效（diff 未明确移除）
+- 监控字段扩展为可选行为，默认不启用
+- 后台任务输出机制变更（文件而非缓冲）可能影响依赖 TaskOutput 的代码
+
+## 开发者行动项
+
+- 如果项目使用环境变量管理工具（如 direnv），可配置 `CwdChanged` Hook 实现自动重载
+- 若启用 `OTEL_LOG_TOOL_DETAILS=1`，需评估 `tool_input` 中敏感数据的合规性，并配置后端过滤
+- 快捷键用户需适应新的绑定（特别是杀后台代理和编辑器快捷键）
+- 管理员可利用 `managed-settings.d/` 目录拆分策略配置，提升维护效率
+- 如需强制沙箱安全策略，建议设置 `sandbox.failIfUnavailable: true`</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">用户希望我以世界级程序员的视角分析文档变更，用中文回复。我需要分析这8个页面的变更，提供简洁、深刻的见解，以Markdown格式输出。
+
+让我先梳理一下每个页面的主要变更：
+
+1. **hooks.md** (+94 / -52)
+   - 新增了 `CwdChanged` 和 `FileChanged` 两个hook事件
+   - 生命周期图更新，加入了这两个新事件
+   - 表格更新，包含了新事件的描述
+
+2. **hooks-guide.md** (+52 / -39)
+   - 新增了一个指南章节：&#34;Reload environment when directory or files change&#34;
+   - 详细展示了如何使用 `CwdChanged` 和 `FileChanged` hooks
+   - 提供了与 direnv 集成的示例代码
+   - 同样更新了事件表格，加入了新事件
+
+3. **interactive-mode.md** (+11 / -4)
+   - 更改了一些快捷键：`Ctrl+F` -&gt; `Ctrl+X Ctrl+K` (杀后台代理)
+   - `Ctrl+G` 或 `Ctrl+X Ctrl+E` 打开编辑器（新增了 readline 原生绑定）
+   - `Ctrl+V` 粘贴图片的描述更精确
+   - 新增 `Option+O` / `Alt+O` 切换快速模式
+   - 新增转录查看器部分，包含相关快捷键
+   - 后台任务输出机制变更：从&#34;缓冲并由 TaskOutput 检索&#34;改为&#34;写入文件并由 Read 检索&#34;
+
+4. **monitoring-usage.md** (+3 / -2)
+   - `OTEL_LOG_TOOL_DETAILS` 现在包括工具输入参数
+   - 新增 `tool_input` 属性的详细说明（JSON序列化，截断限制等）
+   - 安全警告更新，提醒 `tool_input` 可能包含敏感信息
+
+5. **plugins-reference.md** (+48 / -24)
+   - 新增 `CwdChanged` 和 `FileChanged` 事件到插件hooks表格
+
+6. **sandboxing.md** (+1 / -0)
+   - 新增 `sandbox.failIfUnavailable` 设置说明
+   - 默认情况下，如果沙箱无法启动，会显示警告并继续无沙箱运行
+   - 设置为 `true` 可使沙箱启动失败成为硬错误
+
+7. **settings.md** (+63 / -57)
+   - 文档更新反映了新功能和配置选项
+   - 引入了 `initialPrompt` 作为新的配置字段
+   - 可能包含其他细微的设置调整
+
+8. **sub-agents.md** (+2 / -1)
+   - 文档新增 `initialPrompt` 字段的详细说明
+   - 解释了该字段在主会话代理运行时的具体用途
+
+我将重点关注新增加的配置选项和字段，这些变化为开发者提供了更精细的控制能力。`initialPrompt` 为代理提供了初始化提示的灵活性，而 `CwdChanged` 和 `FileChanged` hooks 则增强了环境监控机制。
+
+监控改进包括更详细的工具参数日志和新的快捷键，同时后台任务处理也发生了变化。沙箱设置和配置管理也得到了增强，现在支持目录合并。
+
+这些更新反映了系统对用户需求的持续响应，提供了更精细的控制和监控能力。</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+94</span>
+                            <span class="removed">-52</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+52</span>
+                            <span class="removed">-39</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/interactive-mode.html" class="page-link">interactive-mode.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+11</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+48</span>
+                            <span class="removed">-24</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sandboxing.html" class="page-link">sandboxing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+63</span>
+                            <span class="removed">-57</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">14:50 EST</div>
