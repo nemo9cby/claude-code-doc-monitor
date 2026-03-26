@@ -118,9 +118,490 @@
 
         <header>
             <h1>Changes on 2026-03-26</h1>
-            <p class="meta">15 total changes in 5 runs</p>
+            <p class="meta">45 total changes in 6 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">18:23 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">本次文档更新主要围绕隐私合规性（ZDR 资格明确化）、上下文管理效率（MCP 工具默认延迟加载）以及文档结构的精简与重组。
+
+### 关键主题
+
+*   **ZDR (Zero Data Retention) 标准化与扩展**：几乎所有功能页面都增加了统一的 ZDR 资格说明。值得注意的是，**Computer Use** 和 **Context Editing** 移除了“Beta 功能不适用 ZDR”的警告，现在被标记为 ZDR 适用，这对企业级安全合规是重大利好。
+*   **MCP 工具默认行为变更**：MCP 工具定义现在**默认延迟加载**。此前仅当工具定义超过上下文 10% 时才自动延迟，现在默认仅加载工具名称，直到实际使用时才加载完整定义。这显著降低了多 MCP 服务器场景下的上下文开销。
+*   **文档结构重组与瘦身**：大量删除了冗余的代码示例（特别是在 `overview` 和 `implement-tool-use` 页面）以及“模型兼容性”表格，将通用配置（如域名过滤、Prompt Caching）整合到了专门的参考页面，使主文档更简洁。
+*   **数据保留策略透明化**：对于不支持 ZDR 的功能（如 Batch Processing, Files, Code Execution），新增了专门章节明确数据保留时长（例如 Batch Processing 为 29 天），方便开发者评估合规风险。
+
+### 影响级别
+
+**Medium**
+
+**理由**：
+1.  **行为变更**：MCP 工具的默认加载策略发生了实质性改变，将直接改善开发者在 Claude Code 或 MCP 客户端中的上下文效率，但不需要修改代码。
+2.  **合规解锁**：Computer Use 和 Context Editing 正式支持 ZDR，解除了此前在受严格数据留存限制环境中的使用阻碍。
+3.  **非破坏性**：API 本身没有破坏性变更，主要是文档说明的澄清和优化，以及默认行为的优化。
+
+### 开发者行动项
+
+*   **优化 MCP 配置**：如果你配置了大量 MCP 服务器，新的默认延迟加载机制将自动节省上下文 Token，无需手动调整 `ENABLE_TOOL_SEARCH` 阈值，但建议检查 `/context` 确认效果。
+*   **评估 ZDR 合规性**：如果你的组织要求数据零留存，现在可以启用 **Computer Use** 和 **Context Editing** 功能（此前受限）。
+*   **更新文档链接**：部分技术细节（如 `allowed_callers` 配置、域名过滤逻辑）已从具体工具页迁移至通用的 `Server tools` 或 `Tool reference` 页面，请更新内部知识库的引用。
+*   **检查 Subagent 内存限制**：Subagent 的系统提示中内存限制从单纯的“200 行”更新为“200 行或 25KB（取先达者）”，需相应调整记忆管理逻辑。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer/developer tools expert.
+    *   **Task:** Analyze documentation changes as a single batch.
+    *   **Input:** Diffs from 30 pages (though only a subset of distinct diffs are provided in the prompt, I need to synthesize based on the provided diffs).
+    *   **Output Format:** Markdown, Chinese response, concise, insightful, focused on what matters to developers.
+    *   **Specific Structure:**
+        1.  Overall Summary (1-2 sentences).
+        2.  Key Themes (bullets).
+        3.  Impact Level (Low/Medium/High/Breaking) + Reasoning.
+        4.  Action Items for Developers (max 5 bullets).
+
+2.  **Scan and Process the Diffs:**
+
+    *   *Page: `costs.md`*: MCP (Model Context Protocol) tool definitions are now **deferred by default**. Previous behavior: deferred only when &gt;10% context. New behavior: always deferred (only names in context until used). CLI tools are still more context-efficient.
+    *   *Page: `mcp.md`*: Reinforces MCP Tool Search is **enabled by default**. Defers all tools until needed. Old &#34;10% threshold&#34; logic is now optional (`ENABLE_TOOL_SEARCH=auto`).
+    *   *Page: `sub-agents.md`*: Added a link to context window visualization for subagents. Memory limit changed: &#34;first 200 lines&#34; to &#34;first 200 lines or 25KB&#34;.
+    *   *Page: `build-with-claude/overview.md`*: Added a **&#34;Zero Data Retention (ZDR)&#34;** column to the feature table. Distinguishes between &#34;ZDR eligible&#34; and &#34;Not ZDR eligible&#34;.
+    *   *Page: `build-with-claude/pdf-support.md`*: Added ZDR eligibility note.
+    *   *Page: `build-with-claude/extended-thinking.md`*: Added ZDR eligibility note. Fixed a link path (tool use forcing).
+    *   *Page: `build-with-claude/prompt-caching.md`*: Clarified ZDR eligibility (replaced technical explanation about KV cache with a simple &#34;eligible&#34; statement). Removed code examples for caching tool definitions (likely moved or cleaned up).
+    *   *Page: `build-with-claude/batch-processing.md`*: Clarified ZDR *not* eligible. Added &#34;Data retention&#34; section explaining 29-day retention.
+    *   *Page: `build-with-claude/context-windows.md`*: Added ZDR eligibility note.
+    *   *Page: `build-with-claude/context-editing.md`*: Added ZDR eligibility note (removed &#34;Beta features are excluded&#34; note). Fixed link for `tool_runner`.
+    *   *Page: `build-with-claude/citations.md`*: Added ZDR eligibility note.
+    *   *Page: `build-with-claude/search-results.md`*: Added ZDR eligibility note.
+    *   *Page: `build-with-claude/structured-outputs.md`*: Clarified ZDR eligibility with &#34;limited technical retention&#34; (JSON schema cached 24h). Removed large code block (clean up).
+    *   *Page: `build-with-claude/effort.md`*: Added ZDR eligibility note.
+    *   *Page: `build-with-claude/files.md`*: Clarified ZDR *not* eligible. Added &#34;Data retention&#34; section.
+    *   *Page: `build-with-claude/working-with-messages.md`*: Updated ZDR link path.
+    *   *Page: `agents-and-tools/tool-use/overview.md`*: Massive rewrite. Simplified intro. Removed old &#34;Strict tool use&#34; tip. Simplified code example. Focus on server tools vs client tools.
+    *   *Page: `agents-and-tools/tool-use/implement-tool-use.md`*: Renamed to &#34;Define tools&#34;. Simplified content. Added link to `tool-reference`. Updated text regarding &#34;Anthropic-defined&#34;. Removed boilerplate code examples.
+    *   *Page: `agents-and-tools/tool-use/bash-tool.md`*: Added ZDR note. Removed model compatibility table (moved to reference). Added safety improvements (allowlist logic). Updated example code to be more concise (`hidelines`).
+    *   *Page: `agents-and-tools/tool-use/text-editor-tool.md`*: Added ZDR note. Removed model compatibility table. Removed deprecated Sonnet 3.7 tabs.
+    *   *Page: `agents-and-tools/tool-use/computer-use-tool.md`*: Added ZDR note (removed &#34;Beta not eligible&#34; warning - implies it&#39;s now eligible or at least treated differently). Removed model compatibility table. Removed &#34;feedback form&#34; card. Simplified code. Updated action descriptions (zoom available on Opus 4.6).
+    *   *Page: `agents-and-tools/tool-use/web-search-tool.md`*: Simplified ZDR note (referenced server tools page). Removed model compatibility table. Removed long &#34;Domain filtering&#34; and &#34;Prompt caching&#34; sections (moved to reference/server tools).
+    *   *Page: `agents-and-tools/tool-use/web-fetch-tool.md`*: Simplified ZDR note. Removed model compatibility table. Removed &#34;Domain filtering&#34; and &#34;Prompt caching&#34; sections. Added &#34;Next steps&#34; links.
+    *   *Page: `agents-and-tools/tool-use/code-execution-tool.md`*: Added ZDR note (not eligible). Removed massive code example block.
+    *   *Page: `agents-and-tools/tool-use/memory-tool.md`*: Added ZDR note. Removed model compatibility table. Removed &#34;Using with Context Editing&#34; section (moved/consolidated).
+
+3.  **Synthesize and Categorize:**
+
+    *   **Theme 1: Zero Data Retention (ZDR) Standardization.**
+        *   Almost every feature page (`overview.md`, `pdf-support.md`, `extended-thinking.md`, `bash-tool.md`, etc.) now has a standardized ZDR note indicating eligibility.
+        *   Distinguishes features that *are* eligible (Context, Citations, Web Search/Web Fetch with caveats) vs. those that aren&#39;t (Batch Processing, Files, Code Execution).
+        *   *Why it matters:* Clear compliance messaging for enterprise/privacy-conscious devs.
+    *   **Theme 2: MCP Tool Search Defaults Changed.**
+        *   MCP tools are now **deferred by default** (only names loaded).
+        *   Previous behavior: automatic deferral only at 10% context usage.
+        *   *Why it matters:* Significant improvement in context management for users with many MCP servers. Developers using MCP in Claude Code will see much lower initial context usage.
+    *   **Theme 3: Documentation Cleanup &amp; Restructuring (Consolidation).**
+        *   Massive removal of code examples from individual tool pages (`overview.md`, `implement-tool-use.md`, `bash-tool.md`, `code-execution-tool.md`).
+        *   Removal of &#34;Model compatibility&#34; tables (likely moved to a central &#34;Tool Reference&#34;).
+        *   Removal of cross-referenced sections like &#34;Domain filtering&#34; and &#34;Prompt caching&#34; from specific tool pages (replaced with links to general topics).
+        *   *Why it matters:* Documentation is getting leaner and easier to navigate, preventing bloat, but devs need to follow links to see implementation details.
+    *   **Theme 4: Beta Status Changes &amp; Features Maturation.**
+        *   Context Editing is now ZDR eligible (removed &#34;Beta features excluded&#34; note).
+        *   Computer Use removed the &#34;Beta not eligible for ZDR&#34; warning (changed to &#34;This feature is eligible...&#34;). This is a big shift for security-sensitive use cases.
+        *   *Why it matters:* Critical for enterprise adoption of previously beta/restricted features.
+
+4.  **Drafting the Response (Internal Monologue &amp; Translation to Chinese):**
+
+    *   *Summary:* Updates focused on privacy compliance (ZDR eligibility clarification), context optimization (MCP deferred loading by default), and documentation streamlining (consolidating code samples and references).
+    *   *Key Themes:*
+        1.  **ZDR (Zero Data Retention) Standardization:** Standardized eligibility notes across all features. Crucial: Computer Use and Context Editing are now ZDR eligible.
+        2.  **MCP Tool Search Default Update:** MCP tools are now deferred by default (only tool names in context), reducing overhead significantly.
+        3.  **Documentation Restructuring:** Removed duplicate code examples and compatibility tables, centralizing them in reference pages.
+        4.  **Data Retention Clarity:** Explicitly stated retention periods for non-ZDR features (e.g., Batch Processing: 29 days).
+    *   *Impact Level:* **Medium**. It&#39;s not a code-breaking API change, but the MCP default change significantly affects context usage behavior. The ZDR eligibility changes allow usage in previously restricted environments.
+    *   *Action Items:*
+        *   Review MCP tool usage if you have many servers (context behavior changed).
+        *   Check ZDR eligibility if your organization requires zero data retention (Computer Use, Context Editing are now options).
+        *   Update documentation links/bookmarks (some sections moved).
+        *   Update memory limit logic for subagents (25KB limit added).
+
+5.  **Refining the Output (Markdown format):**
+
+    *   *Summary:* 本次更新主要集中在隐私合规（ZDR 资格明确化）、上下文优化（MCP 工具默认延迟加载）以及文档结构精简（合并代码示例和参考表）。
+    *   *Themes:*
+        *   ZDR 标准化：明确标注了所有功能的 ZDR 资格状态，**Computer Use** 和 **Context Editing** 现已支持 ZDR。
+        *   MCP 上下文优化：MCP 工具定义现在**默认延迟加载**，仅加载工具名称，大幅减少闲置上下文占用。
+        *   文档重构：移除了冗余的代码示例和模型兼容性表格，将细节迁移至统一的参考页面。
+        *   数据保留明确化：对 Batch Processing 等非 ZDR 功能，明确说明了数据保留时长（如 29 天）。
+    *   *Impact:* **Medium**。
+        *   Reasoning: MCP 的默认行为变更会影响上下文窗口的使用效率（正面影响）；ZDR 状态更新解锁了关键功能（如 Computer Use）在企业环境中的合规使用；文档结构变动主要影响查阅体验，不破坏代码。
+    *   *Action Items:*
+        *   关注 MCP 工具的上下文消耗变化，新的默认策略将显著降低初始开销。
+        *   若受 ZDR 限制，现在可以放心在合规环境中启用 Computer Use 和 Context Editing。
+        *   更新内部文档或书签，因为部分章节（如域名过滤、提示词缓存）已被移至通用页面。
+        *   调整 Subagent 内存限制逻辑（新增 25KB 上限）。
+
+6.  **Final Polish (Chinese):** Ensure tone is professional, concise, and &#34;world-class programmer&#34; persona.
+
+    *   *Self-Correction on MCP:* The diff says `deferred by default` vs `automatic when &gt;10%`. This is a logic flip. It effectively makes &#34;tool search&#34; always active for efficiency.
+    *   *Self-Correction on Computer Use:* The diff removed the &#34;Beta not eligible&#34; note and added the standard &#34;ZDR eligible&#34; note. This is a big deal for security. I should highlight it.
+
+7.  **Final Output Generation.** (Proceeding to generate the markdown).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/costs.html" class="page-link">costs.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/overview.html" class="page-link">build-with-claude/overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+33</span>
+                            <span class="removed">-31</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/pdf-support.html" class="page-link">build-with-claude/pdf-support.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/extended-thinking.html" class="page-link">build-with-claude/extended-thinking.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-caching.html" class="page-link">build-with-claude/prompt-caching.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+20</span>
+                            <span class="removed">-115</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/batch-processing.html" class="page-link">build-with-claude/batch-processing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/context-windows.html" class="page-link">build-with-claude/context-windows.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/context-editing.html" class="page-link">build-with-claude/context-editing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/citations.html" class="page-link">build-with-claude/citations.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/search-results.html" class="page-link">build-with-claude/search-results.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/structured-outputs.html" class="page-link">build-with-claude/structured-outputs.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-275</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/effort.html" class="page-link">build-with-claude/effort.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/files.html" class="page-link">build-with-claude/files.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/working-with-messages.html" class="page-link">build-with-claude/working-with-messages.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/overview.html" class="page-link">agents-and-tools/tool-use/overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+33</span>
+                            <span class="removed">-888</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/implement-tool-use.html" class="page-link">agents-and-tools/tool-use/implement-tool-use.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+70</span>
+                            <span class="removed">-1328</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/bash-tool.html" class="page-link">agents-and-tools/tool-use/bash-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+53</span>
+                            <span class="removed">-32</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/text-editor-tool.html" class="page-link">agents-and-tools/tool-use/text-editor-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+38</span>
+                            <span class="removed">-63</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/computer-use-tool.html" class="page-link">agents-and-tools/tool-use/computer-use-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+76</span>
+                            <span class="removed">-404</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/web-search-tool.html" class="page-link">agents-and-tools/tool-use/web-search-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+14</span>
+                            <span class="removed">-218</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/web-fetch-tool.html" class="page-link">agents-and-tools/tool-use/web-fetch-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+13</span>
+                            <span class="removed">-50</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/code-execution-tool.html" class="page-link">agents-and-tools/tool-use/code-execution-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+47</span>
+                            <span class="removed">-201</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/memory-tool.html" class="page-link">agents-and-tools/tool-use/memory-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+14</span>
+                            <span class="removed">-170</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/tool-search-tool.html" class="page-link">agents-and-tools/tool-use/tool-search-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+25</span>
+                            <span class="removed">-339</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/fine-grained-tool-streaming.html" class="page-link">agents-and-tools/tool-use/fine-grained-tool-streaming.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+84</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/programmatic-tool-calling.html" class="page-link">agents-and-tools/tool-use/programmatic-tool-calling.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+60</span>
+                            <span class="removed">-78</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/agent-skills/overview.html" class="page-link">agents-and-tools/agent-skills/overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/mcp-connector.html" class="page-link">agents-and-tools/mcp-connector.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+26</span>
+                            <span class="removed">-26</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">16:31 EST</div>
