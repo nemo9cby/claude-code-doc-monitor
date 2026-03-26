@@ -118,9 +118,225 @@
 
         <header>
             <h1>Changes on 2026-03-25</h1>
-            <p class="meta">19 total changes in 5 runs</p>
+            <p class="meta">28 total changes in 6 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">21:55 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### Overall Summary
+本次更新显著增强了对 Windows 平台 PowerShell 的原生支持，引入了针对第三方模型（如 AWS Bedrock）的细粒度配置能力，并修正了插件系统中自定义路径的覆盖逻辑（从“追加”变为“替换”）。此外，HTTP Hooks 的支持范围得到了扩展。
+
+### Key Themes
+*   **全面启用 PowerShell 支持**: 在 Command Hooks、Skills、Slash Commands 和全局设置中新增 `shell` 字段，允许开发者指定使用 `bash` 或 `powershell` 执行脚本。
+*   **插件系统路径逻辑变更**: 这是一个潜在破坏性变更。插件配置中的自定义路径（`commands`, `agents`, `skills`, `outputStyles`）现在会**完全替换**默认目录的扫描，而不是之前的“追加”模式。
+*   **第三方模型能力解耦**: 新增环境变量（如 `ANTHROPIC_DEFAULT_OPUS_MODEL_SUPPORTED_CAPABILITIES`），允许开发者在 AWS Bedrock 或 Vertex AI 等第三方提供商上显式开启“思考模式”和“努力等级”等功能。
+*   **Hooks 与互操作性增强**: `WorktreeCreate` Hook 现已支持 `type: &#34;http&#34;`，并允许通过 `AGENTS.md` 导入指令以兼容其他 Agent 工具。
+
+### Impact Level
+**Medium**
+*   **Reasoning**: 尽管大多数更改是功能性的（如 PowerShell 支持），但插件路径行为的变更可能会导致现有插件突然丢失默认目录中的命令或技能，这是一个需要开发者主动适配的破坏性变更。此外，对大型企业用户（Bedrock/Vertex 用户）的模型配置优化也是高价值的调整。
+
+### Action Items for Developers
+1.  **审查插件配置**: 检查 `plugin.json`，如果之前依赖默认的 `commands/` 或 `skills/` 目录自动加载，现在必须在自定义路径数组中显式包含 `&#34;./commands/&#34;` 或 `&#34;./skills/&#34;`，否则这些默认资源将被忽略。
+2.  **配置 Windows 环境**: 如需在 Windows 上使用原生 PowerShell 执行脚本，请在 Hooks 或 Skills 的 frontmatter 中设置 `shell: &#34;powershell&#34;`，或在全局设置中配置 `defaultShell`。
+3.  **优化第三方模型体验**: 若通过 AWS Bedrock 使用 Claude，请设置 `ANTHROPIC_DEFAULT_..._SUPPORTED_CAPABILITIES` 环境变量，以确保 Extended Thinking 等功能正常工作。
+4.  **迁移 WorktreeCreate 逻辑**: 如果目前使用 `WorktreeCreate` Hook 管理非 Git 仓库，可考虑将其改造为 HTTP Hook 以获得更好的集成度，返回路径需改为 `hookSpecificOutput.worktreePath`。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Input:** 9 pages of documentation changes (diffs) related to a coding tool (Claude Code).
+    *   **Task:** Concise, insightful analysis in Markdown format (in Chinese).
+    *   **Focus:** What matters to developers.
+    *   **Structure:** Overall Summary, Key Themes, Impact Level, Action Items.
+
+2.  **Scan and Aggregate Changes (Page by Page):**
+
+    *   **`hooks.md`**:
+        *   *New Field:* `shell` added to command hooks (allows `bash` or `powershell`).
+        *   *WorktreeCreate Hook:* Now supports HTTP hooks (`type: &#34;http&#34;`) and `hookSpecificOutput.worktreePath`. Previously only stdout for command hooks.
+        *   *WorktreeRemove Hook:* Text updated to reflect &#34;path return&#34; instead of just stdout. Now supports HTTP hooks too.
+
+    *   **`memory.md`**:
+        *   *AGENTS.md support:* Explains how to import `AGENTS.md` into `CLAUDE.md` for compatibility with other tools.
+
+    *   **`model-config.md`**:
+        *   *Custom Pinned Models:* New env vars (`ANTHROPIC_DEFAULT_{MODEL}_MODEL_NAME`, `_DESCRIPTION`, `_SUPPORTED_CAPABILITIES`) to customize display and enable features (thinking, effort) for 3rd-party provider models (Bedrock, Vertex, etc.).
+
+    *   **`plugins-reference.md`**:
+        *   *Path Behavior Change:* Custom paths (`commands`, `agents`, `skills`, `outputStyles`) now **replace** default directories, whereas previously they &#34;supplemented&#34; them. (Crucial change).
+        *   *Documentation:* Added `output-styles/` to directory structure examples.
+
+    *   **`settings.md`**:
+        *   *New Setting:* `defaultShell` added to settings (accepts `&#34;bash&#34;` or `&#34;powershell&#34;`).
+
+    *   **`setup.md`**:
+        *   *PowerShell Preview:* Mention of PowerShell native support as opt-in preview.
+        *   *Cosmetic:* Code block attribute changes (likely a linting/formatting cleanup in source, irrelevant to logic).
+
+    *   **`skills.md`** &amp; `slash-commands.md`**:
+        *   *New Frontmatter Field:* Added `shell` field to define the shell for inline `!` commands (`bash` or `powershell`).
+
+    *   **`CHANGELOG.md.md`**:
+        *   *Version 2.1.84 Summary:* Confirms the above changes (PowerShell tool, 3rd-party model overrides, WorktreeCreate HTTP hook, Plugin path behavior change, AGENTS.md import).
+        *   *Other bug fixes:* Fixed various input issues (arrow keys, voice, IME cursor tracking).
+
+3.  **Synthesize Key Themes:**
+    *   **Windows/PowerShell Support:** Heavy focus on adding `powershell` support in hooks, skills, commands, and settings.
+    *   **Plugin Architecture Changes:** A significant behavioral shift where custom paths in plugins now *replace* defaults instead of *adding* to them. This is a potential breaking change for existing plugin configs.
+    *   **Extensibility (Hooks &amp; Models):** `WorktreeCreate` now supports HTTP hooks. 3rd-party models (AWS Bedrock, etc.) can now be fully customized (name, capabilities).
+    *   **Interoperability:** Support for importing `AGENTS.md`.
+
+4.  **Draft the Analysis (in Chinese):**
+
+    *   *Overall Summary:* 本次更新主要集中在增强 Windows 环境下的 PowerShell 支持，优化插件系统的路径处理行为（从“追加”变为“替换”），以及改进对第三方模型的自定义配置和 HTTP Hook 的兼容性。
+
+    *   *Key Themes:*
+        *   **Windows/PowerShell 深度集成**: 新增 `shell` 字段支持在 Hooks、Skills 和设置中直接使用 PowerShell。
+        *   **插件路径行为变更**: 插件中自定义路径（如 `commands`, `skills`）现在会*替换*默认目录而非追加，这是潜在的破坏性变更。
+        *   **第三方模型与 Hook 增强**: 引入环境变量以自定义 Bedrock 等第三方模型的名称与能力；`WorktreeCreate` Hook 现支持 HTTP 类型。
+        *   **互操作性**: 支持在 `CLAUDE.md` 中导入 `AGENTS.md` 以复用配置。
+
+    *   *Impact Level:* Medium (Medium).
+        *   *Reasoning:* While mostly additive, the change in plugin path behavior (replacing vs. appending) is a breaking change for developers relying on automatic default directory scanning in their plugins. The PowerShell support is additive but significant for Windows users.
+
+    *   *Action Items:*
+        *   检查并更新插件的 `plugin.json`，如果原本依赖自动扫描默认目录（如 `commands/`）同时又定义了自定义路径，必须显式将默认目录添加到路径数组中。
+        *   如果使用 Bedrock/Vertex AI 等第三方模型，考虑配置新的环境变量以启用“思考模式”或“努力等级”等特性。
+        *   如果正在编写非 Git 的隔离环境脚本，现在可以利用 HTTP 类型实现 `WorktreeCreate` Hook。
+        *   Windows 用户若想尝试 PowerShell 原生支持，需设置相关环境变量。
+
+5.  **Review and Refine:**
+    *   *Refinement:* Ensure the distinction between &#34;replacing&#34; vs &#34;supplementing&#34; in plugins is highlighted clearly, as that&#39;s the biggest pitfall for devs.
+    *   *Tone:* Professional, concise, &#34;world-class programmer&#34; persona.
+
+6.  **Final Output Generation** (Translating thoughts to the final Markdown response).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+19</span>
+                            <span class="removed">-12</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/memory.html" class="page-link">memory.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/model-config.html" class="page-link">model-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+23</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+23</span>
+                            <span class="removed">-20</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/setup.html" class="page-link">setup.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+14</span>
+                            <span class="removed">-13</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+14</span>
+                            <span class="removed">-13</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+40</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">19:29 EST</div>
