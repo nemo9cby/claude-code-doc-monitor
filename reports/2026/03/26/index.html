@@ -118,9 +118,225 @@
 
         <header>
             <h1>Changes on 2026-03-26</h1>
-            <p class="meta">3 total changes in 2 runs</p>
+            <p class="meta">11 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">10:59 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更分析摘要
+
+## 1. 总体概览
+本次文档更新主要引入了新的 Hooks 事件 `TaskCreated` 以增强任务生命周期管理，明确了 MCP（Model Context Protocol）服务器的配置优先级与描述长度限制，并修正了交互模式下的快捷键行为说明。
+
+## 2. 关键变更主题
+
+*   **Hooks API 扩展**：新增 `TaskCreated` 事件，允许开发者在任务通过 `TaskCreate` 创建时触发钩子。文档调整了事件列表顺序，将任务相关事件（`TaskCreated`, `TaskCompleted`）归组放置。
+*   **MCP 配置约束与规则**：
+    *   **优先级**：明确指出本地配置的 MCP 服务器优先于 Claude.ai 的 Connector（连接器）配置。
+    *   **截断限制**：工具描述和服务器指令现限制为 **2KB**。超出部分将被截断，建议开发者精简描述并将关键信息置顶。
+*   **交互模式与体验优化**：
+    *   修正了 `Ctrl+U` 快捷键的描述，准确含义为“从光标处删除至行首”，并补充了在多行输入中的行为说明。
+    *   清理了安装脚本代码块中的冗余格式属性。
+
+## 3. 影响等级：中等 (Medium)
+
+**理由**：新增 `TaskCreated` 事件为插件和钩子开发者提供了新的 API 接口，具备中等程度的向后兼容扩展性。MCP 描述的 2KB 限制是一个重要的隐性约束，若不了解可能导致工具关键信息丢失。其余变更主要为文档修正或体验微调，影响较小。
+
+## 4. 开发者行动项
+
+*   **利用新 Hook 事件**：检查并更新现有的 Hooks 配置，利用新增的 `TaskCreated` 事件来捕获和处理任务初始化逻辑。
+*   **优化 MCP 描述**：审查您的 MCP 工具描述和服务器指令，确保长度在 **2KB** 以内，并将核心功能说明放在最前面以防止被截断。
+*   **注意 MCP 配置冲突**：在配置 MCP 服务器时，记住本地配置（Local）会覆盖 Claude.ai 连接器（Connector）的配置。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Understand the Goal:** The user wants a batch analysis of documentation changes for a developer tool (likely &#34;Claude Code&#34; based on context clues like &#34;claude-code&#34; in image URLs and file names). The output needs to be in Chinese, markdown format, concise, and focused on developer impact.
+
+2.  **Analyze the Source Data (Diffs):**
+
+    *   **`hooks.md`**:
+        *   Updated lifecycle diagram URL (likely just asset refresh).
+        *   Added `TaskCreated` event to the list/table. Moved `TaskCompleted` to be grouped with TaskCreated (next to SubagentStart/Stop).
+        *   Updated the &#34;matcher&#34; table. The diff cuts off, but `TaskCreated` is now listed.
+        *   *Insight*: Introduction of a new lifecycle event `TaskCreated` for when a task is created via `TaskCreate`.
+
+    *   **`hooks-guide.md`**:
+        *   Same change as `hooks.md`: Added `TaskCreated` event and repositioned `TaskCompleted` in the event list.
+        *   Updated the &#34;matcher&#34; table to include `TaskCreated`.
+
+    *   **`interactive-mode.md`**:
+        *   Changed description for `Ctrl+U`. Old: &#34;Delete entire line&#34;. New: &#34;Delete from cursor to line start&#34; + added detail about clearing across lines in multiline input on repeat.
+
+    *   **`mcp.md`**:
+        *   Added clarification: Local MCP server config takes precedence over Claude.ai connectors.
+        *   Added limit: Tool descriptions and server instructions are truncated at 2KB. Advice: keep concise, put critical details at the start.
+
+    *   **`plugins-reference.md`**:
+        *   Same as `hooks.md` and `hooks-guide.md`: Added `TaskCreated` event.
+
+    *   **`setup.md`**:
+        *   Cleaned up code block syntax (removed duplicate `theme={null}` attributes).
+
+    *   **`skills.md`** and `slash-commands.md`**:
+        *   The diffs shown are truncated or identical table updates.
+        *   Looking closely at the diffs provided: The table for &#34;skill configuration fields&#34; is shown. The diff shows formatting changes (spacing in markdown table) and potentially a description update, but the cut-off makes it hard to see specific content changes. *Wait*, looking at the table row for `shell`: &#34;Setting `powershell` runs inline shell commands via PowerShell on Windows. Requires `CLAUDE_CODE_USE_POWERSHELL_TOOL=1`.&#34; This text appears in the &#34;New&#34; version. Did it exist before? The &#34;Old&#34; diff for `skills.md` cuts off. However, `skills.md` and `slash-commands.md` diffs look very similar. Let&#39;s re-read `skills.md` diff.
+        *   The `skills.md` diff shows the table. The &#34;New&#34; side has a slightly longer table width or different wrapping. The `shell` row is visible in the &#34;New&#34; side.
+        *   Actually, looking at `slash-commands.md`, the diff is identical to `skills.md`.
+        *   The main change here seems to be consistent formatting or minor clarifications in the table descriptions, though the specific text change isn&#39;t explicitly visible as a &#34;changed line&#34; in the provided snippets except potentially the wrapping. *Correction*: The prompt shows &#34;Page: skills.md | +15 / -14&#34;. This is a significant change for just formatting. Let&#39;s look closer. The row for `shell` in the provided output shows: `shell | No | Shell to use for ...`. The text for `shell` includes &#34;Requires `CLAUDE_CODE_USE_POWERSHELL_TOOL=1`&#34;. This is likely the new addition or clarification.
+
+3.  **Synthesize Themes:**
+
+    *   **New Hook Event:** `TaskCreated` is a new feature in the Hooks system.
+    *   **MCP Configuration &amp; Limits:** Precedence rules (local over cloud) and character limits (2KB) for descriptions.
+    *   **UI/UX Polish:** Interactive mode keybinding clarification (`Ctrl+U`), code block formatting cleanup.
+    *   **Skills/Plugins:** Documentation consistency, likely regarding the PowerShell requirement or shell configuration details.
+
+4.  **Determine Impact Level:**
+
+    *   `TaskCreated`: New capability for plugin/hook developers. Medium impact.
+    *   MCP 2KB limit: Important for tool developers to know to avoid truncation. Medium impact.
+    *   Interactive mode `Ctrl+U`: Low impact (UX improvement).
+    *   Setup formatting: Negligible impact.
+
+    *   *Overall*: Medium. It adds new API surface (`TaskCreated`) and important constraints for MCP developers.
+
+5.  **Draft Action Items:**
+
+    *   Update hook logic to handle `TaskCreated`.
+    *   Review MCP tool descriptions/instructions to ensure they are under 2KB and front-load critical info.
+    *   Be aware of local MCP server precedence over connectors.
+
+6.  **Translate to Chinese &amp; Format:**
+
+    *   *Overall Summary*: 文档更新主要涉及 Hooks 系统新增 `TaskCreated` 事件、MCP 配置的优先级规则与限制说明，以及交互模式和技能配置的细节优化。
+    *   *Key Themes*:
+        *   Hooks API 增强：引入 `TaskCreated` 事件以捕获任务创建时刻。
+        *   MCP 限制与优先级：明确本地配置优先于云端连接器，新增 2KB 描述截断限制。
+        *   用户体验优化：修正了交互模式下的快捷键描述（`Ctrl+U`），并清理了文档代码块的格式。
+    *   *Impact*: Medium（中等）。新增 API 事件和 MCP 限制约束对开发者有直接影响。
+    *   *Action Items*:
+        *   在插件或钩子配置中利用 `TaskCreated` 事件处理任务创建逻辑。
+        *   检查 MCP 工具描述和服务器指令长度，确保关键信息在前且不超过 2KB。
+        *   注意 MCP 配置冲突时，本地设置会覆盖云端 Connector 设置。
+
+7.  **Final Review:**
+    *   Did I miss anything? The `skills.md` diff cut off, but the `shell` section mentions `CLAUDE_CODE_USE_POWERSHELL_TOOL=1`. I should mention checking skill/shell config docs for PowerShell specifics if relevant, but the MCP 2KB limit and TaskCreated are the biggest &#34;new&#34; things. The `Ctrl+U` change is a functional behavior change description worth noting for power users.
+
+    *   Refining &#34;Action Items&#34;:
+        1. Implement `TaskCreated` hook logic.
+        2. Optimize MCP descriptions (2KB limit).
+        3. Note MCP precedence (local &gt; cloud).
+
+    *   The prompt asks for &#34;insightful analysis&#34;. I will group the `skills.md`/`slash-commands.md` changes under &#34;Documentation Consistency/Clarification&#34; regarding shell config or simply group them with the general docs polish if the specific change isn&#39;t fully clear from the truncated diff. However, the `TaskCreated` appears in 3 files, which is strong evidence it&#39;s the star of the show.
+
+    *   Structure looks good. Proceeding to generate output.</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+42</span>
+                            <span class="removed">-20</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+17</span>
+                            <span class="removed">-16</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/interactive-mode.html" class="page-link">interactive-mode.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-8</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/setup.html" class="page-link">setup.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+15</span>
+                            <span class="removed">-14</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+15</span>
+                            <span class="removed">-14</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">03:59 EST</div>
