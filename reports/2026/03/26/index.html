@@ -118,9 +118,143 @@
 
         <header>
             <h1>Changes on 2026-03-26</h1>
-            <p class="meta">45 total changes in 6 runs</p>
+            <p class="meta">46 total changes in 7 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">19:27 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 1. Overall Summary
+版本 2.1.85 是一次重要的维护与性能更新，重点解决了大规模代码库下的性能瓶颈、终端兼容性顽固 Bug 以及远程连接的稳定性问题，同时显著增强了 MCP 和 Hooks 的扩展能力，以支持更复杂的自动化集成。
+
+### 2. Key Themes
+*   **性能优化：** 将 WASM yoga-layout 替换为纯 TypeScript 实现以提升滚动性能，显著优化了大仓库下的文件 `@-mention` 自动补全速度，并减少了会话压缩时的 UI 卡顿。
+*   **扩展性增强：** 新增 MCP 环境变量和 Hooks 条件执行（`if` 字段）以降低开销，支持 MCP OAuth 的 RFC 9728 标准，并允许 `PreToolUse` hooks 通过 `updatedInput` 实现无头集成。
+*   **稳定性与修复：** 修复了 Kitty/Ghostty/WezTerm 等终端退出后增强键盘模式残留导致 Ctrl+C/D 失效的严重 UX 问题；解决了远程会话内存泄漏、ECONNRESET 连接中断重试及插件管理路径不一致的问题。
+*   **开发体验 (DX)：** 改进了深度链接长度限制（5000字符）、Git Worktree 支持及 Shift+Enter 快捷键冲突修复；OpenTelemetry 现默认隐藏敏感的 `tool_parameters`（需显式开启）。
+
+### 3. Impact Level: High
+*   **理由：** 虽然没有破坏性 API 变更，但此次更新解决了严重影响开发者体验的关键 Bug（特别是终端键盘模式残留问题），提升了大型项目的操作流畅度（滚动与补全），并增强了企业级策略控制（插件屏蔽）。这些改进直接提升了工具的稳定性和可用性。
+
+### 4. Action Items for Developers
+*   **升级以修复终端问题：** 如果使用 Kitty、WezTerm 或 Ghostty，建议立即更新以修复退出后无法使用 Ctrl+C/D 的问题。
+*   **利用 Hooks 过滤机制：** 检查并重构现有的 Hooks，利用新增的 `if` 条件字段（如 `Bash(git *)`）来减少不必要的进程启动，提升性能。
+*   **调整 OpenTelemetry 配置：** 如果您依赖 OTEL 日志中的 `tool_parameters`，请设置环境变量 `OTEL_LOG_TOOL_DETAILS=1`，否则该字段默认不再记录。
+*   **审查企业插件策略：** 管理员应验证 `managed-settings.json` 中的插件屏蔽逻辑是否符合预期，新版本已严格禁止安装被策略屏蔽的插件。
+*   **优化无头集成：** 如果您正在构建基于 Claude 的自定义 UI，请探索新的 `PreToolUse` hook 返回 `updatedInput` 的能力，以绕过默认的交互式提问。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer, developer tools expert.
+    *   **Task:** Analyze documentation changes (specifically a `CHANGELOG.md.md` diff).
+    *   **Format:** Markdown, concise, insightful.
+    *   **Language:** Chinese.
+    *   **Input:** A single diff showing version 2.1.85 changes (+31 lines).
+    *   **Required Output:**
+        1.  Overall Summary.
+        2.  Key Themes.
+        3.  Impact Level (with reasoning).
+        4.  Action Items (max 5).
+
+2.  **Analyze the Diff (Version 2.1.85):**
+    *   *Added Features:*
+        *   `CLAUDE_CODE_MCP_SERVER_NAME/URL` env vars for MCP helpers.
+        *   Conditional `if` field for hooks (permission syntax like `Bash(git *)`) to reduce overhead.
+        *   Timestamps in transcripts for scheduled tasks (`/loop`, `CronCreate`).
+        *   Trailing space after `[Image #N]`.
+        *   Deep link queries support up to 5000 chars (with warning).
+        *   MCP OAuth follows RFC 9728 (Protected Resource Metadata).
+        *   Organization policy blocking for plugins.
+        *   PreToolUse hooks can satisfy `AskUserQuestion` via `updatedInput` (headless integration support).
+        *   `tool_parameters` in OTEL requires `OTEL_LOG_TOOL_DETAILS=1` (security/performance gating).
+    *   *Fixes:*
+        *   `/compact` failing on huge contexts.
+        *   `/plugin enable/disable` path mismatches.
+        *   `--worktree` error in non-git repos before hook.
+        *   `deniedMcpServers` blocking logic fixed (wasn&#39;t blocking claude.ai ones).
+        *   `switch_display` fix for multi-monitor.
+        *   Crash fix when OTEL exporters are &#39;none&#39;.
+        *   Diff highlighting in non-native builds.
+        *   MCP step-up auth (refresh token handling).
+        *   Memory leak in remote sessions (interrupted streams).
+        *   `ECONNRESET` during edge churn (retry logic).
+        *   Prompts getting stuck/queue issues.
+        *   Python Agent SDK: `type:&#39;sdk&#39;` servers dropping.
+        *   Raw key sequences in SSH/VS Code terminal.
+        *   Remote Control status stuck.
+        *   Shift+Enter/Meta+Enter typeahead conflict.
+        *   Stale content scrolling.
+        *   **Terminal state issue:** Enhanced keyboard mode left active after exit (Ghostty/Kitty/WezTerm), breaking Ctrl+C/Ctrl+D. This is a big UX fix.
+    *   *Performance/Improvements:*
+        *   @-mention file autocomplete on large repos.
+        *   PowerShell dangerous command detection.
+        *   Scroll performance (replaced WASM yoga-layout with TS).
+        *   UI stutter during compaction.
+
+3.  **Synthesize Analysis:**
+
+    *   *Overall Summary:* Version 2.1.85 is a substantial maintenance release focused on performance optimization (scrolling, autocomplete), critical stability fixes (terminals, remote connections), and enhanced extensibility (MCP, hooks, OAuth).
+
+    *   *Key Themes:*
+        *   **Performance:** Moving away from WASM to TS for layout, better autocomplete on large repos, reduced UI stutter.
+        *   **Extensibility (MCP &amp; Hooks):** New env vars for MCP, smarter hooks (conditional execution), OAuth RFC compliance, and organization policy enforcement. Headless integrations get a boost with `AskUserQuestion` handling.
+        *   **Stability &amp; Reliability:** Fixes for terminal states (Kitty/Ghostty protocol), remote connection errors (`ECONNRESET`), and memory leaks.
+        *   **Developer Experience (DX):** Fixes for deep links, git worktrees, plugin management, and keyboard shortcuts (Shift+Enter).
+
+    *   *Impact Level:* **High**.
+        *   *Reasoning:* While not a &#34;Breaking Change&#34; release in terms of API, it fixes severe friction points: the terminal keyboard mode bug (blocking Ctrl+C after exit), memory leaks, and remote connection stability. Performance improvements on large repos directly affect daily productivity. New MCP capabilities allow for more complex integrations.
+
+    *   *Action Items:*
+        *   **Update for Terminal Fixes:** Users on Kitty/Ghostty/WezTerm should update immediately to fix the keyboard protocol issue (Ctrl+C/D not working after exit).
+        *   **Review MCP Hooks:** Developers can now optimize hook performance using the new `if` condition field.
+        *   **Check Organization Policies:** Admins should test the new plugin blocking logic in `managed-settings.json`.
+        *   **Headless Integration Upgrade:** Explore the new `PreToolUse` hook capability to bypass standard prompts via `updatedInput`.
+        *   **OpenTelemetry Config:** Check if `OTEL_LOG_TOOL_DETAILS=1` is needed for `tool_parameters` logging, as it&#39;s now gated.
+
+4.  **Drafting the Response (in Chinese):**
+
+    *   *Refining the &#34;Action Items&#34;:* Make them punchy.
+    *   *Refining &#34;Impact&#34;:* Highlight the specific UX improvements as they are high impact for daily usage.
+
+5.  **Final Review against Constraints:**
+    *   Markdown format? Yes.
+    *   Concise? Yes.
+    *   Chinese? Yes.
+    *   All 4 sections included? Yes.
+
+    *(Self-Correction during drafting)*: Ensure I mention the `OTEL_LOG_TOOL_DETAILS=1` change specifically as it changes logging behavior (less verbose by default).
+
+6.  **Final Output Generation.** (Proceeding to generate output based on the above steps).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+31</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">18:23 EST</div>
