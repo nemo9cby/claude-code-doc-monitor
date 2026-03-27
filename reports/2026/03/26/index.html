@@ -118,9 +118,208 @@
 
         <header>
             <h1>Changes on 2026-03-26</h1>
-            <p class="meta">46 total changes in 7 runs</p>
+            <p class="meta">51 total changes in 8 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">21:55 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更分析
+
+### 整体摘要
+本次文档更新重点在于**标准化和推荐** Claude Sonnet 4.6 和 Opus 4.6 的思维控制方式，明确将手动扩展思维（`budget_tokens`）标记为已弃用，并全面引导开发者迁移至 **Adaptive Thinking（自适应思维）** 配合 `effort` 参数，同时清理了相关的 Beta Headers。
+
+### 关键变更主题
+
+*   **Sonnet 4.6 手动思维模式弃用**
+    *   **变更前**：Sonnet 4.6 支持手动配置（`thinking: {type: &#34;enabled&#34;, budget_tokens: N}`）和 Adaptive Thinking 并行。
+    *   **变更后**：明确指出手动模式在 Sonnet 4.6 上已**弃用**（虽仍可用），强烈推荐使用 Adaptive Thinking。这标志着 4.6 版本在思维控制上与 Opus 4.6 保持一致。
+*   **全面推荐 Adaptive Thinking**
+    *   所有针对 4.6 版本模型（Opus 和 Sonnet）的文档均更新为默认推荐 `thinking: {type: &#34;adaptive&#34;}`。
+    *   文档指出 Adaptive Thinking 在内部评估中表现优于手动模式，特别是对于自主代理、多步工具使用和计算机使用场景。
+*   **自动启用 Interleaved Thinking**
+    *   更新说明指出，在使用 Adaptive Thinking 时，Opus 4.6 和 Sonnet 4.6 会**自动启用** Interleaved Thinking（交错思维），无需再添加 `interleaved-thinking-2025-05-14` Beta Header。该 Header 在新模型上已被弃用。
+*   **成本控制策略转移**
+    *   文档不再建议使用 `budget_tokens` 作为硬性成本上限。取而代之的是通过调整 `effort` 参数（low/medium/high）或使用 `max_tokens` 来平衡质量和成本。
+*   **新增迁移指南与代码示例**
+    *   在 Migration Guide 和 Best Practices 页面增加了大量多语言代码示例，展示如何正确配置 Adaptive Thinking 和 `effort` 参数。
+
+### 影响等级：**Medium**（中等偏高）
+
+**理由**：虽然此次变更并未立即破坏现有代码（deprecated 功能仍可用），但它显著改变了“最佳实践”的路径。继续使用手动思维模式将面临未来被移除的风险，且无法获得 Adaptive Thinking 带来的性能优化。依赖特定 `budget_tokens` 逻辑的开发者需要重构代码。
+
+### 开发者行动项
+
+1.  **迁移 Sonnet 4.6 配置**：检查所有使用 `claude-sonnet-4-6` 的代码，将 `thinking: {type: &#34;enabled&#34;, budget_tokens: N}` 更新为 `thinking: {type: &#34;adaptive&#34;}`。
+2.  **移除过期 Headers**：在 Opus 4.6 和 Sonnet 4.6 的请求中移除 `interleaved-thinking-2025-05-14` 和 `fine-grained-tool-streaming-2025-05-14` Beta Headers。
+3.  **采用 `effort` 参数**：使用 `output_config: {effort: &#34;medium&#34;}` 或 `&#34;high&#34;` 替代硬性的 token 预算来控制推理深度。
+4.  **更新依赖结构化输出的代码**：将 `output_format={...}` 迁移至 `output_config={&#34;format&#34;: {...}}`（旧参数已弃用）。
+5.  **优化代理工作流**：对于编码代理和计算机使用场景，直接使用 Adaptive Thinking 模式，而非回退到手动模式。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Input:** Documentation diffs for 5 pages (`memory.md`, `about-claude/models/migration-guide.md`, `build-with-claude/extended-thinking.md`, `build-with-claude/effort.md`, `build-with-claude/prompt-engineering/claude-prompting-best-practices.md`).
+    *   **Task:** Analyze changes as a single batch, summarize what changed and why it matters.
+    *   **Output Format:** Markdown (Overall Summary, Key Themes, Impact Level, Action Items).
+    *   **Language:** Chinese.
+
+2.  **Analyze the Diffs:**
+
+    *   **Page 1: `memory.md`**
+        *   *Change:* Added a link to &#34;context window visualization&#34; in the section about `CLAUDE.md` files.
+        *   *Significance:* Minor informational update. Helps users understand where `CLAUDE.md` fits in the context.
+
+    *   **Page 2: `about-claude/models/migration-guide.md`**
+        *   *Change:* Updated guidance on the `interleaved-thinking` beta header.
+        *   *Previous:* Only remove for Opus 4.6; Sonnet 4.6 still supports it.
+        *   *New:* Remove for *both* Opus 4.6 and Sonnet 4.6 because Adaptive Thinking automatically enables it. The header is deprecated/functional but discouraged on Sonnet 4.6 as well.
+        *   *Added:* Large code block showing how to use Adaptive Thinking (`type: &#34;adaptive&#34;`, `output_config: {effort: ...}`) across multiple languages.
+        *   *Significance:* Strong push towards Adaptive Thinking and deprecation of manual controls/beta headers for the newest models (Opus/Sonnet 4.6).
+
+    *   **Page 3: `build-with-claude/extended-thinking.md`**
+        *   *Change:* Updated notes about Model Support.
+        *   *Previous:* Opus 4.6 adaptive only; Sonnet 4.6 supports both manual and adaptive.
+        *   *New:* Opus 4.6 and Sonnet 4.6 now *recommend* adaptive thinking. Manual `type: &#34;enabled&#34;` with `budget_tokens` is **deprecated** (but functional) for *both*.
+        *   *Interleaved Thinking:* Sonnet 4.6 now automatically enables interleaved thinking with adaptive thinking (recommended). The beta header is deprecated.
+        *   *Significance:* Consolidation of the recommendation. Manual mode is officially &#34;legacy&#34; even if it still works for 4.6 models.
+
+    *   **Page 4: `build-with-claude/effort.md`**
+        *   *Change:* Clarified behavior for Claude Sonnet 4.6.
+        *   *Previous:* Sonnet 4.6 supports both adaptive and manual.
+        *   *New:* Sonnet 4.6 &#34;uses&#34; adaptive thinking (recommended). Manual mode is deprecated but functional.
+        *   *Significance:* Consistent with other pages. Deprecating manual `budget_tokens` in favor of `effort`.
+
+    *   **Page 5: `build-with-claude/prompt-engineering/claude-prompting-best-practices.md`**
+        *   *Change:* Rewrote sections on &#34;Hard ceiling on thinking costs&#34; and &#34;Leverage thinking &amp; interleaved thinking&#34;.
+        *   *Previous:* Suggested switching to extended thinking with `budget_tokens` on Sonnet 4.6 for cost control. Suggested manual extended thinking was a valid alternative to adaptive on Sonnet 4.6.
+        *   *New:* States `budget_tokens` is deprecated on 4.6 models. Recommends lowering `effort` or using `max_tokens` instead. Strongly recommends Adaptive Thinking for agentic workloads.
+        *   *Added:* Code examples for migrating to adaptive thinking.
+        *   *Removed:* Sections specifically advocating for manual extended thinking on Sonnet 4.6 as a primary strategy.
+        *   *Significance:* Explicit guidance to stop using `budget_tokens` and move to `effort` parameters for Sonnet 4.6.
+
+3.  **Synthesize the Analysis:**
+
+    *   **Overall Trend:** The documentation is aggressively deprecating manual &#34;Extended Thinking&#34; (specifically `type: &#34;enabled&#34;` + `budget_tokens` and associated beta headers) for the latest models (Opus 4.6 and Sonnet 4.6) in favor of &#34;Adaptive Thinking&#34; (`type: &#34;adaptive&#34;` + `effort` parameter).
+    *   **Specifics:**
+        *   Manual mode is now &#34;deprecated but functional&#34; on Sonnet 4.6 (previously it was presented as a supported alternative).
+        *   Interleaved thinking is automatic with Adaptive mode on both Opus/Sonnet 4.6.
+        *   Migration code examples added.
+        *   Context window link added (minor).
+
+4.  **Drafting the Content (in Chinese):**
+
+    *   *Overall Summary:* 文档更新主要围绕 **Claude Sonnet 4.6 和 Opus 4.6** 的思维模式管理，明确将手动思维模式标记为已弃用，并全面推荐迁移至 **Adaptive Thinking（自适应思维）** 配合 `effort` 参数。
+    *   *Key Themes:*
+        *   **Sonnet 4.6 手动思维模式弃用:** 之前 Sonnet 4.6 支持手动 `budget_tokens`，现在明确标记为 deprecated，推荐使用 Adaptive Thinking。
+        *   **统一推荐 Adaptive Thinking:** 无论是 Opus 4.6 还是 Sonnet 4.6，首选方案均为 `thinking: {type: &#34;adaptive&#34;}`。
+        *   **Beta 头部清理:** `interleaved-thinking` beta 头部现在在两个模型上均被弃用，因为 Adaptive 模式自动启用该功能。
+        *   **代码示例补充:** 增加了多语言的迁移代码示例，展示如何使用新的 Adaptive 配置。
+    *   *Impact Level:* Medium (高). 虽然现有代码仍能运行，但明确标记为 deprecated 意味着未来会被移除。开发者需要尽快重构以避免未来的破坏性变更。
+    *   *Action Items:*
+        *   更新代码：针对 Claude Sonnet 4.6，将 `thinking: {type: &#34;enabled&#34;, budget_tokens: N}` 替换为 `thinking: {type: &#34;adaptive&#34;}` 并配合 `output_config: {effort: &#34;medium&#34;}`。
+        *   移除 Header：在 Opus 4.6 和 Sonnet 4.6 的请求中移除 `interleaved-thinking-2025-05-14` beta header。
+        *   调整成本控制：不再依赖 `budget_tokens` 控制成本，改用 `effort` 级别（low/medium/high）或 `max_tokens`。
+        *   测试迁移：在编码代理和计算机使用场景中测试 Adaptive Thinking 的表现（建议从 medium 或 high effort 开始）。
+
+5.  **Refining and Formatting:**
+
+    *   *Self-Correction during drafting:* The prompt asks for &#34;Concise, insightful analysis&#34;. I should group the minor changes (memory.md) under the main theme or ignore it if it&#39;s too trivial. I&#39;ll mention it briefly as a UX improvement. The main story is the *deprecation of manual thinking on Sonnet 4.6*. This is a significant policy shift from &#34;it supports both&#34; to &#34;manual is deprecated&#34;.
+
+    *   *Impact Assessment:* I labeled it Medium/High in thought. Let&#39;s stick to **Medium** for general impact but note it is effectively **High** for anyone heavily relying on specific `budget_tokens` tuning on Sonnet 4.6. I&#39;ll stick to Medium-High nuance. Let&#39;s just say **Medium** because it&#39;s not *breaking* yet, but highly recommended to change now.
+
+    *   *Action Items:* Keep them to max 5 bullets.
+
+6.  **Final Polish (Chinese):**
+    Ensure terms like &#34;Adaptive Thinking&#34;, &#34;Extended Thinking&#34;, &#34;Interleaved thinking&#34; are used correctly in context.
+
+    *   *Summary:* 聚焦于 Sonnet 4.6/Opus 4.6 对手动思维模式的弃用，全面转向 Adaptive Thinking。
+    *   *Themes:* 弃用手动配置、统一推荐 Adaptive、Beta Header 清理、迁移指引。
+    *   *Impact:* Medium (未来破坏性变更，现有代码仍工作)。
+    *   *Actions:* 迁移代码、移除 headers、使用 effort 参数。
+
+7.  **Final Output Generation** (Proceed to generate markdown).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/memory.html" class="page-link">memory.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/about-claude/models/migration-guide.html" class="page-link">about-claude/models/migration-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+10</span>
+                            <span class="removed">-9</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/extended-thinking.html" class="page-link">build-with-claude/extended-thinking.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/effort.html" class="page-link">build-with-claude/effort.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/claude-prompting-best-practices.html" class="page-link">build-with-claude/prompt-engineering/claude-prompting-best-practices.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+10</span>
+                            <span class="removed">-10</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">19:27 EST</div>
