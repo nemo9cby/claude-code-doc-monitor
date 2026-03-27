@@ -118,9 +118,204 @@
 
         <header>
             <h1>Changes on 2026-03-27</h1>
-            <p class="meta">5 total changes in 2 runs</p>
+            <p class="meta">11 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">13:45 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 总体摘要
+本次文档更新显著增强了 Hooks 的过滤能力（引入 `if` 字段），提升了 MCP 配置的灵活性，并新增了企业级插件管理功能，同时完善了遥测配置选项。
+
+### 关键主题
+
+*   **Hooks 细粒度控制与性能优化**：
+    *   新增 `if` 字段，允许使用权限规则语法（如 `&#34;Bash(git *)&#34;`）对工具名称和参数进行过滤。
+    *   这使得开发者能更精确地控制 Hook 触发时机，并在不匹配时避免进程启动开销，优于仅在脚本内部进行判断。
+*   **企业管理增强**：
+    *   引入 `managed-settings.json`，允许组织层面覆盖设置、阻止插件安装并从市场隐藏插件。
+*   **MCP 扩展性改进**：
+    *   为 `headersHelper` 脚本提供了 `CLAUDE_CODE_MCP_SERVER_NAME` 和 `CLAUDE_CODE_MCP_SERVER_URL` 环境变量，便于编写通用的辅助脚本服务于多个 MCP 服务器。
+*   **遥测配置细化**：
+    *   `OTEL_METRICS_EXPORTER` 和 `OTEL_LOGS_EXPORTER` 现在支持 `none` 值，允许显式禁用特定的导出器。
+*   **UI/体验调整**：
+    *   移除了“语法高亮仅限原生构建”的说明，暗示该功能现已支持更广泛的平台。
+
+### 影响等级
+**Medium**
+**理由**：新引入的 `if` 字段提供了性能优化机会，且要求特定版本（v2.1.85+）；`managed-settings.json` 对企业用户意义重大。虽然所有更改均为向下兼容（非破坏性），但它们提供了重要的新功能和行为调整，值得开发者关注。
+
+### 开发者行动项
+
+*   **优化 Hooks 性能**：审查现有的 Hook 配置，利用 `if` 字段在进程启动前过滤无关的工具调用（注意：需 Claude Code v2.1.85+，且仅适用于 `PreToolUse` 等工具事件）。
+*   **重构 MCP 脚本**：更新 MCP `headersHelper` 脚本，利用新增的环境变量（`CLAUDE_CODE_MCP_SERVER_NAME` 等）消除硬编码，实现单一脚本适配多服务器。
+*   **配置遥测导出**：如果之前需要禁用特定遥测数据流，请更新环境变量配置以使用新的 `none` 选项。
+*   **检查 OAuth 元数据**：如果使用了 MCP OAuth 覆盖配置，请查阅文档中关于 RFC 9728 和 RFC 8414 的发现链顺序更新。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Understand the Goal**: The user wants a concise, insightful analysis of documentation changes for a developer tool (likely &#34;Claude Code&#34; based on the context). The output must be in Chinese, formatted as markdown, and cover the overall summary, key themes, impact level, and action items.
+
+2.  **Analyze the Input Data**:
+    *   **Page 1: `hooks.md`** (+32/-20):
+        *   *Changes*: Introduction of a new field `if` for hook handlers.
+        *   *Context*: The `if` field allows filtering based on *both* tool name and arguments using permission rule syntax (e.g., `&#34;Bash(git *)&#34;` or `&#34;Edit(*.ts)&#34;`).
+        *   *Mechanism*: It refines filtering beyond the existing `matcher` (which only matches tool name). It avoids process spawn overhead when the condition isn&#39;t met.
+        *   *Limitations*: Only works on tool events (`PreToolUse`, `PostToolUse`, etc.). Silently ignored on other events.
+        *   *Visual updates*: Updated flow diagram to include the `if` check step.
+
+    *   **Page 2: `hooks-guide.md`** (+10/-0):
+        *   *Changes*: Added a detailed section explaining the `if` field.
+        *   *Context*: Reiterates version requirement (v2.1.85+). Provides examples.
+        *   *Usage*: Explains how it differs from `matcher` (group level vs. handler level filtering).
+        *   *Note*: Explicitly mentions it prevents hook running on non-tool events if set.
+
+    *   **Page 3: `interactive-mode.md`** (+0/-1):
+        *   *Changes*: Removed a note stating syntax highlighting is only available in the native build.
+        *   *Implication*: Syntax highlighting is now available in non-native builds (or the restriction is removed).
+
+    *   **Page 4: `mcp.md`** (+7/-1):
+        *   *Changes*:
+            *   Clarification on OAuth metadata discovery (RFC 9728 first, then RFC 8414).
+            *   Added environment variables `CLAUDE_CODE_MCP_SERVER_NAME` and `CLAUDE_CODE_MCP_SERVER_URL` available to `headersHelper` scripts.
+        *   *Implication*: Allows reusing helper scripts across different MCP servers by reading these variables.
+
+    *   **Page 5: `monitoring-usage.md`** (+25/-25):
+        *   *Changes*: Updated OTEL exporter options.
+        *   *New Option*: `none` is now a valid value for `OTEL_METRICS_EXPORTER` and `OTEL_LOGS_EXPORTER` to explicitly disable them.
+        *   *Refinement*: Updated table descriptions to mention the `none` option.
+
+    *   **Page 6: `settings.md`** (+1/-0):
+        *   *Changes*: Mention of &#34;Managed settings&#34; (`managed-settings.json`).
+        *   *Context*: Organization-wide policy overrides that can block plugins and hide them from the marketplace.
+
+3.  **Synthesize Key Themes**:
+    *   *Hook Filtering Enhancements*: The biggest change is the `if` field in hooks, allowing granular argument-level filtering without spawning processes unnecessarily.
+    *   *Enterprise/Management*: New &#34;Managed settings&#34; for organizations.
+    *   *OAuth/MCP*: Better flexibility in MCP configuration (dynamic headers helper context, OAuth discovery details).
+    *   *Telemetry*: Ability to explicitly disable specific exporters (`none`).
+    *   *UX/Features*: Syntax highlighting restriction lifted.
+
+4.  **Determine Impact Level**:
+    *   *Level*: Medium.
+    *   *Reasoning*: The `if` field in hooks is a functional enhancement that improves performance and configurability. The &#34;Managed settings&#34; is significant for enterprise users but might not affect individual developers. Syntax highlighting removal of restriction is minor but nice. Nothing seems &#34;Breaking&#34; in a way that breaks existing code, just new features and clarifications.
+
+5.  **Draft Action Items**:
+    *   Update hooks to use `if` for performance optimization (avoid spawning processes).
+    *   Update version requirements for projects using new hook features (v2.1.85+).
+    *   Update MCP header helper scripts to use new environment variables for reusability.
+    *   Review OTEL configurations if explicit disabling of exporters is needed.
+
+6.  **Translate and Format to Chinese**:
+    *   *Summary*: 文档更新主要集中在增强 Hook 过滤能力（新增 `if` 字段）、MCP 配置的灵活性、以及企业级管理功能。
+    *   *Themes*: Hooks 细粒度控制, 企业管理, MCP &amp; OAuth 增强, 遥测配置更新.
+    *   *Impact*: Medium.
+    *   *Action Items*: Optimize hooks using `if`, upgrade docs for v2.1.85, refactor MCP scripts, check OTEL config.
+
+7.  **Refine the Content (Self-Correction during drafting)**:
+    *   *Check*: Did I miss the syntax highlighting change? Yes, include that in &#34;Key Themes&#34; or &#34;Impact&#34; as a minor point. It implies wider platform support.
+    *   *Check*: The `if` field prevents the hook from running if it&#39;s on a non-tool event. This is important context for developers to know why their hook might be silently ignored.
+    *   *Check*: MCP `headersHelper` changes are purely additive (env vars), so backward compatible.
+
+8.  **Final Output Generation**: (Proceed to generate the markdown response in Chinese).
+
+    *   *Summary*: 本次文档更新引入了 Hooks 的 `if` 字段以实现参数级过滤，增加了 MCP 环境变量以支持多服务器复用，并新增了企业级“托管设置”功能。
+    *   *Themes*:
+        *   **Hooks 性能优化**: 新增 `if` 字段，支持基于工具参数的细粒度过滤，减少不必要的进程启动。
+        *   **企业管理**: 引入 `managed-settings.json`，允许组织层面强制管控插件。
+        *   **MCP 扩展性**: `headersHelper` 新增服务器名称和 URL 环境变量，便于编写通用脚本。
+        *   **遥测控制**: OTEL 导出器现在支持 `none` 选项以显式禁用特定类型的数据导出。
+    *   *Impact*: Medium. (Reasoning: `if` 字段优化了现有功能的性能和可用性，Managed settings 对企业用户影响较大，但整体向下兼容，非破坏性更新。)
+    *   *Action Items*:
+        *   检查并更新 Hook 配置，利用 `if` 字段（需 v2.1.85+）替代脚本内部的参数检查以提升性能。
+        *   更新 MCP `headersHelper` 脚本，利用新增的环境变量实现跨服务器复用。
+        *   如需显式关闭特定遥测通道，更新 OTEL 导出器配置。
+
+9.  **Final Polish**: Ensure tone is professional and concise. (Done).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+32</span>
+                            <span class="removed">-20</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+10</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/interactive-mode.html" class="page-link">interactive-mode.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+25</span>
+                            <span class="removed">-25</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">11:47 EST</div>
