@@ -118,9 +118,303 @@
 
         <header>
             <h1>Changes on 2026-03-30</h1>
-            <p class="meta">10 total changes in 2 runs</p>
+            <p class="meta">21 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">16:39 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">```markdown
+## 总体摘要
+
+此次文档更新主要包含两个重点：一是 **Claude Code on the Web 现已支持 GitHub Enterprise Server (GHES)**，二是**移除了 Claude Sonnet 4.5 和 Sonnet 4 的 100 万 token 上下文窗口支持**（回退至 200k）。
+
+## 关键变更主题
+
+*   **GitHub Enterprise Server (GHES) 支持**
+    *   `claude-code-on-the-web.md`: 明确 Teams 和 Enterprise 计划现在支持自托管的 GitHub Enterprise Server。
+    *   `network-config.md`: 新增了关于防火墙配置的指南，要求允许 Anthropic API IP 地址以便基础设施访问 GHES。
+    *   `plugin-marketplaces.md`: 推荐使用正则匹配方式来配置 GHES 的内部插件市场。
+
+*   **模型上下文窗口策略调整 (重要变更)**
+    *   **移除 Beta 功能**: 移除了 Claude Sonnet 4.5 和 Sonnet 4 的 1M token 上下文窗口 Beta 支持。
+    *   **当前限制**: 现在**只有** Claude Opus 4.6 和 Sonnet 4.6 支持 1M token 上下文窗口，其他模型（包括 Sonnet 4.5/4）上限为 200k token。
+    *   **文档清理**: 移除了所有关于 `context-1m-2025-08-07` Beta header 的提及、长上下文的溢价计费说明以及相关的 Service Tier 计费倍率说明。
+
+## 影响级别
+
+**高**
+
+**理由**: 虽然新增了 GHES 支持是积极的变化，但移除 Sonnet 4.5 和 Sonnet 4 的 1M 上下文窗口能力属于**功能性回退**。正在使用这些模型的 Beta header (`context-1m-2025-08-07`) 处理超过 200k token 数据的开发者将面临行为变更（请求将被截断或无法发送）。
+
+## 开发者行动项
+
+1.  **移除 Beta Header**: 如果你正在使用 `context-1m-2025-08-07` header 配合 Sonnet 4.5 或 Sonnet 4，请立即从代码中移除。
+2.  **迁移模型**: 如果你的应用需要超过 200k token 的上下文，必须迁移至 **Claude Opus 4.6** 或 **Sonnet 4.6**。
+3.  **更新计费预期**: 针对 Sonnet 4.5/4 的超过 200k token 的高额计费逻辑已不复存在，但需注意 Opus 4.6/Sonnet 4.6 的 1M 窗口按标准费率计费。
+4.  **配置防火墙 (如适用)**: 如果你是 GHES 用户且使用 Claude Code on the Web，请将 Anthropic API IP 地址加入白名单。
+5.  **审查插件配置**: 使用 GHES 内部 Git 服务器时，更新插件市场的配置以使用推荐的正则模式。
+```</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Output Format:** Markdown, concise, insightful, Chinese language.
+    *   **Input:** 11 pages of diffs.
+    *   **Task:** Batch analysis summarizing changes, themes, impact, and action items.
+
+2.  **Analyze the Diffs (Page by Page):**
+
+    *   **Page 1: `claude-code-on-the-web.md`**
+        *   *Change:* Added support for self-hosted GitHub Enterprise Server (GHES) in &#34;Platform restrictions&#34; section. (Teams and Enterprise plans).
+        *   *Significance:* Expands platform compatibility for Claude Code on the Web.
+
+    *   **Page 2: `network-config.md`**
+        *   *Change:* Added instruction to allowlist Anthropic API IP addresses for self-hosted GitHub Enterprise Server instances behind firewalls.
+        *   *Significance:* Network configuration guidance for GHES users.
+
+    *   **Page 3: `plugin-marketplaces.md`**
+        *   *Change:* Added a recommendation to use regex pattern matching for internal git servers, specifically mentioning GitHub Enterprise Server (GHES).
+        *   *Significance:* Best practice guidance for plugin marketplace configuration.
+
+    *   **Page 4: `about-claude/models/overview.md`**
+        *   *Change:* Updated the &#34;Context window&#34; column in the models table. Previously, Sonnet 4.5 and 4 had 1M (or 200k) options. Now, only Opus 4.6 and Sonnet 4.6 have 200k listed (Wait, looking closer at the diff).
+        *   *Deep Dive:* The diff shows the table row changing from mentioning 1M for Opus/Sonnet to just &#34;200k tokens&#34; for all listed rows (Opus 4.6, Sonnet 4.6, Sonnet 4.5, Sonnet 4, Haiku 4.5). Wait, looking at the table structure:
+            *   Opus 4.6: &#34;200k tokens&#34; (previously 1M or 200k).
+            *   Sonnet 4.6: &#34;200k tokens&#34;.
+            *   Sonnet 4.5: &#34;200k tokens&#34;.
+            *   Sonnet 4: &#34;200k tokens&#34;.
+            *   Haiku 4.5: &#34;200k tokens&#34;.
+        *   *Correction:* Looking at the context of other pages, Opus 4.6 and Sonnet 4.6 retain 1M. The table row in this specific diff looks simplified. Let&#39;s look at the footer notes. Note 1 was removed (explaining the 1M beta header and long context pricing). Note 2 became Note 1 (explanation of cutoffs). Note 3 became Note 2.
+        *   *Interpretation:* The table itself seems to have been simplified to show the default/base context window (200k), or perhaps the 1M option for Opus 4.6/Sonnet 4.6 isn&#39;t explicitly shown in the *tooltip* of the table cell anymore, relying on the text description elsewhere. Or, looking at `context-windows.md` (Page 8), Opus 4.6 and Sonnet 4.6 *do* have 1M.
+        *   *Crucial Observation:* The removal of Note 1 (the one explaining 1M context for Sonnet 4.5/4) indicates Sonnet 4.5 and 4 **lost** their 1M context capability (beta removed/cancelled).
+
+    *   **Page 5: `about-claude/pricing.md`**
+        *   *Change:* Removed the entire section &#34;Long context pricing&#34; specific to Sonnet 4.5 and Sonnet 4.
+        *   *Change:* Updated &#34;stacking&#34; sentence to remove &#34;long context pricing&#34;.
+        *   *Significance:* Confirms that the premium long context pricing for Sonnet 4.5/4 is gone because the feature (1M context) is gone for them. Only Opus 4.6 and Sonnet 4.6 keep 1M at standard pricing (as seen in the remaining text).
+
+    *   **Page 6: `api/service-tiers.md`**
+        *   *Change:* Removed lines regarding burndown rates for long-context requests (&gt;200k) on Sonnet 4.5 and Sonnet 4.
+        *   *Significance:* Consistent removal of the beta feature logic.
+
+    *   **Page 7: `build-with-claude/prompt-caching.md`**
+        *   *Change:* Removed &#34;long context pricing&#34; from the list of modifiers that stack with prompt caching.
+        *   *Significance:* Documentation clean-up following the pricing change.
+
+    *   **Page 8: `build-with-claude/context-windows.md`**
+        *   *Change:* Rewrote the paragraph about context windows.
+        *   *Old:* &#34;Claude Opus 4.6 and Sonnet 4.6 have a 1M-token context window. [Note about Sonnet 4.5/4 beta header].&#34;
+        *   *New:* &#34;Claude Opus 4.6 and Sonnet 4.6 have a 1M-token context window. Other Claude models, including Claude Sonnet 4.5 and Sonnet 4, have a 200k-token context window.&#34;
+        *   *Significance:* **MAJOR**. Explicitly states Sonnet 4.5 and 4 are capped at 200k now. The beta 1M context is gone.
+
+    *   **Page 9, 10, 11 (Cloud Providers: Bedrock, Vertex, Foundry)**
+        *   *Change:* All three pages show similar updates.
+        *   *Pattern:* Changed text from &#34;Opus 4.6, Sonnet 4.6, Sonnet 4.5, and Sonnet 4 have a 1M-token context window...&#34; to &#34;Claude Opus 4.6 and Sonnet 4.6 have a 1M-token context window... Other Claude models... have a 200k-token context window.&#34;
+        *   *Significance:* Consistency across cloud platforms. The beta removal is universal.
+
+3.  **Synthesize Themes:**
+
+    *   **Theme 1: GitHub Enterprise Server (GHES) Support.**
+        *   `claude-code-on-the-web.md`: Now supported for Teams/Enterprise.
+        *   `network-config.md`: Firewall allowlisting instructions added.
+        *   `plugin-marketplaces.md`: Recommended regex approach for GHES.
+
+    *   **Theme 2: Model Context Window Changes (Breaking/Significant).**
+        *   **Retraction:** The beta 1M-token context window for Claude Sonnet 4.5 and Sonnet 4 has been removed/cancelled.
+        *   **Current State:** Only Claude Opus 4.6 and Sonnet 4.6 support 1M tokens.
+        *   **Pricing:** Removed premium long-context pricing for Sonnet 4.5/4 since they no longer support &gt;200k context.
+
+4.  **Determine Impact:**
+
+    *   **GHES Support:** **Low to Medium** impact. Only affects organizations using self-hosted GitHub and Claude Code on the Web. Positive news for them.
+    *   **Context Window Changes:** **High Impact** (Breaking for beta users). Developers relying on the 1M beta header for Sonnet 4.5 or 4 will find their requests truncated or fail if they attempt &gt;200k tokens. This removes a capability that was in beta.
+
+5.  **Formulate Action Items:**
+
+    *   **For Sonnet 4.5/4 users:** Stop using the `context-1m-2025-08-07` beta header. Expect requests &gt;200k tokens to be capped at 200k.
+    *   **Migration:** If you need &gt;200k context, switch to Opus 4.6 or Sonnet 4.6.
+    *   **GHES Admins:** Update firewall rules to allow Anthropic API IPs.
+    *   **GHES Plugin Devs:** Use regex patterns for internal server configuration.
+
+6.  **Drafting the Response (in Chinese):**
+
+    *   *Summary:* Added GHES support for Claude Code on the Web; removed 1M context beta for Sonnet 4.5 and 4, capping them at 200k.
+    *   *Themes:* 1. GHES Integration (Web + Network + Plugins). 2. Context Window Rollback (Sonnet 4.5/4 limited to 200k).
+    *   *Impact:* High (due to feature removal for specific models) / Medium (GHES support is additive). Let&#39;s call it &#34;High&#34; because removing a beta feature is technically a breaking change for those using it.
+    *   *Actions:* 1. Migrate to Opus 4.6/Sonnet 4.6 for 1M context. 2. Remove beta header. 3. Configure firewalls for GHES.
+
+7.  **Refining the Output (Self-Correction):**
+    *   Make sure to distinguish between *Claude Code* (the IDE agent) and *Claude API*.
+    *   The GHES changes are specific to `claude-code-on-the-web`, not necessarily the general API connecting to GHES (though the network config implies cloud infrastructure connecting to GHES).
+    *   The context window changes apply to API, Bedrock, Vertex, and Foundry.
+
+8.  **Final Polish (Markdown Structure):**
+    *   Use bolding for emphasis.
+    *   Keep it concise.
+
+**(Self-Correction during drafting):**
+Wait, looking at `models/overview.md`, the context window cell for Opus 4.6 and Sonnet 4.6 *also* shows &#34;200k tokens&#34; in the diff. This seems to be a simplification of the table to show the *default* or perhaps a data error in the diff representation?
+However, `context-windows.md` explicitly says: &#34;Claude Opus 4.6 and Sonnet 4.6 have a 1M-token context window.&#34; This text was not deleted, only the Sonnet 4.5/4 beta note was deleted.
+Therefore: Opus 4.6/Sonnet 4.6 still have 1M. Sonnet 4.5/4 lost it. The table in `overview.md` just got simpler (perhaps hiding the &#34;or 200k&#34; nuance or just showing the row value generically). I will trust the explicit text in `context-windows.md` over the simplified table cell.
+
+Let&#39;s stick to the facts derived:
+1. GHES support added for Claude Code on the Web.
+2. Sonnet 4.5 and 4 are capped at 200k (1M beta removed).
+3. Opus 4.6 and Sonnet 4.6 keep 1M.
+
+Action items need to be sharp.
+
+Final check on language: Chinese.
+
+Let&#39;s write the response.</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/claude-code-on-the-web.html" class="page-link">claude-code-on-the-web.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/network-config.html" class="page-link">network-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugin-marketplaces.html" class="page-link">plugin-marketplaces.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/about-claude/models/overview.html" class="page-link">about-claude/models/overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/about-claude/pricing.html" class="page-link">about-claude/pricing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-23</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/service-tiers.html" class="page-link">api/service-tiers.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-caching.html" class="page-link">build-with-claude/prompt-caching.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/context-windows.html" class="page-link">build-with-claude/context-windows.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-on-amazon-bedrock.html" class="page-link">build-with-claude/claude-on-amazon-bedrock.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-on-vertex-ai.html" class="page-link">build-with-claude/claude-on-vertex-ai.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-in-microsoft-foundry.html" class="page-link">build-with-claude/claude-in-microsoft-foundry.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">15:52 EST</div>
