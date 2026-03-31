@@ -118,9 +118,250 @@
 
         <header>
             <h1>Changes on 2026-03-31</h1>
-            <p class="meta">12 total changes in 3 runs</p>
+            <p class="meta">21 total changes in 4 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">19:29 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 1. 总体摘要
+本次文档更新涵盖了环境变量标准化、云服务商模型版本升级（Google Vertex AI）、新增自定义网关支持以及引入实验性功能，旨在提升配置灵活性和适配最新模型。
+
+### 2. 关键主题
+*   **环境变量标准化**: 统一推荐使用 `1` 代替 `true` 来启用布尔型环境变量（如 `DISABLE_AUTOUPDATER`、`CLAUDE_CODE_NEW_INIT`），符合 Unix 惯例。
+*   **模型版本与区域更新**: Google Vertex AI 的环境变量列表已更新，移除了旧版模型变量（如 `VERTEX_REGION_CLAUDE_3_5_SONNET`），新增了对 Claude 4.6 Sonnet 和 Haiku 4.5 的支持。
+*   **自定义端点支持**: Amazon Bedrock 和 Google Vertex AI 现均支持通过 `*_BASE_URL` 环境变量覆盖默认端点，便于集成私有网关或自定义代理。
+*   **新功能与机制变更**: 引入 `agent teams` 实验性标志（`CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`），并明确子代理恢复依赖于该标志；MCP 工具 `MCPSearch` 正式重命名为 `ToolSearch`。
+*   **配置能力扩展**: Settings 文档新增了多项配置字段，包括归属信息、HTTP Hooks 白名单及频道插件控制，增强了企业级管理能力。
+
+### 3. 影响程度
+**中等**
+*   **理由**: 虽然不涉及破坏性 API 变更，但 Google Vertex AI 用户必须更新环境变量名以适配新模型。同时，`agent teams` 的引入改变了子代理恢复的默认行为逻辑（需显式开启）。
+
+### 4. 行动项
+*   **更新 Vertex AI 配置**: 检查并更新脚本中的 Google Vertex AI 环境变量，将旧的 `VERTEX_REGION_CLAUDE_3_5_*` 替换为新版本（如 `VERTEX_REGION_CLAUDE_4_6_SONNET`）。
+*   **配置自定义网关**: 如果需要通过代理或私有端点访问模型，利用新增的 `ANTHROPIC_BEDROCK_BASE_URL` 或 `ANTHROPIC_VERTEX_BASE_URL` 进行配置。
+*   **适配 MCP 权限规则**: 更新代码中的权限配置，将拒绝列表中的 `MCPSearch` 替换为 `ToolSearch`。
+*   **尝试实验性功能**: 若需使用子代理恢复功能，请设置 `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` 或使用 `--agent-teams` 标志。
+*   **遵循新标准**: 在编写新的配置脚本或 Dockerfile 时，使用 `1` 而非 `true` 来设置布尔开关，以符合最新文档规范。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">用户希望我以世界级程序员的视角分析一批文档变更。
+我需要：
+1. 分析所有9个页面的变更。
+2. 用中文提供简洁、有见地的分析。
+3. 以markdown格式输出。
+4. 回复结构包括：总体摘要、关键主题、影响程度及理由、开发者行动项。
+
+**变更分析：**
+
+1.  **amazon-bedrock.md**:
+    *   添加了一个注释掉的环境变量：`ANTHROPIC_BEDROCK_BASE_URL`，用于覆盖端点URL。
+    *   *含义：* 支持自定义网关或私有端点。
+
+2.  **cli-reference.md**:
+    *   更新了一个大表格（CLI 标志）。
+    *   由于上下文限制，我看不到完整的差异，但在片段的开头，似乎表格的渲染或内容略有调整（看起来像是对齐或格式更新）。
+    *   *含义：* 文档清理，潜在的表格结构改进，或者可能增加了/删除了标志（尽管片段没有显示太多的内容差异，只是截断）。
+
+3.  **discover-plugins.md**:
+    *   将 `FORCE_AUTOUPDATE_PLUGINS=true` 和 `DISABLE_AUTOUPDATER=true` 中的 `true` 更改为 `1`。
+    *   将 shell 主题从 `shell` 更改为 `bash`。
+    *   *含义：* 标准化布尔环境变量为 `1`，而不是 `true`。最佳实践一致性。
+
+4.  **google-vertex-ai.md**:
+    *   添加了 `ANTHROPIC_VERTEX_BASE_URL` 以进行端点覆盖。
+    *   更新了区域覆盖变量：`VERTEX_REGION_CLAUDE_HAIKU_4_5`, `VERTEX_REGION_CLAUDE_4_6_SONNET`。删除了旧的版本（如 `VERTEX_REGION_CLAUDE_3_5_SONNET` 等）。
+    *   添加了指向环境变量参考的链接。
+    *   *含义：* 模型更新（新模型版本如 Haiku 4.5, Sonnet 4.6），支持自定义端点，以及变量命名的标准化。
+
+5.  **mcp.md**:
+    *   将工具名称从 `MCPSearch` 更改为 `ToolSearch`。
+    *   *含义：* 内部工具重命名。
+
+6.  **memory.md**:
+    *   将 `CLAUDE_CODE_NEW_INIT=true` 更改为 `CLAUDE_CODE_NEW_INIT=1`。
+    *   *含义：* 标准化布尔值为 `1`。
+
+7.  **sandboxing.md**:
+    *   澄清了关于 `allowManagedReadPathsOnly` 和 `denyRead` 合并行为的规则。
+    *   *含义：* 权限逻辑的细微澄清。
+
+8.  **settings.md**:
+    *   在设置表中添加了多个新设置（`agent`, `allowedChannelPlugins`, `allowedHttpHookUrls`, `attribution` 等）。
+    *   *含义：* 扩展了配置选项，可能用于支持新功能（agent teams, 频道插件, 归属）。
+
+9.  **sub-agents.md**:
+    *   添加了一个关于 `SendMessage` 工具的说明，该工具仅在通过 `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` 或 `--agent-teams` 启用 *agent teams* 时才可用。
+    *   *含义：* 将一个新功能（agent teams）或恢复子代理的具体机制关联到一个实验性标志。
+
+**综合分析：**
+
+*   **主题：**
+    1.  **环境变量标准化：** 将布尔值从 `true`/`false` 切换为 `1`/`0`（如 `FORCE_AUTOUPDATE_PLUGINS`, `CLAUDE_CODE_NEW_INIT`）。
+    2.  **模型更新：** Google Vertex AI 现在引用了新版本（Haiku 4.5, Sonnet 4.6），废弃了旧的变量。
+    3.  **自定义端点：** 在 Bedrock 和 Vertex AI 中添加了 `BASE_URL` 覆盖支持，允许进行网关集成。
+    4.  **新功能支持：** &#34;Agent Teams&#34;（实验性），&#34;Attribution&#34; 设置，以及更新的工具名称（`ToolSearch`）。
+    5.  **文档清理：** 优化了权限合并逻辑和 shell 代码块的主题。
+
+*   **影响：** 中等。有新的变量名称（模型），新的行为（agent teams 标志），以及推荐值的变更（`1` 对比 `true`），但似乎没有重大破坏性变更，除非特定的模型变量是硬编码的。
+
+*   **行动项：**
+    1.  更新用于 Vertex AI 的脚本/配置以使用新的区域变量。
+    2.  如果需要，利用新的 `BASE_URL` 变量进行自定义网关。
+    3.  在设置中或通过标志尝试实验性的 &#34;Agent Teams&#34; 功能。
+    4.  如有必要，将 `true` 迁移到 `1`（虽然 `true` 通常仍然有效，但 `1` 似乎是新的标准）。
+    5.  检查对 `MCPSearch` 重命名为 `ToolSearch` 的引用。
+
+让我们起草回复。
+
+**草稿：**
+
+1.  **总体摘要:** 本次更新主要集中在环境变量标准化（布尔值改用 `1`）、云提供商模型版本升级（Google Vertex AI）、以及引入自定义网关支持和新实验性功能。
+2.  **关键主题:**
+    *   **环境变量标准化**: 多处文档建议使用 `1` 代替 `true` 来启用布尔开关（如自动更新、Init 流程）。
+    *   **模型与区域更新**: Google Vertex AI 文档更新了环境变量以支持新版本模型（Claude 4.6 Sonnet, Haiku 4.5），废弃了旧的变量名。
+    *   **自定义端点支持**: Amazon Bedrock 和 Google Vertex AI 现在均支持通过环境变量覆盖 Base URL，便于接入私有网关或自定义代理。
+    *   **新功能与重命名**: 引入 `agent teams` 实验性标志；MCP 工具 `MCPSearch` 重命名为 `ToolSearch`。
+    *   **配置能力增强**: 新增多项 settings 配置选项（如 attribution, allowedChannelPlugins）。
+3.  **影响程度:** **中等**。
+    *   *理由*: 虽然 API 行为未发生破坏性变更，但 Google Vertex AI 的环境变量名更新需要开发者手动调整配置。此外，`agent teams` 标志的引入暗示了子代理恢复机制的重大变化。
+4.  **行动项:**
+    *   更新 Google Vertex AI 配置脚本，将旧的环境变量（如 `VERTEX_REGION_CLAUDE_3_5_SONNET`）替换为新版本变量（如 `VERTEX_REGION_CLAUDE_4_6_SONNET`）。
+    *   如需使用代理或私有端点，配置新的 `ANTHROPIC_BEDROCK_BASE_URL` 或 `ANTHROPIC_VERTEX_BASE_URL`。
+    *   尝试通过 `--agent-teams` 或环境变量启用实验性的 &#34;Agent Teams&#34; 功能以体验新的子代理恢复机制。
+    *   检查并更新 MCP 相关权限配置，将 `MCPSearch` 替换为 `ToolSearch`。
+    *   在新项目中遵循新标准，使用 `1` 而非 `true` 设置布尔环境变量。
+
+看起来不错。我将对其进行完善以确保简洁并使用中文。
+
+完善后的草稿：
+1. 总体：标准化布尔值，更新 Vertex AI 模型，添加自定义端点支持，新的实验性功能。
+2. 主题：标准化的 `1` 对比 `true`，新模型版本（4.6, 4.5），Bedrock/Vertex 的 `BASE_URL` 支持，Agent Teams 实验性功能，工具重命名。
+3. 影响：中等。Google 区域变量需要更新。
+4. 行动：更新 Google 变量，如果需要则使用 Base URL，尝试 agent teams，重命名工具引用，使用 `1` 表示布尔值。
+
+最后检查提示要求：&#34;世界级程序员&#34;、&#34;简洁&#34;、&#34;insightful&#34;、&#34;markdown&#34;、&#34;中文&#34;。
+
+准备生成输出。</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/amazon-bedrock.html" class="page-link">amazon-bedrock.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/cli-reference.html" class="page-link">cli-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+62</span>
+                            <span class="removed">-59</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/discover-plugins.html" class="page-link">discover-plugins.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/google-vertex-ai.html" class="page-link">google-vertex-ai.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-8</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/memory.html" class="page-link">memory.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sandboxing.html" class="page-link">sandboxing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+11</span>
+                            <span class="removed">-10</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">16:38 EST</div>
