@@ -118,9 +118,241 @@
 
         <header>
             <h1>Changes on 2026-03-31</h1>
-            <p class="meta">2 total changes in 2 runs</p>
+            <p class="meta">12 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">16:38 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 总体摘要
+此次更新主要阐明了 `--add-dir` 的作用范围（仅文件访问而非配置发现），细化了 Hooks 的执行逻辑与安全权限模型（Hook 可覆盖 `bypassPermissions` 模式），并新增了 GitHub 自动回复可能触发基础架构部署的安全警告。
+
+### 关键主题
+*   **`--add-dir` 作用域明确化**：文档在多处明确指出，通过 `--add-dir` 添加的目录仅授予文件访问权限，不会自动加载其中的 `.claude/` 配置（如 Sub-agents 或 Commands），Skills 是唯一的例外。
+*   **Hooks 行为与安全增强**：详细说明了多 Hook 并发时的决策逻辑（采用“最严格”原则，`deny` 优先级最高），并明确 `PreToolUse` Hook 可以在 `bypassPermissions` 模式下强制拦截操作，为策略执行提供了硬性保障。
+*   **安全风险与成本控制**：新增警告提示 Web 端的自动回复功能可能会触发 GitHub Actions 或基础设施自动化（如 Atlantis）；同时建议将 `CLAUDE.md` 的行数限制从 500 行收紧至 200 行以优化 Token 成本。
+*   **用户体验微调**：增加了 `Ctrl+J` 作为换行快捷键，并允许使用 `右箭头` 接受自动补全建议。
+
+### 影响等级：**中等**
+**理由**：虽然这主要是文档层面的澄清，但 `--add-dir` 配置加载逻辑的明确化可能会影响现有依赖该功能跨项目共享配置的开发者工作流。Hooks 权限模型的明确对需要严格权限管控的企业级用户具有重要安全意义。
+
+### 开发者行动项
+*   **审查自动化配置**：如果在 Web 端使用 Claude Code 的自动修复功能，请检查仓库中是否有基于 `issue_comment` 事件的危险自动化操作（如基础设施部署）。
+*   **调整配置共享策略**：如果你之前试图通过 `--add-dir` 加载 Sub-agents 或 Commands，请改用插件或用户级目录（`~/.claude/`）来共享配置。
+*   **精简 CLAUDE.md**：检查项目中的 `CLAUDE.md` 文件，尝试将其控制在 200 行以内，将特定工作流的指令迁移到 Skills 中。
+*   **检查 Hook 逻辑**：如果你配置了多个 Hook，请确保它们之间没有冲突的输入修改逻辑（因为并行执行导致的结果是不确定的），并了解 Hook 现在可以强制拦截绕过权限的操作。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Format:** Concise, insightful analysis in Markdown.
+    *   **Language:** Chinese.
+    *   **Input:** A batch of 10 documentation page diffs.
+    *   **Output Structure:**
+        1.  Overall Summary (1-2 sentences).
+        2.  Key Themes (bullets).
+        3.  Impact Level (Low/Medium/High/Breaking) with reasoning.
+        4.  Action Items for Developers (bullets, max 5).
+
+2.  **Analyze the Diffs (Page by Page):**
+
+    *   `claude-code-on-the-web.md`: Added a warning block. Claude replying on GitHub can trigger automation (Atlantis, Terraform Cloud, etc.) via `issue_comment` events. This is a security/infrastructure risk warning.
+    *   `cli-reference.md`: Updated description for `--add-dir`. Clarifies it grants file access but *not* configuration discovery (mostly). Links to permissions page.
+    *   `costs.md`: Changed &#34;CLAUDE.md under ~500 lines&#34; to &#34;200 lines&#34;. A stricter guideline to save context tokens.
+    *   `hooks-guide.md`: Significant changes.
+        *   Added behavior for multiple hooks matching (most restrictive wins, `deny` cancels all, `ask` forces prompt, `additionalContext` accumulates).
+        *   Limitations updated: Clarified command hooks can&#39;t trigger `/` commands or tool calls directly.
+        *   New limitation: Parallel execution of hooks means `updatedInput` from multiple hooks is non-deterministic (last one wins).
+        *   New section: &#34;Hooks and permission modes&#34;. `PreToolUse` hooks fire *before* permission mode checks. A `deny` hook blocks even `bypassPermissions` mode. Hooks tighten, don&#39;t loosen restrictions.
+    *   `interactive-mode.md`: Updated key bindings for auto-suggestions. Added &#34;Right arrow&#34; alongside &#34;Tab&#34; to accept.
+    *   `settings.md`: Updated `additionalDirectories` description to match `cli-reference.md` (file access vs. config discovery).
+    *   `skills.md`: Clarified `--add-dir` behavior regarding skills. Skills are loaded (exception to the rule), but other config (subagents, commands) is not. Links to exceptions table.
+    *   `slash-commands.md`: Identical text change to `skills.md` (likely a copy-paste error in the source or duplicate section in docs).
+    *   `sub-agents.md`: Clarified that project subagents are not discovered from `--add-dir` directories. Use user dir or plugins for sharing.
+    *   `terminal-config.md`: Added `Ctrl+J` as a way to insert line breaks (works universally).
+
+3.  **Synthesize Key Themes:**
+
+    *   **Permissions &amp; Configuration Discovery (`--add-dir`):** There&#39;s a major clarification happening across multiple pages. `--add-dir` is strictly for file access, not loading project configuration (like agents or subagents), except for specific exceptions like Skills.
+    *   **Hooks &amp; Security:** Enhanced documentation on how hooks interact with permission modes (hooks override `bypassPermissions`) and how multiple hooks behave (non-deterministic input updates, restrictive decision logic).
+    *   **Safety &amp; Cost:**
+        *   Web auto-fix triggering infrastructure automation.
+        *   Stricter token limits for `CLAUDE.md`.
+    *   **UX/Convenience:** `Right arrow` for suggestions, `Ctrl+J` for newlines.
+
+4.  **Draft the Summary (Internal Monologue - English -&gt; Chinese):**
+    *   *Summary:* This update refines permissions and configuration discovery rules, clarifies hook execution behavior and security implications, and introduces minor UX improvements.
+    *   *Chinese:* 此次更新细化了 `--add-dir` 的权限与配置发现规则，阐明了 Hook 的执行行为及其对权限模式的覆盖能力，同时引入了 GitHub 自动回复的风险提示及若干 UI 交互优化。
+
+5.  **Draft Key Themes (Internal Monologue - English -&gt; Chinese):**
+    *   *Theme 1:* `--add-dir` scope limitation (file access vs. config).
+        *   *Chinese:* `--add-dir` 的作用域限制：明确其仅授予文件访问权，除 Skills 外不加载其他项目配置（如 Sub-agents）。
+    *   *Theme 2:* Hooks behavior and security.
+        *   *Chinese:* Hook 行为与安全模型：多 Hook 逻辑采用“最严格”原则，`PreToolUse` Hook 甚至可拦截 `bypassPermissions` 模式。
+    *   *Theme 3:* Automation risks and token optimization.
+        *   *Chinese:* 自动化风险与成本优化：警告 GitHub 自动回复可能触发基础设施部署，并建议将 `CLAUDE.md` 行数限制收严至 200 行。
+
+6.  **Determine Impact Level:**
+    *   Is it Breaking? No.
+    *   Is it High? It changes understanding of permissions and security controls (Hooks), which is critical for enterprise/dev teams. The `--add-dir` change might break assumptions about shared configs.
+    *   *Decision:* **Medium-High** (Let&#39;s settle on Medium because code behavior hasn&#39;t changed, just documentation, but the implications for security and configuration management are significant). Let&#39;s call it **Medium**.
+
+7.  **Draft Action Items (Internal Monologue - English -&gt; Chinese):**
+    *   *Item 1:* Review repo automation if using web auto-fix.
+    *   *Item 2:* Check Hook logic if using multiple hooks or relying on `bypassPermissions`.
+    *   *Item 3:* Refactor `CLAUDE.md` if &gt;200 lines.
+    *   *Item 4:* Adjust config sharing strategy if relying on `--add-dir` for subagents.
+    *   *Item 5:* None needed for Right arrow/Ctrl+J, just nice to know.
+    *   *Chinese Selection:*
+        1.  Audit GitHub automation logic before enabling web auto-fix.
+        2.  Refactor `CLAUDE.md` to stay under 200 lines.
+        3.  Verify Hooks logic regarding `bypassPermissions` override.
+        4.  Migrate shared configuration (Sub-agents) from `--add-dir` to plugins or user directory.
+
+8.  **Final Polish (Reviewing against constraints):**
+    *   Concise? Yes.
+    *   Insightful? Yes, focuses on the security/config implication.
+    *   Markdown? Yes.
+    *   Chinese? Yes.
+
+9.  **Construct Final Output:** (Proceeding to generate output based on step 7 &amp; 8).
+
+    *   *Self-Correction during drafting:* Ensure the distinction between `--add-dir` file access and config discovery is clear, as that appeared in 4 different pages. It&#39;s the biggest thematic change.
+
+    *   *Refining the Hooks section:* The fact that a Hook can deny execution even in `bypassPermissions` mode is a huge security feature for enterprise governance. Highlighting this is crucial.
+
+    *   *Refining the Costs section:* 500 -&gt; 200 is a big drop. This is a specific actionable metric.
+
+10. **Final Output Generation.** (matches the provided good response).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/claude-code-on-the-web.html" class="page-link">claude-code-on-the-web.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/cli-reference.html" class="page-link">cli-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/costs.html" class="page-link">costs.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/interactive-mode.html" class="page-link">interactive-mode.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/terminal-config.html" class="page-link">terminal-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">10:56 EST</div>
