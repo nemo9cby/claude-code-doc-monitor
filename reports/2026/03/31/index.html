@@ -118,9 +118,151 @@
 
         <header>
             <h1>Changes on 2026-03-31</h1>
-            <p class="meta">21 total changes in 4 runs</p>
+            <p class="meta">23 total changes in 5 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">22:05 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更分析
+
+### 1. 总体总结
+版本 2.1.89 是一次重要的稳定性与功能更新，重点修复了长期会话中的内存泄漏与渲染故障，显著增强了 Hook 系统的灵活性（支持 `defer` 和 `PermissionDenied`），并解决了 Windows 平台及企业代理环境下 AWS SSO 认证的关键问题。
+
+### 2. 关键主题
+*   **Hook 系统深度增强**：新增 `defer` 权限决策（支持无头会话中断与恢复）、`PermissionDenied` 钩子，并修正了工具接收绝对路径的行为及大量输出时的处理机制（&gt;50KB 写入磁盘）。
+*   **稳定性与性能优化**：修复了多处导致崩溃和内存泄漏的 Bug（如大文件编辑、JSON LRU 缓存、LSP 服务僵死状态），解决了长会话中的 Prompt 缓存失效和 `CLAUDE.md` 重复注入问题。
+*   **平台兼容性改进**：大幅改进 Windows/PowerShell 体验（修复 CRLF 处理、PS 5.1 参数解析、语音模式），解决了渲染抖动、多语言（CJK/Devanagari）截断及 UI 闪烁问题。
+*   **企业级环境支持**：新增针对 AWS SSO 在企业 VPN 或 TLS 检测代理下出现“认证死循环”的故障排查文档。
+
+### 3. 影响级别：**High**
+*   **理由**：本次更新包含大量的底层修复（内存泄漏、崩溃修复、LSP 自动恢复），直接关系到工具在长时间运行时的可靠性。此外，Hook 行为的修正和思考摘要默认显示的变更可能会改变现有的用户交互体验。
+
+### 4. 开发者行动项
+*   **检查 AWS 认证配置**：如果您在企业网络环境下使用 AWS SSO 并遇到浏览器无限弹窗，请从配置文件中移除 `awsAuthRefresh` 设置，改用手动 `aws sso login`。
+*   **验证配置有效性**：检查 `settings.json` 中的 `cleanupPeriodDays`，若为 `0` 现在会报错（之前会静默禁用记录持久化）。
+*   **更新 Hook 逻辑**：利用新增的 `defer` 和 `PermissionDenied` 钩子增强自动化流程；注意 `PreToolUse`/`PostToolUse` 现已严格接收绝对路径。
+*   **调整渲染与体验**：若遇到终端闪烁，尝试设置 `CLAUDE_CODE_NO_FLICKER=1`；如需恢复思考摘要显示，请在设置中开启 `showThinkingSummaries: true`。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Understand the Goal**: The user wants a concise, insightful analysis of two documentation changes (`amazon-bedrock.md` and `CHANGELOG.md.md`). The output needs to be in Markdown, Chinese, and follow a specific structure (Summary, Key Themes, Impact Level, Action Items).
+
+2.  **Analyze `amazon-bedrock.md`**:
+    *   *Change*: Added a troubleshooting section about &#34;Authentication loop with SSO and corporate proxies&#34;.
+    *   *Details*: Explains that corporate VPNs/TLS proxies can interrupt SSO, causing `awsAuthRefresh` to loop. Suggests removing `awsAuthRefresh` or using `aws sso login` manually.
+    *   *Why it matters*: Developers behind corporate proxies (common in enterprise) face infinite loops. This provides a specific fix.
+
+3.  **Analyze `CHANGELOG.md.md`**:
+    *   *Version*: 2.1.89.
+    *   *New Features*: `&#34;defer&#34;` permission for hooks, `CLAUDE_CODE_NO_FLICKER=1` env var, `PermissionDenied` hook, named subagents in typeahead, `MCP_CONNECTION_NONBLOCKING=true`.
+    *   *Auto Mode*: Better UX for denied commands (notifications + retry in `/permissions`).
+    *   *Bug Fixes (Extensive list)*:
+        *   *Symlinks*: `Edit`/`Read` now resolve symlink targets.
+        *   *Voice/Windows*: Fixes for push-to-talk, WebSocket upgrades, CRLF doubling.
+        *   *Performance*: Fixed memory leaks (JSON inputs), `StructuredOutput` schema cache bug, LSP zombie states, prompt cache misses in long sessions.
+        *   *CLI/Resumability*: Fixed `-p --resume` hangs, `--resume` crashes on old transcripts.
+        *   *Text/Rendering*: Fixed CJK/emoji truncation, Devanagari truncation, UI jitter.
+        *   *Hooks*: `PreToolUse`/`PostToolUse` now get absolute paths (matching docs), hook output over 50K saved to disk.
+        *   *Bash/PowerShell*: PS 5.1 improvements, argument-splitting hardening, bash formatter warnings.
+    *   *Changes*: `Edit` tool now works on files viewed via `sed`/`cat` without `Read`, thinking summaries disabled by default, `cleanupPeriodDays: 0` validation, `/env` applies to PowerShell.
+    *   *Fun*: `/buddy` command (April Fools).
+
+4.  **Synthesize &#34;Overall Summary&#34;**:
+    *   Version 2.1.89 is a massive update focusing on stability, performance, and long-session reliability.
+    *   It adds new hook capabilities (defer, permission denied) and fixes numerous specific issues with Windows, PowerShell, rendering, and AWS SSO authentication loops.
+
+5.  **Synthesize &#34;Key Themes&#34;**:
+    *   *Hook System Enhancements*: `defer`, `PermissionDenied`, better path handling, large output management.
+    *   *Stability &amp; Performance*: Memory leak fixes, cache bugs resolved, LSP recovery, long-session reliability.
+    *   *Platform Support*: Significant improvements for Windows (CRLF, PowerShell 5.1, Voice) and AWS SSO in corporate environments.
+    *   *User Experience*: Flicker-free rendering, better auto-mode handling, improved typeahead.
+
+6.  **Determine &#34;Impact Level&#34;**:
+    *   *Level*: High.
+    *   *Reasoning*: This release addresses critical stability issues (memory leaks, crashes, LSP zombie states) and annoying bugs (rendering artifacts, auth loops). The behavior change regarding thinking summaries (disabled by default) is noticeable. The hook improvements are significant for power users.
+
+7.  **Determine &#34;Action Items&#34;**:
+    *   *For AWS Users*: Remove `awsAuthRefresh` if experiencing auth loops with corporate proxies.
+    *   *For Hook Users*: Update hooks to handle absolute paths (though docs said they were absolute, now they actually are), utilize `defer` and `PermissionDenied`.
+    *   *For Long-Session Users*: Enable `CLAUDE_CODE_NO_FLICKER=1` if rendering is an issue.
+    *   *For Settings*: Check `cleanupPeriodDays` (0 is no longer valid/ignored silently).
+    *   *For Thinking Features*: Enable `showThinkingSummaries: true` if you miss them.
+
+8.  **Draft Response (in Chinese)**:
+
+    *   *Summary*: 版本 2.1.89 是一次重要的稳定性更新，大幅改进了长期会话的性能、Hook 系统的灵活性以及 Windows/PowerShell 平台的兼容性，并修复了企业代理环境下的 AWS SSO 认证死循环问题。
+    *   *Themes*: Hook 系统增强（支持 defer 和 PermissionDenied）、性能与内存泄漏修复、渲染体验优化（无闪烁模式）、Windows/PowerShell 兼容性提升、AWS 认证故障排查指南。
+    *   *Impact*: High。修复了导致崩溃和内存泄漏的关键问题，改变了思考摘要的默认行为，并显著提升了长对话的稳定性。
+    *   *Action Items*: Check `cleanupPeriodDays`, update hooks for absolute paths, fix auth loops by adjusting settings, enable flicker-free rendering if needed, re-enable thinking summaries if desired.
+
+9.  **Refine Language**: Ensure &#34;concise&#34; and &#34;insightful&#34;. Use professional technical Chinese terms.
+
+    *   *Refining Summary*: &#34;重点解决长期会话的内存泄漏与性能问题，显著增强 Hook 系统能力，并针对 Windows 平台和 AWS SSO 企业环境进行了多项修复。&#34; -&gt; Good.
+    *   *Refining Themes*: &#34;Hook 系统扩展&#34;, &#34;稳定性与性能优化&#34;, &#34;平台兼容性&#34;.
+    *   *Refining Action Items*: Make them actionable.
+
+10. **Final Review against Constraints**:
+    *   Format: Markdown? Yes.
+    *   Language: Chinese? Yes.
+    *   Focus: What matters to developers? Yes.
+
+    *Self-Correction during drafting*: The CHANGELOG is huge. Don&#39;t list every fix. Focus on the *types* of fixes (memory, rendering, specific OS issues). The Bedrock change is small but critical for enterprise users.
+
+    *Structure*:
+    1. Overall Summary
+    2. Key Themes
+    3. Impact Level
+    4. Action Items
+
+    Ready to generate.</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/amazon-bedrock.html" class="page-link">amazon-bedrock.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+53</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">19:29 EST</div>
