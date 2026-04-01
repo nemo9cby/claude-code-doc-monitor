@@ -118,9 +118,136 @@
 
         <header>
             <h1>Changes on 2026-04-01</h1>
-            <p class="meta">11 total changes in 2 runs</p>
+            <p class="meta">13 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">19:32 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### Overall Summary
+此次文档更新重点在于澄清了 **Structured Outputs（结构化输出）** 功能在 **HIPAA 合规性** 下的具体限制，明确了 JSON Schema 的缓存机制并不具备与消息内容相同的 PHI（受保护健康信息）保护级别。
+
+### Key Themes across pages
+*   **HIPAA 合规性边界：** 明确指出虽然 Structured Outputs 符合 HIPAA 资格，但 JSON Schema 本身**不在** HIPAA 保护范围内，因为 Schema 会被编译并缓存。
+*   **PHI（受保护健康信息）处理限制：** 强调严禁将 PHI 放入 JSON Schema 的结构定义中（如属性名、枚举值、正则表达式等）。
+*   **文档导航优化：** 更新了内部链接锚点，使其从单一的 ZDR 资格指向更广泛的功能资格说明（涵盖 ZDR 和 HIPAA）。
+
+### Impact level
+**High** (高)
+**Reasoning:** 虽然这不是代码层面的 Breaking Change（破坏性变更），但对于医疗健康领域的开发者而言，这是一个**高风险的安全警示**。如果在 Schema 中意外包含 PHI，可能会导致敏感数据泄露（被缓存长达 24 小时），从而违反 HIPAA 法规，引发严重的法律后果。
+
+### Action items for developers
+*   **审查 Schema 定义：** 立即检查所有用于 Structured Outputs 的 JSON Schema，确保属性名、`enum` 值、`const` 值和 `pattern` 正则表达式中不包含任何 PHI 或敏感用户信息。
+*   **数据隔离：** 确保 PHI 仅出现在 API 请求的 prompt 和 response 内容中（受 ZDR 和 HIPAA 保护），绝不要嵌入到结构定义里。
+*   **查阅合规文档：** 参考 [API and data retention](/docs/en/build-with-claude/api-and-data-retention#feature-eligibility) 以了解最新的 ZDR 和 HIPAA 资格详情。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1. **分析请求：**
+*   角色：具备深厚的开发者工具和文档专业知识的顶级程序员。
+*   任务：分析一批文档变更（总计 2 页）。
+*   目标：总结变更内容及其对开发者的重要性。
+*   输出语言：中文。
+*   格式：Markdown。
+*   具体结构要求：
+    1. Overall Summary (1-2 sentences)
+    2. Key Themes (bullets)
+    3. Impact Level (Low/Medium/High/Breaking) with reasoning
+    4. Action Items for developers (bullets, max 5)
+
+2. **分析变更：**
+
+*   **页面 1：`build-with-claude/overview.md`**
+    *   *变更：* 一个长句脚注末尾的链接文本/锚点被更新。
+    *   *原文：* `...See [ZDR details](/docs/en/build-with-claude/api-and-data-retention#zdr-eligibility-by-feature).`
+    *   *新文：* `...See [ZDR details](/docs/en/build-with-claude/api-and-data-retention#feature-eligibility).`
+    *   *背景：* 这指的是“零数据留存”（ZDR）细节。链接标签是“ZDR details”。锚点从 `#zdr-eligibility-by-feature` 变为了 `#feature-eligibility`。
+    *   *含义：* 看起来像是重构链接锚点以使其更通用，可能是因为部分现在涵盖了 ZDR *和* HIPAA（参考页面 2 的变更）。
+
+*   **页面 2：`build-with-claude/structured-outputs.md`**
+    *   *变更：* 在“数据留存”部分增加了一个新段落，并更新了结尾句。
+    *   *新增内容：* 一个新段落说明虽然结构化输出符合 HIPAA 资格，但 **PHI（受保护健康信息）不得包含在 JSON schema 定义中**。
+    *   *理由：* Schemas 被编译为语法形式并单独缓存（最长 24 小时），且这些缓存的 schemas *不*具备与消息内容（提示词/响应）相同的 PHI 保护措施。
+    *   *警告：* 不要在 schema 属性名称、`enum` 值、`const` 值或 `pattern` 正则表达式中包含 PHI。
+    *   *结尾更新：* 将“For ZDR eligibility...”改为“For ZDR and HIPAA eligibility...”并更新了链接（与页面 1 的变更相匹配）。
+    *   *含义：* 这对于医疗/健康应用开发者来说是关键的安全/合规信息。
+
+3. **综合“主题”：**
+*   HIPAA 合规性与 PHI（受保护健康信息）处理。
+*   数据留存策略与机制。
+*   结构化输出的具体限制（Schema 缓存）。
+*   文档导航更新（链接锚点）。
+
+4. **确定影响级别：**
+*   *级别：* 高/关键（特别是对于健康科技领域），但总体而言，这是关于结构化输出中 PHI 安全性的一个重大警告。
+*   *修正：* 虽然它不会破坏代码（非 Breaking），但如果处理健康数据，忽略它会构成严重的法律/安全风险。让我们将其归类为“高”，因为它是一个具体的“不要这样做”的警告，涉及受监管数据的合规性。
+
+5. **起草“行动项目”：**
+*   检查 Structured Outputs schemas 是否包含 PHI。
+*   确保 PHI 仅位于消息内容中。
+*   审查枚举值、正则表达式、属性名称。
+*   如果构建健康应用，查阅更新后的 HIPAA 资格文档。
+
+6. **翻译并格式化为中文：**
+
+*   *总结：* 这批文档变更主要集中在明确 Structured Outputs 功能下 HIPAA 合规性的边界，特别是关于 JSON Schema 的数据处理方式。
+*   *主题：*
+    *   HIPAA 与 PHI（受保护健康信息）合规性。
+    *   Structured Outputs 的数据缓存机制。
+    *   文档链接结构优化。
+*   *影响：* High（高）。
+    *   *理由：* 虽然不是代码层面的 Breaking Change，但对于涉及医疗健康数据的开发者来说，这是一个关键的安全警告。违反此规定可能导致 HIPAA 合规性失败，引发严重的法律和隐私风险。
+*   *行动项目：*
+    *   审查所有用于 Structured Outputs 的 JSON Schema，确保未包含任何 PHI（如姓名、医疗记录号等）。
+    *   检查 Schema 中的 `enum`、`const`、`pattern`（正则）以及属性名称是否泄露了敏感信息。
+    *   确保 PHI 仅通过消息内容传递，利用 ZDR 保护机制。
+    *   如果正在开发医疗应用，务必查阅最新的 HIPAA 资格文档。
+
+7. **最终润色：** 确保语气专业且简洁。
+
+*   *关于页面 1 的自我修正：* 页面 1 的变更只是一个链接更新。影响较小，但它支持了页面 2 的变更（该变更在文本中提到了“ZDR and HIPAA”，并暗示目标部分可能已重命名或合并）。我将侧重于页面 2 中内容的重要性，同时将页面 1 视为结构更新。
+
+8. **最终输出生成**（与起草的要点一致）。</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/overview.html" class="page-link">build-with-claude/overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/structured-outputs.html" class="page-link">build-with-claude/structured-outputs.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">15:55 EST</div>
