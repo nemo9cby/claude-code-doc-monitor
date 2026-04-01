@@ -118,9 +118,211 @@
 
         <header>
             <h1>Changes on 2026-04-01</h1>
-            <p class="meta">4 total changes in 1 run</p>
+            <p class="meta">11 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">15:55 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 1. 总体摘要
+本次更新显著增强了 Hooks 的自动化能力，引入了 `PermissionDenied` 事件以处理自动模式的拦截逻辑，并新增了非交互模式下的“延迟”决策功能；同时优化了 Bash 模式的交互体验和思考过程的显示设置。
+
+### 2. 关键主题
+*   **Hooks 事件扩展**: 新增 `PermissionDenied` 事件，当自动模式拦截工具调用时触发。开发者可以通过返回 `{retry: true}` 让模型重试被拒绝的操作，增强了自动化流程的容错性。
+*   **非交互模式增强**: 为 `PreToolUse` Hook 引入了 `&#34;defer&#34;` 决策选项。在配合 `-p` 标志使用时，这允许进程保留工具调用状态并退出，以便 Agent SDK 包装器收集输入后恢复，完善了无头（Headless）工作流。
+*   **思考模式透明度与计费**: 更新了警告说明，明确指出即使思考摘要被编辑，所有使用的 thinking tokens 仍会计费。新增 `showThinkingSummaries: true` 配置项，允许在交互模式下查看完整的思考摘要。
+*   **交互体验优化**: 在空提示符下粘贴以 `!` 开头的文本将自动进入 Bash 模式；此外，正在运行的后台子智能体现在会在类型提示中显示其状态。
+
+### 3. 影响等级
+**Medium** (中)
+*   **理由**: 虽然大部分为文档澄清和微小的体验改进，但新增的 `PermissionDenied` Hook 事件和 `&#34;defer&#34;` 决策为构建高级自动化和集成提供了重要的新控制手段。这些更改是向后兼容的（新增功能），不会破坏现有代码。
+
+### 4. 开发者行动项
+*   **检查 Hooks 配置**: 如果您使用 Hooks 管理权限，考虑添加 `PermissionDenied` 事件监听器，以在自动模式误杀工具调用时自动重试。
+*   **配置思考摘要显示**: 如需查看模型详细的思考过程，请在 `settings.json` 中设置 `showThinkingSummaries: true`。
+*   **利用新的 Bash 粘贴行为**: 尝试直接复制粘贴以 `!` 开头的命令以快速进入 Shell 执行，提升效率。
+*   **评估 Agent SDK 集成**: 如果您正在编写 Agent SDK 包装器，请研究新的 `&#34;defer&#34;` 功能以优化非交互模式下的工具调用处理。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request**:
+    *   **Role**: World-class programmer analyzing documentation changes.
+    *   **Task**: Analyze a batch of 7 documentation changes for Claude Code.
+    *   **Output**: Concise, insightful analysis in Markdown format.
+    *   **Language**: Chinese (specifically requested: &#34;请用中文回复&#34;).
+    *   **Structure**:
+        1.  Overall Summary (1-2 sentences).
+        2.  Key Themes (bullets).
+        3.  Impact Level (Low/Medium/High/Breaking) with reasoning.
+        4.  Action Items for Developers (max 5 bullets).
+
+2.  **Analyze the Changes (Page by Page)**:
+
+    *   **Page: `common-workflows.md`**
+        *   *Change 1*: Update warning text about thinking tokens. Clarifies that tokens are charged even if summaries are redacted. Mentions `showThinkingSummaries: true` in `settings.json` to show full summaries.
+        *   *Change 2*: Minor formatting change (backticks added to `--output-format`).
+        *   *Relevance*: Cost awareness and UX improvement for thinking modes.
+
+    *   **Page: `hooks.md`** (Major changes)
+        *   *Change 1*: Update lifecycle diagram image URL and alt text. Alt text now mentions &#34;PermissionDenied as a side branch&#34;.
+        *   *Change 2*: Add new hook event `PermissionDenied`. Description: &#34;When a tool call is denied by the auto mode classifier. Return `{retry: true}` to tell the model it may retry the denied tool call&#34;.
+        *   *Change 3*: Update tables to include `PermissionDenied` alongside other tool-related hooks (`PreToolUse`, etc.) for matching tool names.
+        *   *Relevance*: New capability for hook developers to handle auto-mode denials programmatically and allow retries.
+
+    *   **Page: `hooks-guide.md`**
+        *   *Change 1*: Add `PermissionDenied` to the hook events table (same definition as above).
+        *   *Change 2*: Clarify `permissionDecision` values (&#34;allow&#34;, &#34;deny&#34;, &#34;ask&#34;) for `PreToolUse`.
+        *   *Change 3*: Mention new `&#34;defer&#34;` value for `permissionDecision` in non-interactive mode (`-p` flag). Links to &#34;Defer a tool call for later&#34;.
+        *   *Change 4*: Update matching tables to include `PermissionDenied`.
+        *   *Change 5*: Update `if` field documentation to include `PermissionDenied` as a valid tool event.
+        *   *Relevance*: Same as `hooks.md` (new event) + new non-interactive feature (&#34;defer&#34;).
+
+    *   **Page: `interactive-mode.md`**
+        *   *Change 1*: Add note: &#34;Pasting text that starts with `!` into an empty prompt enters bash mode automatically, matching typed `!` behavior&#34;.
+        *   *Relevance*: UX convenience feature for Bash mode.
+
+    *   **Page: `plugins-reference.md`**
+        *   *Change 1*: Add `PermissionDenied` to hook events table.
+        *   *Relevance*: Consistency update for plugin developers.
+
+    *   **Page: `settings.md`**
+        *   *Change 1*: Significant reformatting/diff noise in the table of options. The diff shows a large chunk of replacement, but visually it looks mostly like a table refresh or alignment change. *Correction*: Looking closely, the content is very similar, likely a reformatting or minor addition that caused a line shift in the table rendering. Wait, checking `settings.md` specifically... The diff shows `+` for a huge block and `-` for a huge block. It seems like a major restructuring of the table content, though the specific change isn&#39;t immediately obvious as a *feature* change without deeper context (perhaps row ordering or markdown syntax). *Self-correction*: Usually, these diffs imply a table structure change or a significant update to the descriptions. Given the other changes, this might just be a table re-render. However, looking at the text, the previous content ended at `awsCredentialExport` and the new content... actually, looking at the diff, it replaces `awsCredentialExport` description with a cut-off version in the `-` block and a cut-off version in the `+` block. It looks like a table reformat or a massive copy-paste. *Key Insight*: It likely doesn&#39;t represent a *logical* change to the API or functionality for the developer, but rather a documentation table refresh. I will treat it as documentation maintenance unless I spot a specific key addition. I&#39;ll focus on the actual functional changes elsewhere.
+
+    *   **Page: `sub-agents.md`**
+        *   *Change 1*: Update text regarding @-mentions. Clarifies that &#34;Named background subagents currently running in the session also appear in the typeahead, showing their status next to the name.&#34;
+        *   *Relevance*: UX improvement for discovering active background subagents.
+
+3.  **Synthesize Key Themes**:
+    *   **New Hook Event (`PermissionDenied`)**: This is the biggest technical change. It allows hooks to react when Auto Mode blocks a tool, specifically enabling a retry mechanism (`{retry: true}`).
+    *   **Non-Interactive Mode Enhancement**: Introduction of the `&#34;defer&#34;` decision in hooks for use with the `-p` flag (Agent SDK wrappers).
+    *   **Thinking Mode Transparency**: Clarification on billing (charged even if redacted) and configuration (`showThinkingSummaries`).
+    *   **UX/Convenience Improvements**: Bash mode auto-enter on paste, background subagent visibility in typeahead.
+
+4.  **Determine Impact Level**:
+    *   *Reasoning*: The addition of `PermissionDenied` is a new feature for hook/plugin developers but backward compatible (it doesn&#39;t break existing hooks). The `&#34;defer&#34;` option is also additive. The UX changes are minor. The cost clarification is informational.
+    *   *Verdict*: **Medium** (It adds new capabilities for automation/scripting/hooks, specifically around handling permission denials and headless operations).
+
+5.  **Draft Action Items (Chinese)**:
+    *   Review hooks to see if handling `PermissionDenied` with retries improves workflow.
+    *   Update `settings.json` to `showThinkingSummaries: true` if you want to see full thinking traces (aware of redaction UI).
+    *   Utilize the new Bash paste behavior for faster shell interaction.
+    *   If building Agent SDK wrappers, investigate the new `&#34;defer&#34;` capability in `PreToolUse` hooks.
+
+6.  **Draft Response (in Chinese)**:
+
+    *   *Summary*: 本次文档更新主要引入了新的 Hook 事件 `PermissionDenied` 以处理自动模式下的拒绝调用，并增加了非交互模式下的“延迟”决策功能，同时优化了交互体验和费用说明。
+    *   *Themes*:
+        *   **Hooks 扩展**: 新增 `PermissionDenied` 事件，允许在自动模式拒绝工具调用时进行重试逻辑处理。
+        *   **非交互模式增强**: 在 `PreToolUse` 中引入 `&#34;defer&#34;` 决策，配合 `-p` 标志供 Agent SDK 使用。
+        *   **思考模式透明度**: 明确了即使摘要被编辑也会计费，并新增 `showThinkingSummaries` 设置。
+        *   **体验优化**: 粘贴 `!` 开头文本自动进入 Bash 模式，后台子智能体状态在类型提示中可见。
+    *   *Impact*: Medium。新功能增强了自动化和 Hook 的控制能力，且是向后兼容的。
+    *   *Actions*:
+        *   如果使用 Hooks，考虑添加对 `PermissionDenied` 的监听以处理自动模式拒绝后的重试。
+        *   在 `settings.json` 中配置 `showThinkingSummaries: true` 以查看完整的思考摘要。
+        *   利用粘贴功能快速触发 Bash 命令。
+        *   Agent SDK 开发者应评估 `&#34;defer&#34;` 功能在非交互模式下的应用。
+
+7.  **Review and Refine**:
+    *   Ensure the tone is professional and concise.
+    *   Check against the specific diff in `settings.md`. Since the `settings.md` diff is largely structural noise in the prompt (mostly table replacement), I will minimize focus on it unless there&#39;s a hidden gem. Looking closely at the `settings.md` diff again, it cuts off at `awsCredentialExport`. It&#39;s likely just a table reformatting. I&#39;ll stick to the clearer functional changes in other files.
+
+8.  **Final Output Generation** (similar to the drafted Chinese response).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/common-workflows.html" class="page-link">common-workflows.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+90</span>
+                            <span class="removed">-46</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/interactive-mode.html" class="page-link">interactive-mode.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+60</span>
+                            <span class="removed">-59</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">13:44 EST</div>
