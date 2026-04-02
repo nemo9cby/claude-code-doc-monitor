@@ -118,9 +118,171 @@
 
         <header>
             <h1>Changes on 2026-04-01</h1>
-            <p class="meta">13 total changes in 3 runs</p>
+            <p class="meta">16 total changes in 4 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">21:53 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 总体摘要
+本次更新显著增强了二进制文件的安全性验证机制（引入 GPG 签名验证），修复了若干关键 Bug，并对核心组件进行了性能优化（尤其是 SSE 传输和长对话处理），同时新增了 `/powerup` 交互式教学功能。
+
+### 关键主题
+
+*   **安全性增强与完整性验证**
+    *   **引入 GPG 签名**：新增发布清单（`manifest.json`）的 GPG 签名验证流程，开发者可通过公钥指纹 (`31DD DE24...`) 确认二进制来源的真实性，主要解决了 Linux 平台缺乏原生代码签名的问题。
+    *   **加固权限检查**：修复了 PowerShell 工具权限检查中的多个潜在绕过漏洞（如后台任务 `&amp;`、TOCTOU 竞争条件等），并移除了 DNS 缓存查询的自动允许列表以保护隐私。
+*   **性能优化**
+    *   **消除二次时间复杂度**：修复了 SSE 传输帧处理、MCP 工具 Schema 查找以及 SDK 长对话记录写入时的性能退化问题，显著提升了大规模场景下的响应速度。
+*   **开发者体验修复**
+    *   修复了 `--resume` 导致的缓存穿透、格式化保存钩子引起的编辑冲突，以及自动模式忽略用户边界指令的问题。
+
+### 影响级别
+**Medium**
+*   **理由**：虽然引入了新的安全验证流程，但这主要是可选的加固措施，不破坏现有功能。然而，对于关注供应链安全或在严格网络环境（防火墙/白名单）下工作的开发者，需要关注新的 URL 访问需求和验证步骤。
+
+### 开发者行动项
+
+*   **更新网络白名单**：如果你限制了 `downloads.claude.ai` 的访问，请确保允许访问该域名的 **signing keys**（签名密钥）。
+*   **实施二进制验证**：在安全敏感的 CI/CD 流水线或手动安装过程中，参考 `setup.md` 中的新步骤，使用 GPG 验证 `manifest.json` 签名及二进制校验和。
+*   **升级至 v2.1.90**：建议尽快升级以获取 PowerShell 安全补丁及性能提升，避免因速率限制对话框导致的无限循环崩溃。
+*   **检查工具依赖**：如果你编写的脚本或工具依赖于自动执行的 `Get-DnsClientCache` 或 `ipconfig /displaydns`，请注意它们现在不再处于自动允许列表中。
+*   **尝试新功能**：使用 `/powerup` 命令体验交互式教学，帮助团队成员快速上手 Claude Code 的高级功能。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Input:** 3 pages of changes (`network-config.md`, `setup.md`, `CHANGELOG.md.md`).
+    *   **Format:** Markdown, Chinese response.
+    *   **Structure:** Overall Summary, Key Themes, Impact Level (with reasoning), Action Items (max 5).
+
+2.  **Analyze Page 1: `network-config.md`:**
+    *   *Change:* Added &#34;signing keys&#34; to the list of items hosted on `downloads.claude.ai`.
+    *   *Context:* Network configuration for installers.
+    *   *Implication:* New requirement for firewall/allow-list configurations if strictly filtering access to `downloads.claude.ai`. This is related to the new security features seen in `setup.md`.
+
+3.  **Analyze Page 2: `setup.md`:**
+    *   *Changes:* Massive update to the &#34;Binary integrity and code signing&#34; section.
+    *   *Details:*
+        *   Added explicit steps for verifying GPG signatures of the `manifest.json`.
+        *   Provided a specific fingerprint (`31DD DE24 DDFA B679 F42D 7BD2 BAA9 29FF 1A7E CACE`) for the signing key.
+        *   Documented the process: Import key -&gt; Download manifest &amp; sig -&gt; Verify sig -&gt; Check binary checksum.
+        *   Clarified platform-specific code signing (macOS/Windows) vs. Linux (manifest only).
+        *   Note: Signatures available from v2.1.89 onwards.
+        *   Trivia: Added `theme={null}` attributes multiple times to code blocks (likely a build system quirk or specific styling requirement, irrelevant to the &#34;what matters&#34; technical analysis, but noted).
+    *   *Implication:* Significant security enhancement. Developers now have a cryptographically secure way to verify the origin and integrity of the Claude Code binary, especially crucial for Linux where native code signing is less standard.
+
+4.  **Analyze Page 3: `CHANGELOG.md.md`:**
+    *   *Changes:* Added version `2.1.90`.
+    *   *Key Highlights:*
+        *   New `/powerup` command (interactive lessons).
+        *   New env var `CLAUDE_CODE_PLUGIN_KEEP_MARKETPLACE_ON_FAILURE`.
+        *   **Security:** Hardened PowerShell tool permission checks (bypass fixes).
+        *   **Privacy:** Removed DNS cache commands from auto-allow.
+        *   **Bug Fixes:** Rate limit loop, resume cache miss, format-on-save conflicts, UI crashes.
+        *   **Performance:** MCP schema lookup, SSE transport, SDK session writes.
+    *   *Implication:* Security hardening and performance improvements are critical. The `/powerup` feature is nice-to-have for onboarding.
+
+5.  **Synthesize and Structure:**
+
+    *   *Overall Summary:* The update focuses heavily on security (binary verification via GPG) and performance optimizations, alongside bug fixes and a new interactive learning feature.
+    *   *Key Themes:*
+        *   **Security Hardening:** Introduction of GPG signature verification for binaries and hardening of PowerShell permission checks.
+        *   **Performance:** Quadratic time complexities reduced to linear for SSE transport and schema lookups.
+        *   **Verification &amp; Integrity:** Explicit documentation on how developers can verify binary authenticity.
+        *   **Usability:** New `/powerup` command and fixes for `--resume` and auto-mode.
+    *   *Impact Level:* Medium.
+        *   *Reasoning:* Security changes are important but backward compatible. Performance improvements are invisible but beneficial. The new verification process is optional but recommended for security-conscious setups.
+    *   *Action Items:*
+        *   Update firewall/allow-list rules to include `downloads.claude.ai` for signing keys.
+        *   Review and implement the new GPG verification steps for secure CI/CD pipelines or manual installations.
+        *   Update to v2.1.90 to benefit from performance and security fixes.
+        *   Be aware of the removed DNS auto-allow commands if relying on them.
+        *   Use the `/powerup` command for training/onboarding new team members.
+
+6.  **Drafting the Response (in Chinese):**
+
+    *   *Summary:* 本次更新主要增强了二进制文件的安全性验证（引入 GPG 签名），修复了若干关键 Bug，并对性能进行了优化（尤其是 SSE 传输和长对话处理）。
+    *   *Themes:*
+        *   **安全性增强**: 引入 GPG 密钥验证清单签名，加固 PowerShell 权限检查，移除敏感的 DNS 缓存查询自动允许。
+        *   **性能优化**: 修复 SSE 传输和 MCP schema 查找中的二次时间复杂度问题，显著提升长会话下的响应速度。
+        *   **完整性验证**: 详细文档化了如何验证二进制文件的指纹和签名，特别是针对 Linux 用户。
+    *   *Impact:* Medium. Changes are additive and backward compatible. Security changes require configuration if strictly filtering traffic.
+    *   *Action Items:*
+        *   Update `downloads.claude.ai` access if using strict firewalls.
+        *   Verify binary signatures in sensitive environments.
+        *   Upgrade to 2.1.90.
+        *   Check tools relying on DNS cache commands.
+        *   Try `/powerup`.
+
+7.  **Refining the Output:** Ensure the tone is professional and concise. (Self-correction: The `theme={null}` duplication in setup.md is likely a noise artifact, ignore it in the summary to focus on what matters).
+
+    *   *Check against constraints:*
+        *   Chinese? Yes.
+        *   Markdown? Yes.
+        *   Concise? Yes.
+        *   Focus on developer impact? Yes.
+
+8.  **Final Polish:** (Produces the final output provided below).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/network-config.html" class="page-link">network-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/setup.html" class="page-link">setup.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+48</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+20</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">19:32 EST</div>
