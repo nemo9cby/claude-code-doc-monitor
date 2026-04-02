@@ -118,9 +118,164 @@
 
         <header>
             <h1>Changes on 2026-04-02</h1>
-            <p class="meta">30 total changes in 4 runs</p>
+            <p class="meta">34 total changes in 5 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">14:50 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### Overall Summary
+此次更新主要引入了针对崩溃或中断产生的“孤立 Subagent Worktree”的自动清理机制，明确了沙箱环境中排除 Docker 命令的语法变更，并修复了安装文档中的格式冗余。
+
+### Key Themes
+*   **资源管理自动化**：新增了基于 `cleanupPeriodDays` 设置的自动清理逻辑，用于处理被遗弃的 Subagent worktree，以释放磁盘空间。
+*   **沙箱配置语法细化**：修正了 `excludedCommands` 中针对 Docker 的排除语法，从 `docker` 更新为 `docker *`，以确保参数能正确传递。
+*   **文档维护**：移除了代码块中重复的 Markdown 属性，提升了文档源码的整洁度。
+
+### Impact Level: Medium
+**Reasoning**:
+*   **数据风险**：自动清理功能虽然有助于保持环境整洁，但会删除孤立 worktree 中的**未跟踪文件**，可能导致未保存的临时工作丢失。
+*   **配置兼容性**：沙箱配置中 Docker 的排除语法发生变化，依赖旧语法的配置可能需要更新以确保 Docker 能在沙箱外正常运行。
+
+### Action Items for Developers
+*   **更新沙箱配置**：如果您在配置中使用 `excludedCommands` 排除 Docker，请将 `&#34;docker&#34;` 更新为 `&#34;docker *&#34;` 以确保语法正确。
+*   **关注清理策略**：检查您的 [`cleanupPeriodDays`](/en/settings#available-settings) 设置，了解系统自动清理孤立 worktree 的周期。
+*   **注意文件安全**：请勿在 Subagent worktree 中依赖未跟踪文件存储重要数据，因为它们在自动清理时会被直接丢弃，不会受到保护。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer/developer tools expert.
+    *   **Task:** Analyze documentation changes (batch of 4 pages).
+    *   **Output Format:** Markdown, concise, insightful, Chinese language response.
+    *   **Structure:** Overall Summary, Key Themes, Impact Level, Action Items.
+
+2.  **Analyze the Diffs:**
+
+    *   **Page 1: `common-workflows.md` (+1/-0)**
+        *   *Change:* Added a new paragraph about &#34;Subagent worktrees orphaned by a crash or an interrupted parallel run&#34;.
+        *   *Mechanism:* Automatically removed at startup if older than `cleanupPeriodDays`.
+        *   *Condition:* No modifications to tracked files and no unpushed commits.
+        *   *Nuance:* Untracked files don&#39;t prevent removal. Manual `--worktree` creates are *not* removed by this sweep.
+        *   *Developer Impact:* Explains automatic cleanup behavior for subagents, preventing disk clutter but potentially causing data loss if not understood (tracked changes/unpushed commits are safe, untracked are not).
+
+    *   **Page 2: `sandboxing.md` (+1/-1)**
+        *   *Change:* Updated `docker` exclusion advice in `&lt;Tip&gt;`.
+        *   *Old:* Consider specifying `docker` in `excludedCommands`.
+        *   *New:* Consider specifying `docker *` in `excludedCommands`.
+        *   *Developer Impact:* This implies a syntax change or specificity requirement for excluding Docker commands from the sandbox to ensure they run outside of it (likely to pass through arguments correctly or cover all subcommands).
+
+    *   **Page 3: `settings.md` (+3/-3)**
+        *   *Change 1:* Updated description for `cleanupPeriodDays`.
+            *   *New:* Explicitly states it also controls the age cutoff for automatic removal of [orphaned subagent worktrees] at startup.
+            *   *Link:* Links to the new section in `common-workflows.md`.
+        *   *Change 2:* Updated example for `excludedCommands` (under Sandbox settings).
+            *   *Old:* `[&#34;git&#34;, &#34;docker&#34;]`
+            *   *New:* `[&#34;docker *&#34;]`
+        *   *Developer Impact:* Reinforces the link between cleanup settings and worktree behavior. Clarifies the `excludedCommands` syntax for the sandbox.
+
+    *   **Page 4: `setup.md` (+0/-3)**
+        *   *Change:* Removed redundant `theme={null}` strings in code blocks (bash, powershell, batch).
+        *   *Developer Impact:* Cosmetic/documentation rendering fix. No functional change for the user running the code.
+
+3.  **Synthesize and Structure Analysis:**
+
+    *   **Overall Summary:** These changes introduce automatic cleanup logic for orphaned subagent worktrees, clarify sandbox configuration syntax (specifically for Docker), and fix minor formatting issues in setup instructions.
+
+    *   **Key Themes:**
+        *   *Worktree Cleanup:* New feature to auto-remove stale subagent worktrees based on the `cleanupPeriodDays` setting.
+        *   *Sandboxing Syntax Update:* The syntax for excluding commands (like Docker) from the sandbox has been refined (e.g., `docker` -&gt; `docker *`).
+        *   *Documentation Hygiene:* Cleaning up redundant markdown attributes.
+
+    *   **Impact Level:** **Medium**.
+        *   *Reasoning:* The worktree cleanup is a behavioral change that affects resource management and potential data loss (untracked files). The Docker exclusion syntax update is important for users relying on that sandbox feature to function correctly.
+
+    *   **Action Items:**
+        *   Review `cleanupPeriodDays` setting if you have concerns about automatic deletion of orphaned worktrees.
+        *   Update sandbox configuration (`excludedCommands`) from `docker` to `docker *` to ensure Docker commands run outside the sandbox correctly.
+        *   Be aware that untracked files in orphaned subagent worktrees will be lost during cleanup.
+
+4.  **Drafting the Response (in Chinese):**
+
+    *   *Summary:* 此次更新主要引入了自动清理孤立 Subagent Worktree 的机制，更新了沙箱配置中 Docker 命令的排除语法，并修复了安装文档中的格式冗余。
+    *   *Themes:*
+        *   **资源管理自动化**：新增了基于时间设置的自动清理孤立 worktree 的逻辑。
+        *   **配置语法细化**：明确了沙箱环境中排除 Docker 命令的语法变更。
+        *   **文档清理**：移除无用的 Markdown 属性。
+    *   *Impact:* Medium. 数据丢失风险（untracked files）和配置语法变更需要关注。
+    *   *Action Items:*
+        *   检查并更新 `excludedCommands` 配置，将 `docker` 改为 `docker *`。
+        *   留意 `cleanupPeriodDays` 设置，了解其对孤立 worktree 的清理影响。
+        *   注意：孤立 worktree 中的未跟踪文件会被自动删除，请勿在其中存放重要未提交文件。
+
+5.  **Review and Refine:**
+    *   The analysis looks solid. The connection between `settings.md` and `common-workflows.md` is clear. The change in `sandboxing.md` and `settings.md` aligns on the syntax change. `setup.md` is cosmetic.
+
+    *   *Self-Correction on Action Items:* Make sure to emphasize that *untracked* files are deleted in the orphan worktree cleanup. That&#39;s a critical detail for developers who might stash files there temporarily.
+
+6.  **Final Output Generation** (matches the requested markdown format).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/common-workflows.html" class="page-link">common-workflows.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sandboxing.html" class="page-link">sandboxing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/setup.html" class="page-link">setup.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">13:45 EST</div>
