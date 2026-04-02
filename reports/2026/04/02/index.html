@@ -118,9 +118,211 @@
 
         <header>
             <h1>Changes on 2026-04-02</h1>
-            <p class="meta">23 total changes in 3 runs</p>
+            <p class="meta">30 total changes in 4 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">13:45 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 总体摘要
+此次更新主要引入了 **OpenTelemetry 分布式追踪** 的 Beta 支持，大幅提升了企业级应用的调试与监控能力。同时，文档细化了子代理的安全策略（保护 `.husky` 等目录），并为离线环境下的插件市场更新提供了容错机制。
+
+### 核心主题
+*   **深度可观测性**: 新增 OpenTelemetry Tracing 协议支持，允许开发者通过 Span 链路追踪从用户提示到 API 请求及工具执行的完整生命周期。
+*   **安全加固**: 子代理的权限模式进行了微调，明确 `.husky` 目录（Git hooks）现在与 `.git`、`.claude` 一样属于受保护目录，写入受限。
+*   **离线环境优化**: 针对断网或隔离环境，新增环境变量防止插件更新失败导致缓存被意外清空。
+*   **文档与体验**: 明确了 `/resume` 命令仅显示“交互式会话”，CLI/SDK 创建的会话需手动指定 ID 恢复；清理了安装代码块的冗余属性。
+
+### 影响等级
+**高**
+**理由**: 引入了全新的分布式追踪功能，这对需要深度集成监控的企业开发者至关重要。同时，子代理权限行为的变更（涉及 `.husky` 目录）直接影响自动化脚本的工作流。
+
+### 开发者行动项
+1.  **测试追踪功能**: 在测试环境中设置 `CLAUDE_CODE_ENHANCED_TELEMETRY_BETA=1` 并配置 OTEL 后端，尝试使用分布式追踪分析 Claude 请求链路。
+2.  **适配离线部署**: 如果您在离线/内网环境使用 Claude Code，请立即设置 `CLAUDE_CODE_PLUGIN_KEEP_MARKETPLACE_ON_FAILURE=1` 以防止插件丢失。
+3.  **审查子代理配置**: 检查项目中定义的 Sub-agents，特别是使用了 `bypassPermissions` 或 `auto` 模式的代理，确认其操作是否涉及 `.husky` 目录并据此调整预期。
+4.  **更新会话恢复脚本**: 如果依赖脚本恢复会话，需注意 `/resume` picker 的局限性，改用直接传递 Session ID 的方式。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Understand the Goal:** The user wants a world-class programmer&#39;s analysis of a batch of documentation changes (7 pages) for Claude Code. The response needs to be in Chinese, concise, insightful, in markdown format, focusing on what matters to developers.
+
+2.  **Analyze the Diffs Page by Page:**
+
+    *   **`common-workflows.md`:**
+        *   Change 1: Clarification on `/resume` picker. It now specifically mentions that &#34;interactive sessions&#34; are shown, while those created via CLI (`-p`) or SDK aren&#39;t visible in the picker *unless* the session ID is passed directly. This is a crucial UX detail.
+        *   Change 2: Changed a `&lt;Note&gt;` to suggest running `/powerup` for interactive lessons/animated demos instead of just referring to workflow sections. This is a marketing/UX improvement to help users learn.
+
+    *   **`monitoring-usage.md`:**
+        *   Change 1: Introduction updated to mention &#34;distributed traces&#34; as a new telemetry type alongside metrics and logs.
+        *   Change 2: New Env Var `OTEL_LOG_TOOL_CONTENT`: Logs tool input/output in span events. Requires tracing. Truncated at 60KB.
+        *   Change 3: New section &#34;Traces (beta)&#34;. Detailed config vars (`CLAUDE_CODE_ENHANCED_TELEMETRY_BETA`, `OTEL_TRACES_EXPORTER`, etc.). Spans link prompts -&gt; API -&gt; tools.
+        *   Change 4: Security/Privacy updated. Explicitly mentions trace spans are separate and how `OTEL_LOG_TOOL_CONTENT` handles raw content (truncated at 60KB). Warns about sensitivity.
+        *   Change 5: Backend considerations updated to include tracing backends (Jaeger, Tempo, etc.).
+        *   *Impact:* Significant. Major feature addition for enterprise/observability.
+
+    *   **`overview.md`, `quickstart.md`, `setup.md`:**
+        *   Change: Code blocks installation commands (`curl`, `irm`, `brew`, `winget`) had duplicate `theme={null}` attributes cleaned up/reduced. This looks like a formatting cleanup or build system fix rather than a feature change.
+        *   `setup.md` also clarified the manifest signature verification steps (POSIX vs PowerShell).
+
+    *   **`plugin-marketplaces.md`:**
+        *   Change: New troubleshooting section &#34;Marketplace updates fail in offline environments&#34;.
+        *   Symptom: `git pull` fails -&gt; cache wiped -&gt; plugins gone.
+        *   Solution: Env var `CLAUDE_CODE_PLUGIN_KEEP_MARKETPLACE_ON_FAILURE=1`.
+        *   *Impact:* Important for users in air-gapped/offline environments.
+
+    *   **`sub-agents.md`:**
+        *   Change 1: Updated `permissionMode` table.
+        *   `acceptEdits`: Now notes &#34;except in protected directories&#34;.
+        *   `auto`: Now notes &#34;reviews commands and protected-directory writes&#34;.
+        *   Warning section: Updated list of protected directories to include `.husky`.
+        *   *Impact:* Security/Behavior refinement. Developers using sub-agents with `auto` or `bypass` modes need to know `.husky` is now protected.
+
+3.  **Synthesize Key Themes:**
+    *   **Observability Enhancement:** The biggest news is the addition of Distributed Tracing (OpenTelemetry) in Beta.
+    *   **Security/Permission Refinements:** Updates to sub-agent permission modes and offline plugin handling.
+    *   **UX/Docs Cleanup:** Clarifications on session resumption and code block formatting fixes.
+    *   **Offline Support:** New env var to handle marketplace failures gracefully.
+
+4.  **Determine Impact Level:**
+    *   *High* because of the OpenTelemetry Tracing feature (major new enterprise capability) and the sub-agent permission changes (affects behavior of automation).
+
+5.  **Formulate Action Items:**
+    *   Check out the new tracing feature if using OTEL.
+    *   Update offline deployment scripts with the new env var.
+    *   Review sub-agent configurations if relying on `auto` or `bypassPermissions` near `.husky`.
+
+6.  **Draft the Response (Internal Monologue/Drafting in Chinese):**
+
+    *   *Summary:* This update adds beta support for OpenTelemetry distributed tracing for observability, refines sub-agent security permissions (protecting `.husky`), adds a failsafe for offline plugin updates, and fixes session resume documentation.
+    *   *Themes:*
+        1.  **Observability**: New Tracing (OTel) with `CLAUDE_CODE_ENHANCED_TELEMETRY_BETA`.
+        2.  **Security**: Sub-agent permissions updated to protect `.husky` directories.
+        3.  **Offline Resilience**: New env var `CLAUDE_CODE_PLUGIN_KEEP_MARKETPLACE_ON_FAILURE`.
+        4.  **UX/Docs**: Clarification on `/resume` picker limitations and formatting cleanups.
+    *   *Impact:* High. New tracing features offer deep insights for enterprise users. Permission changes affect automation behavior.
+    *   *Action Items:*
+        *   Enable tracing in dev/staging to analyze request latency and tool usage.
+        *   Add the offline marketplace flag if working in air-gapped environments.
+        *   Review sub-agent manifest files if using protected directories.
+
+7.  **Refine Language:** Ensure it sounds like a &#34;world-class programmer&#34; (concise, technical, authoritative).
+
+    *   *Refined Summary:* 此次更新引入了 OpenTelemetry 分布式追踪功能的 Beta 版，显著增强了可观测性能力。同时，细化了子代理的安全权限策略以保护更多敏感目录，并为离线环境下的插件市场更新提供了故障恢复机制。
+    *   *Refined Themes:*
+        *   **Deep Observability**: 新增 OpenTelemetry Tracing 支持，允许端到端追踪请求链路。
+        *   **Security Hardening**: 子代理权限模式更新，`.husky` 等目录现受保护。
+        *   **Offline Reliability**: 新增环境变量防止离线环境下插件缓存被意外清空。
+        *   **Documentation Polish**: 明确了会话恢复的限制及代码块格式修复。
+    *   *Refined Impact:* High。引入了企业级可观测性的关键功能，并修改了自动化代理的安全行为。
+    *   *Refined Actions:*
+        1.  配置 `CLAUDE_CODE_ENHANCED_TELEMETRY_BETA` 在测试环境开启分布式追踪。
+        2.  若在离线环境部署，务必设置 `CLAUDE_CODE_PLUGIN_KEEP_MARKETPLACE_ON_FAILURE=1`。
+        3.  检查使用 `bypassPermissions` 或 `auto` 模式的子代理配置，确保符合新的 `.husky` 保护规则。
+
+8.  **Final Check against constraints:**
+    *   Single batch analysis? Yes.
+    *   Markdown format? Yes.
+    *   Concise? Yes.
+    *   Chinese? Yes.
+    *   Focus on developers? Yes.
+
+9.  **Final Output Generation.** (Proceed to generate output based on refined draft).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/common-workflows.html" class="page-link">common-workflows.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+20</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/overview.html" class="page-link">overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugin-marketplaces.html" class="page-link">plugin-marketplaces.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/quickstart.html" class="page-link">quickstart.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/setup.html" class="page-link">setup.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+9</span>
+                            <span class="removed">-9</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">11:56 EST</div>
