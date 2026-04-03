@@ -118,9 +118,143 @@
 
         <header>
             <h1>Changes on 2026-04-03</h1>
-            <p class="meta">12 total changes in 3 runs</p>
+            <p class="meta">14 total changes in 4 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">19:28 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">1. **Overall Summary**
+本次文档更新主要涉及两个方面：一是明确了 OAuth 认证的适用范围扩展到了 Team 和 Enterprise 用户，并重申了开发者应使用 API Key 进行集成；二是修正了 Agent Teams 使用 Subagent 定义时的技术描述，澄清了提示词是“追加”而非直接“继承”。
+
+2. **Key Themes**
+*   **合规与权限边界**：进一步厘清了终端用户（OAuth）与开发者（API Key）的认证界限，强调 OAuth 仅限 Anthropic 原生应用（如 Claude Code）的普通使用，禁止用于第三方集成。
+*   **Agent 行为逻辑澄清**：精确描述了 Subagent 定义在 Agent Teams 中的应用机制，明确了工具和模型是直接使用，而定义内容则是作为额外指令追加到系统提示词中。
+*   **文档引用优化**：增加了对支持文档和具体配置字段的交叉引用，帮助开发者更准确地查找实施细节。
+
+3. **Impact Level**
+**Medium**
+*   **Reasoning**：
+    *   **OAuth 变更**：虽然主要是合规性措辞调整，但扩展了对 Team/Enterprise 计划的描述，并保留了严厉的禁止条款，提醒开发者不要试图在自定义工具中复用 Claude 账号凭据。
+    *   **Subagent 变更**：这是一个行为层面的修正。如果开发者之前假设 Agent Team 中的队友会完全“替换”系统提示词，现在逻辑变成了“追加”。这可能会改变 Agent 的行为优先级和指令执行方式，影响复杂 Agent Teams 的调试和提示词工程策略。
+
+4. **Action Items for Developers**
+*   **审查认证方式**：确保你的应用或插件仅使用 API Key 进行身份验证，切勿尝试引导用户输入 Claude 账号（OAuth）或通过中间层代理请求。
+*   **调整 Agent Team 提示词策略**：如果你使用 Subagent 定义作为队友，请意识到其内容会被追加到队友的现有提示词之后。请检查这是否会导致指令冲突或优先级问题。
+*   **检查 Frontmatter 字段**：查阅 [Agent Teams 文档](/en/agent-teams#use-subagent-definitions-for-teammates)，确认在 Subagent 作为队友使用时，哪些 frontmatter 字段（如 `hooks`, `permissionMode`）依然有效。
+*   **插件开发者注意**：如果你在开发插件，请注意插件 Subagents 不支持 `hooks`, `mcpServers` 或 `permissionMode` 字段。如有必要，请将 Agent 文件复制到本地目录。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **分析用户请求：**
+    *   **角色：** 专注于开发者工具和文档的世界级程序员。
+    *   **任务：** 分析一批文档变更（2 个页面），总结变更内容及其对开发者的意义。
+    *   **输入：** `legal-and-compliance.md` 和 `sub-agents.md` 的差异。
+    *   **输出格式：** Markdown 格式的简明批量分析（1. 整体总结，2. 关键主题，3. 影响级别及理由，4. 开发者行动项）。
+    *   **语言：** 中文。
+
+2.  **分析 `legal-and-compliance.md` 的差异：**
+    *   *变更：* 修改了关于 OAuth 认证的段落。
+    *   *旧版：* 明确禁止将 Claude Free/Pro/Max 的 OAuth 令牌用于 Agent SDK 或其他产品。将 OAuth 限制为仅限 Claude Code 和 Claude.ai。
+    *   *新版：* 将范围扩展为包含“Team 和 Enterprise”订阅计划的购买者。阐明 OAuth 旨在支持 Claude Code 和其他原生 Anthropic 应用程序的“普通使用”。移除了明确的“Agent SDK”提及，尽管下一段仍建议开发者使用 API Key 进行开发。将用户导向支持文章以获取更多登录信息。
+    *   *关键点：* 稍微扩大了 OAuth 使用范围（增加了团队/企业），将重点从“禁止 X”略微转向“OAuth 旨在支持普通应用 Y，开发者使用 API Key Z”。
+
+3.  **分析 `sub-agents.md` 的差异：**
+    *   *变更：* 修改了关于 agent teams 如何使用 subagent 定义的句子。
+    *   *旧版：* “队友继承其系统提示词、工具和模型。”
+    *   *新版：* “队友使用其 `tools` 和 `model`，并将定义的主体附加到队友的系统提示词作为额外指令。”添加了关于哪些 frontmatter 字段适用的交叉引用。
+    *   *关键点：* 澄清了继承机制。系统提示词不再完全“继承”，而是 subagent 定义中的内容被*追加*到了队友的提示词中。
+
+4.  **综合与草拟分析：**
+
+    *   **整体总结：**
+        *   这两处变更都阐明了行为和范围。一处阐明了 OAuth 认证的使用许可（特别是增加了团队/企业计划），另一处阐明了 agent teams 如何结合 subagent 定义（追加提示词而非直接继承）。
+
+    *   **关键主题：**
+        *   *许可/范围：* 阐明谁可以使用 OAuth (Team/Enterprise) 以及它用于什么（原生应用程序 vs 开发者工具）。
+        *   *行为澄清：* 阐明 agent teams 与 subagents 如何交互（追加提示词 vs 继承）。
+        *   *完善：* 文档在细微差别和交叉引用上更加精确。
+
+    *   **影响级别：**
+        *   *级别：* 低 / 中。
+        *   *理由：* 法律变更主要是澄清，虽然扩展了对团队/企业的 OAuth 访问可能是新信息。Subagent 变更是内部逻辑的澄清，修正了“继承”的预期（它不会直接替换，而是追加）。除非有人依赖特定行为，否则不会破坏现有代码，但这是逻辑变更。
+
+    *   **行动项：**
+        *   检查是否可以合规地使用团队/企业 OAuth（实际上很少直接用于代码）。
+        *   调整 Agent Team 的提示词结构：意识到 subagent 提示词现在是追加的，而不是覆盖。
+        *   查阅相关的 Agent Teams 文档，以了解在 Team 上下文中哪些 frontmatter 字段有效。
+
+5.  **翻译并润色为中文（草拟过程中的自我修正）：**
+
+    *   *第 1 点（总结）：* 本次更新主要包含两部分：一是扩展了 OAuth 认证的适用范围至团队和企业版用户，并明确了其使用边界；二是澄清了 Agent Teams 引用 Subagent 定义时的具体行为（即提示词的追加而非直接继承）。
+    *   *第 2 点（主题）：*
+        *   **合规与权限边界**：明确区分了消费者（个人）与商业用户的 OAuth 认证场景，重申开发者应使用 API Key。
+        *   **行为逻辑修正**：精确描述了 Subagent 在 Agent Teams 中的工作机制，纠正了“继承”这一模糊说法，明确了是“追加指令”。
+    *   *第 3 点（影响）：*
+        *   中。
+        *   理由：OAuth 变更为团队/企业用户提供了灵活性，但法律条款更加严格。Subagent 逻辑变更可能会影响复杂 Agent Team 的提示词设计，如果开发者之前假设是完全替换的话。
+    *   *第 4 点（行动项）：*
+        *   审查使用 Claude 个人账户 Token 进行非官方集成的代码（以确保合规）。
+        *   如果正在构建 Agent Teams，需重新评估 Subagent 的提示词策略，理解它们现在是追加到队友的提示词中。
+        *   参考 Agent Teams 文档以确认在该场景下支持哪些 frontmatter 字段。
+
+6.  **最终润色（格式化）：**
+
+    *   确保语气专业（“世界级程序员”）。
+    *   检查 Markdown 语法。
+
+    *（关于 OAuth 变更解读的自我修正）：*
+    旧版称“OAuth（用于 Free/Pro/Max）……严格禁止用于……Agent SDK”。
+    新版称“OAuth 专为 Free/Pro/Max/Team/Enterprise 的购买者设计……用于 Claude Code 和原生应用。”
+    下一句话仍然说“开发者……应使用 API Key……Anthropic 不允许第三方开发者提供 Claude.ai 登录”。
+    所以，*核心*限制保持不变：不要在自定义应用中使用个人/团队 OAuth 令牌。变更主要是添加了团队/企业到“普通用户”列表，并软化/澄清了文本，同时将关于登录的“操作方法”移至支持文档。
+
+    *（关于 Subagent 的自我修正）：*
+    旧版：“继承其系统提示词”。
+    新版：“使用其 `tools` 和 `model`，定义的*主体*被追加到队友的系统提示词中”。
+    这是一个逻辑澄清。如果我的队友有“你是一个助手”而 subagent 有“你是一个专家”，队友现在变成“你是一个助手\n你是一个专家”。这可能会影响提示词注入或指令优先级。
+
+7.  **最终输出生成**（基于这些思考继续生成中文回复）。</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/legal-and-compliance.html" class="page-link">legal-and-compliance.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">15:34 EST</div>
