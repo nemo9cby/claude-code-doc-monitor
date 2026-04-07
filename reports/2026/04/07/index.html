@@ -118,9 +118,234 @@
 
         <header>
             <h1>Changes on 2026-04-07</h1>
-            <p class="meta">35 total changes in 5 runs</p>
+            <p class="meta">42 total changes in 6 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">19:32 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 1. Overall Summary
+本次文档更新重点在于提高了**本地数据存储的透明度**（明文存储路径及缓存机制），并在 **Google Vertex AI** 平台上引入了新的**多区域端点**选项，为开发者提供了更灵活的数据驻留和高可用性架构选择。
+
+### 2. Key Themes
+- **本地数据透明度与隐私**：
+  - 明确了 Claude Code 会话以明文形式存储在 `~/.claude/projects/` 目录下。
+  - 解释了插件更新的缓存机制：旧版本插件在被替换后会保留 7 天（宽限期），以确保并发会话的稳定性。
+- **Google Vertex AI 架构增强**：
+  - 新增**多区域端点**，在地理区域内部提供动态路由（例如 `us`），兼顾数据驻留要求和高可用性。
+  - 细化了 AWS Bedrock 和 Google Vertex AI 在端点类型上的区别（Bedrock 为全球/区域，Vertex 为全球/多区域/区域）。
+- **CLI 交互细节修正**：
+  - 修正了 `Ctrl+L` 快捷键的行为描述，从“重绘屏幕”变更为“清除提示输入”。
+- **文档格式规范化**：
+  - 对插件配置示例的 JSON 格式进行了标准化缩进。
+
+### 3. Impact Level: Medium
+- **理由**：虽然主要是功能增强而非破坏性变更，但 **Google Vertex AI 多区域端点**的引入直接影响架构决策和成本核算（10% 溢价）。同时，**本地明文存储**的明确披露对安全敏感型企业至关重要，`Ctrl+L` 行为的改变也会影响资深用户的操作习惯。
+
+### 4. Action Items for Developers
+- **审查本地存储**：检查 `~/.claude/projects/` 目录，确认是否存在敏感信息，并根据需要配置 `cleanupPeriodDays`。
+- **评估 Vertex AI 新架构**：如果在 Google Vertex AI 上使用 Claude 4.5+ 模型，评估是否需要使用新的**多区域端点**（代码示例中使用 `region=&#34;us&#34;`）来平衡数据合规性与可用性。
+- **更新成本模型**：注意 Google Vertex AI 的多区域端点和区域端点均需支付比全球端点高出 **10%** 的费用。
+- **调整操作习惯**：注意 CLI 中 `Ctrl+L` 现在仅清除当前输入的文本，而不再刷新整个屏幕 UI。
+- **插件调试注意**：在开发或更新插件时，注意 `~/.claude/plugins/cache` 中旧版本文件会有 7 天的延迟删除，这可能占用磁盘空间。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Understand the Goal**: The user wants a concise, insightful analysis of documentation changes across 7 pages. I need to act as a world-class programmer, summarize the changes, identify themes, assess impact, and list action items. The output must be in Markdown and Chinese.
+
+2.  **Analyze the Changes (Page by Page)**:
+
+    *   **Page: `data-usage.md`**
+        *   *Change*: Updated &#34;Local caching&#34; section.
+        *   *Details*: Changed from generic description to specific details: stored in `~/.claude/projects/`, in plaintext, 30 days default, configurable via `cleanupPeriodDays`. Added link to &#34;application data&#34; docs.
+        *   *Developer Implication*: Privacy and disk space awareness. Developers now know exactly where data lives and that it&#39;s plaintext.
+
+    *   **Page: `interactive-mode.md`**
+        *   *Change*: Updated behavior of `Ctrl+L`.
+        *   *Details*: Changed from &#34;Redraw the screen&#34; (repaints UI without clearing history) to &#34;Clear prompt input&#34; (clears typed text, keeps history).
+        *   *Developer Implication*: UX change. If a developer used `Ctrl+L` to refresh the screen, it now clears their current line. This is a behavior shift.
+
+    *   **Page: `plugins.md`**
+        *   *Change*: JSON formatting in the example code block.
+        *   *Details*: Indentation changes (adding spaces). No functional change in the JSON structure itself, just formatting.
+        *   *Developer Implication*: Minimal. Just documentation formatting.
+
+    *   **Page: `plugins-reference.md`**
+        *   *Change*: Clarified plugin cache behavior regarding updates.
+        *   *Details*: Explained that previous versions in `~/.claude/plugins/cache` are marked as orphaned and removed after 7 days to allow concurrent sessions to finish.
+        *   *Developer Implication*: Understanding plugin lifecycle and disk space management. Important for plugin developers debugging versioning issues.
+
+    *   **Page: `about-claude/models/overview.md`**
+        *   *Change*: Updated note about endpoint types on third-party platforms.
+        *   *Details*: Refined the distinction between AWS Bedrock and Google Vertex AI. Specifically mentioned Google Vertex AI now has *three* types: global, multi-region, and regional.
+        *   *Developer Implication*: Architectural decision-making. Developers deploying on Vertex AI need to be aware of the &#34;multi-region&#34; option.
+
+    *   **Page: `about-claude/pricing.md`**
+        *   *Change*: Updated regional/multi-region endpoint pricing details.
+        *   *Details*: Split the note to distinguish AWS (global/regional) vs Google (global/multi-region/regional). Clarified that regional *and multi-region* incur a 10% premium.
+        *   *Developer Implication*: Cost estimation. Developers need to account for the 10% premium on multi-region endpoints for Google Vertex AI.
+
+    *   **Page: `build-with-claude/claude-on-vertex-ai.md`**
+        *   *Change*: Major update regarding Google Vertex AI endpoints.
+        *   *Details*: Added extensive documentation for &#34;Multi-region endpoints&#34;. Added code examples for Python, TypeScript, C#, Go, Java, PHP, Ruby using the &#34;us&#34; multi-region identifier. Reorganized the section to separate &#34;Global&#34;, &#34;Multi-region&#34;, and &#34;Regional&#34;.
+        *   *Developer Implication*: Implementation detail. Developers now have a new option (multi-region) for data residency with high availability on Vertex AI.
+
+3.  **Synthesize and Structure the Analysis**:
+
+    *   **Overall Summary**: Focus on the two main areas: local data handling (caching transparency) and cloud deployment options (Google Vertex AI multi-region endpoints).
+    *   **Key Themes**:
+        *   Data Transparency/Privacy: Where data is stored locally (`data-usage`, `plugins-reference`).
+        *   Platform Features: Google Vertex AI Multi-region support (`models/overview`, `pricing`, `claude-on-vertex-ai`).
+        *   UX Refinements: `Ctrl+L` behavior change.
+    *   **Impact Level**: Medium. The Google Vertex AI changes are significant for infrastructure decisions, but they are additive features (new options), not breaking changes to existing API calls (unless you were misusing regional logic). The `Ctrl+L` change affects CLI muscle memory. The data storage changes are informational.
+    *   **Action Items**:
+        *   Review local cache location for security/cleanup (`~/.claude/`).
+        *   Evaluate Google Vertex AI multi-region endpoints if balancing data residency and availability.
+        *   Update muscle memory for `Ctrl+L`.
+        *   Account for 10% premium on multi-region endpoints.
+
+4.  **Drafting the Content (in Chinese)**:
+
+    *   *Summary*: 本次文档更新主要集中在**本地数据存储透明度**的明确以及**Google Vertex AI 多区域端点**功能的引入。
+    *   *Themes*:
+        *   **数据隐私与本地缓存**: 明确了本地会话存储位置（明文）、插件缓存清理机制（7天宽限期）。
+        *   **Google Vertex AI 增强**: 新增了“多区域端点”选项，平衡了数据驻留和高可用性，并更新了相关的定价说明。
+        *   **交互细节修正**: 调整了 CLI 快捷键 `Ctrl+L` 的功能描述。
+    *   *Impact*: Medium. (Reasoning: Vertex AI changes require architecture decisions, data visibility is high priority for security, but mostly additive).
+    *   *Action Items*:
+        *   Check `~/.claude/` for sensitive data.
+        *   Consider Multi-region endpoints for Vertex AI.
+        *   Update cost calculations (10% premium).
+        *   Be aware of `Ctrl+L` behavior.
+
+5.  **Refining the Output**: Ensure the tone is professional (&#34;World-class programmer&#34;). Keep it concise.
+
+    *   *Refining Action Item 3*: The `Ctrl+L` change is minor but &#34;breaks&#34; muscle memory.
+    *   *Refining Vertex AI details*: Emphasize the new `region=&#34;us&#34;` usage in code examples.
+
+6.  **Final Polish (Markdown)**:
+
+    ```markdown
+    ### 1. Overall Summary
+    本次文档更新重点在于提高了本地数据存储的透明度，并在 Google Vertex AI 平台上引入了新的“多区域端点”支持，为开发者提供了更灵活的数据驻留和高可用性选择。
+
+    ### 2. Key Themes
+    - **本地数据透明度**: 明确了 Claude Code 会话以明文形式存储在 `~/.claude/projects/`，并解释了插件更新的 7 天缓存宽限期机制。
+    - **Google Vertex AI 增强功能**: 新增“多区域端点”，支持在特定地理区域内动态路由。此功能同样适用于区域端点，需额外支付 10% 的费用。
+    - **CLI 交互体验**: 修正了 `Ctrl+L` 快捷键的描述，现在其功能是“清除提示输入”而非“重绘屏幕”。
+
+    ### 3. Impact Level: Medium
+    - **理由**: Google Vertex AI 的新端点选项直接影响架构决策和成本估算。虽然这些变更主要是功能增强（非破坏性），但关于本地明文存储的披露对安全敏感型环境很重要，且 `Ctrl+L` 行为的改变会影响用户的肌肉记忆。
+
+    ### 4. Action Items for Developers
+    - **审查本地缓存**: 检查 `~/.claude/projects/` 目录，了解敏感数据的存储情况，并根据 `cleanupPeriodDays` 配置进行清理。
+    - **评估 Vertex AI 策略**: 如果在 Google Vertex AI 上使用 Claude 4.5+ 模型，评估“多区域端点（Multi-region）”是否比单一区域更适合你的数据驻留和高可用性需求。
+    - **更新成本模型**: 注意 Google Vertex AI 的多区域和区域端点均比全球端点贵 10%。
+    - **适应快捷键变化**: 调整使用习惯，`Ctrl+L` 现在仅清除输入行，不再刷新屏幕。
+    - **调试插件版本**: 在开发插件时，意识到旧版本插件在卸载后会保留 7 天以支持并发会话。
+    ```</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/data-usage.html" class="page-link">data-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/interactive-mode.html" class="page-link">interactive-mode.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins.html" class="page-link">plugins.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/about-claude/models/overview.html" class="page-link">about-claude/models/overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/about-claude/pricing.html" class="page-link">about-claude/pricing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-on-vertex-ai.html" class="page-link">build-with-claude/claude-on-vertex-ai.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+20</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">18:33 EST</div>
