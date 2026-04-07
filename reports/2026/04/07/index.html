@@ -118,9 +118,451 @@
 
         <header>
             <h1>Changes on 2026-04-07</h1>
-            <p class="meta">1 total change in 1 run</p>
+            <p class="meta">24 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">14:57 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更分析报告
+
+## 总体摘要
+本次文档变更主要集中在**发布 Claude Mythos Preview**（专注于防御性网络安全的邀请制预览模型）以及**API 响应 Schema 的重大更新**（新增结构化拒绝详情字段）。此外，还引入了新的 Beta 功能以支持更高的输出限制和用户画像。
+
+## 关键主题
+
+*   **新增 Claude Mythos Preview 模型**：推出专为 Project Glasswing 设计的研究预览模型，具备 1M token 上下文窗口和 128k 输出能力。该模型仅限受邀用户使用，且在行为上与标准模型有显著差异（如不支持预填充 Assistant 消息、不支持强制工具调用、扩展思考默认行为不同）。
+*   **API 响应结构化拒绝处理**：在 Messages API 的响应对象（`Message` 及 `RawMessageDeltaEvent`）中新增了 `stop_details` 字段。该字段包含拒绝类型（`refusal`）、具体策略分类（`category`，如 `cyber` 或 `bio`）以及人类可读的解释（`explanation`）。
+*   **平台功能兼容性差异**：Claude Mythos Preview 在各云平台上的支持并不完全一致。例如，代码执行在 Amazon Bedrock 和 Google Vertex AI 上不可用，网页搜索在 Bedrock 上不可用，且结构化输出在 Vertex AI 上不支持。
+*   **新增 Beta 功能**：引入了两个新的 Beta 标头 `output-300k-2026-03-24`（将输出限制提升至 300k）和 `user-profiles-2026-03-24`。
+*   **错误处理增强**：新增 `504 timeout_error` HTTP 状态码，用于标识处理超时的请求；代码执行工具新增 `output_file_too_large` 错误类型。
+
+## 影响等级
+**中等**
+*   **理由**：虽然 `stop_details` 是非破坏性的 Schema 扩展（向后兼容），但为开发者提供了处理安全拒绝的标准化方式，意义重大。对于受邀使用 Claude Mythos Preview 的开发者，该模型对“预填充”和“强制工具调用”的不支持属于行为上的重大变更，需要调整现有 Agent 代码。
+
+## 开发者行动项
+
+1.  **适配新的拒绝处理机制**：更新 API 客户端代码，检查响应中的 `stop_details` 字段，以便根据 `category`（如 `cyber`）编程式地处理安全策略拒绝，而非仅依赖文本解析。
+2.  **调整 Agent 代码以兼容 Mythos Preview**：若使用新模型，必须移除对“预填充 Assistant 消息”的依赖，并将 `tool_choice` 从 `any` 或特定 `tool` 类型改为 `auto` 或 `none`，否则将收到 400 错误。
+3.  **注意平台限制**：在 Bedrock 或 Vertex AI 上集成 Mythos Preview 时，需注意代码执行、网页搜索等工具暂不可用，建议使用 Claude API 或 Microsoft Foundry 进行完整功能测试。
+4.  **利用 Beta 提升输出限制**：如果需要处理极长输出，可以在 Message Batches API 中申请加入 `output-300k-2026-03-24` Beta 计划，将 Opus 4.6 和 Sonnet 4.6 的输出上限提升至 300k tokens。
+5.  **处理超时重试**：针对新增的 `504 timeout_error`，在实现长时间运行任务的请求逻辑时，增加针对性的重试或切换到流式传输的处理逻辑。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Understand the Goal:** The user wants a concise, insightful analysis of documentation changes (a batch of 23 pages). I need to focus on what matters to developers, write in markdown, and respond in Chinese.
+
+2.  **Analyze the Input Data (Page by Page):**
+
+    *   **`about-claude/models/overview.md`**:
+        *   Change: Updates description of Claude Opus 4.6. Mentions &#34;Claude Mythos Preview&#34; as a separate research preview model for defensive cybersecurity (Project Glasswing).
+        *   Impact: New model introduction.
+
+    *   **`about-claude/pricing.md`**:
+        *   Change: Adds &#34;Claude Mythos Preview&#34; to the list of models with 1M token context window at standard pricing.
+        *   Impact: Pricing/Context info for new model.
+
+    *   **`api/messages.md`**:
+        *   Change: Significant changes to the API response schema. Adds `stop_details` object to `Message` and `RawMessageDeltaEvent`.
+        *   Details of `stop_details`: Contains `type: &#34;refusal&#34;`, `category` (&#34;cyber&#34; or &#34;bio&#34;), and `explanation`.
+        *   Impact: New structured refusal handling. Developers can programmatically detect *why* a request was refused (cybersecurity or bio-safety reasons).
+
+    *   **`api/models/list.md`**:
+        *   Change: Adds two new beta capabilities: `&#34;output-300k-2026-03-24&#34;` and `&#34;user-profiles-2026-03-24&#34;`.
+        *   Impact: New features/betas available.
+
+    *   **`api/beta/files/upload.md`**:
+        *   Change: Adds the same two new beta capabilities. Updates a curl example URL.
+        *   Impact: Consistent with models list.
+
+    *   **`api/service-tiers.md`**:
+        *   Change: Simplifies supported models list. States &#34;Priority Tier is supported on all available Claude models except Claude Mythos Preview&#34;.
+        *   Impact: Clarifies service tier support.
+
+    *   **`api/errors.md`**:
+        *   Change: Adds `504 timeout_error`. Adds Claude Mythos Preview to the list of models that do not support prefilling assistant messages.
+        *   Impact: Error handling, prefill restrictions.
+
+    *   **`build-with-claude/overview.md`**:
+        *   Change: Minor text cleanup (removing duplicate text).
+        *   Impact: Low.
+
+    *   **`build-with-claude/extended-thinking.md`**:
+        *   Change: Updates model support. Adds Claude Mythos Preview behavior (adaptive thinking default, `display` defaults to &#34;omitted&#34;, preface reasoning summary differences). Adds Mythos to 128k output support.
+        *   Impact: Extended thinking behavior changes for new model.
+
+    *   **`build-with-claude/context-windows.md`**:
+        *   Change: Adds Claude Mythos Preview to the 1M token context window list.
+        *   Impact: Context window info.
+
+    *   **`build-with-claude/context-editing.md`**:
+        *   Change: Simplifies to &#34;all supported Claude models&#34;.
+        *   Impact: Documentation cleanup.
+
+    *   **`build-with-claude/structured-outputs.md`**:
+        *   Change: Adds Claude Mythos Preview to supported models. Notes it&#39;s *not* supported on Google Vertex AI for this model.
+        *   Impact: Platform specific support info.
+
+    *   **`build-with-claude/effort.md`**:
+        *   Change: Adds Claude Mythos Preview support. Notes specific behavior: adaptive thinking default, `thinking: disabled` rejected.
+        *   Impact: Parameter usage.
+
+    *   **`build-with-claude/working-with-messages.md`**:
+        *   Change: Adds Claude Mythos Preview to models not supporting prefill.
+        *   Impact: Feature restriction.
+
+    *   **`build-with-claude/claude-on-amazon-bedrock.md`**:
+        *   Change: Note added about Mythos Preview availability (invite only). Clarifies context window text.
+        *   Impact: Platform availability.
+
+    *   **`build-with-claude/claude-on-vertex-ai.md`**:
+        *   Change: Note added about Mythos Preview availability (invite only). Clarifies context window text.
+        *   Impact: Platform availability.
+
+    *   **`build-with-claude/claude-in-microsoft-foundry.md`**:
+        *   Change: Note added about Mythos Preview availability (invite only). Clarifies context window text.
+        *   Impact: Platform availability.
+
+    *   **`build-with-claude/prompt-engineering/claude-prompting-best-practices.md`**:
+        *   Change: Adds Claude Mythos Preview to prefill deprecation note.
+        *   Impact: Feature restriction.
+
+    *   **`agents-and-tools/tool-use/implement-tool-use.md`**:
+        *   Change: Note added: Claude Mythos Preview does not support forced tool use (`tool_choice: {&#34;type&#34;: &#34;any&#34;}` or `{&#34;type&#34;: &#34;tool&#34;}`). Returns 400 error.
+        *   Impact: Breaking behavior for specific tool use patterns on the new model.
+
+    *   **`agents-and-tools/tool-use/web-search-tool.md`**:
+        *   Change: Adds Claude Mythos Preview to dynamic filtering support. Note: Web search is *not* available on Amazon Bedrock for Mythos Preview.
+        *   Impact: Platform/feature compatibility.
+
+    *   **`agents-and-tools/tool-use/web-fetch-tool.md`**:
+        *   Change: Adds Claude Mythos Preview to dynamic filtering support. Note: Web fetch is *not* available on Amazon Bedrock or Google Vertex AI for Mythos Preview.
+        *   Impact: Platform/feature compatibility.
+
+    *   **`agents-and-tools/tool-use/code-execution-tool.md`**:
+        *   Change: Simplifies model support list. Note: Code execution is *not* available on Amazon Bedrock or Google Vertex AI for Mythos Preview. Adds new error type `output_file_too_large`.
+        *   Impact: Platform compatibility, error handling.
+
+    *   **`agents-and-tools/tool-use/tool-search-tool.md`**:
+        *   Change: Adds Claude Mythos Preview to model support.
+        *   Impact: Compatibility.
+
+3.  **Synthesize Key Themes:**
+
+    *   **Theme 1: Introduction of Claude Mythos Preview.** This is the biggest change. It&#39;s a new model, invite-only, focused on defensive cybersecurity. It has specific behavioral differences (defaults, prefill not allowed, forced tool use not allowed) and platform availability limitations (not full feature parity on all clouds).
+    *   **Theme 2: Structured Refusal Handling.** The API now returns `stop_details` for refusals (specifically &#39;cyber&#39; and &#39;bio&#39; categories). This allows developers to programmatically handle content policy violations instead of just parsing text.
+    *   **Theme 3: New Beta Features.** `output-300k` and `user-profiles` headers added.
+    *   **Theme 4: General Documentation Cleanup.** Simplifying lists of supported models to &#34;all supported models&#34; where applicable.
+
+4.  **Determine Impact Level:**
+    *   *Reasoning:* The `stop_details` addition is a schema change (additive, but significant for logging/handling). The introduction of a new model is standard but the restrictions (no prefill, no forced tool use) are &#34;breaking&#34; if developers try to use generic agent code with this specific model without checks. However, since it&#39;s &#34;invite-only preview,&#34; the immediate breaking impact is lower for the general public.
+    *   *Conclusion:* **Medium**. High impact for those invited to Mythos, and Medium for everyone else due to the new API schema for refusal handling which is generally available (implied by the diff appearing in standard API docs, though `category` is specific to cyber/bio).
+
+5.  **Formulate Action Items:**
+    *   Check for `stop_details` in API responses to handle refusals gracefully.
+    *   If using Claude Mythos Preview, update code to avoid prefilling and forced tool selection.
+    *   Be aware of platform limitations for Mythos (e.g., no code execution on Bedrock).
+    *   Consider adopting the new `output-300k` beta header if higher output limits are needed.
+    *   Review tool use logic if migrating agents to Mythos (no `tool_choice: any`).
+
+6.  **Drafting the Response (in Chinese):**
+
+    *   *Overall Summary:* 本次更新主要推出了 **Claude Mythos Preview**（专注于防御性网络安全的研究预览模型），并在 API 响应中新增了 **结构化拒绝处理** 以改进安全策略违规的透明度。
+    *   *Key Themes:*
+        *   **Claude Mythos Preview 发布:** 新的邀请制模型，专为网络安全工作流设计，具有 1M 上下文窗口。
+        *   **API 响应 Schema 变更:** 新增 `stop_details` 字段，用于分类拒绝原因。
+        *   **功能限制与平台兼容性:** Mythos Preview 不支持强制工具调用、预填充，且在不同云平台的特性支持存在差异。
+        *   **新 Beta 特性:** 引入 `output-300k-2026-03-24` 和 `user-profiles-2026-03-24` 两个新的 Beta 标头。
+    *   *Impact:* **Medium**. 新模型对受邀用户影响较大（行为变更），新的拒绝处理机制对所有开发者都有助于更健壮的错误处理。
+    *   *Action Items:*
+        *   更新 API 客户端逻辑，处理 `stop_details` 对象。
+        *   若集成 Mythos Preview，需移除对预填充和强制工具调用的依赖。
+        *   注意 Mythos 在 Bedrock/Vertex AI 上的工具调用限制（如代码执行不可用）。
+        *   考虑使用 `output-300k` Beta 标头以获得更高的输出限制。
+
+7.  **Review and Refine:**
+    *   Ensure the distinction between the new model&#39;s restrictions and general API changes is clear.
+    *   Check the tone (professional, concise, technical).
+    *   Verify the Chinese terminology (e.g., &#34;Prefilling&#34; -&gt; &#34;预填充&#34;, &#34;Structured outputs&#34; -&gt; &#34;结构化输出&#34;).
+
+8.  **Final Polish (Markdown):**
+    *   Structure as requested.
+
+**(Self-Correction during drafting):** I initially thought the impact might be &#34;High&#34; because of the schema change. However, `stop_details` is an *addition* to the object (7 more properties instead of 6), and `category` is nullable. This means existing code parsing the old structure won&#39;t break, it just won&#39;t see the new data. Therefore, it&#39;s backward compatible but a significant feature addition. &#34;Medium&#34; is appropriate. The Mythos restrictions are breaking *if* you use that model, but it&#39;s a preview. I will stick with Medium.
+
+Let&#39;s generate the output.</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/about-claude/models/overview.html" class="page-link">about-claude/models/overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/about-claude/pricing.html" class="page-link">about-claude/pricing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/messages.html" class="page-link">api/messages.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+60</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/models/list.html" class="page-link">api/models/list.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/beta/files/upload.html" class="page-link">api/beta/files/upload.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/service-tiers.html" class="page-link">api/service-tiers.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-11</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/errors.html" class="page-link">api/errors.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/overview.html" class="page-link">build-with-claude/overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/extended-thinking.html" class="page-link">build-with-claude/extended-thinking.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+24</span>
+                            <span class="removed">-21</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/context-windows.html" class="page-link">build-with-claude/context-windows.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/context-editing.html" class="page-link">build-with-claude/context-editing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-9</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/structured-outputs.html" class="page-link">build-with-claude/structured-outputs.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/effort.html" class="page-link">build-with-claude/effort.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/working-with-messages.html" class="page-link">build-with-claude/working-with-messages.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-on-amazon-bedrock.html" class="page-link">build-with-claude/claude-on-amazon-bedrock.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-on-vertex-ai.html" class="page-link">build-with-claude/claude-on-vertex-ai.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-in-microsoft-foundry.html" class="page-link">build-with-claude/claude-in-microsoft-foundry.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/claude-prompting-best-practices.html" class="page-link">build-with-claude/prompt-engineering/claude-prompting-best-practices.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/implement-tool-use.html" class="page-link">agents-and-tools/tool-use/implement-tool-use.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/web-search-tool.html" class="page-link">agents-and-tools/tool-use/web-search-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/web-fetch-tool.html" class="page-link">agents-and-tools/tool-use/web-fetch-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/code-execution-tool.html" class="page-link">agents-and-tools/tool-use/code-execution-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-13</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/tool-search-tool.html" class="page-link">agents-and-tools/tool-use/tool-search-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">13:54 EST</div>
