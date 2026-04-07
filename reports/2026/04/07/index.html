@@ -118,9 +118,129 @@
 
         <header>
             <h1>Changes on 2026-04-07</h1>
-            <p class="meta">33 total changes in 4 runs</p>
+            <p class="meta">35 total changes in 5 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">18:33 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">1. **Overall Summary**
+文档新增了对 Amazon Bedrock **Mantle 端点**的全面支持文档。这一功能允许开发者通过原生的 Anthropic API 形状（而非 Bedrock Invoke API）在 AWS 环境中使用 Claude 模型，并支持与标准 Bedrock 端点并行运行和网关代理配置。
+
+2. **Key Themes**
+*   **New Endpoint Support (Mantle):** 引入了新的 `Mantle` 端点，使用以 `anthropic.` 开头（不含版本后缀）的模型 ID，兼容原生 API 格式。
+*   **Hybrid Routing Logic:** 支持同时启用 `CLAUDE_CODE_USE_MANTLE` 和 `CLAUDE_CODE_USE_BEDROCK`，系统根据模型 ID 格式自动将请求路由至正确的端点。
+*   **Gateway &amp; Auth Flexibility:** 新增环境变量 `CLAUDE_CODE_SKIP_MANTLE_AUTH`，支持通过集中式 LLM 网关路由流量并跳过客户端 SigV4 签名。
+*   **Settings Integration:** 更新了 `availableModels` 配置逻辑，允许将 `anthropic.` 前缀的 ID 直接作为自定义选项添加到模型选择器中。
+
+3. **Impact Level**
+**Medium**
+*   **Reasoning:** 这是一个重要的功能增强，特别针对深度集成 AWS 的用户。它没有破坏现有功能（Breaking Change），而是提供了一种更接近原生 API 体验的选项，并解决了网关代理场景下的认证痛点。
+
+4. **Action items for developers**
+*   更新 Claude Code 到 **v2.1.94** 或更高版本以支持 Mantle 功能。
+*   如需尝试 Mantle，设置环境变量 `export CLAUDE_CODE_USE_MANTLE=1` 并指定 `AWS_REGION`。
+*   若需同时使用新旧两种端点，请确保在 `settings.json` 的 `availableModels` 中包含所有需要的模型别名（如 `sonnet`）和 Mantle ID（如 `anthropic.claude-haiku-4-5`）。
+*   如果通过企业网关访问，记得设置 `CLAUDE_CODE_SKIP_MANTLE_AUTH=1` 来禁用客户端认证。
+*   在遇到 `403` 错误时，联系 AWS 账户团队获取特定 Mantle 模型的访问权限白名单。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Task:** Analyze documentation changes (2 pages: `amazon-bedrock.md` and `model-config.md`).
+    *   **Output Format:** Markdown (concise, insightful, Chinese language).
+    *   **Structure:** 1. Overall Summary, 2. Key Themes, 3. Impact Level, 4. Action Items.
+
+2.  **Analyze the Diff (`amazon-bedrock.md`):**
+    *   **New Section:** &#34;Use the Mantle endpoint&#34;.
+    *   **What is Mantle?** A new Amazon Bedrock endpoint serving Claude models via the native Anthropic API shape (not Bedrock Invoke API).
+    *   **Prerequisites:** Claude Code v2.1.94+, AWS credentials configured.
+    *   **Configuration:** `CLAUDE_CODE_USE_MANTLE=1`, `AWS_REGION`.
+    *   **Model IDs:** Prefixed with `anthropic.` (e.g., `anthropic.claude-haiku-4-5`). No version suffix.
+    *   **Compatibility/Coexistence:** Can run alongside standard Bedrock Invoke API (`CLAUDE_CODE_USE_BEDROCK` + `CLAUDE_CODE_USE_MANTLE`). Routing logic is based on model ID format.
+    *   **Settings Integration:** Needs `availableModels` in settings to appear in the `/model` picker.
+    *   **Gateway Support:** `CLAUDE_CODE_SKIP_MANTLE_AUTH` for proxies.
+    *   **Troubleshooting:** Added specific error handling for Mantle (403 = no access, 400 = wrong model ID).
+
+3.  **Analyze the Diff (`model-config.md`):**
+    *   **New Section:** &#34;Mantle model IDs&#34; under `availableModels`.
+    *   **Explanation:** Clarifies that when Bedrock Mantle is enabled, IDs starting with `anthropic.` are treated as custom options for the Mantle endpoint in the `/model` picker.
+    *   **Note:** This is an exception to the usual &#34;alias-only&#34; matching rule.
+
+4.  **Synthesize the &#34;Why it matters&#34;:**
+    *   AWS users now have a way to access Claude models using the native API shape within the Bedrock ecosystem, potentially offering better compatibility or performance compared to the Invoke API.
+    *   Developers using AWS proxies/gateways need to know how to configure auth skipping.
+    *   Configuration management becomes slightly more complex with the &#34;dual endpoint&#34; capability.
+
+5.  **Draft the Response (in Chinese):**
+
+    *   **1. Overall Summary:**
+        *   文档新增了对 Amazon Bedrock Mantle 端点的全面支持。这允许开发者通过原生的 Anthropic API 格式（而非 Bedrock Invoke API）在 AWS 环境中使用 Claude 模型，并支持与现有端点并行运行。
+
+    *   **2. Key Themes:**
+        *   **New Endpoint Support:** 引入 &#34;Mantle&#34; 端点，使用 `anthropic.` 前缀的模型 ID 和原生 API 形状。
+        *   **Dual Configuration:** 支持同时启用 Mantle 和标准 Bedrock Invoke API，通过模型 ID 前缀自动路由。
+        *   **Gateway Integration:** 新增针对集中式网关的配置选项（`CLAUDE_CODE_SKIP_MANTLE_AUTH`），跳过客户端签名。
+        *   **Model Selection Logic:** 更新了 `availableModels` 的行为，允许 `anthropic.` 前缀的 ID 直接映射到 Mantle 端点。
+
+    *   **3. Impact Level:**
+        *   **Medium**
+        *   **Reasoning:** 这是一个新的功能增强（Feature Addition），而非破坏性变更。虽然它提供了新的访问方式，但现有的 Bedrock 配置不受影响。对于希望利用原生 API 形状或通过网关路由流量的 AWS 用户来说，这非常有价值。
+
+    *   **4. Action items for developers:**
+        *   检查当前 Claude Code 版本（需 &gt;= v2.1.94）。
+        *   若需使用 Mantle，设置 `CLAUDE_CODE_USE_MANTLE=1` 并配置相应的 `AWS_REGION`。
+        *   如果需要在同一会话中同时使用标准 Bedrock 和 Mantle，确保同时启用两个环境变量，并在 `availableModels` 中包含相关 ID。
+        *   如果使用 LLM 网关，配置 `CLAUDE_CODE_SKIP_MANTLE_AUTH=1` 以避免认证冲突。
+        *   遇到 403 错误时，联系 AWS 账户团队获取 Mantle 模型的访问权限。
+
+6.  **Review and Refine:**
+    *   Ensure tone is professional and concise.
+    *   Check markdown formatting.
+    *   Verify Chinese translation accuracy (e.g., &#34;Endpoint&#34; -&gt; &#34;端点&#34;, &#34;Gateway&#34; -&gt; &#34;网关&#34;).
+
+7.  **Final Output Generation** (matches the drafted content).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/amazon-bedrock.html" class="page-link">amazon-bedrock.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+34</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/model-config.html" class="page-link">model-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">17:38 EST</div>
