@@ -118,9 +118,133 @@
 
         <header>
             <h1>Changes on 2026-04-08</h1>
-            <p class="meta">71 total changes in 6 runs</p>
+            <p class="meta">73 total changes in 7 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">16:39 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 总体摘要
+
+文档在 `skills.md` 和 `slash-commands.md` 中对 `allowed-tools` 字段进行了重大的语义修正，将其从“限制工具访问”重新定义为“预批准工具以跳过确认”，并新增了关于技能内容在上下文压缩中生命周期的详细技术说明。
+
+### 核心变更主题
+
+*   **`allowed-tools` 语义纠正（关键）**：该字段现在被明确为“白名单预批准”机制，目的是让 Claude 在技能激活时无需询问即可使用指定工具。它**并不限制**其他工具的可用性，Claude 仍可调用其他工具（受权限设置约束）。
+*   **安全边界澄清**：如果开发者意图阻止技能使用某些工具，必须在全局[权限设置](/en/permissions)中配置拒绝规则，而不是依赖技能定义。
+*   **技能生命周期与持久化**：新增文档解释了技能内容如何作为单条消息持久存在于会话中，即使在上下文压缩后也会重新挂载。这澄清了技能指令应作为“常驻指令”编写，而非一次性步骤。
+*   **故障排查指导**：解释了技能在后续轮次中看似失效的原因（通常是模型选择而非内容丢失），建议通过优化描述或使用 Hooks 来解决。
+
+### 影响程度：**高**
+
+**理由**：这是一次重大的概念性修正。旧文档示例暗示 `allowed-tools` 可以用来创建“只读模式”或安全沙箱（例如 `safe-reader` 示例），实际上它并不能阻止模型调用修改文件的工具。这直接关系到开发者对技能安全性的预期和实现方式。
+
+### 开发者行动项
+
+*   **审查现有安全性假设**：立即检查所有使用了 `allowed-tools` 的技能。如果您依赖它来实施安全限制（如禁止写入），必须移除该假设，改为在权限设置中配置拒绝规则。
+*   **利用自动化预批准**：利用更新后的语义，在技能中使用 `allowed-tools` 来预批准高频操作（如 Git 提交、文件构建），以减少开发过程中的交互中断。
+*   **优化技能指令设计**：根据“内容生命周期”说明，重写技能指南，确保指令描述的是适用于整个任务的长期行为，而非单次执行的步骤。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Understand the Goal:** The user wants a concise, insightful analysis of documentation changes regarding Claude Code&#39;s &#34;Skills&#34; and &#34;Slash Commands&#34; features (specifically two pages: `skills.md` and `slash-commands.md`). I need to summarize what changed, why it matters, and identify actionable items for developers. The response must be in Chinese.
+
+2.  **Analyze the Diff:**
+
+    *   **Pages:** `skills.md` and `slash-commands.md` have identical diffs.
+    *   **Removed Content:**
+        *   Section: &#34;Restrict tool access&#34;
+        *   Explanation: Stated `allowed-tools` limits Claude to specific tools.
+        *   Example: A &#34;safe-reader&#34; skill that only allowed Read/Grep/Glob.
+    *   **Added Content:**
+        *   Section 1: &#34;Skill content lifecycle&#34;
+            *   Explanation: `SKILL.md` is loaded as a single message and persists (it doesn&#39;t re-read every turn). Instructions should be standing orders, not one-time steps.
+            *   Auto-compaction logic: Skills are re-attached after summarization (truncated if large). Only the latest invocation carries forward.
+            *   Troubleshooting: If a skill stops working, it&#39;s not because it disappeared; it&#39;s because the model ignored it. Fix by strengthening descriptions or using hooks.
+        *   Section 2: &#34;Pre-approve tools for a skill&#34; (Replacing &#34;Restrict tool access&#34;)
+            *   **Crucial Change in Semantics:** `allowed-tools` now *grants permission* (whitelist) rather than *restricting access* (blacklist/exclusive list). It skips approval prompts.
+            *   Clarification: It does *not* restrict availability. All tools are still callable (if permissions allow).
+            *   New Example: A &#34;commit&#34; skill allowing git commands (`git add`, `git commit`, etc.) without prompts.
+            *   Additional Note: To block tools, use permission settings deny rules, not `allowed-tools`.
+
+3.  **Synthesize the Analysis:**
+
+    *   **Overall Summary:** The documentation corrects a significant misunderstanding about the `allowed-tools` field. It shifts from implying tool restriction to explaining it as a pre-approval mechanism for convenience. Additionally, it details how skills persist through context compaction.
+    *   **Key Themes:**
+        *   **Semantic Shift:** `allowed-tools` = Auto-approve/Whitelist, NOT Restriction/Exclusive access.
+        *   **Persistence:** Skills stay in context via a lifecycle mechanism and survive compaction.
+        *   **Troubleshooting:** Guidance on why skills might seem ignored (model choice vs. missing content).
+    *   **Impact Level:** Medium to High (conceptually High for anyone relying on the old behavior for security/read-only modes). Let&#39;s classify it as **High** because the previous docs implied a security feature (restriction) that actually doesn&#39;t exist. If developers thought they were sandboxing the AI, they were wrong.
+    *   **Action Items:**
+        *   Review existing skills using `allowed-tools` to ensure they aren&#39;t expecting security hardening (read-only mode).
+        *   Update skills to use `allowed-tools` for workflow automation (auto-approving git/bash commands).
+        *   Refine skill descriptions based on the &#34;lifecycle&#34; insight to ensure they act as persistent instructions.
+
+4.  **Drafting the Response (in Chinese):**
+
+    *   *Summary:* 文档修正了 `allowed-tools` 字段的核心语义，并将其定义为“预批准工具”而非“限制工具访问”，同时新增了关于技能内容生命周期和上下文压缩行为的详细说明。
+    *   *Themes:*
+        *   **`allowed-tools` 语义纠正**：从“限制使用”转变为“白名单预批准”，旨在跳过确认提示而非禁用工具。
+        *   **技能持久化机制**：详细阐述了技能内容在会话中的加载方式、上下文压缩时的保留规则以及故障排查建议。
+        *   **安全与权限边界**：明确了真正的工具阻断需在权限设置中配置，而非在技能定义中。
+    *   *Impact:* **High**。这是一个重大的概念性修正。旧文档暗示了该字段可以用于创建“只读模式”或安全沙箱，但实际上无法阻止模型调用其他工具。这直接影响到开发者在构建技能时的安全预期。
+    *   *Action Items:*
+        *   审查现有技能：检查是否依赖 `allowed-tools` 实现安全限制（如只读模式），并移除此类错误的安全假设。
+        *   利用预批准机制：将 `allowed-tools` 用于自动化工作流（如自动执行 Git 命令），以减少交互中断。
+        *   优化技能描述：根据“内容生命周期”说明，将技能指令改写为适用于整个任务的“常驻指令”而非单次步骤。
+
+5.  **Review against constraints:**
+    *   Concise? Yes.
+    *   Insightful? Yes, catches the security implication.
+    *   Markdown format? Yes.
+    *   Chinese? Yes.
+    *   Batch analysis? Yes.
+
+6.  **Final Polish:** Ensure the tone is professional and the distinction between &#34;pre-approve&#34; and &#34;restrict&#34; is sharp. The example change from &#34;safe-reader&#34; (restriction) to &#34;commit&#34; (automation) highlights the shift perfectly.
+
+    *(Self-Correction during drafting)*: Make sure to mention that both pages changed identically, reinforcing the consistency of the update across the documentation base.
+
+7.  **Final Output Generation.** (Proceed to generate the Chinese markdown response).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+11</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+11</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">15:56 EST</div>
