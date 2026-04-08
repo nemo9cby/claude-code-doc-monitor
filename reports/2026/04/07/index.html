@@ -118,9 +118,207 @@
 
         <header>
             <h1>Changes on 2026-04-07</h1>
-            <p class="meta">42 total changes in 6 runs</p>
+            <p class="meta">49 total changes in 7 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">21:58 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更分析
+
+### 总体摘要
+本次更新主要重构了调试机制（从终端输出转向文件日志），增强了 Hook 系统（新增自动会话命名），调整了模型默认配置（不同计划的默认推理力度不同），并优化了 Git Worktree 工作流及插件系统的扩展性。
+
+### 核心主题
+*   **调试机制重构**：`claude --debug` 不再向终端打印信息，所有详细输出（包括 Hook 的 stdout/stderr）现在均写入日志文件；`Ctrl+O` 仅显示摘要信息。
+*   **Hook 行为变更**：明确了不同退出码下的输出流向，`Exit 0` 的 stdout 仅写入调试日志；新增 `UserPromptSubmit` 的 `sessionTitle` 字段用于自动命名会话。
+*   **模型配置调整**：不同订阅计划的默认“推理力度”发生变化（Pro/Max 默认为 medium，API/Team/Enterprise 默认为 high）；术语 &#34;extra usage&#34; 更新为 &#34;usage credits&#34;。
+*   **工作流与插件优化**：改进了跨 Git Worktree 的会话恢复体验；插件现在可以分发输出样式，并支持更稳定的技能命名机制。
+
+### 影响等级：Medium
+**理由**：调试行为的变更（`--debug` 不再输出到终端）会直接影响现有的调试习惯，开发者需适应查阅日志文件的新方式。模型默认值的改变可能影响响应速度与成本的感知。其他更改主要是功能增强或文档澄清，破坏性较小。
+
+### 开发者行动项
+*   **更新调试工作流**：如果你习惯使用 `claude --debug` 或依赖 verbose 模式 (`Ctrl+O`) 查看 Hook 详细输出，请改用 `claude --debug-file &lt;path&gt;` 或运行 `/debug` 指令来查看日志文件。
+*   **审查 Hook 脚本**：检查自定义 Hooks 是否依赖 stdout 在 verbose 模式下的可见性，现在这些输出仅在调试日志中可见。
+*   **利用自动会话命名**：在 `UserPromptSubmit` Hook 中使用新增的 `sessionTitle` JSON 字段，根据提示内容自动为会话命名。
+*   **关注插件新特性**：插件作者现在可以在插件目录中包含 `output-styles/`，并利用 `SKILL.md` 的 frontmatter `name` 字段确保技能调用名称的稳定性。
+*   **排查 macOS 登录问题**：如果在 macOS 上遇到频繁登录失败，请检查 Keychain 是否锁定或密码不同步，可参考新增的 `security unlock-keychain` 命令进行修复。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Understand the Goal**: The user wants a concise, insightful analysis of a batch of documentation changes (7 pages). I need to act as a world-class programmer, reply in Chinese, and focus on what matters to developers. The output must be in markdown format with specific sections: Overall Summary, Key Themes, Impact Level, and Action Items.
+
+2.  **Analyze the Changes**:
+
+    *   **Page 1: `common-workflows.md`**
+        *   *Change*: Updated description of `/resume` behavior for worktrees.
+        *   *Detail*: Claude Code now resumes sessions from other worktrees directly without requiring the user to switch directories first.
+        *   *Significance*: UX improvement for developers using git worktrees.
+
+    *   **Page 2: `hooks.md`**
+        *   *Change 1*: Clarified stdout/stderr handling for hooks. Exit 0 -&gt; debug log (not verbose mode), Exit 2 -&gt; stderr fed back, Other -&gt; one-line notice in transcript + debug log.
+        *   *Change 2*: `suppressOutput` JSON field clarification -&gt; affects debug log, not verbose mode.
+        *   *Change 3*: Added `sessionTitle` field for `UserPromptSubmit` hook.
+        *   *Change 4*: Debug hooks section updated. `claude --debug` no longer prints to terminal; writes to log file. Explains how to access log.
+        *   *Significance*: Significant behavioral change in debugging (`--debug` flag behavior changed). New feature (`sessionTitle`). Logging terminology changed (verbose vs debug log).
+
+    *   **Page 3: `hooks-guide.md`**
+        *   *Change 1*: Aligned exit code explanations with `hooks.md` (transcript shows summary, full details in debug log).
+        *   *Change 2*: Updated MCP tool example text (stderr -&gt; debug log).
+        *   *Change 3*: Updated &#34;Debug techniques&#34; section. Transcript view is now cleaner (one-line summaries), full debugging requires checking log files (`--debug-file` or `/debug`).
+        *   *Significance*: Reinforces the shift away from verbose terminal output to structured debug logging.
+
+    *   **Page 4: `model-config.md`**
+        *   *Change 1*: Default effort levels updated. Pro/Max -&gt; Medium. Others (API, Team, Enterprise, 3rd party) -&gt; High.
+        *   *Change 2*: Clarified &#34;ultrathink&#34; prompt behavior (no effect if already High/Max).
+        *   *Change 3*: Updated terminology from &#34;extra usage&#34; to &#34;usage credits&#34; for 1M context.
+        *   *Significance*: Potential behavioral change in default AI reasoning depth for different user tiers. Terminology update.
+
+    *   **Page 5: `output-styles.md`**
+        *   *Change*: Added note that plugins can ship output styles in `output-styles/` directory.
+        *   *Significance*: Extensibility improvement for plugin authors.
+
+    *   **Page 6: `plugins-reference.md`**
+        *   *Change*: Clarified naming behavior when a skill path points to a directory with `SKILL.md`. Frontmatter `name` takes precedence over directory basename.
+        *   *Significance*: Stability for plugin authors regarding skill invocation names.
+
+    *   **Page 7: `troubleshooting.md`**
+        *   *Change*: Added troubleshooting for macOS login failures related to Keychain issues. Suggested `claude doctor` and manual unlock commands.
+        *   *Significance*: Helpful fix for macOS users facing auth issues.
+
+3.  **Synthesize and Structure**:
+
+    *   **Overall Summary**: Focus on the shift in debugging behavior (file-based vs terminal), updates to model defaults, and UX improvements for workflows/plugins.
+    *   **Key Themes**:
+        *   *Debugging Refactor*: Moving from verbose terminal output to dedicated debug logs.
+        *   *Hooks Enhancements*: New `sessionTitle` feature and clearer logging behaviors.
+        *   *Model Defaults &amp; Pricing*: Changes to default effort levels and terminology (&#34;usage credits&#34;).
+        *   *UX Improvements*: Worktree handling, macOS login help, plugin extensibility.
+    *   **Impact Level**:
+        *   *Level*: Medium.
+        *   *Reasoning*: The change in `claude --debug` behavior (no longer printing to terminal) affects developers who rely on real-time hook debugging. Default effort level changes might affect performance/cost perception. Most other changes are additive or clarifications.
+    *   **Action Items**:
+        *   Update debugging workflows to use `--debug-file` or check log files instead of watching terminal output.
+        *   Review/Update custom hooks if they relied on stdout appearing in verbose mode or terminal output from `--debug`.
+        *   Be aware of new `sessionTitle` capability in `UserPromptSubmit` hooks.
+        *   Plugin authors can now package output styles and control skill naming better.
+        *   macOS users with login issues should check Keychain.
+
+4.  **Drafting the Response (in Chinese)**:
+
+    *   *Summary*: 本次更新主要涉及调试行为的重大变更（从终端输出转向日志文件）、Hook 功能增强（新增会话命名）、模型默认配置调整以及工作流和插件系统的改进。
+    *   *Themes*: 调试机制重构、Hook 系统增强、模型默认配置变更、开发者体验优化。
+    *   *Impact*: Medium.（原因：`--debug` 行为改变影响调试习惯，模型默认值变更影响性能，其他多为增强）。
+    *   *Action Items*: 更新调试脚本/流程、利用 `sessionTitle` 自动命名、插件作者关注新特性、macOS 用户排查 Keychain。
+
+5.  **Refining the Content**:
+
+    *   *Refinement on Hooks*: Specifically mention that `Exit 0` stdout goes to debug log, not verbose mode anymore. `Exit other` only shows a one-line notice in transcript.
+    *   *Refinement on Debug*: `claude --debug` is silent in terminal now.
+    *   *Refinement on Model*: Medium vs High defaults.
+
+6.  **Final Polish (Markdown)**:
+    Ensure the tone is professional (&#34;world-class programmer&#34;) and concise. Use correct Chinese terminology (e.g., &#34;工作树&#34; for worktrees, &#34;钩子&#34; for hooks).
+
+    *(Self-Correction during drafting)*: Make sure to highlight that `claude --debug` *does not print to the terminal* anymore. This is the biggest &#34;gotcha&#34; for developers currently debugging hooks.
+
+7.  **Final Output Generation** (Proceeding to generate the response based on the above steps).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/common-workflows.html" class="page-link">common-workflows.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/model-config.html" class="page-link">model-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+9</span>
+                            <span class="removed">-9</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/output-styles.html" class="page-link">output-styles.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/troubleshooting.html" class="page-link">troubleshooting.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">19:32 EST</div>

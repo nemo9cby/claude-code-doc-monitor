@@ -146,11 +146,11 @@ and Sonnet's efficiency for execution.
 
 Three levels persist across sessions: **low**, **medium**, and **high**. A fourth level, **max**, provides the deepest reasoning with no constraint on token spending, so responses are slower and cost more than at `high`. `max` is available on Opus 4.6 only and does not persist across sessions except through the `CLAUDE_CODE_EFFORT_LEVEL` environment variable.
 
-Opus 4.6 and Sonnet 4.6 default to medium effort. This applies to all providers, including Bedrock, Vertex AI, and direct API access.
+The default effort level depends on your plan. Pro and Max subscribers default to medium effort. All other users default to high effort: API key, Team, Enterprise, and third-party provider (Bedrock, Vertex AI, Foundry) users.
 
-Medium is the recommended level for most coding tasks: it balances speed and reasoning depth, and higher levels can cause the model to overthink routine work. Reserve `high` or `max` for tasks that genuinely benefit from deeper reasoning, such as hard debugging problems or complex architectural decisions.
+Your plan's default suits most coding tasks. Raise effort for work that benefits from deeper reasoning, such as hard debugging problems or complex architectural decisions. Higher levels can cause the model to overthink routine work.
 
-For one-off deep reasoning without changing your session setting, include "ultrathink" in your prompt to trigger high effort for that turn.
+For one-off deep reasoning without changing your session setting, include "ultrathink" in your prompt to trigger high effort for that turn. This has no effect if your session is already at high or max.
 
 **Setting effort:**
 
@@ -173,15 +173,15 @@ Opus 4.6 and Sonnet 4.6 support a [1 million token context window](https://platf
 
 Availability varies by model and plan. On Max, Team, and Enterprise plans, Opus is automatically upgraded to 1M context with no additional configuration. This applies to both Team Standard and Team Premium seats.
 
-| Plan                      | Opus 4.6 with 1M context                                                                                  | Sonnet 4.6 with 1M context                                                                                |
-| ------------------------- | --------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| Max, Team, and Enterprise | Included with subscription                                                                                | Requires [extra usage](https://support.claude.com/en/articles/12429409-extra-usage-for-paid-claude-plans) |
-| Pro                       | Requires [extra usage](https://support.claude.com/en/articles/12429409-extra-usage-for-paid-claude-plans) | Requires [extra usage](https://support.claude.com/en/articles/12429409-extra-usage-for-paid-claude-plans) |
-| API and pay-as-you-go     | Full access                                                                                               | Full access                                                                                               |
+| Plan                      | Opus 4.6 with 1M context                                                                                    | Sonnet 4.6 with 1M context                                                                                  |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| Max, Team, and Enterprise | Included with subscription                                                                                  | Requires [usage credits](https://support.claude.com/en/articles/12429409-extra-usage-for-paid-claude-plans) |
+| Pro                       | Requires [usage credits](https://support.claude.com/en/articles/12429409-extra-usage-for-paid-claude-plans) | Requires [usage credits](https://support.claude.com/en/articles/12429409-extra-usage-for-paid-claude-plans) |
+| API and pay-as-you-go     | Full access                                                                                                 | Full access                                                                                                 |
 
 To disable 1M context entirely, set `CLAUDE_CODE_DISABLE_1M_CONTEXT=1`. This removes 1M model variants from the model picker. See [environment variables](/en/env-vars).
 
-The 1M context window uses standard model pricing with no premium for tokens beyond 200K. For plans where extended context is included with your subscription, usage remains covered by your subscription. For plans that access extended context through extra usage, tokens are billed to extra usage.
+The 1M context window uses standard model pricing with no premium for tokens beyond 200K. For plans where extended context is included with your subscription, usage remains covered by your subscription. For plans that access extended context through usage credits, tokens are billed to usage credits.
 
 If your account supports 1M context, the option appears in the model picker (`/model`) in the latest versions of Claude Code. If you don't see it, try restarting your session.
 
