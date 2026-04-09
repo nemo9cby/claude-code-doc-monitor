@@ -517,14 +517,13 @@ Installed plugins cannot reference files outside their directory. Paths that tra
 
 ### Working with external dependencies
 
-If your plugin needs to access files outside its directory, you can create symbolic links to external files within your plugin directory. Symlinks are honored during the copy process:
+If your plugin needs to access files outside its directory, you can create symbolic links to external files within your plugin directory. Symlinks are preserved in the cache rather than dereferenced, and they resolve to their target at runtime. The following command creates a link from inside your plugin directory to a shared utilities location:
 
 ```bash  theme={null}
-# Inside your plugin directory
 ln -s /path/to/shared-utils ./shared-utils
 ```
 
-The symlinked content will be copied into the plugin cache. This provides flexibility while maintaining the security benefits of the caching system.
+This provides flexibility while maintaining the security benefits of the caching system.
 
 ***
 
