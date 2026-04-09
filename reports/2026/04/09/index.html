@@ -118,9 +118,371 @@
 
         <header>
             <h1>Changes on 2026-04-09</h1>
-            <p class="meta">24 total changes in 4 runs</p>
+            <p class="meta">42 total changes in 5 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">17:41 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更分析
+
+## 总体摘要
+本次文档更新主要集中在三个方面：重构了 Bedrock 和 Vertex AI 的配置流程（区分向导与手动设置），正式将插件中的“Commands”重命名为“Skills”并规范了目录结构，以及明确了模型版本回退和上下文压缩的具体行为逻辑。
+
+## 关键主题
+
+*   **术语与架构规范化**：文档全面将插件中的“Commands”更名为“Skills”。新插件推荐使用 `skills/&lt;name&gt;/SKILL.md` 目录结构，保留 `commands/` 用于扁平的 Markdown 文件（Legacy），旨在统一概念并区分技能类型。
+*   **云配置流程优化**：Amazon Bedrock 和 Google Vertex AI 的配置文档被重写，明确区分了“交互式向导登录”和“手动环境变量配置”两种场景，并新增了“启动时的模型检查”说明。
+*   **模型版本策略调整**：放宽了对模型固定的强制要求警告。现在明确指出，在未固定模型且最新版本不可用时，Bedrock 和 Vertex AI 会自动回退到上一版本（而非直接报错），Pinning 现在更多是为了让管理员控制用户迁移到新模型的时机。
+*   **上下文管理精细化**：补充了关于 `CLAUDE.md`、Skills 和 MCP 的使用时机指导。特别细化了自动压缩时 Skills 的保留策略（总预算 25k tokens，每个保留 5k），并指出嵌套的 `CLAUDE.md` 不会在 `/compact` 后自动重载。
+*   **运维细节修正**：明确了 Worktree 清理条件（未跟踪的文件也会阻止自动清理）以及 Claude Code 工作空间的速率限制说明。
+
+## 影响等级
+**Medium**
+**理由**：虽然大部分变更为文档重构和术语统一（不会破坏现有代码），但模型回退行为的变化和 Skills 在上下文压缩中的 Token 限制机制，会直接影响企业级用户的部署策略和重度用户的交互体验。
+
+## 开发者行动项
+
+1.  **插件开发者**：检查并更新插件结构，推荐迁移至 `skills/` 目录结构（`&lt;name&gt;/SKILL.md`），以适应新的术语规范。
+2.  **平台管理员**：重新评估模型固定策略，利用新版本的“自动回退”机制来平滑过渡 Anthropic 的模型更新。
+3.  **重度用户**：注意大型 Skills 在长对话压缩后可能会被截断或丢弃，如果发现行为异常，尝试重新调用技能。
+4.  **配置审查**：如果使用 Bedrock 或 Vertex AI，了解新增的“启动模型检查”功能，确保账户权限允许 Claude Code 验证模型可用性。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Understand the Goal**: The user wants a concise, insightful batch analysis of 18 documentation pages related to a developer tool (likely &#34;Claude Code&#34; based on the content). The output must be in Chinese, markdown format, and follow a specific structure: Overall Summary, Key Themes, Impact Level, and Action Items.
+
+2.  **Analyze the Input Data**: I need to read through the diffs of the 18 pages to identify patterns.
+
+    *   **amazon-bedrock.md**:
+        *   *Major Change*: Restructured setup guide. Separated &#34;Sign in with Bedrock&#34; (wizard) from &#34;Set up manually&#34; (env vars).
+        *   *Logic Update*: Changed the warning about pinning models. It used to say &#34;pin to prevent breakage&#34;. Now it says &#34;pin when deploying to multiple users... Claude Code falls back to previous version... but pinning lets you control when your users move&#34;.
+        *   *New Feature*: Added &#34;Startup model checks&#34; section explaining behavior when pinned models are old/unavailable.
+        *   *Terminology*: &#34;Application inference profile ARN&#34; mentioned.
+
+    *   **common-workflows.md**:
+        *   *Minor Change*: Worktree cleanup logic. Now explicitly mentions that subagent worktrees are *not* removed if they have &#34;no uncommitted changes, no untracked files, and no unpushed commits&#34;. (Previously said &#34;no modifications to tracked files&#34;, now clarifies untracked files also prevent removal).
+
+    *   **costs.md**:
+        *   *Minor Change*: Added note about custom rate limits for the &#34;Claude Code&#34; workspace in the console.
+
+    *   **desktop.md**:
+        *   *Terminology*: Changed &#34;commands&#34; to &#34;skills&#34; in the UI description.
+
+    *   **discover-plugins.md**:
+        *   *Terminology*: Changed &#34;commands&#34; to &#34;skills&#34; throughout (e.g., &#34;commands and agents&#34; -&gt; &#34;skills and agents&#34;, &#34;plugin commands&#34; -&gt; &#34;plugin skills&#34;).
+
+    *   **google-vertex-ai.md**:
+        *   *Major Change*: Similar to Bedrock. Restructured setup into &#34;Sign in with Vertex AI&#34; (wizard) vs &#34;Set up manually&#34;.
+        *   *Logic Update*: Same model pinning warning update as Bedrock. Added &#34;Startup model checks&#34; section.
+        *   *Version Note*: Wizard requires v2.1.98+.
+
+    *   **mcp.md**:
+        *   *Guidance*: Added &#34;Connect a server when...&#34; paragraph to guide users on *when* to use MCP.
+
+    *   **memory.md**:
+        *   *Guidance*: Added &#34;When to add to CLAUDE.md&#34; section.
+        *   *Clarification*: Clarified what survives compaction. Nested CLAUDE.md files don&#39;t reload automatically after `/compact` until a file in that dir is read.
+
+    *   **model-config.md**:
+        *   *Logic Update*: Updated pinning warning to match Bedrock/Vertex AI changes. Explains that Bedrock/Vertex have fallbacks, Foundry errors.
+
+    *   **output-styles.md**:
+        *   *Clarification*: Added &#34;when to use&#34; guidance. Distinguished output styles (voice/format) from CLAUDE.md (project instructions).
+
+    *   **plugin-marketplaces.md**:
+        *   *Terminology*: &#34;commands&#34; -&gt; &#34;skills&#34; consistently.
+        *   *Structure*: Table update showing `skills` field takes directories with `&lt;name&gt;/SKILL.md`, `commands` takes flat `.md`.
+
+    *   **plugins.md**:
+        *   *Structure/Terminology*: Directory structure table updated. `skills/` is now the primary directory for `&lt;name&gt;/SKILL.md`. `commands/` is legacy for flat files.
+
+    *   **plugins-reference.md**:
+        *   *Structure/Terminology*: Manifest fields updated. `skills` is distinct from `commands` now (skills=dir structure, commands=flat md).
+        *   *Directory Tree Example*: Updated to show `skills/` at top.
+
+    *   **settings.md**:
+        *   *Terminology*: &#34;commands&#34; -&gt; &#34;skills&#34;.
+
+    *   **skills.md**:
+        *   *Guidance*: Added &#34;Create a skill when...&#34; paragraph.
+        *   *Behavior Change*: Clarified Auto-compaction behavior for skills. Skills are carried forward within a token budget (25k total, 5k per skill). Older skills can be dropped. If content is large, re-invoke after compaction.
+
+    *   **slash-commands.md**:
+        *   *Duplicate*: Seems to be the same diff as skills.md. Same additions.
+
+    *   **sub-agents.md**:
+        *   *Guidance*: Added &#34;Use one when...&#34; paragraph. Clarifies the benefit (context saving).
+
+    *   **third-party-integrations.md**:
+        *   *Logic Update*: Updated pinning warning to match other pages.
+
+3.  **Synthesize Key Themes**:
+
+    *   **Terminology Shift (Commands -&gt; Skills)**: Massive renaming. &#34;Commands&#34; inside plugins are now predominantly referred to as &#34;Skills&#34;. The file structure is formalizing: `skills/` directory for `name/SKILL.md`, `commands/` for flat legacy files.
+    *   **Setup Experience (Wizard vs Manual)**: For cloud providers (Bedrock, Vertex), setup docs are split into &#34;Wizard&#34; (interactive) vs &#34;Manual&#34; (env vars).
+    *   **Model Pinning &amp; Fallback Logic**: Relaxation of the &#34;pin or die&#34; stance. It now says &#34;pin to control updates&#34;, but acknowledges that Bedrock/Vertex will *fallback* to previous versions if the latest isn&#39;t available, instead of breaking.
+    *   **Startup Checks**: New feature explicitly checking model availability at startup.
+    *   **Context Management (Compaction)**: More detailed rules on what survives compaction (Skills have a budget, nested CLAUDE.md don&#39;t auto-reload).
+    *   **Guidance/When-to-use**: Added &#34;When to use X&#34; paragraphs for MCP, Skills, CLAUDE.md, Sub-agents, and Output Styles to help users choose the right tool.
+
+4.  **Determine Impact Level**:
+
+    *   *Reasoning*:
+        *   **Terminology changes** are widespread (plugins, skills, marketplaces). This affects how developers read docs and potentially name files, but likely doesn&#39;t break existing code unless the API strictly enforced names (usually these are file-based). However, it&#39;s a significant conceptual shift.
+        *   **Model Pinning logic**: The change from &#34;breaks silently&#34; to &#34;falls back&#34; reduces urgency for pinning but changes behavior expectations.
+        *   **Compaction behavior**: The details about skills being truncated or dropped due to token limits are significant for power users relying on long skills.
+    *   *Level*: **Medium**. It&#39;s not a breaking change in the code execution sense, but it represents a significant shift in documentation structure, terminology, and specific behavioral expectations (compaction, model fallback).
+
+5.  **Draft Action Items**:
+
+    *   Update plugin documentation/repo structure to reflect `skills/` vs `commands/`.
+    *   Review/Update model pinning strategy (fallback might change upgrade plans).
+    *   Consider the 25k token limit for skills when designing long-form skills.
+    *   If using nested CLAUDE.md, be aware they don&#39;t reload after `/compact`.
+
+6.  **Translate and Format (Chinese)**:
+
+    *   *Summary*: 此次文档更新大幅改进了云服务提供商（Bedrock, Vertex）的配置流程，并正式将插件中的“命令”统一重命名为“技能”，同时细化了模型回退和上下文压缩的行为描述。
+    *   *Themes*:
+        1.  **术语变更**：插件中的 Commands 全面改称为 Skills，并明确了 `skills/`（目录结构）与 `commands/`（扁平文件）的区别。
+        2.  **配置流程优化**：Bedrock 和 Vertex AI 的设置文档重构，明确区分了“向导式登录”和“手动环境变量配置”。
+        3.  **模型版本管理**：调整了模型固定策略。现在 Bedrock 和 Vertex AI 在最新版本不可用时会回退到旧版本（而非直接报错），强调了 Pinning 是为了控制更新时机而非防止崩溃。
+        4.  **上下文管理细节**：详细说明了 Skills 在会话压缩中的 Token 预算机制，以及嵌套 `CLAUDE.md` 在压缩后的加载行为。
+    *   *Impact*: Medium.
+    *   *Action Items*:
+        *   插件开发者：更新插件目录结构，推荐使用 `skills/&lt;name&gt;/SKILL.md` 格式。
+        *   团队管理员：重新评估模型版本固定策略，利用新的回退机制。
+        *   重度用户：注意压缩后 Skills 的 Token 限制（共享 25k），可能需要重新调用大型 Skills。
+
+7.  **Final Review**: Check against the provided diffs.
+    *   Did I miss the worktree cleanup? Yes, it&#39;s minor but real. I&#39;ll fold it into the general &#34;behavioral updates&#34;.
+    *   Did I catch the specific startup model checks? Yes.
+    *   Did I catch the &#34;When to use&#34; sections? Yes.
+
+    *Refining the &#34;Impact&#34;*: The renaming is cosmetic but pervasive. The model fallback is a functional change in user experience. The compaction detail is a functional change in behavior. &#34;Medium&#34; fits well.
+
+    *Refining Action Items*: Keep it to max 5 bullets.
+
+    *Final Polish (Chinese)*: Ensure professional tone. &#34;世界级程序员&#34; persona.
+
+    *Drafting Response...*</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/amazon-bedrock.html" class="page-link">amazon-bedrock.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+20</span>
+                            <span class="removed">-10</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/common-workflows.html" class="page-link">common-workflows.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/costs.html" class="page-link">costs.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/desktop.html" class="page-link">desktop.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/discover-plugins.html" class="page-link">discover-plugins.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/google-vertex-ai.html" class="page-link">google-vertex-ai.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+22</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/memory.html" class="page-link">memory.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+9</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/model-config.html" class="page-link">model-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/output-styles.html" class="page-link">output-styles.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugin-marketplaces.html" class="page-link">plugin-marketplaces.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+13</span>
+                            <span class="removed">-12</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins.html" class="page-link">plugins.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+11</span>
+                            <span class="removed">-11</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/third-party-integrations.html" class="page-link">third-party-integrations.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">16:02 EST</div>
