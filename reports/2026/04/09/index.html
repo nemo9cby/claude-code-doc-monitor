@@ -118,9 +118,295 @@
 
         <header>
             <h1>Changes on 2026-04-09</h1>
-            <p class="meta">10 total changes in 2 runs</p>
+            <p class="meta">22 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">13:01 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">#文档变更分析
+
+### 总体摘要
+本次更新主要集中在此三个方面：重构命令文档结构（将“内置命令”与“技能”合并）、引入新的 CI/CD 认证机制（`setup-token`），以及对 Hooks 匹配器逻辑进行了重要优化。部分 VS Code 扩展设置和包名引用也已更新。
+
+### 关键变更主题
+
+*   **认证与 CI/CD 支持**
+    *   新增 CLI 命令 `claude setup-token`，用于生成有效期为一年的 OAuth Token。
+    *   引入环境变量 `CLAUDE_CODE_OAUTH_TOKEN`，专门用于 CI 管道和脚本，无需浏览器登录。
+    *   注意：Bare mode（`--bare`）不支持此 Token，仍需使用 `ANTHROPIC_API_KEY`。
+
+*   **Hooks 匹配逻辑优化**
+    *   **匹配规则变更**：`matcher` 字段的评估方式现在取决于内容字符：
+        *   仅包含字母、数字、`_` 和 `|`：视为精确字符串或由 `|` 分隔的列表（如 `Bash|Edit`）。
+        *   包含其他字符（如 `.`、`*`）：视为 JavaScript 正则表达式。
+    *   **`FileChanged` 特殊处理**：该事件的 `matcher` 现在始终被视为由 `|` 分隔的字面文件名列表，而非正则表达式，用于构建监听列表。
+
+*   **文档结构重构**
+    *   术语“Built-in commands”统一更名为“Commands”。
+    *   “Bundled skills”（如 `/simplify`, `/batch`）的详细列表已从各页面移除，统一整合至 `/en/commands` 参考页面。
+
+*   **VS Code 扩展与包名更新**
+    *   VS Code 扩展设置中移除了 `selectedModel` 选项。
+    *   `New Conversation` 快捷键现在需要手动启用 `enableNewConversationShortcut` 设置。
+    *   NPM 包名示例从 `@anthropic/claude` 更新为 `@anthropic-ai/claude-code`。
+    *   增加了新的登录步骤说明及故障排查指南。
+
+*   **监控与可观测性**
+    *   明确了 `claude_code.api_error` 事件仅在重试耗尽后触发一次。
+    *   新增 `attempt` 属性说明，帮助区分是重试耗尽（值 &gt; 默认重试次数）还是不可重试错误。
+
+### 影响等级: **Medium**
+
+**理由**：
+虽然大部分是文档整理，但 **Hooks 匹配逻辑的改变属于潜在的行为变更**。如果开发者之前依赖某些特定模式作为正则表达式，而现在这些模式被识别为精确匹配字符串，可能会导致 Hook 不触发。VS Code 扩展设置（`selectedModel`）的移除也可能影响部分用户的配置习惯。
+
+### 开发者行动项
+
+1.  **审查 Hooks 配置**：检查现有 Hooks 中的 `matcher` 字段，特别是 `FileChanged` 事件。确保文件名列表使用 `|` 分隔，且正则表达式包含特殊字符（如 `.*`）以正确触发。
+2.  **采用新认证方式**：如果正在配置 CI/CD 流水线，建议使用 `claude setup-token` 替代 API Key，以获得更安全的订阅身份验证。
+3.  **更新脚本引用**：如果使用 NPM 安装 Claude Code，请将包名更新为 `@anthropic-ai/claude-code`。
+4.  **检查 VS Code 设置**：如果你使用 VS Code 扩展并依赖 `Cmd+N` (Mac) 或 `Ctrl+N` (Win/Linux) 开启新会话，需在设置中启用 `enableNewConversationShortcut`。如果依赖 `selectedModel` 设置模型，需寻找替代方案（如使用 `/model` 命令）。
+5.  **利用监控增强**：更新日志分析逻辑，利用 `attempt` 字段来精准区分瞬态故障（重试耗尽）和硬性错误（不可重试）。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Understand the Goal**: The user wants a concise, insightful batch analysis of documentation changes for a developer tool (Claude Code). The response must be in Chinese, focusing on what matters to developers, in markdown format.
+
+2.  **Analyze the Diffs**:
+
+    *   **checkpointing.md**: Change `Built-in commands` to `Commands`. Internal link update.
+    *   **claude-code-on-the-web.md**: Update link anchor from `#built-in-commands` to just `/en/commands`.
+    *   **cli-reference.md**: Add new command `claude setup-token`. Description: Generate long-lived OAuth token for CI/scripts.
+    *   **hooks.md**: Significant update to &#34;Matcher patterns&#34;.
+        *   Old: Matcher is always a regex.
+        *   New: Matcher evaluation depends on content.
+            *   `*`, `&#34;&#34;`, omitted: Match all.
+            *   Letters/digits/`_`/`|`: Exact string or `|`-separated list.
+            *   Other chars: Regex.
+        *   Explicit note on `FileChanged` exceptions (split by `|`).
+        *   Table update for `InstructionsLoaded` matcher values (added `compact`).
+    *   **hooks-guide.md**:
+        *   Clarify `FileChanged` behavior (literal filenames split by `|`, not regex).
+        *   Remove old table, link to hooks.md `Matcher patterns`.
+        *   Update `InstructionsLoaded` values.
+    *   **iam.md**:
+        *   Add `CLAUDE_CODE_OAUTH_TOKEN` env var to auth priority list (item 5, shifting subscription to 6).
+        *   New section &#34;Generate a long-lived token&#34;. Usage of `claude setup-token`.
+        *   Note: Token lasts one year, inference only (no Remote Control).
+        *   Note: Bare mode doesn&#39;t read this token.
+    *   **interactive-mode.md**:
+        *   Rename &#34;Built-in commands&#34; to &#34;Commands&#34;.
+        *   Text change to include plugins/MCP/commands in the `/` menu.
+        *   Link update.
+    *   **jetbrains.md**:
+        *   Update example NPM command from `npx @anthropic/claude` to `npx @anthropic-ai/claude-code`.
+    *   **monitoring-usage.md**:
+        *   Clarify `attempt` attribute definition.
+        *   New section &#34;Detect retry exhaustion&#34;. Explain retry behavior (only emits final error). Explain `attempt` vs `CLAUDE_CODE_MAX_RETRIES`.
+    *   **skills.md**:
+        *   Rename &#34;Built-in commands&#34; to &#34;commands&#34; in links.
+        *   Rewrite &#34;Bundled skills&#34; section. Removed detailed table of bundled skills (`/batch`, `/claude-api`, etc.). Now refers to `/en/commands` for the list.
+    *   **slash-commands.md**:
+        *   Similar to `skills.md` (content duplication removal/refactor). Removed detailed table, refers to `/en/commands`.
+    *   **vs-code.md**:
+        *   Add &#34;Sign in&#34; step to onboarding.
+        *   Troubleshooting for &#34;Not logged in&#34;.
+        *   Update &#34;New Conversation&#34; shortcut requirements (needs setting `enableNewConversationShortcut`).
+        *   Remove `selectedModel` from settings table (deprecated or moved?). Actually, looking at the diff, it&#39;s just removed from the specific table snippet shown. It implies `selectedModel` setting is removed from VS Code extension settings list.
+
+3.  **Synthesize Key Themes**:
+    *   **Terminology/Linking consolidation**: &#34;Built-in commands&#34; -&gt; &#34;Commands&#34;. Merging documentation for bundled skills and commands into a central reference (`/en/commands`).
+    *   **Authentication/CI Support**: New `claude setup-token` command and `CLAUDE_CODE_OAUTH_TOKEN` for CI/CD.
+    *   **Hooks Logic Refinement**: Matchers in hooks are smarter (string vs regex). `FileChanged` specifically uses pipe-separated literals.
+    *   **Monitoring Clarity**: Better documentation on retries and error detection.
+    *   **Tool Updates**: NPM package name update (`@anthropic-ai/claude-code`). VS Code setting changes.
+
+4.  **Assess Impact**:
+    *   **Level**: Medium.
+    *   **Reasoning**:
+        *   Auth changes are useful for CI but likely won&#39;t break existing workflows (adds a new env var).
+        *   Hooks matcher change is subtle but technically a behavior change if someone relied on complex regex patterns being treated differently, though the new logic tries to be &#34;smart&#34; (only regex if special chars are present). *Correction*: The diff says &#34;Contains any other character -&gt; JavaScript regular expression&#34;. So `Edit|Write` is exact list. `Edit.*` is regex. This is a *behavioral change* for hooks.
+        *   Doc restructuring (moving skills to commands page) is internal cleanup.
+
+5.  **Action Items for Developers**:
+    *   Review hooks if using complex matchers (especially `FileChanged`).
+    *   Adopt `claude setup-token` for CI pipelines to replace API keys where possible.
+    *   Update VS Code extension shortcuts/settings (check `enableNewConversationShortcut`).
+    *   Update NPM scripts if using the old package name.
+
+6.  **Drafting the Response (in Chinese)**:
+
+    *   *Summary*: Documentation consolidation regarding &#34;Commands&#34; and &#34;Bundled Skills&#34;, new CI authentication support, and refined Hook matching logic.
+    *   *Themes*:
+        *   Auth/CI: New `setup-token` command.
+        *   Hooks: Smarter matching (regex vs literal strings).
+        *   Doc Refactor: Merging &#34;Built-in commands&#34; and &#34;Bundled skills&#34; references.
+        *   Monitoring: Clarified retry behavior.
+    *   *Impact*: Medium. (Due to hooks behavior change and VS Code setting removal).
+    *   *Action Items*: Review hooks, update CI auth, update package name, check VS Code settings.
+
+7.  **Refining the Details**:
+    *   *Hooks Change*: Make sure to emphasize that `FileChanged` matcher syntax changed (now strictly `|` separated filenames).
+    *   *VS Code*: Note that `selectedModel` setting might be gone (based on diff), and `enableNewConversationShortcut` is needed for shortcuts.
+    *   *NPM*: `@anthropic/claude` -&gt; `@anthropic-ai/claude-code`.
+
+8.  **Final Polish (Markdown)**:
+    Ensure the tone is professional and &#34;world-class programmer&#34;.
+
+    *(Self-Correction during drafting)*: The diff for `vs-code.md` removed `selectedModel` from the table. This is a significant setting removal for the VS Code extension. I should mention this.
+
+9.  **Final Output Generation**.</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/checkpointing.html" class="page-link">checkpointing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/claude-code-on-the-web.html" class="page-link">claude-code-on-the-web.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/cli-reference.html" class="page-link">cli-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+32</span>
+                            <span class="removed">-22</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+19</span>
+                            <span class="removed">-19</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/iam.html" class="page-link">iam.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+11</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/interactive-mode.html" class="page-link">interactive-mode.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-8</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/jetbrains.html" class="page-link">jetbrains.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-11</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-11</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/vs-code.html" class="page-link">vs-code.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+18</span>
+                            <span class="removed">-14</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">11:17 EST</div>
