@@ -118,9 +118,127 @@
 
         <header>
             <h1>Changes on 2026-04-10</h1>
-            <p class="meta">5 total changes in 1 run</p>
+            <p class="meta">7 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">12:44 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 总体摘要
+
+文档更新明确了代码执行工具的模型兼容性矩阵，并限制了高级功能（如 REPL 状态持久化和沙箱内的程序化工具调用）仅限于最新的 Opus 和 Sonnet 模型（4.5 版本及以上），不再支持旧版本模型或 Haiku 系列使用这些新特性。
+
+### 关键变更点
+
+*   **细化的模型版本矩阵**：将模糊的“所有受支持模型”替换为详细的表格，列出了每个模型（如 Opus 4.6, Sonnet 4.5, Haiku 4.5 等）所支持的具体工具版本（`code_execution_20250825` vs `code_execution_20260120`）。
+*   **功能分级与限制**：明确指出 `code_execution_20260120` 版本新增的功能（REPL 状态持久化、程序化工具调用）**仅**在 Opus 4.5+ 和 Sonnet 4.5+ 上可用。
+*   **文档互斥性**：在“程序化工具调用”页面直接列出了支持的模型，并引用了代码执行工具的兼容性表，消除了歧义。
+
+### 影响等级
+
+**中等**
+
+虽然这是文档更新，但它揭示了重要的 API 行为限制。如果你的项目依赖于 `code_execution_20260120` 的新功能，但底层使用了 Haiku 或旧版 Opus/Sonnet，功能将不可用，且文档现已明确这种不兼容性。
+
+### 开发者行动项
+
+*   **核对模型版本**：如果使用了 `code_execution_20260120` 工具版本，请确认你的应用逻辑仅请求 Opus 4.5+ 或 Sonnet 4.5+ 模型，否则需降级至 `20250825` 版本。
+*   **功能适配**：若需要“从沙箱内调用工具”或“REPL 状态持久化”，必须升级到最新的旗舰模型（Opus/Sonnet 4.5 或 4.6）。
+*   **弃用处理**：注意表格中标记为已弃用的模型（如 Sonnet 3.7），规划迁移路径以避免未来中断。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer/developer tools expert.
+    *   **Task:** Analyze documentation changes in a batch.
+    *   **Input:** Two pages with diffs (`code-execution-tool.md` and `programmatic-tool-calling.md`).
+    *   **Output Format:** Markdown, concise, insightful, Chinese.
+    *   **Structure:** Overall Summary, Key Themes, Impact Level (with reasoning), Action Items.
+
+2.  **Analyze the Diffs:**
+
+    *   **Page 1: `agents-and-tools/tool-use/code-execution-tool.md`**
+        *   *Change:* Replaced a generic sentence (&#34;The code execution tool is available on all supported Claude models...&#34;) with a detailed compatibility table.
+        *   *Table Content:* Lists specific models (Opus 4.6, Sonnet 4.6, Opus 4.5, Sonnet 4.5, Haiku 4.5, etc.) and their supported tool versions (`code_execution_20250825`, `code_execution_20260120`).
+        *   *Note Update:* Clarified that `20260120` adds REPL state persistence and programmatic tool calling, and is *only* available on Opus 4.5+ and Sonnet 4.5+.
+        *   *Implication:* Strict version mapping introduced. Not all models support the latest features (REPL state persistence).
+
+    *   **Page 2: `agents-and-tools/tool-use/programmatic-tool-calling.md`**
+        *   *Change:* Updated model compatibility section.
+        *   *Specifics:* Previously referred to &#34;Tool reference&#34;. Now explicitly lists models supporting `code_execution_20260120` (Opus 4.6, Sonnet 4.6, Opus 4.5, Sonnet 4.5).
+        *   *Cross-reference:* Added a link to the code execution tool table for full details.
+        *   *Implication:* Reinforces that programmatic tool calling is restricted to the top-tier/newest models (Opus/Sonnet 4.5+).
+
+3.  **Synthesize Findings:**
+
+    *   *Overall:* Documentation now explicitly restricts advanced features (like sandboxed tool calling) to specific newer models, replacing vague availability claims with a strict version matrix.
+    *   *Themes:* Model versioning, feature gating, tool version specificity.
+    *   *Impact:* Medium. It&#39;s not breaking old code, but it clarifies limits. If a developer tries to use the new `code_execution_20260120` features on Haiku or older Opus versions, it won&#39;t work. This is crucial for architectural decisions.
+    *   *Action Items:* Developers need to check model compatibility before using new features. Update integration logic to handle version differences. Avoid using `20260120` on unsupported models.
+
+4.  **Draft the Response (in Chinese):**
+
+    *   *Summary:* 更新明确了模型与工具版本的兼容性矩阵，特别是限制了高级代码执行功能（如 REPL 状态持久化和沙箱内工具调用）仅适用于 Opus 4.5+ 和 Sonnet 4.5+ 模型。
+    *   *Themes:*
+        *   **版本细分:** 将“所有支持模型”改为具体的模型列表和对应的工具版本（`20250825` vs `20260120`）。
+        *   **功能分级:** 明确 `code_execution_20260120` 提供了更高级的功能（REPL 状态持久化、程序化工具调用），但仅限最新旗舰模型使用。
+        *   **跨文档一致性:** 两个页面均更新了具体的模型列表，确保信息准确且互相关联。
+    *   *Impact:* **Medium** (中等). 虽然没有删除功能，但严格的版本限制意味着如果开发者试图在旧模型（如 Haiku 或 Sonnet 3.7）上使用新版本工具功能，将会失败。
+    *   *Action Items:*
+        *   检查现有代码中使用的模型 ID，确认是否支持 `code_execution_20260120`。
+        *   如果需要使用“程序化工具调用”或“REPL 状态持久化”，必须升级到 Opus 4.5+ 或 Sonnet 4.5+。
+        *   更新应用逻辑以处理不同模型对应不同工具版本的差异。
+
+5.  **Refine and Polish (Chinese):**
+
+    *   *Reviewing specific terms:*
+        *   &#34;REPL state persistence&#34; -&gt; REPL 状态持久化.
+        *   &#34;Programmatic tool calling&#34; -&gt; 程序化工具调用.
+        *   &#34;Sandbox&#34; -&gt; 沙箱.
+
+    *   *Self-Correction during drafting:* The note in Page 1 mentions `code_execution_20260120` is available on &#34;Opus 4.5+ and Sonnet 4.5+&#34;. The table lists Opus 4.6 and Sonnet 4.6 as well. So it&#39;s the 4.5 series and 4.6 series. Haiku 4.5 only supports `20250825`. Older models (4.1, 4) only support `20250825`. The distinction is crucial.
+
+6.  **Final Output Generation:** (Proceed to generate markdown based on the drafted points).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/code-execution-tool.html" class="page-link">agents-and-tools/tool-use/code-execution-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+14</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/programmatic-tool-calling.html" class="page-link">agents-and-tools/tool-use/programmatic-tool-calling.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">03:20 EST</div>
