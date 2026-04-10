@@ -118,9 +118,151 @@
 
         <header>
             <h1>Changes on 2026-04-10</h1>
-            <p class="meta">25 total changes in 5 runs</p>
+            <p class="meta">28 total changes in 6 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">17:32 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更分析摘要
+
+### 1. 总体概述
+本次文档更新重点增强了企业网络环境下的证书管理能力，引入了新的环境变量以控制信任存储；同时清理了部分遥测事件的文档，并对 Bedrock Mantle 的配置细节进行了澄清。
+
+### 2. 跨页核心主题
+*   **证书存储控制**: 新增 `CLAUDE_CODE_CERT_STORE` 环境变量，允许开发者精细控制信任捆绑证书还是操作系统证书，以适应不同的企业安全策略。
+*   **企业级代理兼容**: 明确了对 TLS 检查代理（如 CrowdStrike Falcon, Zscaler）的原生支持，并区分了原生二进制与 Node.js 运行时的行为差异。
+*   **遥测事件清理**: 移除了关于“插件安装” 和“技能激活” 的事件记录文档，暗示相关监控能力已变更或调整。
+*   **配置澄清**: 明确了 `ANTHROPIC_SMALL_FAST_MODEL_AWS_REGION` 在 Bedrock 和 Mantle 端点之间的共享关系。
+
+### 3. 影响级别
+**Medium (影响中等)**
+
+**理由**: 虽然大部分为文档更新，但新增的证书存储配置对企业用户（尤其是使用内网代理的开发者）至关重要。移除的遥测事件可能会影响现有的监控仪表盘，需要开发者关注。
+
+### 4. 开发者行动项
+*   **更新监控查询**: 如果您的分析仪表盘依赖 `claude_code.plugin_installed` 或 `claude_code.skill_activated` 事件，请立即更新查询逻辑，因为这些事件已被移除。
+*   **检查企业代理配置**: 如果您在 Node.js 运行时下使用企业代理，需确保设置了 `NODE_EXTRA_CA_CERTS`，因为系统证书存储不会自动合并。
+*   **验证证书策略**: 在严格的安全环境中，根据需要调整 `CLAUDE_CODE_CERT_STORE` 设置（默认为 `bundled,system`），以确保仅信任指定的证书颁发机构。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Output Format:** Markdown, concise, insightful.
+    *   **Language:** Chinese (as requested: &#34;请用中文回复&#34;).
+    *   **Input:** Three changed pages (`amazon-bedrock.md`, `monitoring-usage.md`, `network-config.md`) with diffs.
+
+2.  **Analyze Page 1: `amazon-bedrock.md`**
+    *   *Diff Content:*
+        *   Added a comment noting that `ANTHROPIC_SMALL_FAST_MODEL_AWS_REGION` applies to &#34;Bedrock Mantle&#34;.
+        *   Added `ANTHROPIC_SMALL_FAST_MODEL_AWS_REGION` to the table of Mantle endpoint variables, describing it as the AWS region for the Haiku-class model (shared with Bedrock).
+    *   *Interpretation:* Clarification and expansion of configuration options for the Bedrock Mantle endpoint. It highlights that the &#34;small/fast&#34; model region setting is now shared between standard Bedrock and Mantle.
+
+3.  **Analyze Page 2: `monitoring-usage.md`**
+    *   *Diff Content:*
+        *   Removed the entire section regarding &#34;Plugin installed event&#34; (`claude_code.plugin_installed`).
+        *   Removed the entire section regarding &#34;Skill activated event&#34; (`claude_code.skill_activated`).
+    *   *Interpretation:* Removal of telemetry/event logging documentation for specific features (plugins and skills). This suggests either these events are no longer tracked, the schema changed significantly enough to warrant removal before re-adding, or the feature set is being deprecated/changed.
+
+4.  **Analyze Page 3: `network-config.md`**
+    *   *Diff Content:*
+        *   Added a new section &#34;CA certificate store&#34;.
+        *   Explained default behavior (bundled Mozilla + OS trust store).
+        *   Mentioned enterprise proxies (CrowdStrike, Zscaler) work if CA is in OS trust store.
+        *   Added a `&lt;Note&gt;` about native binary vs Node.js runtime regarding system CA merging.
+        *   Introduced `CLAUDE_CODE_CERT_STORE` environment variable (accepts `bundled`, `system`, or comma-separated combination). Default is `bundled,system`.
+        *   Updated the &#34;Custom CA certificates&#34; section text slightly to be more specific.
+    *   *Interpretation:* Significant enhancement in certificate management, specifically for enterprise environments using TLS-inspection proxies. It gives developers granular control over which CA stores are trusted (`bundled` vs `system`).
+
+5.  **Synthesize Key Themes:**
+    *   *Theme 1: Enhanced Configuration/Control.* Bedrock config gets clarity, and Network config gets a new specific toggle for certificate stores.
+    *   *Theme 2: Enterprise Support.* The network config changes are explicitly aimed at enterprise proxies (Zscaler, CrowdStrike).
+    *   *Theme 3: Telemetry Clean-up.* Removal of specific event logs suggests a change in monitoring capabilities or focus.
+
+6.  **Determine Impact Level:**
+    *   The CA certificate changes are important for enterprise users (Medium/High impact for them).
+    *   The Bedrock change is informational/clarification (Low impact).
+    *   The Monitoring change is a removal (Low impact for most, might affect dashboards relying on those specific events).
+    *   *Overall:* Medium. The network config update is the most substantial functional change.
+
+7.  **Draft Action Items:**
+    *   Check enterprise proxy setups (if applicable).
+    *   Update monitoring/analytics queries if relying on removed events.
+    *   Review Bedrock config if using Mantle endpoint.
+
+8.  **Translate and Format (Chinese):**
+
+    *   *Overall Summary:* 本次更新主要优化了网络配置中的证书管理，增强了企业环境下的兼容性，同时清理了部分遥测事件文档，并澄清了 Bedrock Mantle 的配置项。
+    *   *Key Themes:*
+        *   **证书存储控制**: 引入 `CLAUDE_CODE_CERT_STORE` 变量，允许开发者精细控制信任捆绑证书还是操作系统证书。
+        *   **企业环境支持**: 明确了对 TLS 检查代理（如 Zscaler, CrowdStrike）的支持逻辑。
+        *   **文档清理**: 移除了“插件安装”和“技能激活”事件的遥测文档。
+        *   **配置澄清**: 明确了 Bedrock Mantle 与小模型区域设置的共享关系。
+    *   *Impact Level:* **Medium** (影响中等)。主要针对使用企业代理或严格证书策略的开发者有较大影响。
+    *   *Action Items:*
+        *   若在 Node.js 环境下运行并使用企业代理，需检查 `NODE_EXTRA_CA_CERTS` 设置。
+        *   若有依赖 `claude_code.plugin_installed` 或 `claude_code.skill_activated` 事件的监控仪表盘，请及时更新查询逻辑。
+        *   在企业内网环境中，验证新的 `CLAUDE_CODE_CERT_STORE` 默认行为是否符合安全策略。
+
+9.  **Review against constraints:**
+    *   Concise? Yes.
+    *   Insightful? Yes, identified the enterprise focus and telemetry removal.
+    *   Markdown? Yes.
+    *   Chinese? Yes.
+
+10. **Final Polish:** Ensure terminology is accurate (e.g., &#34;CA certificate store&#34;, &#34;Telemetry&#34;). The translation looks solid.</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/amazon-bedrock.html" class="page-link">amazon-bedrock.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            
+                            <span class="removed">-18</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/network-config.html" class="page-link">network-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+10</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">16:30 EST</div>
