@@ -118,9 +118,185 @@
 
         <header>
             <h1>Changes on 2026-04-10</h1>
-            <p class="meta">28 total changes in 6 runs</p>
+            <p class="meta">33 total changes in 7 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">18:31 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 总体概览
+
+本次更新主要优化了企业级环境下的 **Hooks 管控机制**，允许管理员通过受信任的插件分发 Hooks；同时增强了 **PowerShell 的分布式追踪支持**，并明确了 **Subagent** 的工作目录隔离行为与状态栏通知的显示逻辑。
+
+### 关键主题
+
+*   **企业级安全管控优化**：针对 `allowManagedHooksOnly` 设置进行了逻辑完善。现在，即使开启了仅限托管 Hooks 的模式，管理员也可以通过 `enabledPlugins` 强制启用特定插件，从而允许这些受信任的插件运行 Hooks，实现了“严格封锁 + 特定豁免”的精细化治理。
+*   **跨平台可观测性增强**：追踪功能（`TRACEPARENT`）现已从 Bash 扩展到 **PowerShell** 子进程，Windows 用户可以实现端到端的分布式追踪。
+*   **Subagent 行为澄清**：明确指出 Subagent 继承主对话的当前工作目录，但其内部的 `cd` 命令**不会持久化**，也不会影响主对话。如需隔离环境，必须使用 `isolation: worktree`。
+*   **UI 交互细节调整**：澄清了状态栏通知的显示逻辑，区分了常驻通知（如 MCP 错误）和瞬时通知（如上下文过低警告）。
+
+### 影响程度
+
+**中等**
+本次变更主要是功能增强和文档澄清，不包含破坏性变更。对于企业管理员而言，Hooks 管控逻辑的调整提供了更高的灵活性；对于 Subagent 开发者，关于目录行为的澄清有助于避免逻辑错误。
+
+### 开发者行动清单
+
+*   **企业/插件开发者**：如果您的插件需要在 `allowManagedHooksOnly` 启用的企业环境中运行 Hooks，请确保您的插件被列入管理员的 `enabledPlugins` 白名单中。
+*   **Windows 开发者**：更新您的监控或调试脚本，利用 PowerShell 子进程自动继承的 `TRACEPARENT` 环境变量进行链路追踪。
+*   **Subagent 构建者**：请检查您的 Subagent 逻辑，如果需要独立的文件系统视图或持久化的目录变更，必须在 frontmatter 中设置 `isolation: worktree`，不要依赖 `cd` 命令。
+*   **运维人员**：在排查状态栏显示问题时，注意区分 MCP 错误（常驻显示）和上下文警告（轮播显示）的区别。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request**:
+    *   **Role**: World-class programmer/developer tools expert.
+    *   **Task**: Analyze documentation changes (5 pages) as a single batch.
+    *   **Format**: Markdown, concise, insightful.
+    *   **Language**: Chinese.
+    *   **Structure**: 1. Overall Summary, 2. Key Themes, 3. Impact Level, 4. Action Items.
+
+2.  **Analyze the Diffs**:
+
+    *   **`hooks.md`**:
+        *   *Change*: Updated the description of `allowManagedHooksOnly`.
+        *   *Detail*: Added that plugins force-enabled in `enabledPlugins` (managed settings) are exempt from the block. This allows admins to distribute vetted hooks via an organization marketplace.
+        *   *Implication*: Enterprise feature refinement for managing security while allowing specific trusted plugins to run hooks.
+
+    *   **`monitoring-usage.md`**:
+        *   *Change*: Updated tracing description.
+        *   *Detail*: Added &#34;PowerShell&#34; to the list of subprocesses inheriting `TRACEPARENT` (previously just &#34;Bash&#34;).
+        *   *Implication*: Better tracing support for Windows/PowerShell users.
+
+    *   **`settings.md`**:
+        *   *Change 1*: Updated table description for `allowManagedHooksOnly`. Same change as `hooks.md` (enterprise marketplace exemption).
+        *   *Change 2*: Updated the detailed behavior section for `allowManagedHooksOnly`. Clarified that trust is granted by full `plugin@marketplace` ID.
+        *   *Implication*: Reinforces the enterprise control mechanism.
+
+    *   **`statusline.md`**:
+        *   *Change*: Updated system notifications description.
+        *   *Detail*: Removed &#34;token warnings&#34; from the list of *always* visible notifications and clarified how &#34;transient notifications&#34; (like context-low warning) cycle through that area.
+        *   *Implication*: Clarification of UI behavior regarding how warnings are displayed vs. cycled.
+
+    *   **`sub-agents.md`**:
+        *   *Change*: Added a new paragraph explaining working directory behavior.
+        *   *Detail*: Subagents start in the main CWD. `cd` commands *do not persist* between Bash/PowerShell tool calls or affect the main conversation. Suggests `isolation: worktree` for a clean copy.
+        *   *Implication*: Important behavior clarification for developers building subagents.
+
+3.  **Synthesize and Categorize**:
+
+    *   **Theme 1: Enterprise/Hook Security**: The bulk of the text changes (hooks.md, settings.md) relate to refining how administrators control hooks. Specifically, allowing a curated list of plugins (from the marketplace) to bypass strict lockdowns.
+    *   **Theme 2: Cross-Platform &amp; Tracing**: Adding PowerShell support for distributed tracing (`monitoring-usage.md`).
+    *   **Theme 3: Behavior Clarification**: `sub-agents.md` clarifies CWD persistence, and `statusline.md` clarifies notification cycling.
+
+4.  **Drafting the Response (in Chinese)**:
+
+    *   *Overall Summary*: 本次文档更新主要完善了企业级 Hook 管理机制，增加了对 PowerShell 追踪的支持，并澄清了 Subagent 的目录隔离行为。
+    *   *Key Themes*:
+        *   **企业级安全与 Hook 管理**: 允许管理员通过 `allowManagedHooksOnly` 锁定 Hook，但豁免强制启用的可信插件（通过 `enabledPlugins`）。
+        *   **可观测性增强**: PowerShell 子进程现在继承 `TRACEPARENT` 环境变量，支持端到端分布式追踪。
+        *   **行为澄清**: 明确了 Subagent 内部 `cd` 命令不会持久化，也不影响主对话；澄清了状态栏通知的显示逻辑。
+    *   *Impact Level*: Medium. The hooks changes are significant for enterprise admins but don&#39;t break things. PowerShell support is an enhancement. Subagent behavior clarification prevents potential bugs in workflows.
+    *   *Action Items*:
+        *   **企业管理员**: 如果使用 `allowManagedHooksOnly`，现在可以通过 `enabledPlugins` 白名单分发经过审核的 Hook 插件。
+        *   **Windows 开发者**: 注意 PowerShell 脚本现在会自动继承追踪上下文，可利用此进行调试。
+        *   **Subagent 开发者**: 如需持久化目录变更或隔离环境，请使用 `isolation: worktree`，不要依赖 Subagent 内部的 `cd` 命令。
+
+5.  **Refining the Output**:
+    *   Make it punchy.
+    *   Ensure technical terms are correct (managed settings, force-enabled, worktree).
+
+    *   *Drafting Action Items*:
+        1.  Enterprise admins should review the new hook exemption logic for distributing vetted plugins.
+        2.  Windows users can now expect distributed tracing in PowerShell subprocesses.
+        3.  Subagent creators must use `isolation: worktree` for repository isolation, as `cd` does not persist between tool calls.
+
+    *   *Drafting Impact*: Medium. While mostly clarifications and enhancements, the enterprise hook logic changes how policies are enforced.
+
+6.  **Final Polish (Chinese)**:
+    *   Summary: 本次更新强化了企业环境下的 Hooks 管控能力（允许受信任插件豁免），扩展了 PowerShell 的分布式追踪支持，并明确了 Subagent 的工作目录隔离机制。
+    *   Themes: 企业安全增强 (Hooks), 跨平台追踪, 行为规范澄清.
+    *   Impact: Medium.
+    *   Action Items: ...
+
+7.  **Final Review against constraints**: Single batch analysis? Yes. Markdown? Yes. Chinese? Yes. Concise? Yes.
+
+    *Self-Correction during drafting*: Make sure to explicitly mention that the hook change allows distributing hooks via an organization marketplace, as that&#39;s the specific &#34;why&#34; mentioned in the text.
+
+    Let&#39;s write the final output.</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/statusline.html" class="page-link">statusline.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">17:32 EST</div>
