@@ -118,9 +118,241 @@
 
         <header>
             <h1>Changes on 2026-04-13</h1>
-            <p class="meta">16 total changes in 4 runs</p>
+            <p class="meta">25 total changes in 5 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">19:38 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">以下是对本次文档变更的深入分析：
+
+### 1. 总体摘要
+本次更新显著增强了 Claude Code 的插件生态和扩展能力，同时改进了开发者调试体验。核心变更包括：插件现在支持打包后台监控器和自定义子代理状态栏，技能支持无需重启的热重载，以及 `PreCompact` Hook 新增了阻塞操作的能力。
+
+### 2. 关键变更主题
+*   **插件系统能力扩展**：插件 manifest 新增 `monitors` 字段，允许插件随附自动武装的后台监控任务；`settings.json` 现在支持配置 `subagentStatusLine`，插件可自定义子代理在面板中的显示样式。
+*   **Hook 控制粒度提升**：`PreCompact` Hook 的行为从仅显示 stderr 升级为支持阻塞压缩操作（通过顶层 `decision` 字段），开发者可更精细地控制维护流程。
+*   **开发体验 (DX) 优化**：技能目录现在支持文件变动的实时检测。在 `~/.claude/skills/`、项目目录或 `--add-dir` 目录下编辑技能文件会立即生效，无需重启 Claude Code。
+*   **可观测性增强**：新增 `claude_code.plugin_installed` 和 `claude_code.skill_activated` 两个遥测事件，用于追踪插件的安装来源、版本及技能的调用情况。
+*   **配置加载逻辑调整**：通过 `--add-dir` 添加的目录现在也会加载其中的 `CLAUDE.local.md` 文件（此前明确不加载），改善了共享配置的灵活性。
+
+### 3. 影响等级：Medium
+**理由**：此次变更均为**向后兼容**的功能增强。虽然插件开发者和重度用户会获得显著的扩展能力和效率提升，但现有代码和配置无需修改即可继续工作，没有破坏性变更。
+
+### 4. 开发者行动项
+*   **插件作者**：检查是否可以利用新的 `monitors` 功能在插件中打包后台监控任务，或利用 `subagentStatusLine` 提供更丰富的子代理 UI 展示。
+*   **技能开发者**：利用新引入的**热重载**功能，直接在现有会话中迭代和调试技能代码，无需频繁重启。
+*   **运维/监控**：利用新增的 `plugin_installed` 和 `skill_activated` 事件来分析团队对插件和技能的使用模式及来源。
+*   **Hook 用户**：如需控制数据库压缩时机，可更新 `PreCompact` Hook 脚本，返回 `{ &#34;decision&#34;: &#34;block&#34;, &#34;reason&#34;: &#34;...&#34; }` 来阻止压缩。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Understand the Goal**: The user wants a concise, insightful analysis of a batch of documentation changes for what appears to be a developer tool (Claude Code). The output needs to be in Chinese, Markdown format, focusing on what matters to developers.
+
+2.  **Analyze the Input Data**:
+    *   **hooks.md**:
+        *   `PreCompact` hook behavior changed from &#34;No&#34; (shows stderr only) to &#34;Yes&#34; (Blocks compaction).
+        *   Updated decision pattern table: `PreCompact` moved from &#34;None&#34; to &#34;Top-level `decision`&#34;.
+        *   *Significance*: Developers can now block the compaction process via hooks, offering more control over maintenance operations.
+
+    *   **interactive-mode.md**:
+        *   Table reformatting (columns wrapped differently, likely due to width constraints or formatting cleanup).
+        *   Content seems largely the same, just a diff rendering artifact. No *functional* change detected, just visual layout in the diff provided.
+
+    *   **memory.md**:
+        *   Change: `CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD` now loads `CLAUDE.local.md` from additional directories (previously explicitly stated it did *not*).
+        *   *Significance*: Better configuration portability across shared directories.
+
+    *   **monitoring-usage.md**:
+        *   Added `claude_code.plugin_installed` event (logs when a plugin finishes installing). Attributes include plugin name, version, marketplace info, install trigger (cli/ui).
+        *   Added `claude_code.skill_activated` event (logs when a skill is invoked). Attributes include skill name, source, plugin ownership, marketplace info.
+        *   *Significance*: Enhanced observability for plugin and skill usage.
+
+    *   **plugins.md**:
+        *   Plugin `settings.json` support expanded. Previously only `agent` key was supported. Now `agent` and `subagentStatusLine` keys are supported.
+        *   *Significance*: Plugins can now ship custom status line configurations for subagents.
+
+    *   **plugins-reference.md**:
+        *   Added `monitors` field to component path fields (description: Background Monitor configurations that auto-arm).
+        *   Updated path behavior rules to include `monitors`.
+        *   Updated file locations reference to include `monitors/`.
+        *   *Significance*: Plugins can now package background monitors.
+
+    *   **skills.md** (and **slash-commands.md** - duplicate diff provided):
+        *   Added &#34;Live change detection&#34; section: Skills directories are watched. Changes take effect without restart. *Exception*: Creating a new top-level directory requires restart.
+        *   Updated &#34;Skills from additional directories&#34; to reference the new live change detection section.
+        *   *Significance*: Improved developer experience (DX) for skill development—no need to restart to test changes.
+
+    *   **statusline.md**:
+        *   Added `subagentStatusLine` setting section. Allows custom rendering for subagent rows in the agent panel.
+        *   Supports command-based configuration (JSON input/output).
+        *   *Significance*: Extends customizability of the UI, specifically for multi-agent scenarios.
+
+3.  **Synthesize Key Themes**:
+    *   **Extensibility &amp; Plugins**: Plugins can now ship `monitors`, `subagentStatusLine`, and better `settings.json`.
+    *   **Hook Control**: `PreCompact` hook is now blocking.
+    *   **Observability**: New telemetry events for plugins and skills.
+    *   **Configuration &amp; Memory**: `CLAUDE.local.md` loading behavior expanded.
+    *   **Developer Experience (DX)**: Skills now have live change detection (hot reload).
+
+4.  **Determine Impact Level**:
+    *   It&#39;s not breaking (mostly additions).
+    *   It&#39;s high value for plugin developers (new capabilities).
+    *   It&#39;s medium-high value for general users (better hooks, better config loading).
+    *   *Verdict*: Medium-High. I&#39;ll stick with &#34;Medium&#34; because while the features are cool, they are additive and backward compatible, not forcing a migration.
+
+5.  **Draft Action Items**:
+    *   Update hook scripts if relying on `PreCompact` (though unlikely to break, just new capability).
+    *   Use live change detection for skill dev.
+    *   Add monitors to plugins.
+    *   Update `settings.json` in plugins for subagent status lines.
+    *   Monitor new telemetry events for insights.
+
+6.  **Translate to Chinese &amp; Format**:
+
+    *   *Summary*: 文档更新主要集中在增强插件系统、Hook 控制能力以及开发者体验。新增了 `PreCompact` Hook 阻塞功能、技能的热重载支持，以及插件对监控器和状态栏的自定义能力。
+    *   *Themes*:
+        *   插件扩展性增强: 插件现在支持打包 `monitors` 和自定义 `subagentStatusLine`。
+        *   Hook 功能增强: `PreCompact` Hook 现在支持阻塞压缩操作。
+        *   开发体验改进 (DX): 技能文件支持热更新，无需重启会话。
+        *   可观测性提升: 新增插件安装和技能激活的遥测事件。
+        *   配置加载优化: `--add-dir` 现在也会加载 `CLAUDE.local.md`。
+    *   *Impact*: Medium. (Reason: 功能均为向后兼容的增量更新，提供了更细粒度的控制和更好的 DX)。
+    *   *Action Items*:
+        *   Plugin Authors: 考虑在插件中加入 `monitors.json` 和 `subagentStatusLine` 配置。
+        *   Skill Developers: 利用新的热重载功能，无需重启即可调试技能。
+        *   Observability: 利用新的 `plugin_installed` 和 `skill_activated` 事件分析使用情况。
+        *   Hook Users: 检查 `PreCompact` Hook，现在可以用它来控制数据库压缩。
+
+7.  **Refine Content**: Ensure the tone is professional (&#34;world-class programmer&#34;). The `interactive-mode.md` diff was just formatting, so ignore it in the summary to avoid noise. The `skills.md` and `slash-commands.md` diffs are identical, treat as one change.
+
+    *Self-Correction during drafting*: Make sure to mention that `PreCompact` changing from &#34;No&#34; to &#34;Yes&#34; is a significant shift in capability for users managing compacting.
+
+8.  **Final Output Generation** (Mental Check against prompt requirements):
+    *   Concise? Yes.
+    *   Insightful? Yes.
+    *   Markdown? Yes.
+    *   Chinese? Yes.
+    *   Developer focus? Yes.
+
+    *Drafting the response...*</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+16</span>
+                            <span class="removed">-14</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/interactive-mode.html" class="page-link">interactive-mode.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+19</span>
+                            <span class="removed">-19</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/memory.html" class="page-link">memory.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+17</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins.html" class="page-link">plugins.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+31</span>
+                            <span class="removed">-26</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+20</span>
+                            <span class="removed">-17</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+20</span>
+                            <span class="removed">-17</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/statusline.html" class="page-link">statusline.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">18:38 EST</div>
