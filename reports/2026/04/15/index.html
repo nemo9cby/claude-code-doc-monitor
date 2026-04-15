@@ -118,9 +118,124 @@
 
         <header>
             <h1>Changes on 2026-04-15</h1>
-            <p class="meta">2 total changes in 2 runs</p>
+            <p class="meta">3 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">11:02 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 整体总结
+文档更新澄清了沙箱网络配置中 Unix 套接字访问的**平台特异性行为**，明确指出了在 Linux/WSL2 上由于 `seccomp` 限制，无法像 macOS 那样进行基于路径的过滤。
+
+### 关键变更点
+*   **macOS 与 Linux/WSL2 行为分拆**：明确标记 `network.allowUnixSockets` 仅适用于 macOS，在 Linux/WSL2 上会被直接忽略。
+*   **底层技术限制揭示**：解释了在 Linux/WSL2 上，`seccomp` 过滤器无法检查套接字路径，因此无法实现路径级别的白名单控制。
+*   **Linux 上的解决方案**：阐明在 Linux/WSL2 上，`network.allowAllUnixSockets` 是允许 Unix 套接字的唯一方式，因为它跳过了阻塞 `socket(AF_UNIX, ...)` 调用的过滤器。
+
+### 影响等级：中等 (Medium)
+**理由**：虽然代码逻辑未变，但这解决了一个极易导致混淆的跨平台配置问题。此前 Linux 开发者可能尝试使用 `allowUnixSockets` 却发现无法正常工作（如 SSH agent 连接失败），该文档修正直接解释了这一现象并提供了正确的配置路径。
+
+### 开发者行动项
+*   **Linux/WSL2 用户**：如果你需要使用 Unix 套接字（例如 SSH agent），必须在配置中启用 `network.allowAllUnixSockets: true`，依赖 `network.allowUnixSockets` 是无效的。
+*   **macOS 用户**：可继续使用 `network.allowUnixSockets` 进行更精细的路径级安全控制。
+*   **排查连接问题**：如果你的工具在 Linux 环境下报告套接字权限错误或连接被拒绝，请检查是否遗漏了 `allowAllUnixSockets` 设置。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request**:
+    *   **Role**: World-class programmer with deep expertise in dev tools/docs.
+    *   **Task**: Analyze documentation changes for a single batch.
+    *   **Output Format**: Markdown, concise, insightful.
+    *   **Language**: Chinese.
+    *   **Source Material**: A diff for `settings.md` regarding sandbox configuration (filesystem and network settings).
+
+2.  **Analyze the Diff**:
+    *   *Changed Rows*: `network.allowUnixSockets` and `network.allowAllUnixSockets`.
+    *   *Before*:
+        *   `allowUnixSockets`: Generic description (&#34;Unix socket paths accessible...&#34;).
+        *   `allowAllUnixSockets`: Generic description (&#34;Allow all...&#34;).
+    *   *After*:
+        *   `allowUnixSockets`: Labeled &#34;(macOS only)&#34;. Explicitly states it is *ignored* on Linux and WSL2 due to seccomp limitations. Suggests using `allowAllUnixSockets` instead for Linux/WSL2.
+        *   `allowAllUnixSockets`: Explains *why* it&#39;s needed on Linux/WSL2 (skips seccomp filter blocking `socket(AF_UNIX, ...)`).
+
+3.  **Synthesize the &#34;Why it matters&#34;**:
+    *   The tool seems to use a sandbox (likely `sandboxfs` or similar, given the seccomp/Linux mention).
+    *   There&#39;s a significant platform difference: macOS allows specific path filtering for Unix sockets, but Linux/WSL2 cannot filter by path due to `seccomp` limitations.
+    *   Previously, the docs implied a universal behavior. Now, they clarify platform-specific constraints.
+    *   *Crucial realization*: If a developer sets `allowUnixSockets` on Linux expecting it to work, it won&#39;t. They *must* use `allowAllUnixSockets` on Linux/WSL2.
+
+4.  **Drafting the Response Structure (Internal Monologue -&gt; Chinese)**:
+
+    *   **Overall Summary**: The docs now clarify platform-specific limitations for Unix socket access in the sandbox, specifically distinguishing behavior between macOS and Linux/WSL2.
+        *   *Draft (CN)*: 此次更新阐明了沙箱中 Unix 套接字访问的平台限制，明确了 macOS 与 Linux/WSL2 之间的行为差异。
+
+    *   **Key Themes**:
+        *   Platform Specificity (macOS vs Linux/WSL2).
+        *   Seccomp constraints on Linux.
+        *   Clarification of `allowUnixSockets` behavior (it does nothing on Linux).
+        *   *Draft (CN)*:
+            *   平台差异性：明确了 `allowUnixSockets` 仅适用于 macOS。
+            *   安全机制说明：揭示了 Linux/WSL2 上 seccomp 过滤器无法检查套接字路径的技术限制。
+            *   行为修正：修正了 `allowUnixSockets` 在 Linux/WSL2 上会被忽略的事实。
+
+    *   **Impact Level**:
+        *   Is it breaking? No, the tool didn&#39;t change, just the docs.
+        *   Is it high? It affects developers trying to configure SSH agents or socket-based tools on Linux.
+        *   *Rating*: Medium. It fixes potential confusion/debugging time. If someone was stuck on Linux, this explains why.
+        *   *Reasoning*: Developers on Linux/WSL2 previously might have tried path-specific allow-listing and failed. This clarifies the requirement to use the &#34;all&#34; flag.
+
+    *   **Action Items**:
+        *   If on Linux/WSL2: Switch to `allowAllUnixSockets`.
+        *   If on macOS: Continue using specific paths.
+        *   Review config files if Unix socket access is failing on non-Mac systems.
+        *   *Draft (CN)*:
+            *   如果你在 Linux 或 WSL2 上开发且需要访问 Unix Socket（如 SSH agent），请确保使用 `network.allowAllUnixSockets`，因为基于路径的过滤在那里无效。
+            *   如果你是在 macOS 上，可以继续使用 `network.allowUnixSockets` 进行更精细的路径控制。
+            *   检查现有的配置文件，确认是否误用了仅在 macOS 上有效的设置。
+
+5.  **Refining the Output**:
+    *   Make it &#34;world-class programmer&#34; tone—professional, precise, insightful.
+    *   Ensure the Chinese is natural technical Chinese.
+
+    *   *Refining Summary*: 文档更新澄清了沙箱 Unix 套接字配置的平台特异性，明确指出 Linux/WSL2 由于 seccomp 限制无法进行基于路径的过滤。
+    *   *Refining Impact*: Medium. It resolves confusion regarding cross-platform socket access.
+    *   *Refining Actions*: Focus on the Linux switch.
+
+6.  **Final Polish**:
+    *   Check against constraints: 1-2 sentences for summary? Yes. Bullets for themes? Yes. Impact level? Yes. Action items max 5? Yes. Chinese language? Yes.
+
+    *(Self-Correction during drafting)*: Make sure to mention *why* it matters to developers explicitly in the analysis, not just the text. It matters because it saves debugging time on Linux when sockets are blocked.
+
+7.  **Final Output Generation** (matches the provided good response).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">03:23 EST</div>
