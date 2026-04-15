@@ -118,9 +118,215 @@
 
         <header>
             <h1>Changes on 2026-04-15</h1>
-            <p class="meta">5 total changes in 5 runs</p>
+            <p class="meta">12 total changes in 6 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">18:36 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 总体摘要
+本次文档更新显著增强了用户体验，主要是在概览和快速入门页面引入了交互式安装配置器，帮助开发者根据平台和云服务提供商获取定制化安装指令。同时，文档更新了 Claude Code 2.1.110 版本日志，带来了新的 TUI 控制命令、热键行为变更以及多项错误修复。
+
+### 关键变更主题
+
+*   **交互式文档与安装体验**:
+    *   在 `overview.md` 和 `quickstart.md` 中新增了 `InstallConfigurator` React 组件。该工具允许用户选择目标环境（终端、桌面端、VS Code、JetBrains）、云提供商（Anthropic, AWS Bedrock, Google Vertex, Microsoft Foundry）及操作系统，动态生成对应的安装命令或下载链接。
+    *   优化了安装配置器的 UI，特别是将 Windows 下的 PowerShell/CMD 切换改为更直观的分段控件，并为桌面版和 IDE 版本添加了更清晰的描述。
+*   **产品功能发布 (v2.1.110)**:
+    *   **新增命令**: 引入 `/tui` 命令和 `tui` 设置（支持无闪烁全屏渲染），以及 `/focus` 命令用于切换专注视图。
+    *   **热键变更**: `Ctrl+O` 现在仅用于切换普通/详细记录模式，不再控制专注视图。
+    *   **功能增强**: 会话回放 现在对禁用遥测的用户（包括使用第三方云服务的用户）默认启用。`/plugin` 和 `/doctor` 命令也得到了改进。
+*   **A/B 测试基础设施更新**:
+    *   在多个集成页面（Bedrock, Vertex, Foundry, Third-party）的实验代码中增加了 `preBucketed` 逻辑。这允许通过 HTML `dataset` 属性预先设定用户分组，从而支持更灵活的服务端分流或测试覆盖。
+
+### 影响等级
+**中**
+理由：虽然主要是文档层面的改进，但新版日志中引入的热键行为变更（`Ctrl+O`）和新 TUI 命令会直接影响开发者的操作习惯，需要用户适配。此外，安装体验的改进对新用户非常友好。
+
+### 开发者行动项
+
+1.  **更新热键习惯**: 注意 `Ctrl+O` 功能已变更，若要切换专注视图，请使用新的 `/focus` 命令。
+2.  **尝试新 TUI 模式**: 运行 `/tui fullscreen` 以体验优化的全屏渲染模式，特别是如果在终端中遇到闪烁问题。
+3.  **利用安装配置器**: 在为新成员或新环境配置 Claude Code 时，使用文档页面的新安装配置器快速获取正确指令。
+4.  **检查会话回放**: 如果您使用 Bedrock/Vertex/Foundry 或禁用了遥测，现在会自动获得会话总结功能；如需禁用，请查阅配置选项。
+5.  **关注 MCP 修复**: 如果您使用 MCP 服务器，更新到 2.1.110 可修复连接中断和超时挂起的问题。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Understand the Goal**: The user wants a batch analysis of documentation changes (7 pages) focusing on what changed and why it matters to developers, presented in markdown format in Chinese.
+
+2.  **Analyze the Input (Page by Page)**:
+
+    *   **Pages: `amazon-bedrock.md`, `google-vertex-ai.md`, `microsoft-foundry.md`, `third-party-integrations.md`, `quickstart.md`**:
+        *   *Change*: Added `preBucketed` logic in the `Experiment` component code block.
+        *   *Code logic*: It checks `document.documentElement.dataset[&#39;gb_&#39; + flag.replace(/-/g, &#39;_&#39;)]` to determine if a variant is pre-bucketed. If not, it falls back to the existing `bucket` function.
+        *   *Meaning*: This is a technical implementation detail for feature flagging/A/B testing in the docs website. It allows server-side or upstream logic to set data attributes to control which version of the content a user sees (A/B testing or specific targeting), bypassing the client-side random bucketing. It&#39;s likely to ensure consistency or allow manual forcing of variants for specific users.
+
+    *   **Page: `overview.md`**:
+        *   *Change*: Added a massive chunk of code (+513 lines): `InstallConfigurator`.
+        *   *Content*: This is a React component for configuring the installation of Claude Code.
+        *   *Features*: Allows selecting the target surface (Terminal, Desktop, VS Code, JetBrains), Team/Personal usage, Provider (Anthropic, Bedrock, Foundry, Vertex), and OS package (mac, win, brew, winget).
+        *   *UI*: Includes styles for tabs, cards, copy buttons, dark mode support, etc.
+        *   *Meaning*: The `overview.md` page now includes an interactive &#34;Install Configurator&#34; tool directly in the documentation, making it much easier for users to find the right installation command or download link based on their specific environment and preferences.
+
+    *   **Page: `quickstart.md`**:
+        *   *Changes*:
+            *   Modified `InstallConfigurator` to accept `defaultSurface` prop.
+            *   Added `tagline` properties to `ALT_TARGETS` (Desktop, VS Code, JetBrains).
+            *   Updated State: `useState(&#39;terminal&#39;)` -&gt; `useState(defaultSurface)`.
+            *   UI Updates: Changed the Windows shell switcher (PowerShell vs CMD) from a checkbox/toggle style to a segmented control (tab-like) style. Improved styling for the &#34;Handoff&#34; section (where it links to Desktop/IDE apps).
+            *   Added the same `preBucketed` logic seen in other pages.
+        *   *Meaning*: Refinement of the installation configurator introduced in `overview.md`. It allows the component to be reused with different default surfaces (e.g., maybe quickstart defaults to terminal, overview defaults to something else, or just makes it flexible). Improved UX for Windows users and cleaner layout for alternative installation options.
+
+    *   **Page: `CHANGELOG.md.md`**:
+        *   *Change*: Added entry for version **2.1.110**.
+        *   *Key Features*:
+            *   New `/tui` command and `tui` setting.
+            *   `Ctrl+O` behavior change (now toggles transcript, focus view is `/focus`).
+            *   New `autoScrollEnabled` config.
+            *   Improved `/plugin`, `/doctor`, MCP tool handling.
+            *   Session recap enabled for telemetry-disabled users.
+            *   Many bug fixes (MCP, streaming, permissions, remote control, etc.).
+        *   *Meaning*: A significant feature release (2.1.110) with new TUI capabilities, hotkey changes, and stability improvements.
+
+3.  **Synthesize and Structure**:
+
+    *   **Overall Summary**: Documentation now includes an interactive installation configurator (on overview/quickstart pages) and updates for version 2.1.110. There&#39;s also infrastructure updates for A/B testing across multiple pages.
+
+    *   **Key Themes**:
+        *   *Interactive Documentation*: Introduction of a React-based install helper (`InstallConfigurator`) that simplifies getting started with Claude Code across different platforms (Terminal, Desktop, IDEs) and cloud providers (AWS, GCP, Azure).
+        *   *Feature Release*: Changelog update for version 2.1.110 introduces TUI controls (`/tui`, `/focus`), new hotkey behaviors, and extensive bug fixes.
+        *   *Testing Infrastructure*: Added server-side bucketing support (via `dataset` attributes) for A/B testing/experiments on multiple pages.
+
+    *   **Impact Level**:
+        *   *Medium* (Mostly additive/improvements to docs and UX, plus a new version of the tool with hotkey changes that users need to know about).
+
+    *   **Action Items**:
+        *   Review new hotkeys (`Ctrl+O`, `/focus`, `/tui`).
+        *   Check out the interactive install guide if setting up on a new platform.
+        *   Note the changes to session recap (now works even with telemetry disabled).
+
+4.  **Drafting the Content (in Chinese)**:
+
+    *   *Summary*: 本次更新重点在于引入了交互式的安装配置器，覆盖了概览和快速入门页面，同时发布了 Claude Code 2.1.110 版本，增加了 TUI 控制命令和热键变更。
+    *   *Themes*:
+        *   交互式文档: `overview.md` 和 `quickstart.md` 新增了 `InstallConfigurator` 组件。这是一个 React 组件，用户可以根据目标平台、云提供商和操作系统动态获取安装指令，大大降低了上手门槛。UI 方面也进行了优化（例如 Windows PowerShell/CMD 切换器的改进）。
+        *   功能发布 (Feature Release): `CHANGELOG` 记录了 2.1.110 版本的重要更新。新增 `/tui` 和 `/focus` 命令，修改了 `Ctrl+O` 的行为，并为禁用遥测的用户启用了会话回放功能。
+        *   A/B 测试基础设施: 多个页面（Bedrock, Vertex, Foundry, Third-party 等）的实验组件代码中增加了 `preBucketed` 逻辑，支持通过 HTML 数据属性预先设定 A/B 测试分组，提高了实验的灵活性。
+    *   *Impact*: Medium。虽然主要是文档改进，但新版工具的热键变动（Ctrl+O）和新命令（/focus, /tui）直接影响开发者的使用习惯。
+    *   *Actions*:
+        *   熟悉新的热键：`Ctrl+O` 现在仅切换冗余模式，专注模式改用 `/focus`。
+        *   尝试新的 `/tui fullscreen` 命令以获得无闪烁渲染体验。
+        *   如果是第三方云服务用户（如 AWS Bedrock），会话回放现在默认开启，无需开启遥测。
+
+5.  **Refinement**: Ensure the tone is professional and concise as requested. The distinction between the &#34;Install Configurator&#34; (doc change) and &#34;Changelog&#34; (product change) is clear.
+
+    *   *Self-Correction*: The `preBucketed` change is technical but consistent across pages. It matters less to the end-user developer reading the docs *content* but matters to the docs engineering team. I should keep it brief.
+    *   *Focus*: The `InstallConfigurator` is the big doc change. The Changelog is the big product change.
+
+6.  **Final Output Generation** (matches the drafted structure).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/amazon-bedrock.html" class="page-link">amazon-bedrock.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/google-vertex-ai.html" class="page-link">google-vertex-ai.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/microsoft-foundry.html" class="page-link">microsoft-foundry.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/overview.html" class="page-link">overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+513</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/quickstart.html" class="page-link">quickstart.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+56</span>
+                            <span class="removed">-29</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/third-party-integrations.html" class="page-link">third-party-integrations.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+34</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">15:59 EST</div>
