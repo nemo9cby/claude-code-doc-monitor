@@ -118,9 +118,442 @@
 
         <header>
             <h1>Changes on 2026-04-16</h1>
-            <p class="meta">78 total changes in 4 runs</p>
+            <p class="meta">103 total changes in 5 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">16:42 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 总体摘要
+
+本次文档更新集中改进了云端环境的运行机制（引入文件系统缓存），大幅增强了插件与 MCP 服务器的功能（新增后台监控、自动重连及 OAuth 精细化控制），并显著优化了 CLI 的交互体验（如增强的会话恢复选择器和命令拼写纠错）。
+
+### 关键变更主题
+
+*   **云端环境与缓存策略**
+    *   引入 **环境缓存**，Setup Script 产生的文件会被快照并在后续会话中复用，但**运行的进程不会持久化**。
+    *   明确了 Setup Scripts（缓存、仅云端）与 SessionStart Hooks（每次运行、本地+云端）的区别。
+*   **插件与 MCP 能力增强**
+    *   新增 **Background Monitors** 功能，允许插件定义后台进程监控日志或状态，无需手动启动。
+    *   MCP HTTP/SSE 服务器支持 **自动重连**（指数退避机制）。
+    *   新增 `oauth.scopes` 配置，支持精确限制 OAuth 授权范围。
+*   **CLI 交互体验优化**
+    *   `/resume` 选择器新增快捷键（如 `Ctrl+A` 切换所有项目，`Ctrl+W` 切换 Worktree）。
+    *   命令行输入错误时提供 **自动纠错建议**（如 `claude udpate` -&gt; `claude update`）。
+    *   `/effort` 支持交互式滑块，`/theme` 支持自动跟随终端模式。
+*   **流式事件与权限系统**
+    *   Headless 模式新增 `plugin_install` 事件流支持。
+    *   细化了 `PermissionRequest` 钩子逻辑：`allow` 行为不再覆盖全局的 `deny` 规则。
+
+### 影响等级：High
+
+**理由**：
+1.  **机制变更**：云端环境缓存的引入改变了 Setup Script 的行为模型（文件持久化 vs 进程终止），直接影响开发者在云端环境中的依赖管理策略。
+2.  **新功能**：插件后台监控和 MCP 自动重连是显著的功能增强，扩展了 Claude Code 的自动化边界和稳定性。
+3.  **安全与合规**：MCP OAuth 作用域限制为企业级集成提供了必要的安全控制手段。
+
+### 开发者行动项
+
+1.  **重构云端启动脚本**：检查云环境配置脚本，确保仅依赖文件系统状态（如下载的工具），移除对长驻后台进程的依赖（数据库等服务需改为在每次会话开始时由 Claude 或 Hook 启动）。
+2.  **利用后台监控功能**：在插件中使用 `monitors.json` 定义监控任务，实现日志或外部状态的实时响应。
+3.  **更新 Headless/SDK 集成**：适配新增的 `system/init`（包含插件加载状态）和 `plugin_install` 事件，以便在自定义 UI 中准确反馈加载进度。
+4.  **配置 MCP OAuth 作用域**：若集成第三方 MCP 服务，使用 `oauth.scopes` 显式限制申请的权限，以满足安全合规要求。
+5.  **利用版本锁定**：在 `settings.json` 中设置 `minimumVersion`，防止自动更新将版本降级至不兼容的旧版本。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Task:** Analyze a batch of documentation changes (25 pages total).
+    *   **Output Format:** Concise, insightful analysis in markdown.
+    *   **Focus:** What matters to developers.
+    *   **Language:** Chinese.
+
+2.  **Analyze the Input Data (Page by Page):**
+    *   `amazon-bedrock.md` (+1/-1): Added clarification that the setup wizard offers 1M context options. Small UX improvement for clarity.
+    *   `claude-code-on-the-web.md` (+34/-12): *Major change.* Reorganized environment setup and caching. Key points:
+        *   Setup scripts now benefit from &#34;Environment caching&#34; (snapshots of filesystem).
+        *   Services (PostgreSQL, Redis, Docker) aren&#39;t running by default; they need to be started per session (only files are cached, not processes).
+        *   Distinction between Setup Scripts (cached, cloud-only) and SessionStart hooks (runs every time, local+cloud) is clearer.
+        *   Mention of `CLAUDE_CODE_SYNC_PLUGIN_INSTALL` events (though details in `headless.md`).
+    *   `cli-reference.md` (+1/-0): Added helpful hint: mistyped subcommands now suggest closest matches (e.g., `claude udpate` -&gt; `claude update`).
+    *   `common-workflows.md` (+22/-16): Improved `/resume` picker UX. New keyboard shortcuts (`Ctrl+A` for all projects, `Ctrl+W` for worktrees, `Ctrl+B` for branches). Better previewing (`Space`). Clarifies behavior when resuming from different worktrees/projects.
+    *   `desktop.md` (+1/-0): Added cross-reference to the Error reference doc for runtime API errors.
+    *   `discover-plugins.md` (+6/-2): Improved plugin management UI. Plugins sorted by issues/favorites. Added `f` to favorite. Added auto-install dependency logging.
+    *   `google-vertex-ai.md` (+1/-1): Similar to Bedrock; clarified wizard offers 1M context.
+    *   `headless.md` (+16/-1): Added `system/init` event details for plugins (errors/loaded list). Added support for `CLAUDE_CODE_SYNC_PLUGIN_INSTALL` events. Clarified `dontAsk` permission mode includes &#34;read-only command set&#34;.
+    *   `hooks.md` (+8/-7): Refined `PermissionRequest` hooks. &#34;Allow&#34; doesn&#39;t override &#34;deny&#34; rules (deny rules are still evaluated). Clarified `bypassPermissions` behavior (only works if allowed at launch).
+    *   `hooks-guide.md` (+1/-0): Added note about `bypassPermissions` persistence.
+    *   `interactive-mode.md` (+37/-31): Updated keyboard shortcuts. Changed `Ctrl+L` (clear prompt) and `Ctrl+R` (search) usage. Changed image paste to `Ctrl+V` instead of just `Ctrl+V` logic clarification. Added `/tui fullscreen` command.
+    *   `mcp.md` (+12/-2): Added **Automatic Reconnection** for HTTP/SSE servers (exponential backoff). Added `authServerMetadataUrl` override capability. Added `oauth.scopes` to restrict/grant specific scopes.
+    *   `model-config.md` (+2/-2): `/model` now opens a picker. `/effort` now has an interactive slider.
+    *   `monitoring-usage.md` (+41/-21): Updated OTEL environment variable documentation (large diff, likely formatting/structure updates).
+    *   `plugin-marketplaces.md` (+1/-1): Clarified private repo support (SSH requirements: known_hosts/ssh-agent).
+    *   `plugins.md` (+14/-1): Added **Background Monitors** (`monitors/monitors.json`) feature. Added `plugin-hints` reference.
+    *   `plugins-reference.md` (+54/-16): Deep dive into Background Monitors schema.
+    *   `settings.md` (+6/-2): Added `awaySummaryEnabled`. Clarified `minimumVersion` behavior.
+    *   `setup.md` (+9/-1): Clarified PowerShell tool (progressive rollout/env var). Added section on &#34;Pin a minimum version&#34;. Warning about uninstalling extensions before deleting `~/.claude`.
+    *   `skills.md` (+2/-2): Clarified &#34;Bundled skills&#34; vs &#34;Built-in commands&#34;. Allowed specific built-in commands (`/init`, `/review`) via Skill tool.
+    *   `slash-commands.md` (+2/-2): Same content as skills.md.
+    *   `terminal-config.md` (+2/-2): `/theme` command clarification. `/tui fullscreen` command.
+    *   `troubleshooting.md` (+27/-24): Minor formatting/wording updates.
+    *   `vs-code.md` (+1/-1): User can edit diff content before accepting.
+    *   `CHANGELOG.md.md` (+2/-0): Version 2.1.112. Fixed &#34;opus-4-7&#34; unavailability in auto mode.
+
+3.  **Synthesize Key Themes:**
+    *   **Environment Caching &amp; Setup:** Major shift in how cloud environments work (caching files vs. processes).
+    *   **Plugin &amp; MCP Enhancements:** New Background Monitors feature, OAuth scope pinning, auto-reconnection for MCP.
+    *   **UX/Shortcut Improvements:** Better resume picker, new keyboard shortcuts, interactive sliders for effort, command correction.
+    *   **Headless/Event Streaming:** Better event data for plugins and sync installs.
+    *   **Permission System:** Refined hooks and bypass mode behavior.
+
+4.  **Determine Impact Level:**
+    *   **High:** The Environment Caching changes fundamentally alter how developers should think about setup scripts in the cloud (files persist, processes don&#39;t). The Background Monitors feature is a significant new capability for plugins. MCP auto-reconnection is a stability improvement.
+    *   (Self-Correction: While environment caching is high impact for *users* of web/cloud, for *developers* creating plugins or setup scripts, it&#39;s critical.)
+
+5.  **Draft Action Items (Developer Focus):**
+    *   *For Plugin Devs:* Explore Background Monitors. Update docs regarding caching if relevant.
+    *   *For Cloud/Setup Devs:* Refactor setup scripts to rely on file caching, not long-running processes.
+    *   *For Headless/CI:* Check new event structures (`system/init`).
+    *   *For MCP:* Consider pinning OAuth scopes or relying on auto-reconnection.
+
+6.  **Translate to Chinese &amp; Format:**
+
+    *   **Summary:** 此次更新主要优化了云端环境的运行机制（引入环境缓存），增强了插件与 MCP 服务器的能力（支持后台监控和自动重连），并显著改进了 CLI 的交互体验（如会话恢复快捷键和自动纠错）。
+    *   **Key Themes:**
+        *   环境缓存与启动优化
+        *   插件与 MCP 增强
+        *   交互体验改进
+        *   权限与事件流细化
+    *   **Impact:** High. Environment caching changes how setup scripts behave (state persistence). Background monitors and MCP reconnection are significant feature additions.
+    *   **Action Items:**
+        *   Review and update cloud setup scripts to account for file caching vs. process lifecycle.
+        *   Implement Background Monitors in plugins for real-time log/status watching.
+        *   Update headless/SDK integration to handle new `system/init` and `plugin_install` events.
+        *   Utilize new MCP `oauth.scopes` pinning for security compliance.
+
+7.  **Refine the Output (Mental Check):**
+    *   Did I capture the &#34;Environment caching&#34; nuance correctly? Yes, files persist, processes don&#39;t.
+    *   Did I mention the &#34;Background Monitors&#34;? Yes, new feature.
+    *   Did I mention &#34;Opus 4.7&#34; fix? It&#39;s in the changelog, maybe minor but good to know.
+    *   Language needs to be professional Chinese.
+
+    *Drafting the Chinese response...*
+
+    *   **Summary:** 本次文档更新集中改进了云端环境的性能与持久化策略（引入环境缓存），大幅增强了插件系统的能力（新增后台监控、OAuth 作用域限制），并优化了 CLI 的交互细节（如会话恢复和命令纠错）。
+    *   **Themes:**
+        *   **云端环境与缓存**：引入文件系统缓存，Setup Script 仅持久化文件而非进程，需调整启动脚本逻辑。
+        *   **插件与 MCP 增强**：新增后台监控（Monitors）功能，支持 MCP HTTP/SSE 自动重连及 OAuth 作用域精确控制。
+        *   **交互体验提升**：会话恢复选择器（`/resume`）支持更多快捷键，命令行增加拼写纠错，`/effort` 支持交互式滑块。
+        *   **流式事件与权限**：Headless 模式新增插件安装事件流，细化了 `PermissionRequest` 钩子的规则评估逻辑。
+    *   **Impact:** **High**。环境缓存的机制改变直接影响云端配置脚本的编写方式；插件新增的后台监控功能扩展了自动化边界；MCP 自动重连和 OAuth 细粒度控制提升了集成稳定性与安全性。
+    *   **Action Items:**
+        *   **重构云端启动脚本**：确认脚本仅依赖文件持久化，不再预期跨会话保持运行进程（如数据库服务需每会话重启）。
+        *   **集成后台监控**：利用插件新的 `monitors.json` 功能，实现对日志或状态变更的实时响应。
+        *   **更新 Headless 集成**：适配新的 `system/init` 和 `plugin_install` 事件流，以便在 UI 中展示插件加载状态。
+        *   **配置 MCP OAuth**：在需要严格权限控制时，使用 `oauth.scopes` 限制请求的权限范围。
+
+8.  **Final Polish:** Ensure Markdown formatting is clean.</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/amazon-bedrock.html" class="page-link">amazon-bedrock.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/claude-code-on-the-web.html" class="page-link">claude-code-on-the-web.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+34</span>
+                            <span class="removed">-12</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/cli-reference.html" class="page-link">cli-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/common-workflows.html" class="page-link">common-workflows.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+22</span>
+                            <span class="removed">-16</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/desktop.html" class="page-link">desktop.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/discover-plugins.html" class="page-link">discover-plugins.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/google-vertex-ai.html" class="page-link">google-vertex-ai.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/headless.html" class="page-link">headless.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+16</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-7</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/interactive-mode.html" class="page-link">interactive-mode.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+37</span>
+                            <span class="removed">-31</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+12</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/model-config.html" class="page-link">model-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+41</span>
+                            <span class="removed">-21</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugin-marketplaces.html" class="page-link">plugin-marketplaces.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins.html" class="page-link">plugins.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+14</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+54</span>
+                            <span class="removed">-16</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/setup.html" class="page-link">setup.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+9</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/terminal-config.html" class="page-link">terminal-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/troubleshooting.html" class="page-link">troubleshooting.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+27</span>
+                            <span class="removed">-24</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/vs-code.html" class="page-link">vs-code.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">15:06 EST</div>
