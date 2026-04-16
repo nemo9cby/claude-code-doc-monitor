@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>agents-and-tools/tool-use/implement-tool-use - Diff Report</title>
+    <link rel="stylesheet" href="../../css/diff.css">
+    <style>
+        :root {
+            --bg-color: #1a1a2e;
+            --card-bg: #16213e;
+            --text-color: #eee;
+            --accent: #0f3460;
+            --add-bg: #1a4d1a;
+            --del-bg: #4d1a1a;
+            --add-text: #4ade80;
+            --del-text: #f87171;
+        }
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg-color: #f5f5f5;
+                --card-bg: #fff;
+                --text-color: #333;
+                --accent: #e0e0e0;
+                --add-bg: #d4edda;
+                --del-bg: #f8d7da;
+                --add-text: #155724;
+                --del-text: #721c24;
+            }
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        header { margin-bottom: 2rem; }
+        h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+        .meta { color: #888; font-size: 0.9rem; }
+        .summary {
+            background: var(--card-bg);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 2rem;
+        }
+        .stat { display: flex; align-items: center; gap: 0.5rem; }
+        .stat.added { color: var(--add-text); }
+        .stat.removed { color: var(--del-text); }
+        .analysis {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            border-left: 4px solid #8b5cf6;
+        }
+        .analysis-header {
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: #8b5cf6;
+        }
+        .analysis-content {
+            white-space: pre-wrap;
+            font-size: 0.95rem;
+            line-height: 1.7;
+        }
+        .diff-container {
+            background: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .diff-header {
+            background: var(--accent);
+            padding: 0.75rem 1rem;
+            font-weight: 600;
+        }
+        .diff-content {
+            padding: 1rem;
+            overflow-x: auto;
+        }
+        .diff-content ins {
+            background: var(--add-bg);
+            color: var(--add-text);
+            text-decoration: none;
+            padding: 0.1em 0.2em;
+            border-radius: 2px;
+        }
+        .diff-content del {
+            background: var(--del-bg);
+            color: var(--del-text);
+            text-decoration: line-through;
+            padding: 0.1em 0.2em;
+            border-radius: 2px;
+        }
+        pre {
+            background: var(--accent);
+            padding: 1rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 0.85rem;
+            margin-top: 2rem;
+        }
+        a { color: #60a5fa; }
+        .back-link { margin-bottom: 1rem; display: inline-block; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../../../index.html" class="back-link">&larr; Back to daily report</a>
+
+        <header>
+            <h1>agents-and-tools/tool-use/implement-tool-use.md</h1>
+            <p class="meta">Changed on 2026-04-16 11:44:34 EST</p>
+        </header>
+
+        <div class="summary">
+            <div class="stat added">
+                <span>+8</span> lines added
+            </div>
+            <div class="stat removed">
+                <span>-8</span> lines removed
+            </div>
+        </div>
+
+        
+
+        <div class="diff-container">
+            <div class="diff-header">Visual Diff</div>
+            <div class="diff-content"><span># Define tools&para;<br>&para;<br>Specify tool schemas, write effective descriptions, and control when Claude calls your tools.&para;<br>&para;<br>---&para;<br>&para;<br>## Choosing a model&para;<br>&para;<br>Use the latest Claude Opus (4.</span><del style="background:#ffe6e6;">6</del><ins style="background:#e6ffe6;">7</ins><span>) model for complex tools and ambiguous queries; it handles multiple tools better and seeks clarification when needed.&para;<br>&para;<br>Use Claude Haiku models for straightforward tools, but note they may infer missing parameters.&para;<br>&para;<br>&lt;Tip&gt;&para;<br>If using Claude with tool use and extended thinking, refer to the [extended thinking guide](/docs/en/build-with-claude/extended-thinking) for more information.&para;<br>&lt;/Tip&gt;&para;<br>&para;<br>## Specifying client tools&para;<br>&para;<br>Client tools (both Anthropic-schema and user-defined) are specified in the `tools` top-level parameter of the API request. Each tool definition includes:&para;<br>&para;<br>| Parameter      | Description                                                                                         |&para;<br>| :------------- | :-------------------------------------------------------------------------------------------------- |&para;<br>| `name`         | The name of the tool. Must match the regex `^[a-zA-Z0-9_-]{1,64}$`.                                 |&para;<br>| `description`  | A detailed plaintext description of what the tool does, when it should be used, and how it behaves. |&para;<br>| `input_schema` | A [JSON Schema](https://json-schema.org/) object defining the expected parameters for the tool.     |&para;<br>| `input_examples` | (Optional) An array of example input objects to help Claude understand how to use the tool. See [Providing tool use examples](#providing-tool-use-examples). |&para;<br>&para;<br>For the full set of optional properties available on any tool definition, including `cache_control`, `strict`, `defer_loading`, and `allowed_callers`, see the [Tool reference](/docs/en/agents-and-tools/tool-use/tool-reference#tool-definition-properties).&para;<br>&para;<br>&lt;section title="Example simple tool definition"&gt;&para;<br>&para;<br>```json JSON&para;<br>{&para;<br>  "name": "get_weather",&para;<br>  "description": "Get the current weather in a given location",&para;<br>  "input_schema": {&para;<br>    "type": "object",&para;<br>    "properties": {&para;<br>      "location": {&para;<br>        "type": "string",&para;<br>        "description": "The city and state, e.g. San Francisco, CA"&para;<br>      },&para;<br>      "unit": {&para;<br>        "type": "string",&para;<br>        "enum": ["celsius", "fahrenheit"],&para;<br>        "description": "The unit of temperature, either 'celsius' or 'fahrenheit'"&para;<br>      }&para;<br>    },&para;<br>    "required": ["location"]&para;<br>  }&para;<br>}&para;<br>```&para;<br>&para;<br>This tool, named `get_weather`, expects an input object with a required `location` string and an optional `unit` string that must be either "celsius" or "fahrenheit".&para;<br>&para;<br>&lt;/section&gt;&para;<br>&para;<br>### Tool use system prompt&para;<br>&para;<br>When you call the Claude API with the `tools` parameter, the API constructs a special system prompt from the tool definitions, tool configuration, and any user-specified system prompt. The constructed prompt is designed to instruct the model to use the specified tool(s) and provide the necessary context for the tool to operate properly:&para;<br>&para;<br>```text&para;<br>In this environment you have access to a set of tools you can use to answer the user's question.&para;<br>{{ FORMATTING INSTRUCTIONS }}&para;<br>String and scalar parameters should be specified as is, while lists and objects should use JSON format. Note that spaces for string values are not stripped. The output is not expected to be valid XML and is parsed with regular expressions.&para;<br>Here are the functions available in JSONSchema format:&para;<br>{{ TOOL DEFINITIONS IN JSON SCHEMA }}&para;<br>{{ USER SYSTEM PROMPT }}&para;<br>{{ TOOL CONFIGURATION }}&para;<br>```&para;<br>&para;<br>### Best practices for tool definitions&para;<br>&para;<br>To get the best performance out of Claude when using tools, follow these guidelines:&para;<br>&para;<br>- **Provide extremely detailed descriptions.** This is by far the most important factor in tool performance. Your descriptions should explain every detail about the tool, including:&para;<br>  - What the tool does&para;<br>  - When it should be used (and when it shouldn't)&para;<br>  - What each parameter means and how it affects the tool's behavior&para;<br>  - Any important caveats or limitations, such as what information the tool does not return if the tool name is unclear. The more context you can give Claude about your tools, the better it will be at deciding when and how to use them. Aim for at least 3-4 sentences per tool description, more if the tool is complex.&para;<br>- **Prioritize descriptions, but consider using `input_examples` for complex tools.** Clear descriptions are most important, but for tools with complex inputs, nested objects, or format-sensitive parameters, you can use the `input_examples` field to provide schema-validated examples. See [Providing tool use examples](#providing-tool-use-examples) for details.&para;<br>- **Consolidate related operations into fewer tools.** Rather than creating a separate tool for every action (`create_pr`, `review_pr`, `merge_pr`), group them into a single tool with an `action` parameter. Fewer, more capable tools reduce selection ambiguity and make your tool surface easier for Claude to navigate.&para;<br>- **Use meaningful namespacing in tool names.** When your tools span multiple services or resources, prefix names with the service (e.g., `github_list_prs`, `slack_send_message`). This makes tool selection unambiguous as your library grows, and is especially important when using [tool search](/docs/en/agents-and-tools/tool-use/tool-search-tool).&para;<br>- **Design tool responses to return only high-signal information.** Return semantic, stable identifiers (e.g., slugs or UUIDs) rather than opaque internal references, and include only the fields Claude needs to reason about its next step. Bloated responses waste context and make it harder for Claude to extract what matters.&para;<br>&para;<br>&lt;section title="Example of a good tool description"&gt;&para;<br>&para;<br>```json JSON&para;<br>{&para;<br>  "name": "get_stock_price",&para;<br>  "description": "Retrieves the current stock price for a given ticker symbol. The ticker symbol must be a valid symbol for a publicly traded company on a major US stock exchange like NYSE or NASDAQ. The tool will return the latest trade price in USD. It should be used when the user asks about the current or most recent price of a specific stock. It will not provide any other information about the stock or company.",&para;<br>  "input_schema": {&para;<br>    "type": "object",&para;<br>    "properties": {&para;<br>      "ticker": {&para;<br>        "type": "string",&para;<br>        "description": "The stock ticker symbol, e.g. AAPL for Apple Inc."&para;<br>      }&para;<br>    },&para;<br>    "required": ["ticker"]&para;<br>  }&para;<br>}&para;<br>```&para;<br>&para;<br>&lt;/section&gt;&para;<br>&para;<br>&lt;section title="Example poor tool description"&gt;&para;<br>&para;<br>```json JSON&para;<br>{&para;<br>  "name": "get_stock_price",&para;<br>  "description": "Gets the stock price for a ticker.",&para;<br>  "input_schema": {&para;<br>    "type": "object",&para;<br>    "properties": {&para;<br>      "ticker": {&para;<br>        "type": "string"&para;<br>      }&para;<br>    },&para;<br>    "required": ["ticker"]&para;<br>  }&para;<br>}&para;<br>```&para;<br>&para;<br>&lt;/section&gt;&para;<br>&para;<br>The good description clearly explains what the tool does, when to use it, what data it returns, and what the `ticker` parameter means. The poor description is too brief and leaves Claude with many open questions about the tool's behavior and usage.&para;<br>&para;<br>&lt;Tip&gt;&para;<br>For deeper guidance on tool design (consolidation, naming, and response shaping), see [Writing tools for agents](https://www.anthropic.com/engineering/writing-tools-for-agents).&para;<br>&lt;/Tip&gt;&para;<br>&para;<br>## Providing tool use examples&para;<br>&para;<br>You can provide concrete examples of valid tool inputs to help Claude understand how to use your tools more effectively. This is particularly useful for complex tools with nested objects, optional parameters, or format-sensitive inputs.&para;<br>&para;<br>### Basic usage&para;<br>&para;<br>Add an optional `input_examples` field to your tool definition with an array of example input objects. Each example must be valid according to the tool's `input_schema`:&para;<br>&para;<br>&lt;CodeGroup&gt;&para;<br>```bash CLI&para;<br>ant messages create &lt;&lt;'YAML'&para;<br>model: claude-opus-4-</span><del style="background:#ffe6e6;">6</del><ins style="background:#e6ffe6;">7</ins><span>&para;<br>max_tokens: 1024&para;<br>tools:&para;<br>  - name: get_weather&para;<br>    description: Get the current weather in a given location&para;<br>    input_schema:&para;<br>      type: object&para;<br>      properties:&para;<br>        location:&para;<br>          type: string&para;<br>          description: The city and state, e.g. San Francisco, CA&para;<br>        unit:&para;<br>          type: string&para;<br>          enum: [celsius, fahrenheit]&para;<br>          description: The unit of temperature&para;<br>      required: [location]&para;<br>    input_examples:&para;<br>      - location: San Francisco, CA&para;<br>        unit: fahrenheit&para;<br>      - location: Tokyo, Japan&para;<br>        unit: celsius&para;<br>      - location: New York, NY  # 'unit' is optional&para;<br>messages:&para;<br>  - role: user&para;<br>    content: What's the weather like in San Francisco?&para;<br>YAML&para;<br>```&para;<br>&para;<br>```python Python&para;<br>import anthropic&para;<br>&para;<br>client = anthropic.Anthropic()&para;<br>&para;<br>response = client.messages.create(&para;<br>    model="claude-opus-4-</span><del style="background:#ffe6e6;">6</del><ins style="background:#e6ffe6;">7</ins><span>",&para;<br>    max_tokens=1024,&para;<br>    tools=[&para;<br>        {&para;<br>            "name": "get_weather",&para;<br>            "description": "Get the current weather in a given location",&para;<br>            "input_schema": {&para;<br>                "type": "object",&para;<br>                "properties": {&para;<br>                    "location": {&para;<br>                        "type": "string",&para;<br>                        "description": "The city and state, e.g. San Francisco, CA",&para;<br>                    },&para;<br>                    "unit": {&para;<br>                        "type": "string",&para;<br>                        "enum": ["celsius", "fahrenheit"],&para;<br>                        "description": "The unit of temperature",&para;<br>                    },&para;<br>                },&para;<br>                "required": ["location"],&para;<br>            },&para;<br>            "input_examples": [&para;<br>                {"location": "San Francisco, CA", "unit": "fahrenheit"},&para;<br>                {"location": "Tokyo, Japan", "unit": "celsius"},&para;<br>                {&para;<br>                    "location": "New York, NY"  # 'unit' is optional&para;<br>                },&para;<br>            ],&para;<br>        }&para;<br>    ],&para;<br>    messages=[{"role": "user", "content": "What's the weather like in San Francisco?"}],&para;<br>)&para;<br>&para;<br>print(response)&para;<br>```&para;<br>&para;<br>```typescript TypeScript hidelines={1..4}&para;<br>import Anthropic from "@anthropic-ai/sdk";&para;<br>&para;<br>const client = new Anthropic();&para;<br>&para;<br>const response = await client.messages.create({&para;<br>  model: "claude-opus-4-</span><del style="background:#ffe6e6;">6</del><ins style="background:#e6ffe6;">7</ins><span>",&para;<br>  max_tokens: 1024,&para;<br>  tools: [&para;<br>    {&para;<br>      name: "get_weather",&para;<br>      description: "Get the current weather in a given location",&para;<br>      input_schema: {&para;<br>        type: "object",&para;<br>        properties: {&para;<br>          location: {&para;<br>            type: "string",&para;<br>            description: "The city and state, e.g. San Francisco, CA"&para;<br>          },&para;<br>          unit: {&para;<br>            type: "string",&para;<br>            enum: ["celsius", "fahrenheit"],&para;<br>            description: "The unit of temperature"&para;<br>          }&para;<br>        },&para;<br>        required: ["location"]&para;<br>      },&para;<br>      input_examples: [&para;<br>        {&para;<br>          location: "San Francisco, CA",&para;<br>          unit: "fahrenheit"&para;<br>        },&para;<br>        {&para;<br>          location: "Tokyo, Japan",&para;<br>          unit: "celsius"&para;<br>        },&para;<br>        {&para;<br>          location: "New York, NY"&para;<br>          // Demonstrates that 'unit' is optional&para;<br>        }&para;<br>      ]&para;<br>    }&para;<br>  ],&para;<br>  messages: [{ role: "user", content: "What's the weather like in San Francisco?" }]&para;<br>});&para;<br>&para;<br>console.log(response);&para;<br>```&para;<br>&para;<br>```csharp C# hidelines={1..7}&para;<br>using System;&para;<br>using System.Collections.Generic;&para;<br>using System.Text.Json;&para;<br>using System.Threading.Tasks;&para;<br>using Anthropic;&para;<br>using Anthropic.Models.Messages;&para;<br>&para;<br>AnthropicClient client = new();&para;<br>&para;<br>var parameters = new MessageCreateParams&para;<br>{&para;<br>    Model = Model.ClaudeOpus4_</span><del style="background:#ffe6e6;">6</del><ins style="background:#e6ffe6;">7</ins><span>,&para;<br>    MaxTokens = 1024,&para;<br>    Tools = [&para;<br>        new ToolUnion(new Tool()&para;<br>        {&para;<br>            Name = "get_weather",&para;<br>            Description = "Get the current weather in a given location",&para;<br>            InputSchema = new InputSchema()&para;<br>            {&para;<br>                Properties = new Dictionary&lt;string, JsonElement&gt;&para;<br>                {&para;<br>                    ["location"] = JsonSerializer.SerializeToElement(new { type = "string", description = "The city and state, e.g. San Francisco, CA" }),&para;<br>                    ["unit"] = JsonSerializer.SerializeToElement(new { type = "string", @enum = new[] { "celsius", "fahrenheit" }, description = "The unit of temperature" }),&para;<br>                },&para;<br>                Required = ["location"],&para;<br>            },&para;<br>            InputExamples =&para;<br>            [&para;<br>                new Dictionary&lt;string, JsonElement&gt;()&para;<br>                {&para;<br>                    { "location", JsonSerializer.SerializeToElement("San Francisco, CA") },&para;<br>                    { "unit", JsonSerializer.SerializeToElement("fahrenheit") },&para;<br>                },&para;<br>                new Dictionary&lt;string, JsonElement&gt;()&para;<br>                {&para;<br>                    { "location", JsonSerializer.SerializeToElement("Tokyo, Japan") },&para;<br>                    { "unit", JsonSerializer.SerializeToElement("celsius") },&para;<br>                },&para;<br>                new Dictionary&lt;string, JsonElement&gt;()&para;<br>                {&para;<br>                    { "location", JsonSerializer.SerializeToElement("New York, NY") },&para;<br>                },&para;<br>            ],&para;<br>        }),&para;<br>    ],&para;<br>    Messages = [&para;<br>        new() { Role = Role.User, Content = "What's the weather like in San Francisco?" }&para;<br>    ]&para;<br>};&para;<br>&para;<br>var message = await client.Messages.Create(parameters);&para;<br>Console.WriteLine(message);&para;<br>```&para;<br>&para;<br>```go Go hidelines={1..11,-1}&para;<br>package main&para;<br>&para;<br>import (&para;<br>	"context"&para;<br>	"fmt"&para;<br>	"log"&para;<br>&para;<br>	"github.com/anthropics/anthropic-sdk-go"&para;<br>)&para;<br>&para;<br>func main() {&para;<br>	client := anthropic.NewClient()&para;<br>&para;<br>	response, err := client.Messages.New(context.TODO(), anthropic.MessageNewParams{&para;<br>		Model:     anthropic.ModelClaudeOpus4_</span><del style="background:#ffe6e6;">6</del><ins style="background:#e6ffe6;">7</ins><span>,&para;<br>		MaxTokens: 1024,&para;<br>		Tools: []anthropic.ToolUnionParam{&para;<br>			{OfTool: &amp;anthropic.ToolParam{&para;<br>				Name:        "get_weather",&para;<br>				Description: anthropic.String("Get the current weather in a given location"),&para;<br>				InputSchema: anthropic.ToolInputSchemaParam{&para;<br>					Properties: map[string]any{&para;<br>						"location": map[string]any{&para;<br>							"type":        "string",&para;<br>							"description": "The city and state, e.g. San Francisco, CA",&para;<br>						},&para;<br>						"unit": map[string]any{&para;<br>							"type":        "string",&para;<br>							"enum":        []string{"celsius", "fahrenheit"},&para;<br>							"description": "The unit of temperature",&para;<br>						},&para;<br>					},&para;<br>					Required: []string{"location"},&para;<br>				},&para;<br>				InputExamples: []map[string]any{&para;<br>					{&para;<br>						"location": "San Francisco, CA",&para;<br>						"unit":     "fahrenheit",&para;<br>					},&para;<br>					{&para;<br>						"location": "Tokyo, Japan",&para;<br>						"unit":     "celsius",&para;<br>					},&para;<br>					{&para;<br>						"location": "New York, NY",&para;<br>						// Demonstrates that 'unit' is optional&para;<br>					},&para;<br>				},&para;<br>			}},&para;<br>		},&para;<br>		Messages: []anthropic.MessageParam{&para;<br>			anthropic.NewUserMessage(anthropic.NewTextBlock("What's the weather like in San Francisco?")),&para;<br>		},&para;<br>	})&para;<br>	if err != nil {&para;<br>		log.Fatal(err)&para;<br>	}&para;<br>	fmt.Println(response)&para;<br>}&para;<br>```&para;<br>&para;<br>```java Java hidelines={1..12,-1..}&para;<br>import com.anthropic.client.AnthropicClient;&para;<br>import com.anthropic.client.okhttp.AnthropicOkHttpClient;&para;<br>import com.anthropic.core.JsonValue;&para;<br>import com.anthropic.models.messages.MessageCreateParams;&para;<br>import com.anthropic.models.messages.Message;&para;<br>import com.anthropic.models.messages.Model;&para;<br>import com.anthropic.models.messages.Tool;&para;<br>import com.anthropic.models.messages.Tool.InputSchema;&para;<br>import java.util.Map;&para;<br>import java.util.List;&para;<br>&para;<br>void main() {&para;<br>    AnthropicClient client = AnthropicOkHttpClient.fromEnv();&para;<br>&para;<br>    MessageCreateParams params = MessageCreateParams.builder()&para;<br>        .model(Model.CLAUDE_OPUS_4_</span><del style="background:#ffe6e6;">6</del><ins style="background:#e6ffe6;">7</ins><span>)&para;<br>        .maxTokens(1024L)&para;<br>        .addTool(Tool.builder()&para;<br>            .name("get_weather")&para;<br>            .description("Get the current weather in a given location")&para;<br>            .inputSchema(InputSchema.builder()&para;<br>                .properties(JsonValue.from(Map.of(&para;<br>                    "location", Map.of(&para;<br>                        "type", "string",&para;<br>                        "description", "The city and state, e.g. San Francisco, CA"&para;<br>                    ),&para;<br>                    "unit", Map.of(&para;<br>                        "type", "string",&para;<br>                        "enum", List.of("celsius", "fahrenheit"),&para;<br>                        "description", "The unit of temperature"&para;<br>                    )&para;<br>                )))&para;<br>                .putAdditionalProperty("required", JsonValue.from(List.of("location")))&para;<br>                .build())&para;<br>            .putAdditionalProperty("input_examples", JsonValue.from(List.of(&para;<br>                Map.of(&para;<br>                    "location", "San Francisco, CA",&para;<br>                    "unit", "fahrenheit"&para;<br>                ),&para;<br>                Map.of(&para;<br>                    "location", "Tokyo, Japan",&para;<br>                    "unit", "celsius"&para;<br>                ),&para;<br>                Map.of(&para;<br>                    "location", "New York, NY"&para;<br>                )&para;<br>            )))&para;<br>            .build())&para;<br>        .addUserMessage("What's the weather like in San Francisco?")&para;<br>        .build();&para;<br>&para;<br>    Message response = client.messages().create(params);&para;<br>    IO.println(response);&para;<br>}&para;<br>```&para;<br>&para;<br>```php PHP&para;<br>&lt;?php&para;<br>&para;<br>use Anthropic\Client;&para;<br>&para;<br>$client = new Client(apiKey: getenv("ANTHROPIC_API_KEY"));&para;<br>&para;<br>$message = $client-&gt;messages-&gt;create(&para;<br>    maxTokens: 1024,&para;<br>    messages: [&para;<br>        ['role' =&gt; 'user', 'content' =&gt; "What's the weather like in San Francisco?"]&para;<br>    ],&para;<br>    model: 'claude-opus-4-</span><del style="background:#ffe6e6;">6</del><ins style="background:#e6ffe6;">7</ins><span>',&para;<br>    tools: [&para;<br>        [&para;<br>            'name' =&gt; 'get_weather',&para;<br>            'description' =&gt; 'Get the current weather in a given location',&para;<br>            'input_schema' =&gt; [&para;<br>                'type' =&gt; 'object',&para;<br>                'properties' =&gt; [&para;<br>                    'location' =&gt; [&para;<br>                        'type' =&gt; 'string',&para;<br>                        'description' =&gt; 'The city and state, e.g. San Francisco, CA'&para;<br>                    ],&para;<br>                    'unit' =&gt; [&para;<br>                        'type' =&gt; 'string',&para;<br>                        'enum' =&gt; ['celsius', 'fahrenheit'],&para;<br>                        'description' =&gt; 'The unit of temperature'&para;<br>                    ]&para;<br>                ],&para;<br>                'required' =&gt; ['location']&para;<br>            ],&para;<br>            'input_examples' =&gt; [&para;<br>                [&para;<br>                    'location' =&gt; 'San Francisco, CA',&para;<br>                    'unit' =&gt; 'fahrenheit'&para;<br>                ],&para;<br>                [&para;<br>                    'location' =&gt; 'Tokyo, Japan',&para;<br>                    'unit' =&gt; 'celsius'&para;<br>                ],&para;<br>                [&para;<br>                    'location' =&gt; 'New York, NY'&para;<br>                ]&para;<br>            ]&para;<br>        ]&para;<br>    ],&para;<br>);&para;<br>```&para;<br>&para;<br>```ruby Ruby&para;<br>require "anthropic"&para;<br>&para;<br>client = Anthropic::Client.new&para;<br>&para;<br>message = client.messages.create(&para;<br>  model: "claude-opus-4-</span><del style="background:#ffe6e6;">6</del><ins style="background:#e6ffe6;">7</ins><span>",&para;<br>  max_tokens: 1024,&para;<br>  tools: [&para;<br>    {&para;<br>      name: "get_weather",&para;<br>      description: "Get the current weather in a given location",&para;<br>      input_schema: {&para;<br>        type: "object",&para;<br>        properties: {&para;<br>          location: {&para;<br>            type: "string",&para;<br>            description: "The city and state, e.g. San Francisco, CA"&para;<br>          },&para;<br>          unit: {&para;<br>            type: "string",&para;<br>            enum: ["celsius", "fahrenheit"],&para;<br>            description: "The unit of temperature"&para;<br>          }&para;<br>        },&para;<br>        required: ["location"]&para;<br>      },&para;<br>      input_examples: [&para;<br>        {&para;<br>          location: "San Francisco, CA",&para;<br>          unit: "fahrenheit"&para;<br>        },&para;<br>        {&para;<br>          location: "Tokyo, Japan",&para;<br>          unit: "celsius"&para;<br>        },&para;<br>        {&para;<br>          location: "New York, NY"&para;<br>        }&para;<br>      ]&para;<br>    }&para;<br>  ],&para;<br>  messages: [&para;<br>    { role: "user", content: "What's the weather like in San Francisco?" }&para;<br>  ]&para;<br>)&para;<br>puts message&para;<br>```&para;<br>&lt;/CodeGroup&gt;&para;<br>&para;<br>Examples are included in the prompt alongside your tool schema, showing Claude concrete patterns for well-formed tool calls. This helps Claude understand when to include optional parameters, what formats to use, and how to structure complex inputs.&para;<br>&para;<br>### Requirements and limitations&para;<br>&para;<br>- **Schema validation** - Each example must be valid according to the tool's `input_schema`. Invalid examples return a 400 error&para;<br>- **Not supported for server-side tools** - Input examples work on user-defined and Anthropic-schema client tools, but not on server tools like web search or code execution&para;<br>- **Token cost** - Examples add to prompt tokens: ~20-50 tokens for simple examples, ~100-200 tokens for complex nested objects&para;<br>&para;<br>## Controlling Claude's output&para;<br>&para;<br>### Forcing tool use&para;<br>&para;<br>In some cases, you may want Claude to use a specific tool to answer the user's question, even if Claude would otherwise answer directly without calling a tool. You can do this by specifying the tool in the `tool_choice` field like so:&para;<br>&para;<br>```text&para;<br>tool_choice = {"type": "tool", "name": "get_weather"}&para;<br>```&para;<br>&para;<br>When working with the tool_choice parameter, there are four possible options:&para;<br>&para;<br>- `auto` allows Claude to decide whether to call any provided tools or not. This is the default value when `tools` are provided.&para;<br>- `any` tells Claude that it must use one of the provided tools, but doesn't force a particular tool.&para;<br>- `tool` forces Claude to always use a particular tool.&para;<br>- `none` prevents Claude from using any tools. This is the default value when no `tools` are provided.&para;<br>&para;<br>&lt;Note&gt;&para;<br>When using [prompt caching](/docs/en/build-with-claude/prompt-caching#what-invalidates-the-cache), changes to the `tool_choice` parameter will invalidate cached message blocks. Tool definitions and system prompts remain cached, but message content must be reprocessed.&para;<br>&lt;/Note&gt;&para;<br>&para;<br>This diagram illustrates how each option works:&para;<br>&para;<br>&lt;Frame&gt;&para;<br>  ![Diagram showing the four tool_choice options: auto, any, tool, and none](/docs/images/tool_choice.png)&para;<br>&lt;/Frame&gt;&para;<br>&para;<br>Note that when you have `tool_choice` as `any` or `tool`, the API prefills the assistant message to force a tool to be used. This means that the models will not emit a natural language response or explanation before `tool_use` content blocks, even if explicitly asked to do so.&para;<br>&para;<br>&lt;Note&gt;&para;<br>When using [extended thinking](/docs/en/build-with-claude/extended-thinking) with tool use, `tool_choice: {"type": "any"}` and `tool_choice: {"type": "tool", "name": "..."}` are not supported and will result in an error. Only `tool_choice: {"type": "auto"}` (the default) and `tool_choice: {"type": "none"}` are compatible with extended thinking.&para;<br>&lt;/Note&gt;&para;<br>&para;<br>&lt;Note&gt;&para;<br>[Claude Mythos Preview](https://anthropic.com/glasswing) does not support forced tool use. Requests with `tool_choice: {"type": "any"}` or `tool_choice: {"type": "tool", "name": "..."}` return a 400 error on this model. Use `tool_choice: {"type": "auto"}` (the default) or `tool_choice: {"type": "none"}` and rely on prompting to influence tool selection.&para;<br>&lt;/Note&gt;&para;<br>&para;<br>Testing has shown that this should not reduce performance. If you would like the model to provide natural language context or explanations while still requesting that the model use a specific tool, you can use `{"type": "auto"}` for `tool_choice` (the default) and add explicit instructions in a `user` message. For example: `What's the weather like in London? Use the get_weather tool in your response.`&para;<br>&para;<br>&lt;Tip&gt;&para;<br>**Guaranteed tool calls with strict tools**&para;<br>&para;<br>Combine `tool_choice: {"type": "any"}` with [strict tool use](/docs/en/agents-and-tools/tool-use/strict-tool-use) to guarantee both that one of your tools will be called AND that the tool inputs strictly follow your schema. Set `strict: true` on your tool definitions to enable schema validation.&para;<br>&lt;/Tip&gt;&para;<br>&para;<br>### Model responses with tools&para;<br>&para;<br>When using tools, Claude will often comment on what it's doing or respond naturally to the user before invoking tools.&para;<br>&para;<br>For example, given the prompt "What's the weather like in San Francisco right now, and what time is it there?", Claude might respond with:&para;<br>&para;<br>```json JSON&para;<br>{&para;<br>  "role": "assistant",&para;<br>  "content": [&para;<br>    {&para;<br>      "type": "text",&para;<br>      "text": "I'll help you check the current weather and time in San Francisco."&para;<br>    },&para;<br>    {&para;<br>      "type": "tool_use",&para;<br>      "id": "toolu_01A09q90qw90lq917835lq9",&para;<br>      "name": "get_weather",&para;<br>      "input": { "location": "San Francisco, CA" }&para;<br>    }&para;<br>  ]&para;<br>}&para;<br>```&para;<br>&para;<br>This natural response style helps users understand what Claude is doing and creates a more conversational interaction. You can guide the style and content of these responses through your system prompts and by providing `&lt;examples&gt;` in your prompts.&para;<br>&para;<br>It's important to note that Claude may use various phrasings and approaches when explaining its actions. Your code should treat these responses like any other assistant-generated text, and not rely on specific formatting conventions.&para;<br>&para;<br>## Next steps&para;<br>&para;<br>&lt;CardGroup&gt;&para;<br>  &lt;Card href="/docs/en/agents-and-tools/tool-use/handle-tool-calls" title="Handle tool calls"&gt;&para;<br>    Parse tool_use blocks and format tool_result responses.&para;<br>  &lt;/Card&gt;&para;<br>  &lt;Card href="/docs/en/agents-and-tools/tool-use/tool-runner" title="Tool Runner (SDK)"&gt;&para;<br>    Let the SDK handle the agentic loop automatically.&para;<br>  &lt;/Card&gt;&para;<br>  &lt;Card href="/docs/en/agents-and-tools/tool-use/tool-reference" title="Tool reference"&gt;&para;<br>    Directory of Anthropic-provided tools and optional properties.&para;<br>  &lt;/Card&gt;&para;<br>&lt;/CardGroup&gt;</span></div>
+        </div>
+
+        <h2 style="margin-top: 2rem; margin-bottom: 1rem;">Unified Diff</h2>
+        <pre><code>--- a/agents-and-tools/tool-use/implement-tool-use.md
++++ b/agents-and-tools/tool-use/implement-tool-use.md
+@@ -6,7 +6,7 @@
+ 
+ ## Choosing a model
+ 
+-Use the latest Claude Opus (4.6) model for complex tools and ambiguous queries; it handles multiple tools better and seeks clarification when needed.
++Use the latest Claude Opus (4.7) model for complex tools and ambiguous queries; it handles multiple tools better and seeks clarification when needed.
+ 
+ Use Claude Haiku models for straightforward tools, but note they may infer missing parameters.
+ 
+@@ -141,7 +141,7 @@
+ &lt;CodeGroup&gt;
+ ```bash CLI
+ ant messages create &lt;&lt;&#39;YAML&#39;
+-model: claude-opus-4-6
++model: claude-opus-4-7
+ max_tokens: 1024
+ tools:
+   - name: get_weather
+@@ -175,7 +175,7 @@
+ client = anthropic.Anthropic()
+ 
+ response = client.messages.create(
+-    model=&#34;claude-opus-4-6&#34;,
++    model=&#34;claude-opus-4-7&#34;,
+     max_tokens=1024,
+     tools=[
+         {
+@@ -217,7 +217,7 @@
+ const client = new Anthropic();
+ 
+ const response = await client.messages.create({
+-  model: &#34;claude-opus-4-6&#34;,
++  model: &#34;claude-opus-4-7&#34;,
+   max_tokens: 1024,
+   tools: [
+     {
+@@ -272,7 +272,7 @@
+ 
+ var parameters = new MessageCreateParams
+ {
+-    Model = Model.ClaudeOpus4_6,
++    Model = Model.ClaudeOpus4_7,
+     MaxTokens = 1024,
+     Tools = [
+         new ToolUnion(new Tool()
+@@ -331,7 +331,7 @@
+ 	client := anthropic.NewClient()
+ 
+ 	response, err := client.Messages.New(context.TODO(), anthropic.MessageNewParams{
+-		Model:     anthropic.ModelClaudeOpus4_6,
++		Model:     anthropic.ModelClaudeOpus4_7,
+ 		MaxTokens: 1024,
+ 		Tools: []anthropic.ToolUnionParam{
+ 			{OfTool: &amp;anthropic.ToolParam{
+@@ -394,7 +394,7 @@
+     AnthropicClient client = AnthropicOkHttpClient.fromEnv();
+ 
+     MessageCreateParams params = MessageCreateParams.builder()
+-        .model(Model.CLAUDE_OPUS_4_6)
++        .model(Model.CLAUDE_OPUS_4_7)
+         .maxTokens(1024L)
+         .addTool(Tool.builder()
+             .name(&#34;get_weather&#34;)
+@@ -447,7 +447,7 @@
+     messages: [
+         [&#39;role&#39; =&gt; &#39;user&#39;, &#39;content&#39; =&gt; &#34;What&#39;s the weather like in San Francisco?&#34;]
+     ],
+-    model: &#39;claude-opus-4-6&#39;,
++    model: &#39;claude-opus-4-7&#39;,
+     tools: [
+         [
+             &#39;name&#39; =&gt; &#39;get_weather&#39;,
+@@ -491,7 +491,7 @@
+ client = Anthropic::Client.new
+ 
+ message = client.messages.create(
+-  model: &#34;claude-opus-4-6&#34;,
++  model: &#34;claude-opus-4-7&#34;,
+   max_tokens: 1024,
+   tools: [
+     {
+</code></pre>
+    </div>
+</body>
+</html>
