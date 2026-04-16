@@ -118,9 +118,250 @@
 
         <header>
             <h1>Changes on 2026-04-16</h1>
-            <p class="meta">71 total changes in 3 runs</p>
+            <p class="meta">78 total changes in 4 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">15:06 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">以下是针对本次文档变更的深度分析：
+
+### 1. 总体摘要
+本次文档更新重点围绕 **Claude Opus 4.7** 的正式发布与迁移指南，大幅修订了视觉功能的处理逻辑与限制说明。同时，明确了子代理的权限继承行为，并清理了过时的硬件限制说明，整体上旨在指导开发者适应新模型的能力变化与成本结构。
+
+### 2. 关键变更主题
+
+*   **Claude Opus 4.7 迁移指南大幅更新**：
+    *   **成本与 Token 变更**：引入了新的分词器，导致文本处理的 Token 消耗可能增加 **35%**（1x - 1.35x），建议开发者增加 `max_tokens` 参数预留空间。
+    *   **行为模式调整**：模型现在会根据任务复杂度动态调整回复长度（简单查询更短，复杂分析更长），且指令遵循更加“字面化”，减少了隐式推断。
+*   **视觉处理逻辑重构**：
+    *   **分辨率与坐标系**：虽然 Opus 4.7 支持最高 2576px 长边的高清图像，但文档**移除了**“坐标与像素 1:1 映射”的通用保证。现在的说明是，模型返回的坐标是基于“调整/填充后”的图像尺寸。这意味着开发者如果需要精准坐标（如点击定位），必须在客户端自行预处理图像以简化计算，否则需要进行坐标转换。
+    *   **Token 计算明确化**：提供了更清晰的 Token 计算公式 (`width * height / 750`) 和不同分辨率下的成本对照表。
+*   **权限系统微调**：
+    *   在子代理文档中明确了 `acceptEdits` 模式的优先级：如果父级使用了 `acceptEdits`，该设置将覆盖子代理的 frontmatter 配置，不可被越级覆盖。
+*   **配置与代码更新**：
+    *   修正了 `settings.json` Schema 可能滞后于 CLI 版本的说明，减少开发者的误报担忧。
+    *   MCP 连接器的示例代码已更新为使用 `claude-opus-4-7`。
+*   **功能可用性更新**：
+    *   移除了“Intel Mac 不支持 Cowork 标签页”的限制说明，暗示该功能现已支持 Intel Mac 设备。
+
+### 3. 影响等级：高
+
+**理由**：
+1.  **成本风险**：Opus 4.7 新分词器可能导致 API 调用成本显著增加（最高 +35%），直接影响生产环境预算。
+2.  **潜在破坏性变更**：关于视觉功能中坐标系统说明的变更（不再默认保证 1:1 映射），可能破坏依赖自动坐标计算的现有 Computer Use 或视觉分析应用，需开发者复查代码。
+
+### 4. 开发者行动项
+
+*   **评估 Token 预算**：在升级到 Claude Opus 4.7 前，根据新的分词器逻辑调整 `max_tokens` 预留值，并重新评估 API 成本预算。
+*   **审查视觉坐标逻辑**：检查使用了图像坐标（如边界框、点击定位）的代码。确保在客户端对图像进行预处理（调整尺寸/填充），或增加逻辑将模型返回的坐标映射回原始图像尺寸。
+*   **调整 Prompt 提示词**：如果您的应用依赖特定的输出长度或风格，需针对 Opus 4.7 调整 Prompt，因为它现在倾向于根据任务难度动态调整长度（可能更啰嗦或更精简）。
+*   **更新 MCP 示例**：将 MCP 集成中的模型名称硬编码值从 `claude-sonnet-4-6` 更新为 `claude-opus-4-7`。
+*   **利用子代理权限控制**：若需在父级会话中强制应用编辑权限，可利用新增的 `acceptEdits` 优先级规则来简化子代理配置。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Understand the Goal**: The user wants a concise, insightful analysis of a batch of documentation changes in markdown, focusing on what matters to developers. The response must be in Chinese.
+
+2.  **Analyze the Changes (Page by Page)**:
+
+    *   **Page 1: `desktop.md` | +0 / -3**
+        *   *Change*: Removed a section about &#34;ARM64&#34; support on Windows and &#34;Cowork tab unavailable on Intel Macs&#34;.
+        *   *Impact*: It removes a limitation (or mentions of it). It suggests Cowork might now be available on Intel Macs, or the documentation is just cleaning up specific hardware notes that might be outdated or generalized elsewhere. Or perhaps the feature has changed significantly. Actually, removing the troubleshooting note &#34;Cowork tab unavailable on Intel Macs&#34; strongly implies that *Cowork is now supported on Intel Macs*.
+        *   *Developer relevance*: If they use Intel Macs, this is good news for the Cowork feature.
+
+    *   **Page 2: `settings.md` | +1 / -0**
+        *   *Change*: Added a note clarifying that the `$schema` might lag behind the latest CLI releases. Validation warnings on new fields might not mean the config is invalid.
+        *   *Impact*: Reduces confusion for developers using IDEs with JSON schema validation.
+        *   *Developer relevance*: Prevents false alarms when configuring Claude Code with new settings.
+
+    *   **Page 3: `sub-agents.md` | +1 / -1**
+        *   *Change*: Updated text to include `acceptEdits` alongside `bypassPermissions` regarding precedence. If the parent uses `acceptEdits`, it takes precedence over the subagent&#39;s config.
+        *   *Impact*: Clarifies permission inheritance behavior for subagents.
+        *   *Developer relevance*: Developers building custom agents or skills need to know how permissions propagate.
+
+    *   **Page 4: `about-claude/models/migration-guide.md` | +35 / -9**
+        *   *Change*: Extensive updates to the &#34;Migrating to Claude Opus 4.7&#34; section.
+            *   Reformatted feature list (bullet points instead of a long sentence).
+            *   Clarified token counting behavior (1x to 1.35x increase). Suggested increasing `max_tokens`.
+            *   Clarified response length behavior (varies by complexity).
+            *   Clarified instruction following (more literal).
+            *   Note about fewer subagents.
+        *   *Impact*: This is a major migration guide update. It helps developers understand the behavior shift from Opus 4.6 to 4.7.
+        *   *Developer relevance*: Crucial for anyone upgrading models. Need to adjust `max_tokens`, prompt verbosity, and expect token usage changes (up to +35%).
+
+    *   **Page 5: `build-with-claude/vision.md` | +32 / -25**
+        *   *Change*: Significant reorganization of vision documentation.
+            *   Moved &#34;High-resolution image support on Claude Opus 4.7&#34; section *after* general limits/costs.
+            *   Clarified image resizing logic (pad to multiple of 28 pixels).
+            *   **Important correction/clarification**: Previously, it said Opus 4.7 coordinates are 1:1. The updated text says: &#34;coordinates... will be expressed with respect to the resized/padded image and will need to be rescaled...&#34;. Wait, let me look closer at the diff.
+            *   *Wait, looking at the `computer-use-tool.md` change too*:
+            *   In `vision.md`, the new text says: &#34;When asking Claude to output coordinates ... they will be expressed with respect to the resized/padded image and will need to be rescaled... To minimize latency and to simplify coordinate-based workflows, you should prefer resizing images before uploading them.&#34;
+            *   BUT, in `computer-use-tool.md` (Page 6), the note says: &#34;Claude Opus 4.7 ... coordinates are 1:1 with image pixels (no scale-factor conversion required).&#34;
+            *   Let&#39;s re-read the `vision.md` diff carefully.
+                *   Old: &#34;On Claude Opus 4.7, pointing and bounding-box coordinates ... are 1:1 with actual image pixels...&#34;
+                *   New (in the &#34;General limits&#34; section): &#34;When asking Claude to output coordinates ... they will be expressed with respect to the resized/padded image...&#34;
+                *   Later in &#34;High-resolution image support on Claude Opus 4.7&#34; section: &#34;High-resolution support is automatic...&#34; (No explicit mention of 1:1 coordinates in the *added* text of this section in the diff, but the diff removed the text saying coordinates are 1:1).
+                *   Let&#39;s look at `computer-use-tool.md`: &#34;Claude Opus 4.7 supports up to 2576 pixels on the long edge, and its coordinates are 1:1 with image pixels...&#34; (Only a minor formatting change with the colon `\:`).
+            *   *Interpretation*: There seems to be a conflict or nuance here.
+                *   The `vision.md` changes warn that if you send an image &gt; 2576px (which gets resized), or if it&#39;s not a multiple of 28px (which gets padded), coordinates are relative to the *processed* image.
+                *   The `computer-use-tool.md` implies that *if* you stay within limits (or for Computer Use specifically), it handles itself?
+                *   Actually, the removal of the &#34;1:1&#34; guarantee from `vision.md` is significant. The new advice in `vision.md` is: &#34;prefer resizing images before uploading them&#34; to avoid the math complexity.
+            *   *Token calculation*: Clarified formula `width * height / 750` and caps (1568 vs 4784 tokens).
+            *   *Tables*: Updated cost tables.
+
+    *   **Page 6: `agents-and-tools/tool-use/computer-use-tool.md` | +1 / -1**
+        *   *Change*: Markdown escaping fix (`1\:1`).
+        *   *Impact*: Trivial formatting fix.
+
+    *   **Page 7: `agents-and-tools/mcp-connector.md` | +0 / -1**
+        *   *Change*: Code examples updated from `claude-sonnet-4-6` to `claude-opus-4-7`.
+        *   *Impact*: Updates documentation to reflect the recommended new model version.
+
+3.  **Synthesize and Structure**:
+
+    *   **Overall Summary**: The updates primarily focus on the release and migration details for **Claude Opus 4.7**, refining behavior expectations (token usage, instruction following), vision/image handling limits, and clarifying permission logic for subagents. It also cleans up outdated hardware limitations.
+
+    *   **Key Themes**:
+        *   **Claude Opus 4.7 Migration**: Detailed guidance on new tokenizer (up to +35% tokens), variable response length, and literal instruction following.
+        *   **Vision &amp; Image Handling**: Clarified image resolution limits, token costs, and coordinate system handling. Notably, the guarantee of 1:1 coordinates seems to have been nuanced or removed in the general vision docs, advising users to resize images themselves to simplify workflows.
+        *   **Permissions**: Clarification on how `acceptEdits` overrides subagent permissions.
+        *   **Maintenance**: Updating example code to use Opus 4.7 and removing outdated &#34;Cowork on Intel Macs&#34; restrictions.
+
+    *   **Impact Level**: **High**. The changes regarding the new Opus 4.7 tokenizer (cost implications) and the removal of the 1:1 coordinate guarantee (architectural change for vision tools) are significant for developers deploying production systems.
+
+    *   **Action Items**:
+        *   **Review Budget**: If upgrading to Opus 4.7, increase `max_tokens` limits and budget for up to 35% higher token usage due to the new tokenizer.
+        *   **Update Prompts**: Adjust prompts for Opus 4.7 if you rely on specific verbosity, as the model now calibrates length based on task complexity.
+        *   **Check Vision Code**: Verify image coordinate handling logic. If relying on 1:1 pixel mapping in Opus 4.7, ensure images are pre-processed (resized/padded) to avoid scaling mismatches.
+        *   **Update Model Names**: Switch references from `claude-sonnet-4-6` to `claude-opus-4-7` in MCP examples.
+
+4.  **Drafting the Content (in Chinese)**:
+
+    *   *Summary*: 重点围绕 **Claude Opus 4.7** 的发布与迁移指南，优化了视觉处理文档，更新了子代理权限逻辑，并移除了过时的硬件限制说明。
+    *   *Themes*:
+        *   Opus 4.7 迁移与行为变更：新分词器导致 Token 消耗增加（最多 35%），响应长度更动态，指令遵循更字面化。
+        *   视觉能力调整：明确了图像分辨率与 Token 计算，移除了 Opus 4.7 坐标 1:1 映射的通用保证，建议预缩放图像。
+        *   权限与配置：明确了 `acceptEdits` 对子代理的优先级，修正了配置 Schema 的滞后说明。
+    *   *Impact*: High. Cost implications (tokens) and Vision API behavior changes are critical.
+    *   *Action Items*:
+        *   Budget check for Opus 4.7.
+        *   Prompt tuning for verbosity.
+        *   Vision code review for coordinate scaling.
+
+5.  **Refining the Output**:
+    *   Ensure the distinction between `vision.md` and `computer-use-tool.md` regarding coordinates is handled accurately. The `vision.md` text now emphasizes that resizing *happens* and coordinates are relative to the *resized* image (unless you resize yourself), whereas previously it claimed 1:1 mapping for Opus 4.7. This is a &#34;breaking&#34; conceptual change or at least a clarification that requires code review.
+    *   Make sure the &#34;Cowork&#34; point is mentioned as a feature expansion or cleanup.
+
+6.  **Final Polish (Markdown)**:
+    *   Translate concepts accurately: &#34;Tokenizer&#34; -&gt; 分词器, &#34;Sub-agents&#34; -&gt; 子代理, &#34;Coordinates&#34; -&gt; 坐标系.
+
+7.  **Self-Correction during drafting**:
+    *   *Correction*: In `computer-use-tool.md`, the text says &#34;Claude Opus 4.7 ... coordinates are 1:1 with image pixels&#34;. In `vision.md`, the text says &#34;coordinates ... will be expressed with respect to the resized/padded image&#34;. This is a potential contradiction unless &#34;image pixels&#34; refers to the *input* pixels vs *resized* pixels. However, the `vision.md` change specifically *removed* the previous claim of 1:1 mapping. The most safe interpretation is: Developers should **not** assume 1:1 mapping anymore and should pre-process images if they need consistent coordinates. I will highlight this risk.
+
+8.  **Final Output Generation**. (Proceeding to generate Chinese response).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/desktop.html" class="page-link">desktop.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/about-claude/models/migration-guide.html" class="page-link">about-claude/models/migration-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+35</span>
+                            <span class="removed">-9</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/vision.html" class="page-link">build-with-claude/vision.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+32</span>
+                            <span class="removed">-25</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/computer-use-tool.html" class="page-link">agents-and-tools/tool-use/computer-use-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/mcp-connector.html" class="page-link">agents-and-tools/mcp-connector.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">13:09 EST</div>
