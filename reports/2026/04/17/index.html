@@ -118,9 +118,272 @@
 
         <header>
             <h1>Changes on 2026-04-17</h1>
-            <p class="meta">4 total changes in 2 runs</p>
+            <p class="meta">13 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">18:33 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 整体总结
+
+此次文档更新核心在于**明确了 AWS Bedrock 集成路径的分化**：将原有的基于 ARN 和 `InvokeModel`/`Converse` API 的集成标记为“遗留”，并确立了基于 Messages API 的新集成路径（&#34;Claude in Amazon Bedrock&#34;）为新模型（如 Opus 4.7, Haiku 4.5）的标准。此外，还澄清了 Hooks 配置中 `once` 参数的生效范围。
+
+---
+
+### 关键变更主题
+
+*   **AWS Bedrock 集成模式二元化**：
+    *   **遗留模式**：`Claude on Amazon Bedrock` 现已明确标记为，使用 ARN 版本 ID 和 AWS event-stream 编码。
+    *   **新模式**：`Claude in Amazon Bedrock` 成为新标准，提供 Messages API (`/anthropic/v1/messages`) 和 SSE 流式传输支持，适合 Opus 4.7 和 Haiku 4.5 等最新模型。
+    *   **Opus 4.7 的特殊性**：Opus 4.7 虽然可通过 `InvokeModel` 访问，但它没有 ARN 版本 ID，且由新模式的基础设施提供服务，文档建议直接使用新模式以获得完整功能。
+*   **Hooks 逻辑严谨化**：
+    *   Hooks 配置中的 `once` 字段现在**仅**在 [Skill frontmatter](#hooks-in-skills-and-agents) 中生效，在设置文件或 Agent frontmatter 中将被忽略。这修正了此前“仅限 Skills”较为模糊的描述。
+*   **全站链接重构**：
+    *   所有关于 AWS Bedrock 的引用链接统一从 `claude-on-amazon-bedrock` 更新为 `claude-in-amazon-bedrock`（指代新模式），旧版链接保留用于遗留文档。
+
+---
+
+### 影响等级
+
+**中等**
+
+**理由**：
+虽然 API 本身的功能性变更可能不大（主要是路由和基础设施层面的调整），但文档结构的根本性变化（引入“遗留”标签）是一个强烈的信号，提示开发者需要区分新旧两种集成方式。如果开发者正在升级模型或从零开始集成，必须选择正确的文档路径；Hooks 配置的变更虽然小，但可能导致现有配置失效。
+
+---
+
+### 开发者行动项
+
+*   **审查 Bedrock 集成代码**：如果你正在使用 ARN 版本 ID（如 `anthropic.claude-3-sonnet-20240229-v1:0`），请知晓这属于遗留集成路径。
+*   **规划模型升级**：若要使用 Claude Opus 4.7 或 Haiku 4.5，请转向查阅 `Claude in Amazon Bedrock` 文档，并考虑迁移至 Messages API 端点以获得功能对等。
+*   **修正 Hooks 配置**：检查项目中 Hooks 的 `once` 参数。如果希望在设置文件或 Agent 中实现“只运行一次”的逻辑，目前的更新表明该方式已被弃用或不再支持，需调整至 Skill frontmatter 中。
+*   **更新内部知识库/书签**：将指向 &#34;Claude on Amazon Bedrock&#34; 的链接更新为 &#34;Claude in Amazon Bedrock&#34;，除非团队明确维护遗留系统。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Task:** Analyze a batch of 9 changed pages and provide a summary.
+    *   **Format:** Markdown.
+    *   **Language:** Chinese (requested: &#34;请用中文回复&#34;).
+    *   **Focus:** What matters to developers (concise, insightful).
+    *   **Structure:** Overall Summary, Key Themes, Impact Level, Action Items.
+
+2.  **Analyze the Diffs (Page by Page):**
+
+    *   `hooks.md`:
+        *   *Change:* Modified the `once` field description. Previously said &#34;Skills only, not agents.&#34; Now says &#34;Only honored for hooks declared in skill frontmatter; ignored in settings files and agent frontmatter.&#34;
+        *   *Implication:* Clarifies where the `once` flag works. It&#39;s stricter now: it only works in skill frontmatter, not in settings or agent config.
+
+    *   `about-claude/models/overview.md`:
+        *   *Change:* Updated footnote 3. &#34;Claude Opus 4.7 on AWS&#34; link changed from `.../claude-in-amazon-bedrock-research-preview` to `.../claude-in-amazon-bedrock`. Text changed from &#34;currently in research preview&#34; to &#34;(the Messages-API Bedrock endpoint)&#34;.
+        *   *Implication:* Opus 4.7 on AWS Bedrock is moving out of &#34;research preview&#34; naming or specifically being tied to the &#34;Messages API&#34; integration path, distinct from the legacy `InvokeModel` path.
+
+    *   `about-claude/pricing.md`:
+        *   *Change:* Updated links. `claude-on-amazon-bedrock` -&gt; `claude-in-amazon-bedrock` in the list.
+        *   *Change:* Updated the &#34;Note&#34; section about implementation details. Split the link to Bedrock: one for &#34;Claude in Amazon Bedrock&#34; (new, for Opus 4.7, Haiku 4.5, newer) and &#34;legacy integration&#34; (for others).
+        *   *Implication:* Further enforcing the distinction between the &#34;legacy&#34; Bedrock integration and the &#34;new&#34; (Messages API) one. Pricing links align with this split.
+
+    *   `api/overview.md`:
+        *   *Change:* Table update. Link text changed from `Claude on Amazon Bedrock` to `Claude in Amazon Bedrock`. Slug changed from `claude-on-amazon-bedrock` to `claude-in-amazon-bedrock`.
+        *   *Implication:* Branding/URL consistency shift from &#34;on&#34; to &#34;in&#34; Bedrock.
+
+    *   `api/client-sdks.md`:
+        *   *Change:* Link update. `claude-on-amazon-bedrock` -&gt; `claude-in-amazon-bedrock`.
+        *   *Implication:* Consistency update.
+
+    *   `build-with-claude/extended-thinking.md`:
+        *   *Change:* Updated links in two places. `claude-on-amazon-bedrock` -&gt; `claude-in-amazon-bedrock`.
+        *   *Implication:* Consistency update.
+
+    *   `build-with-claude/structured-outputs.md`:
+        *   *Change:* Updated the &#34;Note&#34; box regarding availability.
+        *   *Before:* Opus 4.7 via &#34;research preview&#34;.
+        *   *After:* Opus 4.7 and Mythos Preview via &#34;Claude in Amazon Bedrock (the Messages-API Bedrock endpoint)&#34;.
+        *   *Implication:* Feature availability alignment. The &#34;Messages API Bedrock endpoint&#34; is the specific way to access newer models (Opus 4.7, Mythos) on AWS.
+
+    *   `build-with-claude/claude-on-amazon-bedrock.md`:
+        *   *Change:* Title changed to &#34;Claude on Amazon Bedrock (legacy)&#34;.
+        *   *Change:* Intro text now explicitly calls it the &#34;legacy&#34; integration.
+        *   *Change:* The &#34;Note&#34; was rewritten to distinguish the &#34;legacy&#34; integration (InvokeModel/Converse/ARN) from the new &#34;Claude in Amazon Bedrock&#34; (Messages API).
+        *   *Change:* Section about &#34;API model IDs&#34;. Clarified that Opus 4.7 is reachable via `InvokeModel` but served by the new infrastructure. It&#39;s omitted from the model table because it lacks an ARN-versioned ID.
+        *   *Implication:* MAJOR STRUCTURAL CHANGE. This page is now the &#34;Legacy&#34; documentation. A clear bifurcation is happening between the old Bedrock integration style and the new Messages API style.
+
+    *   `build-with-claude/claude-on-vertex-ai.md`:
+        *   *Change:* Link update. `claude-on-amazon-bedrock` -&gt; `claude-in-amazon-bedrock`.
+        *   *Implication:* Cross-reference update.
+
+3.  **Synthesize and Theme Detection:**
+
+    *   **Theme 1: Bedrock Integration Migration.** The most significant change is the rebranding/reclassification of AWS Bedrock documentation.
+        *   &#34;Claude *on* Amazon Bedrock&#34; -&gt; **Legacy** (ARNs, InvokeModel/Converse).
+        *   &#34;Claude *in* Amazon Bedrock&#34; -&gt; **New Standard** (Messages API, SSE streaming).
+        *   Opus 4.7 is specifically tied to the new standard, though accessible via the old endpoint route (via infrastructure magic), but docs emphasize using the new way for full parity.
+
+    *   **Theme 2: Hook Configuration Clarification.** A minor but breaking/clarifying change to how `once` works in hooks (Skill frontmatter only).
+
+    *   **Theme 3: Consistency.** Massive global link updates to reflect &#34;in&#34; vs &#34;on&#34; Bedrock.
+
+4.  **Drafting the Response (in Chinese):**
+
+    *   *Overall Summary:* The documentation updates clarify the bifurcation of the AWS Bedrock integration into a &#34;legacy&#34; path (ARNs/InvokeModel) and a new &#34;Claude in Amazon Bedrock&#34; path (Messages API), while also refining hook behavior configuration.
+    *   *Key Themes:*
+        *   **AWS Bedrock Integration Split:** Explicitly labeling the ARN-based integration as &#34;Legacy&#34; and promoting the Messages-API based &#34;Claude in Amazon Bedrock&#34; as the path for newer models (Opus 4.7, Haiku 4.5).
+        *   **Opus 4.7 Availability:** Clarifying that Opus 4.7 is best accessed via the new Messages API endpoint on Bedrock, though it can be routed through `InvokeModel` without an ARN ID.
+        *   **Link Rebranding:** Global shift from &#34;Claude *on* Amazon Bedrock&#34; to &#34;Claude *in* Amazon Bedrock&#34;.
+        *   **Hooks Logic Refined:** The `once` flag now only applies to Skill frontmatter, not settings or agents.
+
+    *   *Impact Level:* Medium.
+        *   *Reasoning:* While the code functionality hasn&#39;t necessarily broken for everyone, the documentation structure represents a significant shift in how Anthropic categorizes Bedrock usage. Developers need to be aware they might be following &#34;Legacy&#34; docs if they use ARNs. The hooks change is specific but affects behavior logic.
+
+    *   *Action Items:*
+        *   Check if your AWS Bedrock integration relies on ARN-versioned IDs (Legacy) vs the new Messages API.
+        *   If using the `once` flag in hooks, ensure it is placed in Skill frontmatter, not settings.
+        *   Update internal documentation/bookmarks to point to &#34;Claude in Amazon Bedrock&#34; for new features/models like Opus 4.7.
+        *   Review Bedrock implementation if upgrading to Haiku 4.5 or Opus 4.7 to ensure feature parity (SSE streaming, etc.).
+
+5.  **Refining the Language (Chinese):**
+
+    *   *Summary:* 文档更新明确了 AWS Bedrock 集成的分化，将其区分为“遗留”模式（基于 ARN/InvokeModel）和全新的“Claude in Amazon Bedrock”模式（基于 Messages API），同时也细化了 Hooks 配置的逻辑说明。
+    *   *Themes:*
+        *   AWS Bedrock 集成路径分化：明确将基于 ARN 的集成标记为“遗留”，并将基于 Messages API 的集成作为新模型（如 Opus 4.7, Haiku 4.5）的首选路径。
+        *   命名与链接重构：全站链接从 &#34;Claude on Amazon Bedrock&#34; 迁移至 &#34;Claude in Amazon Bedrock&#34;。
+        *   Hooks 行为修正：`once` 参数现在仅适用于 Skill frontmatter，不再作用于配置文件或 Agent 前置元数据。
+    *   *Impact:* Medium. 这是一个架构性的文档重组，引导开发者区分旧版和新版集成方式。
+    *   *Actions:*
+        *   识别当前的 Bedrock 集成模式：如果是基于 ARN ID，请注意文档已归类为“遗留”。
+        *   在 Hooks 中使用 `once` 参数时，务必将其定义在 Skill frontmatter 中。
+        *   计划升级到 Haiku 4.5 或 Opus 4.7 时，转向查看 &#34;Claude in Amazon Bedrock&#34; 文档以获得完整功能支持（如 SSE 流式传输）。
+
+6.  **Final Polish:** Ensure the tone is professional and &#34;world-class programmer&#34;. (e.g., using terms like &#34;bifurcation&#34;, &#34;legacy&#34;, &#34;parity&#34;).
+
+    *   *Self-Correction during drafting:* Make sure to emphasize that Opus 4.7 is *accessible* via InvokeModel but *omitted* from the table because it lacks the ARN version ID. This is a crucial detail for devs looking for the model ID.
+
+7.  **Final Output Generation** (Matches the structure requested).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/about-claude/models/overview.html" class="page-link">about-claude/models/overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/about-claude/pricing.html" class="page-link">about-claude/pricing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/overview.html" class="page-link">api/overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/client-sdks.html" class="page-link">api/client-sdks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/extended-thinking.html" class="page-link">build-with-claude/extended-thinking.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/structured-outputs.html" class="page-link">build-with-claude/structured-outputs.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-on-amazon-bedrock.html" class="page-link">build-with-claude/claude-on-amazon-bedrock.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+9</span>
+                            <span class="removed">-7</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-on-vertex-ai.html" class="page-link">build-with-claude/claude-on-vertex-ai.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">15:55 EST</div>
