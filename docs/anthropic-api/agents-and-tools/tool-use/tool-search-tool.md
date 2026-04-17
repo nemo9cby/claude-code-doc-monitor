@@ -55,7 +55,7 @@ This keeps your context window efficient while maintaining high tool selection a
 Here's a simple example with deferred tools:
 
 <CodeGroup>
-```bash Shell
+```bash cURL
 curl https://api.anthropic.com/v1/messages \
     --header "x-api-key: $ANTHROPIC_API_KEY" \
     --header "anthropic-version: 2023-06-01" \
