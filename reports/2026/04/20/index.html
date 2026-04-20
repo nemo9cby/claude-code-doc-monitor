@@ -118,9 +118,216 @@
 
         <header>
             <h1>Changes on 2026-04-20</h1>
-            <p class="meta">1 total change in 1 run</p>
+            <p class="meta">7 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">14:57 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">1. **Overall Summary**
+本次文档更新主要细化了 Hooks（钩子）系统的匹配逻辑，明确了其对复杂 Bash 命令中子命令的处理方式，并修正了 `direnv` 环境变量加载的最佳实践。此外，文档全面清理了对已废弃模型 Claude Haiku 3 的引用，并将 Agent hooks 标记为实验性功能。
+
+2. **Key Themes**
+*   **Hooks 匹配机制精细化：** 阐明了 `if` 字段不再仅检查命令开头，而是能够匹配复杂命令链（如 `npm test &amp;&amp; git push`）中的子命令，并指出对于无法解析的复杂命令会默认触发。
+*   **环境变量加载模式修正：** 针对 `direnv` 集成，推荐新增 `SessionStart` 钩子以覆盖初始化场景，并将文件写入方式从追加 (`&gt;&gt;`) 改为覆盖 (`&gt;`)，防止环境变量无限累积。
+*   **实验性功能警告：** 明确标记 `Agent hooks` 为实验性功能，提示其行为和配置在未来版本可能发生变化。
+*   **老旧模型清理：** 从速率限制、Prompt Caching、Bedrock 及 Vertex AI 文档中彻底移除了 Claude Haiku 3 的相关条目，进一步推进模型迭代。
+
+3. **Impact Level** (Medium)
+*   **Reasoning:** 对于依赖 Hooks 进行流程控制的开发者，`if` 条件匹配逻辑的改变（特别是对复杂 Bash 命令的处理）可能会改变钩子的触发频率和范围。`direnv` 配置的修正解决了潜在的变量累积 bug。移除旧模型属于标准生命周期维护，对当前活跃开发影响较小。
+
+4. **Action items**
+*   **更新 direnv 配置：** 修改 `~/.claude/settings.json`，增加 `SessionStart` 钩子，并将 `CwdChanged` 钩子中的重定向操作符从 `&gt;&gt;` 改为 `&gt;`。
+*   **审查 Hooks 规则：** 检查现有的 `PreToolUse` 或 `PostToolUse` 钩子，确认针对复杂 Bash 命令的 `if` 过滤逻辑是否符合预期。
+*   **慎用 Agent Hooks：** 鉴于其被标记为实验性，建议在生产关键流程中优先使用稳定的 `command` hooks。
+*   **移除 Haiku 3 引用：** 检查代码或配置文件，确保未硬编码引用已废弃的 Claude Haiku 3 模型 ID。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Input:** Diff of 6 pages (`hooks.md`, `hooks-guide.md`, `api/rate-limits.md`, `build-with-claude/prompt-caching.md`, `build-with-claude/claude-on-amazon-bedrock.md`, `build-with-claude/claude-on-vertex-ai.md`).
+    *   **Output Format:** Markdown, concise, insightful, Chinese language.
+    *   **Specific Sections:** Overall Summary, Key Themes, Impact Level, Action Items.
+
+2.  **Analyze the Changes Page by Page:**
+
+    *   **Page 1: `hooks.md`**
+        *   *Changes:*
+            *   Updated description of how `if` conditions match (specifically for `rm *` and `git *`). It now says &#34;subcommand matching `rm *`&#34; instead of &#34;command starts with `rm`&#34;.
+            *   Updated table descriptions for `if` field to reflect matching subcommands.
+            *   Added note that `Agent hooks` are experimental and may change.
+        *   *Implication:* The matching logic for hooks is more granular (subcommands) than previously implied. Agent hooks are flagged as unstable.
+
+    *   **Page 2: `hooks-guide.md`**
+        *   *Changes:*
+            *   Updated `direnv` example: Now suggests pairing `SessionStart` with `CwdChanged` instead of just `CwdChanged`.
+            *   Changed command from `&gt;&gt;` (append) to `&gt;` (overwrite) in `direnv` examples to avoid accumulation.
+            *   Clarified behavior for complex Bash commands (compound commands like `npm test &amp;&amp; git push`) regarding `if` field matching. It checks each subcommand.
+            *   Added explicit warning that &#34;Agent hooks are experimental&#34;.
+            *   Updated list of events `if` works on: Removed `PermissionDenied`.
+        *   *Implication:* Better environment variable loading logic. Significant clarification on hook filtering logic (subcommands vs full command). Agent hooks are marked experimental.
+
+    *   **Page 3: `api/rate-limits.md`**
+        *   *Changes:* Removed rows for &#34;Claude Haiku 3&#34; from the rate limits table (Build, Messages, Batches, and Batch Streaming tabs).
+        *   *Implication:* &#34;Claude Haiku 3&#34; is likely deprecated/removed from these contexts.
+
+    *   **Page 4: `build-with-claude/prompt-caching.md`**
+        *   *Changes:* Removed &#34;Claude Haiku 3&#34; from the minimum cacheable tokens list.
+        *   *Implication:* Consistent removal of Haiku 3 references.
+
+    *   **Page 5: `build-with-claude/claude-on-amazon-bedrock.md`**
+        *   *Changes:* Removed &#34;Claude Haiku 3&#34; from the model list table.
+        *   *Implication:* Consistent removal of Haiku 3 references.
+
+    *   **Page 6: `build-with-claude/claude-on-vertex-ai.md`**
+        *   *Changes:* Removed &#34;Claude Haiku 3&#34; from the model list table.
+        *   *Implication:* Consistent removal of Haiku 3 references.
+
+3.  **Synthesize and Structure the Analysis:**
+
+    *   **Overall Summary:**
+        *   Major themes: Deprecation of Claude Haiku 3, clarification of Hook matching logic (specifically subcommands), and marking Agent hooks as experimental.
+        *   Draft: 本次文档更新主要集中在 Hooks 行为的细化修正，明确子命令匹配逻辑，并将 Agent hooks 标记为实验性功能。同时，全面清理了文档中对已废弃模型 Claude Haiku 3 的引用。
+
+    *   **Key Themes:**
+        *   *Theme 1: Hooks Logic Refinement.* The `if` condition now matches *subcommands* (e.g., inside a complex chain) rather than just the start of the string. This affects how filters like `Bash(git *)` work.
+        *   *Theme 2: Environment Variable Loading.* Best practice for `direnv` integration changed to use `SessionStart` + `CwdChanged` and overwrite (`&gt;`) instead of append (`&gt;&gt;`).
+        *   *Theme 3: Experimental Status.* Agent hooks explicitly marked as experimental.
+        *   *Theme 4: Model Deprecation.* Claude Haiku 3 removed from rate limits, caching, and cloud provider docs.
+
+    *   **Impact Level:**
+        *   *Reasoning:*
+            *   The Hooks logic change is behaviorally significant for existing hook configurations relying on simple string matching (especially for complex bash commands).
+            *   The Haiku 3 removal is standard deprecation cleanup.
+            *   Direnv fix fixes a potential bug in user configs (env accumulation).
+        *   *Rating:* **Medium** (for users using Hooks), **Low** (for general API users). Let&#39;s go with Medium.
+
+    *   **Action Items:**
+        *   Update `direnv` hook config (add `SessionStart`, change `&gt;&gt;` to `&gt;`).
+        *   Review hooks relying on `if` conditions for complex bash commands.
+        *   Avoid relying on Agent hooks for production workflows.
+        *   Stop referencing Claude Haiku 3 in code/docs.
+
+4.  **Drafting the Content (in Chinese):**
+
+    *   *Summary:* 本次文档更新主要细化了 Hooks（钩子）的匹配逻辑，澄清了其对 Bash 子命令的处理方式，并修正了环境变量加载的最佳实践。同时，文档中全面移除了关于已废弃模型 Claude Haiku 3 的相关引用，并将 Agent hooks 标记为实验性功能。
+
+    *   *Key Themes:*
+        *   **Hooks 匹配逻辑优化：** 明确了 `if` 字段针对 Bash 工具的匹配机制，现在支持对复杂命令链（如 `npm test &amp;&amp; git push`）中的子命令进行匹配，而非仅仅检查命令开头。
+        *   **环境变量加载最佳实践修正：** 建议结合 `SessionStart` 和 `CwdChanged` 两个钩子来加载 `direnv` 环境变量，并使用覆盖模式 (`&gt;`) 替代追加模式 (`&gt;&gt;`) 以防止变量累积。
+        *   **模型清理：** 彻底从速率限制、提示词缓存及云平台文档中移除了 Claude Haiku 3 的相关条目，确认其已不再可用。
+        *   **实验性功能标记：** 明确将 Agent hooks 标记为“实验性”，提示其在生产环境中的不稳定性。
+
+    *   *Impact Level:* **Medium** (中等)
+        *   *Reasoning:* 对于重度使用 Hooks 的开发者，`if` 条件的行为变化和 `direnv` 配置建议的改变可能影响现有工作流的正确性和性能。移除旧模型属于常规维护，影响较小。
+
+    *   *Action Items:*
+        *   更新 `direnv` 相关的 Hooks 配置，增加 `SessionStart` 事件并将写入方式改为覆盖 (`&gt;`)。
+        *   检查现有的 Hooks 规则，特别是针对复杂 Bash 命令的 `if` 条件过滤逻辑。
+        *   在生产环境中避免依赖 Agent hooks，优先考虑使用 Command hooks。
+        *   确保代码和配置中不再引用 Claude Haiku 3 模型。
+
+5.  **Final Review:** Check against constraints. Markdown format? Yes. Chinese? Yes. Concise? Yes. 5 action items max? Yes.
+
+    *Self-Correction during drafting:* I initially thought the `if` logic change might be &#34;Breaking&#34;, but it actually makes matching *more* permissive/smart (matches subcommands inside complex chains), so it might fix more things than it breaks, or at least make it work as intended. I&#39;ll stick with &#34;Medium&#34; impact because it changes how filtering behaves. The removal of `PermissionDenied` from the list of events `if` works on is a technical detail worth noting in the reasoning but maybe not a top action item unless someone is using it. I&#39;ll focus the action items on the practical config changes.
+
+    *Refining the &#34;Theme&#34; on Hooks:* The docs changed &#34;command starts with&#34; to &#34;subcommand matches&#34;. This is a crucial distinction. `npm install &amp;&amp; git status` will now trigger a hook checking for `git *` even though the command *starts* with `npm`.
+
+    *Refining &#34;direnv&#34;:* The change from `&gt;&gt;` to `&gt;` is significant because appending `direnv export` to a file repeatedly would eventually bloat the env file and likely cause syntax errors.
+
+6.  **Final Output Generation** (Proceeding to generate the markdown response).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+13</span>
+                            <span class="removed">-11</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+11</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/rate-limits.html" class="page-link">api/rate-limits.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-caching.html" class="page-link">build-with-claude/prompt-caching.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-on-amazon-bedrock.html" class="page-link">build-with-claude/claude-on-amazon-bedrock.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-on-vertex-ai.html" class="page-link">build-with-claude/claude-on-vertex-ai.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">13:53 EST</div>
