@@ -118,9 +118,217 @@
 
         <header>
             <h1>Changes on 2026-04-21</h1>
-            <p class="meta">25 total changes in 3 runs</p>
+            <p class="meta">31 total changes in 4 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">19:30 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">1.  **Overall Summary**
+    本次更新重点重构了插件配置系统的 `userConfig` Schema，增加了必填字段和类型校验能力，属于潜在的破坏性变更；同时移除了文档中的前端 A/B 测试代码以简化维护，并明确了技能配置与子代理预加载之间的交互逻辑。
+
+2.  **Key Themes**
+    *   **插件配置 Schema 强化** (`plugins-reference.md`)：`userConfig` 现在强制要求 `type` 和 `title` 字段，并新增了 `required`、`default`、`multiple`、`min/max` 等验证选项，提供了更细粒度的配置控制。
+    *   **技能与子代理交互** (`skills.md`, `slash-commands.md`, `sub-agents.md`)：明确了 `disable-model-invocation: true` 的副作用，即该技能将无法被子代理预加载。
+    *   **文档代码清理** (`overview.md`, `quickstart.md`)：移除了大量内联的 A/B 测试 JavaScript 逻辑（Experiment 组件），简化了安装配置器的渲染逻辑。
+
+3.  **Impact level**
+    **High**
+
+    **Reasoning:**
+    尽管 A/B 测试代码的清理属于内部维护，但 `plugins-reference.md` 中 `userConfig` 结构的变更引入了**必填字段**（`type` 和 `title`）。这意味着现有的插件定义如果缺少这些字段，可能会在加载时失败或报错，构成了对插件开发者的破坏性变更。
+
+4.  **Action items for developers**
+    *   **更新插件定义**：检查并更新所有插件的 `userConfig` 部分，确保每个配置项都包含 `type` 和 `title` 字段。
+    *   **利用新验证特性**：利用新增的 `required`、`default`、`min`/`max` 等字段增强插件配置的健壮性和用户体验。
+    *   **审查子代理预加载**：检查代码中使用了 `disable-model-invocation: true` 的技能，确认它们并未被列入子代理的 `preload` 列表中，否则会导致预加载失败。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Input:** 6 pages of diffs (`overview.md`, `plugins-reference.md`, `quickstart.md`, `skills.md`, `slash-commands.md`, `sub-agents.md`).
+    *   **Output Format:** Markdown.
+    *   **Language:** Chinese (as requested: &#34;请用中文回复&#34;).
+    *   **Structure:**
+        1.  Overall Summary (1-2 sentences).
+        2.  Key Themes (bullets).
+        3.  Impact Level (Low/Medium/High/Breaking) with reasoning.
+        4.  Action Items (max 5 bullets).
+
+2.  **Analyze the Diffs:**
+
+    *   **`overview.md`:**
+        *   Removed nested `&lt;Experiment&gt;` components wrapping `&lt;InstallConfigurator&gt;`.
+        *   Simplified to a single experiment check.
+        *   *Theme:* Frontend/A/B testing cleanup for installation flow.
+
+    *   **`quickstart.md`:**
+        *   Removed a huge chunk of JavaScript code (the `Experiment` component definition including hashing, GDPR logic, tracking, etc.).
+        *   Simplified the `&lt;InstallConfigurator&gt;` usage (removed nested experiment flag).
+        *   *Theme:* Removing inline frontend logic/experiment code from docs. Clean up.
+
+    *   **`plugins-reference.md`:**
+        *   Updated `userConfig` schema definition.
+        *   Added required fields: `type`, `title`.
+        *   Added optional fields table (including `required`, `default`, `multiple`, etc.).
+        *   Updated examples to show the new fields (`type: string`, `title`).
+        *   Clarified where values are available (substitution rules).
+        *   *Theme:* Enhancing Plugin Configuration Schema (breaking/enhancement).
+
+    *   **`skills.md` &amp; `slash-commands.md`:**
+        *   Updated description for `disable-model-invocation`.
+        *   Added note: &#34;Also prevents the skill from being preloaded into subagents&#34;.
+        *   *Theme:* Clarifying behavior of skill configuration regarding subagents.
+
+    *   **`sub-agents.md`:**
+        *   Added paragraph explaining limitations of preloading skills.
+        *   Specifically, skills with `disable-model-invocation: true` cannot be preloaded.
+        *   *Theme:* Consistency with skills documentation (linking the two concepts).
+
+3.  **Synthesize and Structure (Drafting in Chinese):**
+
+    *   **1. Overall Summary:**
+        *   本次更新主要涉及文档前端代码的清理（移除实验逻辑），以及对插件配置 `userConfig` 架构的重要增强，同时明确了技能在子代理中的预加载限制。
+        *   *Refinement:* Make it punchier. Focus on &#34;Cleanup&#34; and &#34;Schema Enhancement&#34;.
+
+    *   **2. Key Themes:**
+        *   *Frontend Cleanup:* Removed inline JS for A/B testing (Experiment component) from `overview.md` and `quickstart.md`. This is internal/infrastructure cleanup, less relevant to logic but good for code hygiene.
+        *   *Plugin Config Schema:* `plugins-reference.md` now requires `type` and `title` for `userConfig` keys. Added support for validation fields like `required`, `default`, `min/max`.
+        *   *Skill/Subagent Interaction:* Clarified that `disable-model-invocation: true` blocks subagent preloading.
+
+    *   **3. Impact Level:**
+        *   **High** (specifically for plugin developers) or **Medium** (overall).
+        *   *Reasoning:* The change to `plugins-reference.md` adds *required* fields (`type`, `title`). If existing plugin manifests don&#39;t have these, they might break. The skill changes are behavioral clarifications but could affect expectations. The frontend changes are invisible to users/devs mostly.
+        *   *Decision:* **Medium/High**. Let&#39;s go with **Medium/High** (or just High for plugin devs). I&#39;ll categorize it as **High** for plugin authors, **Medium** generally, but the prompt asks for a single level. Given the required fields in plugins, I&#39;ll say **Medium to High**. Let&#39;s stick to **Medium** as general impact, but highlight the breaking nature for plugins. Actually, adding required fields usually implies a version bump or breaking change. I will label it **High** for Plugin Developers specifically, or generally **Medium**? The prompt asks for &#34;Impact level&#34;. If `userConfig` *must* have `type` now, that&#39;s a breaking change for existing plugins. I will select **High** because of the plugin schema change.
+
+    *   **4. Action Items:**
+        *   Update plugin manifest files to include `type` and `title` in `userConfig`.
+        *   Review skills that use `disable-model-invocation: true` if you intend to preload them into subagents.
+        *   (Optional) No action needed for frontend changes.
+
+4.  **Drafting the Content (Iterative refinement for Chinese nuance):**
+
+    *   *Summary:* 本次更新清理了文档中的 A/B 测试前端代码，并大幅增强了插件配置的 Schema 定义（增加了必填字段和校验能力）。此外，明确了技能配置对子代理预加载的影响。
+    *   *Themes:*
+        *   **插件配置增强**: `userConfig` 现在要求填写 `type` 和 `title`，并新增了 `required`、`default`、`multiple` 等字段支持。
+        *   **技能与子代理交互**: 明确了 `disable-model-invocation: true` 会阻止技能被子代理预加载。
+        *   **文档维护**: 移除了文档源码中用于 A/B 测试的内联 JavaScript 逻辑。
+    *   *Impact:* **High** (对插件开发者) / **Medium** (通用)。理由：`userConfig` 新增必填字段属于破坏性变更。
+    *   *Action Items:*
+        *   更新插件 `userConfig`：为所有配置项添加 `type` 和 `title`。
+        *   检查技能逻辑：如果技能设置了 `disable-model-invocation: true`，请注意它无法被子代理预加载。
+
+5.  **Final Polish:** Ensure markdown format and tone are professional.
+
+    *   *Self-Correction during drafting:* The prompt asks for &#34;Impact level&#34; as a single label. I will use &#34;High&#34; and explain it&#39;s primarily due to the plugin schema breaking change.
+
+6.  **Final Output Generation** (translating thoughts to the final output).
+
+    *   Overall Summary: 本次更新主要清理了文档中的前端 A/B 测试代码，并显著增强了插件配置的 Schema（新增必填字段和类型校验），同时明确了技能在子代理中的预加载限制。
+    *   Key Themes:
+        *   插件配置 Schema 强化（新增 `type`, `title` 必填及验证字段）。
+        *   技能与子代理的交互规则明确。
+        *   文档源码清理（移除内联实验逻辑）。
+    *   Impact: High. Reasoning: Plugin `userConfig` 结构变更引入了必填字段，这通常意味着不兼容的旧版插件将无法正常加载或工作。
+    *   Action Items:
+        *   更新插件 manifest 中的 `userConfig` 定义，补充缺失的 `type` 和 `title` 字段。
+        *   利用新增的 `required`、`default` 等字段改进插件配置的健壮性。
+        *   检查使用了 `disable-model-invocation: true` 的技能，确认它们是否被子代理预加载引用。
+
+7.  **Final Review against constraints:**
+    *   Markdown format? Yes.
+    *   Chinese reply? Yes.
+    *   Concise? Yes.
+    *   Insightful? Yes (noted the breaking change in plugins).
+
+    (Self-Correction): Wait, looking closely at `plugins-reference.md`, it says &#34;Keys must be valid identifiers. Each option supports these fields: ... type ... Yes ... title ... Yes&#34;. This confirms they are now required.
+
+    Let&#39;s generate the response.</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/overview.html" class="page-link">overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-7</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+26</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/quickstart.html" class="page-link">quickstart.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-88</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">18:34 EST</div>
