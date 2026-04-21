@@ -118,9 +118,179 @@
 
         <header>
             <h1>Changes on 2026-04-21</h1>
-            <p class="meta">21 total changes in 2 runs</p>
+            <p class="meta">25 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">18:34 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 总体摘要
+
+本次更新主要引入并详细说明了 **WebFetch 域名安全检查**机制，指出该功能会在所有模型提供商（包括 Bedrock、Vertex 等）下调用 Anthropic API 进行域名预检。此外，移除了关于通过环境变量覆盖会话回顾设置的过时文档。
+
+### 关键主题
+
+*   **WebFetch 网络依赖变更**：WebFetch 工具新增了强制性的“域名安全检查”，默认会将请求的主机名发送至 `api.anthropic.com` 以匹配黑名单。
+*   **跨提供商网络影响**：即使用户使用 Bedrock、Vertex AI 或 Foundry 等第三方模型提供商，WebFetch 功能仍默认依赖 Anthropic 的 API 端点。如果网络策略阻止了 `api.anthropic.com`，WebFetch 将会失败，除非明确配置禁用。
+*   **配置与控制**：新增了 `skipWebFetchPreflight` 设置项，允许在无法访问 Anthropic API 的受限网络环境中禁用该安全检查，但需自行承担绕过黑名单的安全风险。
+*   **文档清理**：移除了 `CLAUDE_CODE_ENABLE_AWAY_SUMMARY` 环境变量覆盖配置文件的说明，意味着该环境变量可能已被弃用或不再作为主要控制手段。
+
+### 影响等级：**中等** (对内网/企业用户为 **高**)
+
+**理由：** 对于大多数开发者，这主要是透明行为。但对于使用 Bedrock/Vertex/Foundry 且网络出站策略严格（阻断 `api.anthropic.com`）的企业或私有云用户，这是一个重大的**破坏性变更**。如果未正确配置防火墙或设置文件，WebFetch 功能将完全失效。
+
+### 开发者行动项
+
+1.  **审查网络白名单**：如果您使用 Bedrock、Vertex AI 或 Foundry，请确保防火墙或代理允许 WebFetch 访问 `api.anthropic.com`，或者在 `settings.json` 中添加 `skipWebFetchPreflight: true`。
+2.  **评估安全风险**：在禁用 `skipWebFetchPreflight` 后，WebFetch 将不再查询 Anthropic 的黑名单。建议结合 [`WebFetch` 权限规则](/en/permissions#webfetch) 限制可访问的域名，以确保安全。
+3.  **更新环境变量引用**：停止依赖 `CLAUDE_CODE_ENABLE_AWAY_SUMMARY` 环境变量来控制会话回顾，转而直接使用 `/config` 进行设置。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer/developer tools expert.
+    *   **Task:** Analyze documentation changes (4 pages) as a single batch.
+    *   **Output Format:** Markdown.
+    *   **Language:** Chinese.
+    *   **Requirements:** Concise, insightful, focused on developer impact.
+    *   **Structure:** Overall Summary, Key Themes, Impact Level, Action Items.
+
+2.  **Analyze the Diff Data:**
+
+    *   **Page 1: `data-usage.md` (+11 / -7)**
+        *   *Change:* Adds information about the &#34;WebFetch domain safety check&#34;.
+        *   *Details:*
+            *   It&#39;s a new exception to the default traffic behavior (alongside surveys).
+            *   It sends the *hostname* (not full URL/path) to `api.anthropic.com` to check a safety blocklist.
+            *   It runs regardless of the API provider (Claude, Vertex, Bedrock, Foundry).
+            *   `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` *does not* disable this check.
+            *   Opt-out method: `skipWebFetchPreflight: true` in settings.
+            *   Added a new section &#34;WebFetch domain safety check&#34; explaining the mechanism (sends hostname, cached for 5 mins, fails if network blocks Anthropic API, advice on using with permission rules).
+
+    *   **Page 2: `interactive-mode.md` (+1 / -1)**
+        *   *Change:* Removes a sentence about overriding session recap using the `CLAUDE_CODE_ENABLE_AWAY_SUMMARY` environment variable.
+        *   *Details:* It previously said you could override the config toggle with this env var. Now it just says it&#39;s on by default and skipped in non-interactive mode.
+        *   *Implication:* The env var `CLAUDE_CODE_ENABLE_AWAY_SUMMARY` might be deprecated or removed, or at least no longer documented as an override mechanism in this context.
+
+    *   **Page 3: `network-config.md` (+1 / -0)**
+        *   *Change:* Adds a note regarding third-party providers (Bedrock, Vertex, Foundry).
+        *   *Details:* Even when using these providers (where model traffic goes to the provider, not Anthropic), the *WebFetch tool* still calls `api.anthropic.com` for the domain safety check unless `skipWebFetchPreflight: true` is set.
+
+    *   **Page 4: `settings.md` (+1 / -0)**
+        *   *Change:* Adds a new setting description `skipWebFetchPreflight`.
+        *   *Details:* Boolean. Skips the hostname check. Useful for environments blocking traffic to Anthropic (e.g., Bedrock/Vertex deployments). Warning: skips blocklist check.
+
+3.  **Synthesize the Analysis:**
+
+    *   **Overall Summary:** The primary change is the introduction and documentation of the &#34;WebFetch domain safety check,&#34; which calls Anthropic&#39;s API regardless of the underlying model provider. A minor change removes documentation for an environment variable related to session recaps.
+    *   **Key Themes:**
+        *   *Security/Networking (WebFetch):* WebFetch has a mandatory network call to `api.anthropic.com` to check hostnames against a blocklist. This applies even to Bedrock/Vertex/Foundry users.
+        *   *Configuration:* New setting `skipWebFetchPreflight` to bypass this check for users with restricted networks.
+        *   *Deprecation/Cleanup:* Removing reference to `CLAUDE_CODE_ENABLE_AWAY_SUMMARY` as an override mechanism.
+    *   **Impact Level:**
+        *   *Impact:* Medium/High.
+        *   *Reasoning:* For enterprise developers using Bedrock/Vertex/Foundry in air-gapped or restricted environments, the fact that `api.anthropic.com` is still required for WebFetch (unless disabled) is a critical operational detail. Failure to configure this correctly will break WebFetch functionality.
+    *   **Action Items:**
+        *   Review network allowlists if using Bedrock/Vertex/Foundry.
+        *   Set `skipWebFetchPreflight: true` if blocking `api.anthropic.com`.
+        *   Verify session recap configuration (though minor, be aware of the removed env var option).
+
+4.  **Drafting the Response (in Chinese):**
+
+    *   *Summary:* 本批次更新主要引入并详细说明了“WebFetch 域名安全检查”机制。同时清理了关于会话回顾环境变量的过时文档。
+    *   *Themes:*
+        *   **WebFetch 网络依赖变更**：新增了 WebFetch 工具在抓取前的域名安全检查，该检查会调用 `api.anthropic.com`。
+        *   **跨提供商影响**：即使使用 Bedrock、Vertex 或 Foundry 等第三方模型提供商，WebFetch 默认仍需访问 Anthropic API，这可能会影响受限网络环境。
+        *   **配置选项**：提供了 `skipWebFetchPreflight` 设置来绕过此检查。
+    *   *Impact:* Medium (High for enterprise/restricted networks).
+    *   *Action Items:*
+        1. 检查防火墙/代理规则：确保允许 WebFetch 访问 `api.anthropic.com`（即使使用其他模型提供商）。
+        2. 配置 `settings.json`：如果在受限环境中（如无法访问 Anthropic API），将 `skipWebFetchPreflight` 设为 `true`。
+        3. 注意安全风险：关闭预检检查意味着绕过域名黑名单，需配合 `WebFetch` 权限规则使用。
+        4. 移除环境变量依赖：停止使用 `CLAUDE_CODE_ENABLE_AWAY_SUMMARY` 来覆盖会话回顾设置。
+
+5.  **Refining the Tone and Formatting:**
+    *   Make it punchy.
+    *   Use &#34;World-class programmer&#34; persona (insightful, direct).
+    *   Translate technical terms accurately (e.g., &#34;Preflight&#34; -&gt; &#34;预检&#34;, &#34;Egress&#34; -&gt; &#34;出站流量&#34;).
+
+    *   *Self-Correction during drafting:* The change in `interactive-mode.md` is small but implies the env var `CLAUDE_CODE_ENABLE_AWAY_SUMMARY` might not work as an override anymore, or is simply deprecated. I should mention it cautiously as &#34;potential deprecation&#34; or just &#34;removed override capability&#34;. The main meat is the WebFetch change.
+
+6.  **Final Polish (Markdown):**
+    *   Structure as requested.
+
+    (Self-Correction on Impact): For someone on Bedrock in a locked-down corp network, discovering WebFetch tries to call `api.anthropic.com` (which might be blocked) is a big deal. So &#34;Medium&#34; is fair, but leaning High for the specific subset of users. I&#39;ll stick with &#34;Medium&#34; generally but explain the high impact for specific scenarios.
+
+    Let&#39;s finalize the Chinese text.
+
+    **Summary:** 本批次核心变更为引入并详细解释了 WebFetch 的域名安全检查机制，该机制会在所有提供商环境下调用 Anthropic API。同时移除了会话回顾环境变量的覆盖说明。
+    **Themes:** WebFetch 安全检查, 跨提供商网络依赖, 配置清理。
+    **Impact:** Medium.
+    **Actions:** Check allowlists, update settings, security awareness.
+
+    Ready to generate output.</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/data-usage.html" class="page-link">data-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+11</span>
+                            <span class="removed">-7</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/interactive-mode.html" class="page-link">interactive-mode.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/network-config.html" class="page-link">network-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">15:10 EST</div>
