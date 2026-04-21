@@ -118,9 +118,346 @@
 
         <header>
             <h1>Changes on 2026-04-21</h1>
-            <p class="meta">4 total changes in 1 run</p>
+            <p class="meta">21 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">15:10 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 文档变更分析摘要
+
+#### 1. 总体概述
+文档更新主要反映了 Claude Code **下载基础设施的迁移**（从 GCS 迁移至 `downloads.claude.ai`），引入了新的**钩子事件**以增强扩展性，并改进了 Skills 的**命名参数支持**以提升开发体验。
+
+#### 2. 核心变更主题
+
+*   **基础设施迁移**: 下载源、更新检查及安装脚本的主域名已从 `storage.googleapis.com` 变更为 `downloads.claude.ai`。旧域名目前仅作为旧版客户端的遗留回退源。这影响网络配置、故障排查及安装指南。
+*   **可扩展性增强**:
+    *   新增 `UserPromptExpansion` 钩子事件：允许在用户键入的命令扩展为 Prompt 之前进行拦截或阻断。
+    *   Subagent 生命周期变更：定义在 Subagent frontmatter 中的钩子现在也会在该 Agent 作为主会话运行时（通过 `--agent` 启动）触发。
+*   **开发体验 (DX) 优化**:
+    *   Skills 新增 `arguments` frontmatter 字段：支持通过 `$name` 占位符使用命名参数，而非仅依赖索引（`$0`, `$1`）。
+    *   Skills 的 `model` 属性明确为“临时覆盖”：仅对当前轮次生效，之后恢复会话模型。
+*   **安全与管理**:
+    *   **沙箱行为澄清**: 在自动允许模式下，针对 `/`、主目录等关键路径的 `rm`/`rmdir` 命令仍会触发权限提示。
+    *   **插件依赖控制**: Marketplace manifest 新增 `allowCrossMarketplaceDependenciesOn` 字段，用于控制跨市场依赖。
+    *   **监控**: `monitoring-usage.md` 更新了环境变量配置表，暗示了更详细的日志/工具输入记录能力。
+
+#### 3. 影响等级: **高 (High)**
+
+**理由**:
+1.  **破坏性网络变更**: 下载域名的迁移直接影响企业防火墙、代理配置及自动化安装脚本。如果未及时更新白名单，将导致无法下载或更新工具。
+2.  **扩展性模型变化**: 新增的钩子事件和 Subagent 钩子行为变更改变了底层扩展逻辑，插件开发者需要适配以利用新功能或防止意外行为。
+
+#### 4. 开发者行动项
+
+*   **更新网络白名单**: 立即在防火墙和代理规则中将 `downloads.claude.ai` 加入白名单（保留 `storage.googleapis.com` 以兼容旧版客户端）。
+*   **审查自动化脚本**: 检查所有指向 `storage.googleapis.com/claude-code-dist-...` 的安装或验证脚本，将其更新为新的 `downloads.claude.ai` 端点。
+*   **利用新钩子功能**: 插件开发者应评估 `UserPromptExpansion` 钩子，以实现对斜杠命令或快捷指令的自定义拦截/处理逻辑。
+*   **重构 Skills 定义**: 更新现有的 Skills 文件，使用新的 `arguments` 字段定义命名参数，提高代码可读性和维护性。
+*   **关注沙箱权限提示**: 如果使用自动允许沙箱模式，需意识到对关键系统路径的删除操作仍需人工确认，相应调整安全策略预期。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Input:** A batch of 17 documentation diff files.
+    *   **Output Format:** Markdown, concise, insightful.
+    *   **Language:** Chinese (as requested).
+    *   **Content:** Overall summary, Key themes, Impact level, Action items.
+
+2.  **Process the Diffs (Page by Page):**
+
+    *   **common-workflows.md:** Minor UI text update. &#34;progress hints&#34; -&gt; &#34;spinner shows inline progress hints such as &#39;still thinking&#39;&#34;. Refinement of user experience description.
+    *   **hooks.md (Lifecycle Diagram &amp; Table):**
+        *   Diagram updated.
+        *   New Event: `UserPromptExpansion` added. &#34;When a user-typed command expands into a prompt, before it reaches Claude. Can block the expansion.&#34; This is a significant addition for extensibility.
+        *   PostToolUseFailure was already there (implied by context of table update, actually looking at the diff, `PostToolUseFailure` is in the table).
+    *   **hooks-guide.md:** Same as `hooks.md`. Adds `UserPromptExpansion` event description.
+    *   **interactive-mode.md:** Task list display limit changed from 10 to 5 tasks at a time. Minor UI change.
+    *   **mcp.md:** URL change for adding servers. `/settings/connectors` -&gt; `/customize/connectors`. Admin only on Team/Enterprise. Important for setup instructions.
+    *   **monitoring-usage.md:** Significant update to the table. Adds new environment variables or clarifies existing ones. The diff snippet is cut off (`OTEL_LOG_TOOL_DETAILS...`), but it suggests expanded telemetry configuration capabilities.
+    *   **network-config.md:**
+        *   Changes to download URLs. `storage.googleapis.com` is now legacy/secondary. `downloads.claude.ai` is the primary download host.
+        *   Clarification on what needs to be allowlisted.
+    *   **plugin-marketplaces.md:**
+        *   Added `allowCrossMarketplaceDependenciesOn` field. Allows controlling dependencies between marketplaces. Security/management feature.
+    *   **plugins-reference.md:** Same as hooks/guide. Adds `UserPromptExpansion` to the event table.
+    *   **sandboxing.md:**
+        *   Text refinement: Removed &#34;platform restrictions&#34; from sandbox unavailability reasons.
+        *   Auto-allow mode clarification: Explicit mention that `rm`/`rmdir` on critical paths (/, home) still trigger prompts even in auto-allow sandbox mode. Security/safety clarification.
+    *   **settings.md:**
+        *   macOS MDM setup clarification: plist structure details added.
+        *   `sandbox.failIfUnavailable` description updated: Removed &#34;platform restrictions&#34; (same as sandboxing.md).
+        *   `/status` command output update: Added `HKCU` (Windows user-level policy) to the list of origins.
+    *   **setup.md:** Download repository URL changed from Google Storage (`storage.googleapis.com/...`) to `downloads.claude.ai`.
+    *   **skills.md &amp; slash-commands.md:**
+        *   Added `arguments` frontmatter field. Allows named positional arguments (e.g., `$issue`, `$branch`) instead of just index-based (`$0`, `$1`). Better DX.
+        *   Clarified `model` frontmatter behavior: Override applies for the *current turn* only, then resumes session model. Accepts `inherit`.
+    *   **sub-agents.md:**
+        *   Note update: Frontmatter hooks now fire when running as the main session via `--agent` or `agent` setting (previously they didn&#39;t). They run alongside `settings.json` hooks.
+        *   `Stop` hooks convert to `SubagentStop` *when invoked as a subagent*.
+    *   **terminal-config.md:** `/terminal-setup` behavior update. It now sets `terminal.integrated.mouseWheelScrollSensitivity` in VS Code/Cursor/Windsurf for fullscreen mode. Behavior change regarding existing bindings (leaves them in place).
+    *   **troubleshooting.md:** Multiple references to `storage.googleapis.com` updated to `downloads.claude.ai`. Reflects the infrastructure change mentioned in network-config and setup.
+
+3.  **Synthesize Key Themes:**
+    *   **Infrastructure/URL Migration:** Moving away from `storage.googleapis.com` to `downloads.claude.ai` for downloads and updates. Affects networking, firewalls, and troubleshooting.
+    *   **Extensibility (Hooks):** Introduction of `UserPromptExpansion` hook. Allows intercepting and blocking command expansion.
+    *   **Developer Experience (Skills):** Named arguments for skills (frontmatter `arguments`). Clarifications on model override scope.
+    *   **Security/Management:** Sandbox behavior clarified (critical paths still prompt), Plugin marketplace dependency control, MDM settings clarity.
+    *   **UI/UX:** Task list limit decreased, thinking mode text refined.
+
+4.  **Determine Impact Level:**
+    *   *Low:* Text refinements, thinking mode text, task list limit.
+    *   *Medium:* URL changes (affects firewalls), Sandbox clarification (behavior understanding), Skill named arguments (new feature).
+    *   *High:* New Hook event (`UserPromptExpansion`) changes the extensibility surface. Hooks behavior change for main-session agents. Migration of download URLs might break corporate firewalls if not updated (blocking updates/downloads).
+    *   *Overall Assessment:* **Medium to High**. The URL migration is critical for enterprise/firewall setups. The new Hook and changes to sub-agent hooks are significant for plugin/tool developers. The skills feature addition is a nice DX improvement.
+
+5.  **Draft Action Items:**
+    *   Update firewall/proxy allowlists to include `downloads.claude.ai` (and keep `storage.googleapis.com` for legacy/older clients).
+    *   Review scripts/docs referencing old GCS URLs.
+    *   Skills developers can update to use named arguments for better readability.
+    *   Plugin/Hook developers should investigate `UserPromptExpansion` for command interception.
+    *   MDM admins should note the updated plist structure description (if applicable).
+
+6.  **Drafting the Response (in Chinese):**
+
+    *   *Summary:* Docs updated to reflect infrastructure migration to `downloads.claude.ai`, added new hook `UserPromptExpansion` for extensibility, and improved Skills with named arguments.
+    *   *Themes:*
+        *   Infrastructure: GCS -&gt; downloads.claude.ai.
+        *   Extensibility: New Hook event, Sub-agent hooks now fire in main session.
+        *   Features: Named arguments in Skills.
+        *   Security: Sandbox behavior clarified, marketplace dependencies control.
+    *   *Impact:* High/Medium. URL migration affects networking/security. Hooks changes affect plugin dev.
+    *   *Action Items:* Allowlist new domain, check scripts, explore new hook, update skills.
+
+7.  **Refining the Analysis (Self-Correction):**
+    *   *Check:* Did I miss anything about `UserPromptExpansion`? It allows *blocking* the expansion. That&#39;s powerful.
+    *   *Check:* Sub-agent hooks. The change is that frontmatter hooks *now* fire when the agent runs as the main session (`--agent`). This is a behavior change/feature addition.
+    *   *Check:* Skills `model` override is transient (current turn only). Important clarification to avoid confusion.
+
+8.  **Final Polish (Markdown formatting):** Ensure clear headings and bullet points. Translate technical terms accurately while keeping developer context.
+
+    *   *Summary:* 文档更新反映了下载基础设施从 Google Cloud Storage 迁移至 `downloads.claude.ai`，引入了新的 `UserPromptExpansion` 钩子事件以增强扩展性，并为 Skills 添加了命名参数支持。
+    *   *Themes:*
+        *   **基础设施迁移**: 下载和更新源从 `storage.googleapis.com` 切换至 `downloads.claude.ai`，需更新网络白名单。
+        *   **可扩展性增强**: 新增 `UserPromptExpansion` 钩子，允许拦截命令扩展；Subagent 前置钩子现在也适用于主会话模式。
+        *   **开发体验优化**: Skills 支持命名参数（`arguments` 字段），提升了脚本可读性。
+        *   **安全与管理**: 澄清了沙箱模式下关键路径的权限提示逻辑，新增插件市场依赖控制字段。
+    *   *Impact:* **High** (主要针对网络配置和插件开发者)。URL 变更是破坏性的网络变更；钩子生命周期的改变影响插件开发逻辑。
+    *   *Action Items:*
+        *   更新企业防火墙/代理规则，放行 `downloads.claude.ai`。
+        *   插件开发者评估 `UserPromptExpansion` 钩子以实现命令拦截。
+        *   更新自动化安装脚本中的下载源 URL。
+        *   利用 Skills 命名参数重构现有技能定义。
+        *   MDM 管理员确认 macOS plist 配置结构。
+
+9.  **Final Output Generation.** (Matches the thought process above).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/common-workflows.html" class="page-link">common-workflows.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+99</span>
+                            <span class="removed">-72</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+31</span>
+                            <span class="removed">-29</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/interactive-mode.html" class="page-link">interactive-mode.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+197</span>
+                            <span class="removed">-36</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/network-config.html" class="page-link">network-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugin-marketplaces.html" class="page-link">plugin-marketplaces.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+29</span>
+                            <span class="removed">-28</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sandboxing.html" class="page-link">sandboxing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/setup.html" class="page-link">setup.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/terminal-config.html" class="page-link">terminal-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/troubleshooting.html" class="page-link">troubleshooting.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+9</span>
+                            <span class="removed">-9</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">01:22 EST</div>
