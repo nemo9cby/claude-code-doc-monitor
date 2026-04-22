@@ -118,9 +118,235 @@
 
         <header>
             <h1>Changes on 2026-04-22</h1>
-            <p class="meta">1 total change in 1 run</p>
+            <p class="meta">10 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">16:49 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 总体概述
+此次更新主要集中在优化上下文管理以节省 Token、增强模型配置的持久化行为、强化 MCP 插件的身份验证要求，以及提升了遥测数据的可观测性。
+
+### 关键主题
+*   **上下文与性能优化**：针对大文件旧会话引入了“从摘要恢复”的功能以节省配额；澄清了 `CLAUDE.md` 的 `import` 机制无法节省启动时的上下文，推荐使用“路径限定规则”来按需加载指令。
+*   **配置行为变更**：`/model` 选择现在会持久化保存（写入 `.claude/settings.local.json`）；针对 Opus 4.7 等模型更新了默认的 `effort`（努力程度）级别。
+*   **安全性与身份验证**：GitHub MCP 服务器的连接方式发生变更，不再支持之前的交互式认证流程，现在必须显式传递 Personal Access Token (PAT) 作为 Header。
+*   **可观测性增强**：遥测日志中新增了 `effort`（努力程度）和 `command_source`（命令来源）等属性，便于更精细的监控。
+*   **策略执行严格化**：插件市场的黑/白名单检查范围扩大至插件的安装、更新、刷新和自动更新全过程，即使是在策略配置前已添加的市场也会受限。
+
+### 影响等级
+**中等**
+理由：包含若干行为变更（如 GitHub MCP 认证方式、默认 effort 级别、模型选择持久化）和配置逻辑调整。虽然大部分是增强功能，但开发者需要更新现有的 MCP 配置脚本并关注新的会话恢复行为。
+
+### 开发者行动项
+*   **更新 MCP 脚本**：若使用 GitHub MCP 服务器，请修改配置命令，添加 `--header &#34;Authorization: Bearer YOUR_GITHUB_PAT&#34;` 参数。
+*   **优化 CLAUDE.md**：检查项目中的 `CLAUDE.md` 文件，若过大，改用“路径限定规则”代替 `import`，以减少不必要的 Token 消耗。
+*   **关注模型配置**：留意 `/model` 命令现在会自动将选择写入项目本地的设置文件，以及 Opus 4.7 的默认努力程度已提升至 `xhigh`。
+*   **利用会话摘要**：在恢复非常老旧且巨大的会话时，留意系统提供的“从摘要恢复”提示，以节省 API 配额。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Input:** A batch of diffs from 9 documentation pages (`common-workflows.md`, `mcp.md`, `memory.md`, `model-config.md`, `monitoring-usage.md`, `plugin-marketplaces.md`, `settings.md`, `sub-agents.md`, `vs-code.md`).
+    *   **Output:** Concise, insightful analysis in Markdown format, focusing on what matters to developers, in *Chinese*.
+    *   **Specifics:** Overall summary, key themes, impact level, action items.
+
+2.  **Analyze the Diffs (Page by Page):**
+
+    *   **Page 1: `common-workflows.md`**
+        *   *Change:* Added a note about resuming sessions. If an old/large session consumes too many tokens, `/resume`, `--resume`, and `--continue` offer to resume from a *summary* instead of the full transcript.
+        *   *Exception:* Not available on Amazon Bedrock, Google Cloud Vertex AI, or Microsoft Foundry.
+        *   *Impact:* Improves usability/cost saving for long sessions.
+
+    *   **Page 2: `mcp.md`**
+        *   *Change:* Updated the &#34;Connect to GitHub&#34; example. Previously implied an interactive authentication flow. Now explicitly requires passing a Personal Access Token (PAT) via a `--header` flag.
+        *   *Impact:* Breaking change in workflow for GitHub MCP users. Explicit auth is now required.
+
+    *   **Page 3: `memory.md`**
+        *   *Change:* Updated guidance for large `CLAUDE.md` files. Previously recommended splitting into imports or `.claude/rules/`. Now explicitly states that imports *still consume context at launch*. Recommends using &#34;path-scoped rules&#34; to only load instructions when relevant.
+        *   *Impact:* Performance optimization advice. Clarifies a common misconception about imports saving tokens.
+
+    *   **Page 4: `model-config.md`**
+        *   *Change 1:* `/model` selection persists across restarts (saved to user settings). v2.1.117+ writes to `.claude/settings.local.json` if the project has a pinned model.
+        *   *Change 2:* Startup header shows *where* the model setting came from if it&#39;s not user-selected.
+        *   *Change 3:* Updated default effort levels. v2.1.117: Opus 4.7 -&gt; `xhigh`, Opus 4.6/Sonnet 4.6 -&gt; `high`. Removed the specific Pro/Max mention (or simplified it).
+        *   *Impact:* Configuration behavior changes (persistence) and default settings shift (effort levels).
+
+    *   **Page 5: `monitoring-usage.md`**
+        *   *Change 1:* `OTEL_LOG_TOOL_DETAILS` now includes custom/plugin/MCP command names on `user_prompt` events.
+        *   *Change 2:* Added `effort` attribute to metrics (Token counter, API request/response events).
+        *   *Change 3:* Added `command_name` and `command_source` to `user_prompt` events. Notes that custom/MCP names collapse unless `OTEL_LOG_TOOL_DETAILS=1`.
+        *   *Impact:* Enhanced observability/telemetry. Better tracking of effort levels and command types.
+
+    *   **Page 6: `plugin-marketplaces.md`**
+        *   *Change:* Clarified that marketplace restrictions (allowlist/blocklist) are checked on *add*, *install*, *update*, *refresh*, and *auto-update*. If a marketplace was added *before* the policy, it&#39;s blocked from fetching new plugins.
+        *   *Impact:* Security tightening. Explicitly handles grandfathered marketplaces.
+
+    *   **Page 7: `settings.md`**
+        *   *Change:* Updated `blockedMarketplaces` description to match page 6 (enforcement on add, install, update, refresh, auto-update).
+        *   *Impact:* Consistency with marketplace changes.
+
+    *   **Page 8: `sub-agents.md`**
+        *   *Change:* Clarified that `mcpServers` in agent files applies *both* when the agent is spawned as a subagent AND when launched as the main session (`--agent`).
+        *   *Impact:* Documentation clarification. Defines scope of `mcpServers` config better.
+
+    *   **Page 9: `vs-code.md`**
+        *   *Change:* Updated the MCP add example to match `mcp.md` (GitHub PAT header requirement).
+        *   *Impact:* Consistency with MCP changes.
+
+3.  **Synthesize Key Themes:**
+    *   **Performance &amp; Cost Efficiency:** Large session summaries, path-scoped rules for memory, context management.
+    *   **Configuration Persistence:** `/model` settings saving behavior, effort level defaults.
+    *   **Security &amp; Auth:** GitHub MCP now requires explicit PAT via header.
+    *   **Observability:** New telemetry attributes (`effort`, `command_name`).
+    *   **Policy Enforcement:** Stricter checks on plugin marketplaces (pre/post policy).
+
+4.  **Draft the Analysis (in Chinese):**
+
+    *   *Overall Summary:* This update focuses on optimizing resource usage (context window/tokens), refining model configuration persistence, and tightening security/observability regarding MCP and plugins.
+    *   *Key Themes:*
+        *   **Context Optimization:** Resuming large sessions via summaries, clarification on imports vs. path-scoped rules.
+        *   **Configuration &amp; Defaults:** Model selection persistence, updated default `effort` levels for Opus 4.7/4.6.
+        *   **Security &amp; Auth:** GitHub MCP integration now requires a Bearer token.
+        *   **Observability:** New telemetry fields for effort levels and command sources.
+        *   **Policy Enforcement:** Stricter marketplace restriction checks across all plugin operations.
+    *   *Impact Level:* Medium. There are behavior changes in auth (GitHub MCP) and defaults (effort levels), plus new persistence logic.
+    *   *Action Items:*
+        *   Update GitHub MCP workflows to include `--header &#34;Authorization: Bearer YOUR_GITHUB_PAT&#34;`.
+        *   Review `CLAUDE.md` structure; use path-scoped rules instead of just imports to save context.
+        *   Be aware that `/model` choices now persist in `.claude/settings.local.json`.
+        *   Note the new default `effort` levels (`xhigh` for Opus 4.7).
+
+5.  **Refine Language (Polishing the Chinese):**
+    *   &#34;Resume from a summary&#34; -&gt; 支持通过摘要恢复旧会话.
+    *   &#34;Path-scoped rules&#34; -&gt; 路径限定规则.
+    *   &#34;Observability&#34; -&gt; 可观测性.
+
+6.  **Final Review against constraints:**
+    *   Concise? Yes.
+    *   Insightful? Yes, highlights the import misconception and the auth change.
+    *   Markdown? Yes.
+    *   Chinese? Yes.
+
+7.  **Construct Final Output.** (Proceeding to generate output based on step 4 &amp; 5).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/common-workflows.html" class="page-link">common-workflows.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/memory.html" class="page-link">memory.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/model-config.html" class="page-link">model-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugin-marketplaces.html" class="page-link">plugin-marketplaces.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+10</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/vs-code.html" class="page-link">vs-code.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">15:13 EST</div>
