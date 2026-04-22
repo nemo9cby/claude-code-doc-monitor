@@ -118,9 +118,117 @@
 
         <header>
             <h1>Changes on 2026-04-22</h1>
-            <p class="meta">14 total changes in 3 runs</p>
+            <p class="meta">15 total changes in 4 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">18:42 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">1. **Overall Summary**
+文档更正了 `defer` 行为的描述，明确指出会话并非永久保留在磁盘上，而是受默认 30 天的保留策略（`cleanupPeriodDays`）限制，过期将会被自动清理。
+
+2. **Key Themes**
+*   **会话生命周期管理**：修正了之前关于“无限期保留”的潜在误导，明确了会话数据的存储上限。
+*   **配置清理策略**：引入了 `cleanupPeriodDays` 配置项对 `defer` 会话的具体影响机制。
+
+3. **Impact level**
+**Medium**
+*   **Reasoning**：虽然这不是 API 代码层面的破坏性变更，但它纠正了一个关键的行为假设。如果开发者依赖 `defer` 进行长期挂起（例如涉及超过 30 天的审批流程），此变更意味着如果不修改配置，会话数据将会意外丢失。
+
+4. **Action items for developers**
+*   审查当前的 `cleanupPeriodDays` 设置，确认默认的 30 天保留期是否满足实际业务场景。
+*   如果工作流涉及超过 30 天的挂起操作，请相应调整该配置参数。
+*   在代码逻辑中考虑会话因过期被清理后的异常处理或用户提示。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request**:
+    *   **Role**: World-class programmer, expert in dev tools/documentation.
+    *   **Task**: Analyze documentation changes as a single batch.
+    *   **Format**: Markdown (Summary, Key Themes, Impact Level, Action Items).
+    *   **Language**: Chinese.
+    *   **Input**: A single diff from `hooks.md` describing the behavior of the `&#34;defer&#34;` return value in hooks.
+
+2.  **Analyze the Diff**:
+    *   **Context**: Hooks documentation, specifically regarding the `&#34;defer&#34;` return mechanism.
+    *   **Original Text**: &#34;There is no timeout or retry limit. The session remains on disk until you resume it...&#34;
+    *   **New Text**: &#34;...The session remains on disk until you resume it, subject to the [`cleanupPeriodDays`](/en/settings#available-settings) retention sweep that deletes session files after 30 days by default...&#34;
+    *   **Change**: Added clarification about session persistence limits. Specifically, sessions aren&#39;t kept *forever*; they are subject to a cleanup policy (default 30 days).
+
+3.  **Synthesize the Analysis**:
+
+    *   **Overall Summary**: The documentation update clarifies that sessions created when using the `&#34;defer&#34;` hook are not permanent; they are subject to an automatic cleanup policy (default 30 days), despite previously suggesting they remain indefinitely until resumed.
+
+    *   **Key Themes**:
+        *   **Data Retention/Lifecycle**: Clarifying the lifecycle of deferred sessions.
+        *   **Configuration Cleanup**: Introducing the concept of a retention sweep (`cleanupPeriodDays`).
+
+    *   **Impact Level**: **Medium**.
+        *   *Reasoning*: While not a breaking code change, it corrects a potential misconception. Developers relying on `&#34;defer&#34;` for long-term state persistence (e.g., thinking a session waits for weeks for approval) might lose data if the session expires. It changes the expectation from &#34;indefinite&#34; to &#34;finite (30 days default)&#34;.
+
+    *   **Action Items**:
+        *   Review configuration settings for `cleanupPeriodDays` if 30 days is insufficient for your workflow.
+        *   Adjust user expectations or implementation if your workflow requires deferring actions for longer than the default retention period.
+        *   Ensure logic handles cases where a deferred session might be deleted before resumption.
+
+4.  **Drafting the Response (in Chinese)**:
+
+    *   *Summary*: 文档更新了关于 `&#34;defer&#34;` 行为的说明，明确了会话文件并非永久保留，而是受 `cleanupPeriodDays` 设置（默认 30 天）的清理策略影响。
+    *   *Themes*:
+        *   会话生命周期管理
+        *   清理策略与配置
+    *   *Impact*: Medium. 原文暗示“无限期保留”，现在明确了“有 30 天默认限制”。这意味着如果开发者依赖 `defer` 进行长期挂起（超过 30 天），可能会丢失上下文。
+    *   *Action Items*:
+        *   检查 `cleanupPeriodDays` 设置是否符合业务需求。
+        *   评估现有的 Hook 逻辑是否能承受会话在 30 天后被自动清理。
+        *   通知相关团队关于会话丢失的潜在风险。
+
+5.  **Refining the Output**:
+    *   Ensure the tone is professional and concise.
+    *   Verify the markdown structure.
+
+    *Drafting final output:*
+    1.  **Overall Summary**: 文档更正了 `defer` 行为的描述，明确指出会话并非永久保留，而是受默认 30 天的保留策略（`cleanupPeriodDays`）限制，过期会被自动清理。
+    2.  **Key Themes**:
+        *   **会话生命周期**：修正了“无限期保留”的误导，明确了会话数据的存储上限。
+        *   **清理策略**：引入了 `cleanupPeriodDays` 配置项对 `defer` 会话的具体影响。
+    3.  **Impact Level**: **Medium**
+        *   **Reasoning**: 虽然不是 API 代码层面的破坏性变更，但它纠正了一个关键假设。如果开发者之前认为会话会永久等待（例如用于审批流超过 30 天的场景），此变更意味着如果不调整配置，会话数据将会丢失。
+    4.  **Action items for developers**:
+        *   审查当前的 `cleanupPeriodDays` 设置，确认默认的 30 天保留期是否满足业务场景。
+        *   如果工作流涉及超过 30 天的挂起，需相应调整配置或改变实现方式。
+        *   在相关代码中增加对“会话可能已被清理”的错误处理逻辑。
+
+6.  **Final Polish**: The response looks good and meets all constraints.</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">17:45 EST</div>
