@@ -118,9 +118,273 @@
 
         <header>
             <h1>Changes on 2026-04-23</h1>
-            <p class="meta">18 total changes in 3 runs</p>
+            <p class="meta">28 total changes in 4 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">16:46 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### Overall Summary
+本次文档更新标志着 Files API 从 Beta 阶段正式转为稳定版，移除了相关的 Beta 标记；同时清理了 `effort` 参数的枚举值（废弃 `xhigh`，明确 `max`），并大幅提升了创建类端点的速率限制。
+
+### Key Themes
+- **Files API 正式化**: 所有文件上传、下载、列表及删除的代码示例均移除了 `betas: [&#34;files-api-2025-04-14&#34;]` 参数，表明该功能已进入稳定期，不再需要显式声明 Beta 版本。
+- **参数枚举清理**: `effort` 参数删除了 `&#34;xhigh&#34;` 选项，将其统一为 `&#34;max&#34;`；同步移除了模型能力定义中的 `xhigh` 字段。
+- **采样参数建议变更**: `top_k` 和 `top_p` 的描述删除了“通常只需使用 temperature”以及“不要同时更改 temperature 和 top_p”的硬性建议，简化了使用说明。
+- **速率限制提升**: “创建端点（agents, sessions 等）”的速率限制从 60 requests/min 显著提升至 300 requests/min。
+
+### Impact Level
+**Medium**
+**理由**: 
+1. `effort` 参数中 `xhigh` 的移除属于潜在的破坏性变更，若现有代码使用了该值，需要立即修复。
+2. Files API 移除 Beta 标记意味着旧版客户端代码中的显式 Beta 声明虽然可能短期内兼容，但已不再推荐，属于非阻塞但重要的维护性更新。
+3. 速率限制的提升和采样参数描述的软性调整对开发者是积极信号。
+
+### Action Items
+1. **检查并更新 effort 配置**: 搜索代码中将 `effort` 设置为 `&#34;xhigh&#34;` 的位置，将其更改为 `&#34;max&#34;` 以符合新的 API 规范。
+2. **移除 Files API 的 Beta 参数**: 在调用 `anthropic.beta.files.upload`、`list`、`download` 等方法时，移除 `betas: [&#34;files-api-2025-04-14&#34;]` 参数，简化代码。
+3. **优化并发策略**: 利用提升后的 300 req/min 创建端点限流，优化 Agent 或会话创建的并发处理能力。
+4. **重新审视采样参数**: 既然文档不再限制 `top_p` 与 `temperature` 的混用，可尝试重新调整这两个参数的组合以获得更精细的输出控制。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer, expert in dev tools/docs.
+    *   **Task:** Analyze documentation changes (10 pages) as a single batch.
+    *   **Output Format:** Markdown.
+    *   **Language:** Chinese.
+    *   **Structure:**
+        1.  Overall Summary (1-2 sentences).
+        2.  Key Themes (bullets).
+        3.  Impact Level (Low/Medium/High/Breaking) with reasoning.
+        4.  Action Items for developers (bullets, max 5).
+
+2.  **Analyze the Content (Page by Page):**
+
+    *   **`api/messages.md`:**
+        *   Change 1: `effort` parameter options. Removed `&#34;xhigh&#34;`. Kept `&#34;low&#34;, &#34;medium&#34;, &#34;high&#34;, &#34;max&#34;`. The summary line changed from &#34;2 more&#34; to explicit `or &#34;max&#34;`.
+        *   Change 2: `top_k` and `top_p` descriptions. Removed text saying &#34;You usually only need to use `temperature`.&#34; and &#34;You should either alter `temperature` or `top_p`, but not both.&#34; (for `top_p`). Now just says &#34;Recommended for advanced use cases only.&#34;
+
+    *   **`api/messages/count_tokens.md`:**
+        *   Change: Same `effort` parameter update as above (removed `xhigh`).
+
+    *   **`api/messages/batches/create.md`:**
+        *   Change: Same `effort` parameter update and same `top_k`/`top_p` description update as `api/messages.md`.
+
+    *   **`api/models/list.md`:**
+        *   Change 1: Removed beta capability `&#34;user-profiles-2026-03-24&#34;`. Count &#34;20 more&#34; -&gt; &#34;19 more&#34;.
+        *   Change 2: Removed `xhigh` from `CapabilitySupport` structure.
+
+    *   **`api/beta/files/upload.md`:**
+        *   Change: Removed `&#34;user-profiles-2026-03-24&#34;` from beta list.
+
+    *   **`api/rate-limits.md`:**
+        *   Change: Rate limit for &#34;Create endpoints&#34; increased from 60 to 300 requests per minute.
+
+    *   **`build-with-claude/vision.md`:**
+        *   Change: Code examples updated. Removed `betas: [&#34;files-api-2025-04-14&#34;]` parameter from `anthropic.beta.files.upload` calls (TypeScript, Go, PHP).
+
+    *   **`build-with-claude/pdf-support.md`:**
+        *   Change: Code example updated. Removed `betas: [&#34;files-api-2025-04-14&#34;]` parameter from `anthropic.beta.files.upload` call (TypeScript).
+
+    *   **`build-with-claude/files.md`:**
+        *   Change: Multiple code examples (TS, C#, Go, PHP, Ruby) updated.
+        *   Specifics: Removed `betas: [&#34;files-api-2025-04-14&#34;]` from:
+            *   `upload`
+            *   `list`
+            *   `retrieveMetadata` / `GetMetadata`
+            *   `delete` / `Delete`
+            *   `download` / `Download`
+
+    *   **`agents-and-tools/tool-use/code-execution-tool.md`:**
+        *   Change: Code examples updated (TS, Go, PHP). Removed `betas: [&#34;files-api-2025-04-14&#34;]` from `upload`, `GetMetadata`, and `Download`.
+
+3.  **Synthesize Findings:**
+
+    *   **Theme 1: Removal of Beta Flag for Files API.** The most pervasive change is removing `betas: [&#34;files-api-2025-04-14&#34;]` from code samples across multiple files (vision, pdf, files, code-execution). This suggests the Files API has graduated from Beta to stable/general availability.
+    *   **Theme 2: `effort` Parameter Cleanup.** The `effort` parameter in API definitions had an `xhigh` option removed and the description clarified to explicitly list `max`.
+    *   **Theme 3: Sampling Parameter Guidance.** The documentation for `top_k` and `top_p` was simplified. The advice &#34;You usually only need to use temperature&#34; and the warning about mixing `temperature` and `top_p` were removed.
+    *   **Theme 4: Model Capabilities.** The `xhigh` capability support object and the specific beta string `user-profiles-2026-03-24` were removed.
+    *   **Theme 5: Rate Limit Increase.** Create endpoints rate limit bumped from 60 to 300/min.
+
+4.  **Determine Impact:**
+
+    *   **Breaking?** The removal of the beta flag in code samples is technically a &#34;breaking&#34; change *if* the API backend also strictly requires it, but usually, graduating from beta means the flag becomes optional or deprecated. However, for the *documentation*, this is a significant update.
+    *   **`xhigh` removal:** If users are using `&#34;xhigh&#34;`, this is a potential breaking change for them, though it seems it was replaced by `&#34;max&#34;`.
+    *   **Rate Limit:** This is an improvement (positive impact).
+    *   **Top_p advice:** Non-breaking, just a guidance update.
+
+    *   **Verdict:** Medium Impact. The removal of `xhigh` and the beta flag implies API behavior changes. Developers need to update their code.
+
+5.  **Drafting the Response (in Chinese):**
+
+    *   **Summary:** 文档主要更新了 Files API 的使用方式（移除 Beta 标记），清理了 `effort` 参数选项，并放宽了创建端点的速率限制。
+    *   **Key Themes:**
+        *   Files API 正式转正 (Graduation): 移除了 `betas: [&#34;files-api-2025-04-14&#34;]` 参数。
+        *   参数变更: `effort` 参数移除了 `xhigh`，明确了 `max` 为最高级。
+        *   采样参数建议: `top_k` 和 `top_p` 的描述去除了“通常只需用 temperature”的建议。
+        *   速率提升: Create endpoints 的限速从 60 提升到 300。
+    *   **Impact:** **Medium**. 虽然 API 看起来向后兼容（代码示例只是移除了可选标记），但 `xhigh` 的移除可能会影响现有调用。最需要注意的是 Files API 的稳定性变化。
+    *   **Action Items:**
+        *   更新代码：移除 Files API 调用中的 `betas` 参数。
+        *   检查配置：将 `effort: &#34;xhigh&#34;` 替换为 `&#34;max&#34;`。
+        *   利用限速：利用提升后的速率限制优化批量操作。
+
+6.  **Refining the Output (Self-Correction/Polish):**
+
+    *   Make sure to highlight the `xhigh` -&gt; `max` migration clearly.
+    *   Ensure the &#34;Breaking&#34; aspect of the beta removal is framed as &#34;Graduation to stable&#34; which usually means the beta flag is no longer *needed* or *accepted* (documentation implies it&#39;s not needed anymore, effectively deprecating the flag requirement).
+    *   *Correction on `top_p`:* The text &#34;You should either alter `temperature` or `top_p`, but not both&#34; was removed. This is a subtle but important guidance change. It now leaves it open to the developer to experiment, or perhaps the underlying model handling changed.
+
+7.  **Final Polish (Markdown Structure):**
+
+    *   **Overall Summary**: 本次文档更新主要标志着 Files API 的正式发布（移除 Beta 标记），调整了模型推理 `effort` 参数的枚举值，并大幅提升了创建类端点的速率限制，同时简化了采样参数的使用建议。
+    *   **Key Themes**:
+        *   **Files API 正式化**: 所有涉及文件上传、下载、列表和删除的代码示例均移除了 `betas: [&#34;files-api-2025-04-14&#34;]` 参数，表明该功能已脱离 Beta 阶段，进入稳定版。
+        *   **参数清理与标准化**: `effort` 参数移除了 `&#34;xhigh&#34;` 选项，将其统一为 `&#34;max&#34;`；同时移除了 `CapabilitySupport` 中的 `xhigh` 字段。
+        *   **采样参数描述简化**: `top_k` 和 `top_p` 文档删除了关于“通常只需使用 `temperature`”以及“不要同时更改 `temperature` 和 `top_p`”的硬性建议，给予了开发者更多调优自由度。
+        *   **能力与限速调整**: 移除了过期/未发布的 Beta 功能 (`user-profiles-2026-03-24`)，并将“创建端点”的速率限制从 60 req/min 提升至 300 req/min。
+    *   **Impact Level**: **Medium**。
+        *   **理由**: 虽然大部分是文档同步更新，但 `xhigh` 参数的移除属于潜在的破坏性变更。Files API 的 Beta 标记移除意味着旧版代码如果强依赖该标记可能会在未来版本失效，建议尽快适配。速率限制的提升是积极的性能改进。
+    *   **Action Items**:
+        *   更新代码库：在调用 `anthropic.beta.files` 相关方法（upload, list, delete, download）时，移除代码中的 `betas: [&#34;files-api-2025-04-14&#34;]` 参数。
+        *   修改 effort 配置：检查现有配置，将任何使用 `&#34;xhigh&#34;` 的 `effort` 参数值更改为 `&#34;max&#34;`。
+        *   重新评估采样策略：参考新的文档建议，可以尝试结合使用 `temperature` 和 `top_p` 来优化模型输出，不再受限于“二选一”的建议。
+        *   优化批量任务：利用新的 300 req/min 速率限制，提升创建 Agent 或会话时的并发效率。
+
+8.  **Final check against constraints:** Concise? Yes. Insightful? Yes. Chinese? Yes. Markdown? Yes. Max 5 action items? Yes.
+
+    *(Self-Correction during drafting Action Items)*: The instruction says &#34;You should either alter temperature or top_p, but not both&#34; was *removed*. Does this mean you *should* now? Or just that the advice is gone? It&#39;s safer to say &#34;re-evaluate&#34; rather than &#34;you must now combine them&#34;. I will phrase it as &#34;more freedom&#34;.
+
+9.  **Final Output Generation.**</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/messages.html" class="page-link">api/messages.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-8</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/messages/count_tokens.html" class="page-link">api/messages/count_tokens.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/messages/batches/create.html" class="page-link">api/messages/batches/create.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/models/list.html" class="page-link">api/models/list.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/beta/files/upload.html" class="page-link">api/beta/files/upload.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/rate-limits.html" class="page-link">api/rate-limits.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/vision.html" class="page-link">build-with-claude/vision.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/pdf-support.html" class="page-link">build-with-claude/pdf-support.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/files.html" class="page-link">build-with-claude/files.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+12</span>
+                            <span class="removed">-18</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/code-execution-tool.html" class="page-link">agents-and-tools/tool-use/code-execution-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            <span class="removed">-11</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">15:01 EST</div>
