@@ -118,9 +118,347 @@
 
         <header>
             <h1>Changes on 2026-04-23</h1>
-            <p class="meta">3 total changes in 1 run</p>
+            <p class="meta">17 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">13:14 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 总体概述
+此次更新显著提升了 Claude Code 的可定制性和开发者体验，重点包括为 Vim 编辑模式引入了可视模式支持、全新的用户及插件级自定义主题系统，以及对插件版本策略的明确规范。同时，CLI 工具增加了版本管理功能，并将成本追踪命令 `/cost` 重命名为 `/usage`。
+
+### 关键变更主题
+
+*   **Vim 编辑模式增强**
+    *   在命令行输入中新增了 Visual Mode（可视模式）支持（`v` 进入字符选择，`V` 进入行选择），并配套了完整的操作（删除、复制、缩进等）快捷键。
+*   **主题系统全面升级**
+    *   支持通过 `~/.claude/themes/` 下的 JSON 文件创建自定义主题。
+    *   插件现在可以打包并分发自己的颜色主题。
+*   **插件版本策略明确**
+    *   明确了插件更新机制：若设置 `version` 字段，用户仅在版本号变更时收到更新（固定模式）；若省略该字段，则基于 Git Commit SHA 自动更新。
+    *   阐明了 `plugin.json` 与 `marketplace.json` 中版本号的优先级。
+*   **自动化与 Hooks 扩展**
+    *   新增 `PostToolBatch` Hook，用于在批量并行工具调用完成后执行逻辑。
+    *   新增 `mcp_tool` Hook 类型，允许直接调用 MCP 工具作为处理器。
+    *   `autoMode` 配置现在支持 `$defaults` 占位符，以便在自定义规则中继承内置默认规则。
+*   **CLI 与配置调整**
+    *   新增 `claude install [version]` 命令用于安装或重装特定版本的原生二进制文件。
+    *   `/cost` 命令正式重命名为 `/usage`，并更新了相关说明。
+
+### 影响程度：**高**
+**理由：**
+1.  **核心交互改进：** Vim 模式新增 Visual Mode 是一项重大的生产力提升，改变了用户与 CLI 交互的方式。
+2.  **生态结构变化：** 插件版本策略的明确化要求插件开发者重新审视其发布流程，直接影响用户如何接收更新。
+3.  **可定制性扩展：** 主题系统的开放（用户自定义+插件分发）为品牌化和个性化提供了官方支持。
+4.  **习惯破坏：** `/cost` 到 `/usage` 的重命名虽然简单，但需要用户改变现有的肌肉记忆。
+
+### 开发者行动项
+
+*   **更新使用习惯**：将查看 Token 使用情况的命令从 `/cost` 改为 `/usage`。
+*   **审查插件版本配置**：如果您维护插件，请检查 `plugin.json`。根据发布节奏决定是明确指定 `version`（推荐稳定版）还是省略以利用 Git SHA 自动更新（推荐开发版）。
+*   **利用新 Hook 类型**：检查您的 Hook 配置，考虑使用 `PostToolBatch` 来优化并行工具调用的后处理逻辑，或使用 `mcp_tool` 简化集成。
+*   **配置 Auto Mode**：在 `autoMode` 设置的规则列表中加入 `&#34;$defaults&#34;` 字符串，以确保在添加自定义允许/拒绝规则时，不丢失系统内置的安全防护。
+*   **探索主题定制**：尝试在 `~/.claude/themes/` 创建 JSON 文件来定制界面颜色，或在您的插件中添加 `themes/` 目录以分发主题。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Input:** A batch of 14 documentation pages (markdown diffs).
+    *   **Output:** Concise, insightful analysis in markdown format (Chinese).
+    *   **Structure:**
+        1.  Overall Summary (1-2 sentences).
+        2.  Key Themes (bullets).
+        3.  Impact Level (Low/Medium/High/Breaking) + Reasoning.
+        4.  Action Items for Developers (max 5 bullets).
+
+2.  **Analyze the Diffs (Page by Page):**
+
+    *   **cli-reference.md:**
+        *   Added `claude install [version]` command (install/reinstall native binary, accepts version, stable, latest).
+        *   Updated `--continue` description to explicitly include sessions added via `/add-dir`.
+    *   **common-workflows.md:**
+        *   Updated session picker description to include sessions started elsewhere that added the current directory with `/add-dir`.
+    *   **costs.md:**
+        *   Renamed command `/cost` to `/usage`.
+        *   Updated references to the command.
+        *   Updated `Note` about API users vs. subscribers.
+    *   **hooks.md:**
+        *   Added new hook event: `PostToolBatch` (after batch of parallel tool calls resolves).
+        *   Updated hook lifecycle diagram.
+        *   Updated hook types to include `mcp_tool`.
+        *   Updated table of matchers to include `PostToolBatch`.
+        *   Updated definition of &#34;hook handler&#34; to include MCP tool.
+        *   Added details on `mcp_tool` hook type.
+    *   **hooks-guide.md:**
+        *   Added `PostToolBatch` to event list.
+        *   Updated hook types count (3 others -&gt; 4 others).
+        *   Added `&#34;type&#34;: &#34;mcp_tool&#34;` to the list.
+        *   Updated event matcher table (includes `PostToolBatch`).
+    *   **interactive-mode.md:**
+        *   Added `v` and `V` keys to mode switching table (start VISUAL mode).
+        *   Added &#34;Visual mode&#34; section with full key mapping (d, y, c, p, r, ~, &gt;, &lt;, J, o, text objects, toggle).
+        *   Mentioned `Esc` exits VISUAL mode.
+    *   **model-config.md:**
+        *   Updated `availableModels` description: removed mention of &#34;Config tool&#34;.
+        *   Updated environment variable description for third-party providers: `_NAME` and `_DESCRIPTION` now work with LLM gateways (via `ANTHROPIC_BASE_URL`).
+    *   **plugin-marketplaces.md:**
+        *   Added `&lt;Note&gt;` about `version` field: setting it pins updates; omitting it uses git commit SHA.
+        *   Updated `version` field description in metadata table.
+        *   Added &#34;Version resolution and release channels&#34; section explaining priority: `plugin.json` -&gt; `marketplace.json` -&gt; git SHA.
+        *   Added warning about version pinning and committing.
+    *   **plugins.md:**
+        *   Updated `version` field description in `plugin.json` section (optional, pinning behavior).
+        *   Updated step 2 of &#34;Share your plugin&#34; to reflect versioning strategy choice.
+    *   **plugins-reference.md:**
+        *   Added `PostToolBatch` to hook events.
+        *   Added `mcp_tool` to hook types list.
+        *   Added &#34;Themes&#34; section (plugins can ship color themes in `themes/`).
+        *   Updated manifest schema to include `themes` path.
+        *   Updated metadata fields table: clarified `version` behavior (pinning vs git SHA).
+    *   **settings.md:**
+        *   Updated `autoMode` description: added support for `&#34;$defaults&#34;` literal to inherit built-in rules.
+        *   Updated `availableModels` description: removed mention of &#34;Config tool&#34;.
+    *   **setup.md:**
+        *   Added note about `DISABLE_AUTOUPDATER` vs `DISABLE_UPDATES` (manual updates vs blocking all).
+    *   **statusline.md:**
+        *   Updated `vim.mode` token to include `VISUAL` and `VISUAL LINE`.
+    *   **terminal-config.md:**
+        *   Updated theme section description.
+        *   Added &#34;Create a custom theme&#34; section (v2.1.118+).
+        *   Details on creating JSON theme files in `~/.claude/themes/`.
+        *   Updated Vim mode section to mention VISUAL mode support.
+
+3.  **Synthesize and Group Themes:**
+
+    *   *Theme 1: Vim Enhancements.* Added VISUAL mode (`v`, `V`) support in the prompt editor. This is a usability improvement for Vim users.
+    *   *Theme 2: Customization &amp; Theming.* Major expansion here. Plugins can now ship themes. Users can create custom themes via JSON files. LLM gateways support display name overrides.
+    *   *Theme 3: Plugin Versioning Strategy.* Clarification and documentation around how plugin versions work (git SHA vs explicit semantic versioning). Crucial for plugin developers to understand updates.
+    *   *Theme 4: Hooks &amp; Automation.* New `PostToolBatch` hook. New `mcp_tool` hook type. `autoMode` config now supports `&#34;$defaults&#34;`.
+    *   *Theme 5: CLI &amp; Session Management.* New `claude install` command. `/cost` renamed to `/usage`. Better handling of `/add-dir` sessions in resumption.
+    *   *Theme 6: Admin/Config tweaks.* `availableModels` config cleanup.
+
+4.  **Draft the Analysis (Iterative refinement):**
+
+    *   *Summary:* This update introduces significant enhancements to developer experience, particularly in customization (themes), Vim editing capabilities (Visual mode), and plugin ecosystem control (versioning strategies). It also refines CLI commands and hooking mechanisms for better automation.
+    *   *Themes:*
+        *   **Advanced Customization:** Users can now create custom themes via JSON, and plugins can bundle their own color themes.
+        *   **Plugin Versioning Refined:** Explicit documentation on `plugin.json` versioning behavior (pinning vs. Git SHA) to manage updates effectively.
+        *   **Vim Editor Upgrade:** Added Visual mode support (`v`, `V`) to the prompt editor for better text manipulation.
+        *   **Automation &amp; Hooks:** Introduced `PostToolBatch` hook and `mcp_tool` hook type; `autoMode` now supports inheriting defaults via `&#34;$defaults&#34;`.
+        *   **CLI &amp; Naming Changes:** Renamed `/cost` to `/usage` and added `claude install [version]` command.
+
+    *   *Impact:* Medium/High. The theme customization and plugin versioning changes represent a shift in how the tool is extended. The Vim upgrade is highly requested/valued for power users. The `/cost` -&gt; `/usage` rename is a minor breaking change in muscle memory.
+        *   *Reasoning:* New features like Visual mode and theming are substantial quality-of-life improvements. Changes to plugin versioning require developers to update their mental models (or configs) to ensure users get updates. `/cost` rename requires immediate adaptation.
+
+    *   *Action Items:*
+        *   **Update Muscle Memory:** Switch from using `/cost` to `/usage` for checking token usage.
+        *   **Review Plugin Versioning:** If you develop plugins, check your `version` fields. Decide if you want pinning (semantic) or auto-updates (git SHA).
+        *   **Explore Themes:** Check out `~/.claude/themes/` or update your plugins to include themes if relevant.
+        *   **Update Hooks:** Utilize the new `PostToolBatch` hook if you need to handle parallel tool call batches.
+        *   **Configure Auto-Mode:** Update `autoMode` settings to use `&#34;$defaults&#34;` to retain built-in rules while adding custom ones.
+
+5.  **Translate to Chinese (Professional Tone):**
+
+    *   *Summary:* 此次更新显著增强了开发者体验，重点包括引入了可视模式（Visual Mode）的 Vim 编辑器、全新的自定义主题机制（支持插件分发），以及明确了插件版本控制策略（语义化版本 vs Git SHA）。同时，CLI 工具新增了安装命令，并将 `/cost` 命令重命名为 `/usage`。
+    *   *Themes:*
+        *   **主题定制化升级**: 用户可通过 JSON 创建自定义主题，且插件现在可以分发内置的主题。
+        *   **插件版本策略明确**: 详细说明了 `version` 字段的行为（“固定版本” vs “基于 Git Commit 自动更新”），这对插件分发至关重要。
+        *   **Vim 编辑器增强**: 在命令行输入模式中增加了 Visual Mode 支持（字符级 `v` 和行级 `V` 选择）。
+        *   **自动化与 Hooks**: 新增 `PostToolBatch` 事件和 `mcp_tool` Hook 类型；`autoMode` 配置支持通过 `&#34;$defaults&#34;` 继承内置规则。
+        *   **CLI 命令变更**: 新增 `claude install [version]` 命令；旧命令 `/cost` 被重命名为 `/usage`。
+
+    *   *Impact:* **Medium (中等偏高)**。
+    *   *Reasoning*: Vim Visual Mode 的加入极大地提升了编辑效率；主题系统和插件版本控制的改变扩展了工具的可定制性和维护方式。`/cost` 到 `/usage` 的重命名虽然简单，但属于破坏性习惯的改变。
+
+    *   *Action Items:*
+        *   **适应新命令**: 将使用习惯从 `/cost` 调整为 `/usage` 以查看 Token 使用情况。
+        *   **审查插件版本配置**: 如果开发插件，请检查 `plugin.json` 中的 `version` 字段，明确选择“固定版本”还是“Git 自动更新”策略。
+        *   **利用新 Hook**: 尝试使用 `PostToolBatch` Hook 来批量处理并行的工具调用结果。
+        *   **更新自动模式配置**: 在 `autoMode` 配置中加入 `&#34;$defaults&#34;` 字符串，以确保在添加自定义规则时保留系统默认的安全规则。
+        *   **尝试主题定制**: 在 `~/.claude/themes/` 中创建 JSON 文件以定义个性化界面颜色。
+
+6.  **Final Review:** Check against constraints. Single batch analysis. Markdown format. Chinese language. Concise.
+
+    *   *Self-Correction on Impact:* Is it High? Maybe High for plugin devs and Vim users, but Medium for average users. &#34;Medium/High&#34; or &#34;High&#34; seems appropriate given the breadth of changes (Themes, Vim, Plugins, Hooks). I&#39;ll stick with High because the versioning strategy change is structural for the ecosystem, and Vim Visual mode is a major feature for the core interaction loop. Let&#39;s go with High.
+
+    *   *Refining Action Items:* Keep them actionable. &#34;Update config&#34; is better than &#34;Check config&#34;.
+
+    *   *Translation Check:* &#34;Visual Mode&#34; -&gt; &#34;可视模式&#34; or keep as &#34;Visual Mode&#34;. Usually keeping English with context or standard translation is best. I&#39;ll use &#34;Visual Mode (可视模式)&#34;. &#34;PostToolBatch&#34; keep English.
+
+7.  **Final Output Generation** (Proceeding to generate the markdown response).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/cli-reference.html" class="page-link">cli-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/common-workflows.html" class="page-link">common-workflows.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/costs.html" class="page-link">costs.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+89</span>
+                            <span class="removed">-47</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+21</span>
+                            <span class="removed">-19</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/interactive-mode.html" class="page-link">interactive-mode.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+27</span>
+                            <span class="removed">-9</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/model-config.html" class="page-link">model-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugin-marketplaces.html" class="page-link">plugin-marketplaces.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+26</span>
+                            <span class="removed">-15</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins.html" class="page-link">plugins.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            <span class="removed">-7</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+50</span>
+                            <span class="removed">-25</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/setup.html" class="page-link">setup.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/statusline.html" class="page-link">statusline.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/terminal-config.html" class="page-link">terminal-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+23</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">01:25 EST</div>
