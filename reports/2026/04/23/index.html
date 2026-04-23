@@ -118,9 +118,168 @@
 
         <header>
             <h1>Changes on 2026-04-23</h1>
-            <p class="meta">31 total changes in 5 runs</p>
+            <p class="meta">33 total changes in 6 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">19:40 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更分析
+
+## 1. Overall Summary
+本次更新引入了实验性的“分叉子代理”功能，允许子代理继承当前会话的完整上下文而非从零开始，显著优化了需要共享大量背景信息的并行任务；同时，v2.1.119 版本还实现了配置持久化，并扩展了对 GitLab、Bitbucket 等 Git 平台的支持。
+
+## 2. Key Themes
+*   **子代理上下文模型革新**：引入 &#34;Fork&#34;（分叉）概念，子代理可继承系统提示、工具、模型及消息历史。这解决了命名子代理在处理复杂任务时上下文不足的问题，并复用 Prompt 缓存以降低成本。
+*   **配置持久化与体验优化**：用户配置（主题、编辑器模式等）现在持久化存储至 `~/.claude/settings.json`，并遵循覆盖优先级，提升了跨会话的一致性。
+*   **多平台 Git 兼容性**：`--from-pr` 功能不再局限于 GitHub，现已支持 GitLab (MR)、Bitbucket (PR) 及 GitHub Enterprise，适应更广泛的企业开发环境。
+*   **后台执行与权限变更**：在 Fork 模式下，所有子代理默认在后台运行，且权限提示方式变为实时弹窗而非预先批准，改变了终端交互流。
+*   **广泛的 Bug 修复与稳定性**：修复了包括剪贴板粘贴（CRLF 处理）、Vim 模式行为、MCP OAuth 连接及插件加载在内的多项缺陷，增强了工具的健壮性。
+
+## 3. Impact Level
+**High** (针对高级用户) / **Medium** (针对通用用户)
+**Reasoning:**
+*   **High:** &#34;Forked subagents&#34; 改变了多代理协作的底层逻辑（从隔离变为继承），对于需要并行处理（如一边开发一边生成测试用例）的复杂工作流，这是一个颠覆性的效率提升。
+*   **Medium:** 配置持久化和多平台支持是重要的质量改进，虽不改变核心工作流，但显著降低了使用摩擦。
+
+## 4. Action Items for Developers
+*   **尝试 Fork 模式**：设置环境变量 `CLAUDE_CODE_FORK_SUBAGENT=1` 并尝试使用 `/fork` 指令来处理并行任务，体验上下文继承带来的效率。
+*   **审查后台行为变化**：注意开启 Fork 模式后，所有子代理将在后台运行，且 `background` 字段配置会被绕过。
+*   **利用配置持久化**：重启客户端并检查 `/config` 设置是否已保存至 `~/.claude/settings.json`，无需重复手动配置。
+*   **更新 PR 导入工作流**：若使用 GitLab 或 Bitbucket，直接利用 `--from-pr &lt;url&gt;` 导入合并请求上下文。
+*   **检查 Hook 输出**：如果您使用 `PostToolUse` 或 `PostToolUseFailure` 钩子，请注意输入参数中新增了 `duration_ms` 字段。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Input:** Two documentation pages (`sub-agents.md` and `CHANGELOG.md.md`).
+    *   **Task:** Analyze the changes as a single batch.
+    *   **Output Format:** Concise, insightful analysis in markdown (Chinese).
+    *   **Structure:**
+        1.  Overall Summary (1-2 sentences).
+        2.  Key Themes (bullets).
+        3.  Impact Level (reasoning).
+        4.  Action Items (max 5 bullets).
+
+2.  **Analyze the Content:**
+
+    *   **Page 1: `sub-agents.md`**
+        *   *Changes:* Added a new section &#34;Fork the current conversation&#34; and related documentation. Added a note about fork mode affecting background tasks.
+        *   *New Feature:* &#34;Forked subagents&#34; (experimental, requires v2.1.117+, env var `CLAUDE_CODE_FORK_SUBAGENT`).
+        *   *Mechanism:* Inherits full conversation context (system prompt, tools, model, history) instead of starting fresh. Drops input isolation but keeps output isolation.
+        *   *Behavior Changes:* Forks replace the general-purpose subagent in fork mode. All subagents run in background in fork mode. `/fork` command changes behavior.
+        *   *UI:* New panel to observe/steer forks (keys: arrows, Enter, x, Esc).
+        *   *Comparison:* Table comparing Forks vs. Named Subagents (Context, System prompt, Model, Permissions, Prompt cache).
+        *   *Optimization:* Forks share prompt cache with parent (cheaper).
+        *   *Worktree:* Can use `isolation: &#34;worktree&#34;` with Agent tool.
+        *   *Limitations:* Interactive only, no nested forks.
+
+    *   **Page 2: `CHANGELOG.md.md`**
+        *   *Version:* 2.1.119.
+        *   *Major Features:* Settings persistence (`/config` to `~/.claude/settings.json`), `--from-pr` support for GitLab/Bitbucket/GHE, `--print` mode honors agent frontmatter.
+        *   *Agents/Subagents:* `--agent` honors `permissionMode`, parallel MCP server reconfiguration, various fixes for agents/MCP/worktrees.
+        *   *UI/UX:* Theme/editor mode persistence, slash command improvements, Vim mode fixes, scrolling fixes.
+        *   *Observability/Debugging:* OpenTelemetry updates, `PostToolUse` hooks now include duration.
+        *   *Fixes:* Extensive list of bug fixes (clipboard, terminal protocols, MCP OAuth, spinner, plugin loading, etc.).
+
+3.  **Synthesize and Correlate (Key Themes):**
+    *   *Theme 1: Subagent Evolution.* The `sub-agents.md` change is the biggest structural change. It introduces &#34;Forks&#34; (context inheritance) vs &#34;Named Subagents&#34; (fresh context). This is a significant workflow enhancement.
+    *   *Theme 2: Persistence and Configuration.* The changelog mentions config persistence (`~/.claude/settings.json`). This improves user experience by saving preferences.
+    *   *Theme 3: Broad Platform Support.* GitLab, Bitbucket, GitHub Enterprise support in `--from-pr`.
+    *   *Theme 4: Stability and Polish.* The changelog is full of bug fixes (MCP, clipboard, UI), indicating a focus on robustness.
+
+4.  **Drafting the Output (Iterative refinement for Chinese):**
+
+    *   *Overall Summary:* Claude Code v2.1.119 引入了实验性的“分叉子代理”功能，允许子代理继承完整的对话上下文，同时增强了配置持久化及对 GitLab/Bitbucket 的支持。
+    *   *Key Themes:*
+        *   **Experimental Forked Subagents:** New model for context sharing.
+        *   **Configuration Persistence:** Settings now stick.
+        *   **Multi-Platform Git Support:** Not just GitHub anymore.
+        *   **Robustness &amp; Polish:** Many bug fixes and UI improvements.
+
+    *   *Impact Level:*
+        *   *Level:* Medium-High.
+        *   *Reasoning:* The &#34;Fork&#34; feature changes how subagents work (context inheritance), which is a paradigm shift for complex workflows. Config persistence is a big QoL upgrade.
+
+    *   *Action Items:*
+        *   Try out `CLAUDE_CODE_FORK_SUBAGENT`.
+        *   Review new `/fork` command usage.
+        *   Check settings persistence.
+        *   Note the background behavior change for fork mode.
+
+5.  **Refining the Output (Final Polish):**
+
+    *   *Summary:* 本次更新引入了实验性的“分叉子代理”功能，允许子代理继承当前会话的完整上下文，显著提升了并行处理能力；同时增加了配置持久化支持及对 GitLab/Bitbucket 等多平台 Git 仓库的兼容性。
+    *   *Themes:*
+        *   **子代理模式革新**：引入“分叉”机制，打破子代理隔离，实现上下文继承和 Prompt 缓存共享，优化了并行任务处理。
+        *   **配置与状态管理**：实现了 `/config` 设置的持久化，修复了 MCP 服务器和插件的连接及加载逻辑。
+        *   **多平台生态支持**：`--from-pr` 现已支持 GitLab、Bitbucket 和 GitHub Enterprise。
+        *   **交互与稳定性增强**：大量修复了终端输入、剪贴板粘贴、Vim 模式及滚动体验的 Bug。
+
+    *   *Impact Level:* **High** (Feature change) / **Medium** (General release).
+        *   *Reasoning:* &#34;Forked subagents&#34; 改变了 AI 辅助编程中上下文传递和并行协作的底层逻辑，对于复杂开发工作流具有重大影响。
+
+    *   *Action Items:*
+        *   **尝试 Fork 模式**：设置 `CLAUDE_CODE_FORK_SUBAGENT=1` 并使用 `/fork` 命令测试上下文继承特性。
+        *   **了解行为差异**：注意在 Fork 模式下，子代理将默认在后台运行，且权限提示方式有所不同。
+        *   **利用新配置**：重启后检查 `~/.claude/settings.json` 是否自动保存了你的偏好设置。
+        *   **使用 PR 导入**：在非 GitHub 仓库中尝试使用 `--from-pr` 导入合并请求。
+
+6.  **Final Review against constraints:**
+    *   Concise? Yes.
+    *   Insightful? Yes, highlights the &#34;why&#34; of forking (context cost vs isolation).
+    *   Chinese? Yes.
+    *   Markdown? Yes.
+
+7.  **Construct Final Output.** (Proceed to generate response based on step 5).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+33</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+52</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">18:38 EST</div>
