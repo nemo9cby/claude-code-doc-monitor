@@ -118,9 +118,325 @@
 
         <header>
             <h1>Changes on 2026-04-28</h1>
-            <p class="meta">25 total changes in 2 runs</p>
+            <p class="meta">39 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">18:52 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">```markdown
+# Claude Code 文档变更分析
+
+## 整体摘要
+本次更新引入了 `Setup` Hook 生命周期事件以支持 CI/CD 场景，重构了初始化参数（`--init`/`--maintenance`）的行为逻辑，并大幅强化了 Windows 和 WSL2 环境的安装要求与网络故障排查指南。
+
+## 关键主题
+- **Hooks 与自动化增强**：新增 `Setup` 事件，专门用于 `--init-only` 或 print 模式下的初始化。新增了 MCP 服务器相关的 `elicitation` 通知类型，并修正了 Subagent 类型命名。
+- **CLI 参数行为变更**：`--init` 和 `--maintenance` 不再启动交互模式，而是仅在 print 模式下执行 Hooks，更利于脚本集成。
+- **Windows/WSL2 严苛化**：原生 Windows 安装环境将 Git for Windows 从“推荐”改为“必须”。详细补充了 WSL2 防火墙规则和镜像网络配置的故障排查步骤。
+- **文档结构重组**：故障排查页面拆分，安装与登录问题独立至 `/en/troubleshoot-install`，原页面侧重性能与稳定性。
+- **Bug 修复**：修复了 `/resume` PR URL 关联、ToolSearch 漏检、Vertex AI/Bedrock 配置错误以及 Bash 模式下 `!exit` 误退出等关键问题。
+
+## 影响等级
+**Medium** (中等)
+- **理由**：`--init` 和 `--maintenance` 参数行为的非向后兼容变更可能会影响现有的交互式脚本或工作流。Windows 环境的强制依赖变更也可能影响部分用户的新安装体验。
+
+## 开发者行动项
+- **适配 CI 脚本**：检查并更新依赖 `--init` 或 `--maintenance` 参数的自动化脚本，确保它们能处理新的 print 模式行为（即不再启动交互会话）。
+- **检查 Windows 环境**：原生 Windows 用户需确保已安装 Git for Windows，否则 Bash 工具将不可用。
+- **配置 WSL2 网络**：若在 WSL2 下遇到 JetBrains IDE 检测失败，按文档添加 Windows 防火墙入站规则或切换到镜像网络模式。
+- **利用新 Hook**：考虑利用新增的 `Setup` Hook 事件，在 CI 流程或脚本启动前执行一次性环境准备操作。
+- **关注模型配置**：使用 Bedrock 的用户可利用新增的 `ANTHROPIC_BEDROCK_SERVICE_TIER` 环境变量来调整服务层级。
+```</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Understand the Goal:** The user wants a concise analysis of a set of documentation changes for &#34;Claude Code&#34;. The analysis needs to cover the summary, key themes, impact level, and action items, all in Chinese.
+
+2.  **Analyze the Source Data (Diff Batch):**
+
+    *   `cli-reference.md`:
+        *   `--init` and `--maintenance` flags changed behavior. They used to start interactive mode, now they run hooks in print mode (`-p`) or specific scenarios (`--init-only`).
+        *   Links added for &#34;Setup hooks&#34;.
+
+    *   `common-workflows.md`:
+        *   Added new notification matchers related to MCP (Model Context Protocol) elicitation: `elicitation_complete`, `elicitation_response`.
+
+    *   `hooks.md`:
+        *   New event: `Setup` (triggered by `--init-only`, `--init` in print mode, or `--maintenance`).
+        *   Updated lifecycle diagram.
+        *   Added new `Notification` types for elicitation.
+        *   Updated `SubagentStart` agent type from `Bash` to `general-purpose`.
+
+    *   `hooks-guide.md`:
+        *   Added `Setup` event.
+        *   Updated `Notification` types.
+        *   Updated `SubagentStart` agent type.
+        *   Clarified Exit 2 behavior for specific events like `Setup` and `SessionStart`.
+
+    *   `iam.md`:
+        *   Changed link from `troubleshooting` to `troubleshoot-install`.
+
+    *   `jetbrains.md`:
+        *   Major restructuring of WSL troubleshooting.
+        *   Added detailed steps for Windows Firewall rules and Mirrored Networking for WSL2.
+        *   Updated general language (capitalization changes).
+        *   Changed verification command from `npm list` to `claude --version`.
+
+    *   `overview.md`:
+        *   Changed &#34;Git for Windows is recommended&#34; to &#34;required&#34;.
+        *   Updated links to `troubleshoot-install`.
+
+    *   `plugins-reference.md`:
+        *   Added `Setup` event to the table.
+
+    *   `quickstart.md`:
+        *   Changed &#34;Git for Windows is recommended&#34; to &#34;required&#34;.
+        *   Updated links to `troubleshoot-install`.
+
+    *   `sandboxing.md`:
+        *   Added warnings about WSL1 not supporting sandboxing.
+        *   Added note about WSL2 blocking Windows binaries (`/mnt/c/`) inside sandbox.
+
+    *   `settings.md`:
+        *   Updated link to `troubleshoot-install`.
+
+    *   `setup.md`:
+        *   Changed &#34;Git for Windows is recommended&#34; to &#34;required&#34;.
+        *   Updated links to `troubleshoot-install`.
+        *   Updated table regarding requirements.
+        *   Updated `claude doctor` description.
+
+    *   `troubleshooting.md`:
+        *   Drastic content reduction. Moved installation specific troubleshooting to a new section (likely `troubleshoot-install` inferred from links, though the page name change isn&#39;t explicitly shown in *this* diff block for the new file, the links point there).
+        *   Refocused on performance/stability issues.
+
+    *   `CHANGELOG.md.md`:
+        *   Version 2.1.122.
+        *   `ANTHROPIC_BEDROCK_SERVICE_TIER` env var.
+        *   `/resume` now finds PR-linked sessions.
+        *   Hooks fixes (rewound timelines, malformed entries).
+        *   Vertex AI / Bedrock fixes.
+        *   Bug fixes: ToolSearch, bash mode exit, image resizing, remote control idle status, etc.
+
+3.  **Synthesize Key Themes:**
+
+    *   **Hooks &amp; Lifecycle:** Introduction of the `Setup` event, refined `--init`/`--maintenance` behavior (mostly for CI/Scripts), and new MCP elicitation events.
+    *   **Windows/WSL Requirements:** Git for Windows is now &#34;required&#34; for native Windows, not recommended. Enhanced WSL2 troubleshooting (firewall, networking).
+    *   **Documentation Reorg:** Troubleshooting split into install vs. performance.
+    *   **Bug Fixes &amp; Polish:** Various bug fixes related to agents, tools, and UI (changelog).
+
+4.  **Determine Impact:**
+
+    *   **Medium.** The change to `--init` and `--maintenance` flags alters existing behavior (interactive -&gt; print mode/hooks only), which could break scripts expecting interaction. The &#34;Git for Windows required&#34; change affects Windows users. The new hooks features are additive.
+
+5.  **Draft Action Items:**
+
+    *   Update CI scripts relying on `--init` or `--maintenance` to expect print mode behavior.
+    *   Ensure Git for Windows is installed for native Windows setups.
+    *   Review hooks for potential optimization using the new `Setup` event.
+    *   Apply WSL2 firewall rules if encountering IDE detection issues.
+
+6.  **Translate and Format (Markdown/Chinese):**
+
+    *   *Summary:* 本次文档更新主要引入了新的 `Setup` Hook 生命周期事件，调整了 `--init` 等参数的行为以适配 CI/脚本场景，并强化了 Windows (特别是 WSL2) 环境的安装要求与故障排查指南。
+    *   *Themes:*
+        *   Hooks &amp; 自动化：新增 `Setup` 事件，明确 `--init` 和 `--maintenance` 在 print 模式下的行为。
+        *   Windows &amp; WSL2：Git for Windows 变为“强制要求”，扩充了 WSL2 网络和防火墙配置的排查步骤。
+        *   文档重构：将安装与登录问题从通用故障排查中分离。
+        *   Bug 修复：修复了 `/resume`、ToolSearch、Vertex AI 等多项问题。
+    *   *Impact:* Medium。`--init` 和 `--maintenance` 参数行为发生变更，Windows 安装前置条件更严格。
+    *   *Action Items:*
+        *   检查依赖 `--init` 或 `--maintenance` 的 CI 脚本，适配新的 print 模式行为。
+        *   原生 Windows 用户确保安装了 Git for Windows。
+        *   若遇到 WSL2 IDE 检测问题，应用新的防火墙规则或镜像网络配置。
+        *   利用新的 `Setup` Hook 优化环境初始化流程。
+
+7.  **Refine:** Make it punchy and concise. Ensure the tone is &#34;world-class programmer&#34;.
+
+    *   *Self-Correction on `--init` change:* The diff shows `--init` moved from &#34;Run initialization hooks and start interactive mode&#34; to &#34;Run Setup hooks... (print mode only)&#34;. This is a breaking change if someone used it expecting an interactive shell.
+    *   *Self-Correction on WSL:* The WSL section in `jetbrains.md` was significantly rewritten with explicit PowerShell commands. This is high value for devs using that stack.
+
+8.  **Final Output Generation** (Matching the prompt&#39;s requested structure).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/cli-reference.html" class="page-link">cli-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/common-workflows.html" class="page-link">common-workflows.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+32</span>
+                            <span class="removed">-8</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/iam.html" class="page-link">iam.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/jetbrains.html" class="page-link">jetbrains.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+54</span>
+                            <span class="removed">-32</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/overview.html" class="page-link">overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/quickstart.html" class="page-link">quickstart.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sandboxing.html" class="page-link">sandboxing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/setup.html" class="page-link">setup.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+11</span>
+                            <span class="removed">-10</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/troubleshooting.html" class="page-link">troubleshooting.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+28</span>
+                            <span class="removed">-438</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+19</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">13:43 EST</div>
