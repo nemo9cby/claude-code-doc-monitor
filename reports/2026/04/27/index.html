@@ -118,9 +118,233 @@
 
         <header>
             <h1>Changes on 2026-04-27</h1>
-            <p class="meta">4 total changes in 1 run</p>
+            <p class="meta">11 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">22:30 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 整体总结
+本次更新标志着 Extended Thinking 功能的成熟，主要消除了 TypeScript、C#、Go 和 Java SDK 中使用 `display` 参数所需的“变通方案”（如手动 HTTP 请求或类型断言），实现了全面的原生支持。同时，文档明确了 Opus 4.5+ 和 Sonnet 4.6+ 在缓存和上下文保留上的新特性，这直接影响应用的性能与成本。
+
+### 关键变更主题
+
+*   **SDK 原生支持全面落地**
+    *   **核心变化**：`thinking` 配置（特别是 `display` 属性）现已被 TypeScript、C#、Go 等官方 SDK 完全原生支持。
+    *   **意义**：开发者无需再使用 `as unknown as` 类型断言或编写底层的 `HttpClient` 代码。代码更简洁、类型更安全，且能直接利用 SDK 的流式处理能力。
+
+*   **模型特定的缓存与上下文优化**
+    *   **核心变化**：Opus 4.5+ 和 Sonnet 4.6+ 在处理“非工具结果的用户内容”时，**默认保留**之前的思考块，从而维持缓存有效性（✓）。旧版模型和 Haiku 则会剥离思考块导致缓存失效（✘）。
+    *   **意义**：使用新模型的应用在多轮对话（特别是涉及非工具结果输入时）将获得显著的性能提升和成本降低，因为 Prompt Cache 的命中率提高了。
+
+*   **代码示例现代化与类型安全**
+    *   **细节**：Java SDK 示例改用 `.required()` 辅助方法替代 `.putAdditionalProperty`；PHP SDK 引入 `FileParam::fromResource()` 和 `BetaMessage` 类型。
+    *   **意义**：反映了 SDK API 的演进，引导开发者使用更规范、类型更安全的接口。
+
+### 影响等级：高
+
+**理由**：
+1.  **开发体验大幅提升**：移除手动 HTTP 请求封装和类型断言意味着代码维护成本降低，且更不容易出错。
+2.  **性能与成本直接影响**：缓存行为的变更（由失效变为保留）直接关系到 Token 消耗和响应延迟，特别是在长对话或 Agent 场景中。
+
+### 开发者行动项
+
+1.  **更新 SDK 依赖**：请确保将各语言的 SDK 更新至最新版本，以获取对 `display` 字段的原生支持。
+2.  **清理“Hack”代码**：删除代码库中所有用于 Extended Thinking 的手动 HTTP 请求逻辑和 TypeScript 类型断言（`as unknown as ...`）。
+3.  **审查缓存策略**：如果你依赖 Prompt Cache，请检查代码逻辑。针对 Opus 4.5+ 和 Sonnet 4.6+，你可能不再需要手动处理思考块被剥离的情况，可以利用其默认的“保留所有思考块”行为来优化性能。
+4.  **更新 Java/PHP 代码**：参照新文档，将 Java 的 `putAdditionalProperty(&#34;required&#34;, ...)` 替换为 `.required(...)` 方法，PHP 文件上传改用 `FileParam` 类。
+5.  **关注模型版本差异**：在实现跨模型兼容的逻辑时，需显式处理新旧模型在 `clear_thinking` 和缓存行为上的默认值差异。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer, expert in developer tools/documentation.
+    *   **Task:** Analyze a batch of documentation changes (7 pages).
+    *   **Format:** Markdown, concise, insightful, Chinese response.
+    *   **Specifics:** Summarize changes, why it matters to developers, key themes, impact level, action items.
+
+2.  **Analyze the Input Data (Page by Page):**
+
+    *   **Page 1: `migration-guide.md`**
+        *   *Change:* Removed `as unknown as Anthropic.MessageCreateParamsNonStreaming` type assertion in a TypeScript code snippet.
+        *   *Meaning:* The TypeScript SDK now natively supports the parameters shown (likely `thinking` config) without needing manual type casting. Improved developer experience (DX).
+
+    *   **Page 2: `extended-thinking.md` (Major changes)**
+        *   *Changes:*
+            *   Removed &#34;Note&#34; about SDKs not having type support for `display`.
+            *   Changed code blocks from `&lt;Tabs&gt;` to `&lt;CodeGroup&gt;`.
+            *   **TypeScript:** Removed type assertion (`as unknown as...`). Added check `if (block.thinking.length &gt; 0)` to handle empty thinking arrays correctly.
+            *   **C#:** Replaced manual HTTP request code with native SDK usage (`AnthropicClient`, `MessageCreateParams`, `ThinkingConfigEnabled`). Added native `Display` property support.
+            *   **Go:** Replaced manual HTTP request code with native SDK usage (`anthropic.NewClient()`, `MessageNewParams`).
+            *   **Java:** Diff cuts off, but implies native SDK support is replacing manual requests (similar to C#/Go pattern).
+        *   *Meaning:* The `display` parameter in extended thinking is now fully supported natively across major SDKs (TS, C#, Go, Java). No more workarounds.
+
+    *   **Page 3: `prompt-caching.md`**
+        *   *Changes:* Updated caching behavior regarding &#34;Non-tool results passed to extended thinking requests&#34;.
+        *   *Detail:* Changed from &#34;✘&#34; (invalidates cache) to &#34;Model-specific&#34;.
+        *   *Specifics:* Opus 4.5+ and Sonnet 4.6+ preserve thinking blocks (cache valid ✓). Earlier models and Haiku strip them (cache invalid ✘).
+        *   *Meaning:* Better caching efficiency on newer models. Developers need to be aware of model version differences.
+
+    *   **Page 4: `context-editing.md`**
+        *   *Changes:* Updated default behavior of `clear_thinking_20251015` strategy.
+        *   *Detail:* Default is now model-specific. Opus 4.5+ &amp; Sonnet 4.6+ keep all prior thinking blocks. Earlier models keep only the last turn.
+        *   *Meaning:* Consistent with the caching update. Newer models handle thinking context more aggressively/efficiently by default.
+
+    *   **Page 5: `implement-tool-use.md`**
+        *   *Changes:* Java SDK update in tool definition.
+        *   *Detail:* Replaced `.putAdditionalProperty(&#34;required&#34;, ...)` with `.required(List.of(&#34;location&#34;))`. Removed imports for Map/List.
+        *   *Meaning:* SDK API improvement/typing cleanup.
+
+    *   **Page 6: `code-execution-tool.md`**
+        *   *Changes:* PHP SDK updates.
+        *   *Detail 1:* File upload uses `FileParam::fromResource(fopen(...))` instead of raw `fopen`. Added `use Anthropic\Core\FileParam`.
+        *   *Detail 2:* Message creation and file extraction logic uses stricter types (`BetaMessage`, early returns `continue`).
+        *   *Meaning:* Type safety improvements and API refinement in the PHP SDK.
+
+    *   **Page 7: `CHANGELOG.md.md`**
+        *   *Changes:* Added v2.1.121 and v2.1.120 changelogs.
+        *   *Highlights:* Memory leak fixes (images, usage), bash tool fixes (directory deletion), Windows PowerShell support (no Git Bash required), `claude ultrareview`, OpenTelemetry updates.
+        *   *Meaning:* General stability and feature updates for the CLI/IDE tool, though the prompt focuses on API docs mostly, this confirms the underlying SDKs/Cli are maturing.
+
+3.  **Synthesize and Structure:**
+
+    *   **Theme 1: SDK Native Support (The &#34;Big&#34; Change).** The Extended Thinking `display` parameter and general `thinking` config now have first-class support in TypeScript, C#, Go, and Java. No more manual HTTP requests or type assertions.
+    *   **Theme 2: Model-Specific Behavior (Caching &amp; Context).** Opus 4.5+ and Sonnet 4.6+ behave differently regarding thinking blocks and caching compared to older models. They preserve context better.
+    *   **Theme 3: SDK Polishing.** Java and PHP SDKs show code improvements (helper methods, type safety).
+
+    *   **Impact:** High. Removing manual HTTP workarounds and type assertions is a significant DX improvement. Model-specific caching behavior changes performance characteristics.
+
+    *   **Action Items:** Update SDK versions, check model-specific behavior in caching code, remove type assertions.
+
+4.  **Drafting the Response (in Chinese):**
+
+    *   *Overall Summary:* The update primarily brings native SDK support for the Extended Thinking `display` parameter across multiple languages (TS, C#, Go, Java) and clarifies model-specific caching/context behaviors for Opus 4.5+ and Sonnet 4.6+.
+
+    *   *Key Themes:*
+        *   **SDK Native Support:** Removed workarounds (type assertions, manual HTTP) for `thinking` config. Fully supported now.
+        *   **Model-Specific Intelligence:** Newer models (Opus 4.5+, Sonnet 4.6+) have smarter defaults for preserving thinking blocks and cache management.
+        *   **Type Safety &amp; Polish:** Java/PHP SDKs show cleaner API usage (helpers, stricter types).
+
+    *   *Impact Level:* High. Reason: Significant DX improvement (no more hacks) and performance implications (caching) based on model selection.
+
+    *   *Action Items:*
+        1.  Update SDKs to latest versions to get native `display` support.
+        2.  Remove manual HTTP requests/type assertions related to `thinking` in your code.
+        3.  Review caching logic for Opus 4.5+/Sonnet 4.6+ to leverage preserved thinking blocks.
+        4.  Update Java tool definitions to use the `.required()` helper method.
+
+5.  **Refining the Output:** Ensure the tone is professional and the markdown is clean. (Self-correction: Make sure to explicitly mention the change from &#34;invalidated&#34; to &#34;preserved&#34; for caching on new models, as that affects cost/performance).
+
+6.  **Final Polish:** Check against constraints (Chinese, Markdown, Concise).
+
+    *   *Summary:* 本次更新主要实现了多个语言 SDK 对 Extended Thinking `display` 参数的原生支持，消除了手动类型断言和 HTTP 请求的变通方案，并明确了 Opus 4.5+ 和 Sonnet 4.6+ 在缓存和上下文处理上的特定优化行为。
+    *   *Themes:* SDK 原生支持落地, 模型特定的缓存与上下文优化, 类型安全与 API 清理.
+    *   *Impact:* High.
+    *   *Actions:* 升级 SDK, 移除 Hack, 调整缓存预期, 更新 Java/PHP 代码.
+
+7.  **Final Output Generation.** (Proceeds to generate the markdown response).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/about-claude/models/migration-guide.html" class="page-link">about-claude/models/migration-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/extended-thinking.html" class="page-link">build-with-claude/extended-thinking.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+97</span>
+                            <span class="removed">-176</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-caching.html" class="page-link">build-with-claude/prompt-caching.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/context-editing.html" class="page-link">build-with-claude/context-editing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/implement-tool-use.html" class="page-link">agents-and-tools/tool-use/implement-tool-use.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/code-execution-tool.html" class="page-link">agents-and-tools/tool-use/code-execution-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+16</span>
+                            <span class="removed">-11</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+63</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">15:11 EST</div>
