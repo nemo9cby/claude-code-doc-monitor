@@ -118,9 +118,152 @@
 
         <header>
             <h1>Changes on 2026-04-28</h1>
-            <p class="meta">22 total changes in 1 run</p>
+            <p class="meta">25 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">13:43 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 整体摘要
+
+此次文档更新重点引入了钩子系统中的**动态上下文注入**功能，允许开发者通过 `additionalContext` 在特定事件发生时向 Claude 提供运行时环境信息（如当前分支、CI 状态等）。同时，针对 LLM 网关的提示词缓存机制和插件的私有化部署进行了细节澄清与修正。
+
+### 关键主题
+
+*   **增强的上下文控制 (`additionalContext`)**：Hooks 现在支持向 Claude 的上下文窗口注入动态字符串。这补充了静态的 `CLAUDE.md`，使 Claude 能感知实时环境状态（如 Git 分支、活动 Feature Flags），并针对不同事件（如 `PostToolUse` 或 `UserPromptSubmit`）在不同位置注入信息。
+*   **缓存优化与元数据**：文档揭示了 Claude Code 会在系统提示词前添加包含版本和指纹的归属块。虽然 Anthropic 官方 API 会剥离该块，但实现自定义提示词缓存的第三方网关需要通过环境变量 `CLAUDE_CODE_ATTRIBUTION_HEADER=0` 来禁用它，以确保缓存键的稳定性。
+*   **最佳实践指导**：强调了动态上下文的编写风格应使用陈述性事实（例如：“当前目标是生产环境”），而非指令性命令，以避免触发 Claude 的提示注入防御机制。
+
+### 影响等级：高
+
+**理由**：虽然 `llm-gateway.md` 和 `plugins.md` 的改动较小，但 `hooks.md` 中新增的 `additionalContext` 功能是一个重大的能力扩展。它改变了开发者自动化和定制化 Claude Code 行为的方式，允许创建更智能、更感知环境的开发工作流。
+
+### 开发者行动项
+
+*   **重构 Hooks 逻辑**：检查现有的 Hook 脚本，利用 `additionalContext` 字段替代直接打印到 stdout 的方式，以更结构化地向 Claude 提供环境信息。
+*   **优化提示词缓存**：如果您维护自定义的 LLM 网关并实现了基于完整请求体的缓存，请务必设置 `CLAUDE_CODE_ATTRIBUTION_HEADER=0` 环境变量以防止缓存命中率下降。
+*   **区分静态与动态配置**：审查 `CLAUDE.md`，将其中描述“当前状态”（如当前分支、未提交更改）的内容迁移到 `SessionStart` Hook 的 `additionalContext` 中，保持文档仅包含不变的规则。
+*   **注意恢复会话的时效性**：在使用 `--continue` 恢复会话时，请注意 `SessionStart` 会重新运行以刷新上下文，但中途事件（如 `PostToolUse`）使用的是保存的快照，因此避免在非 `SessionStart` 上下文中注入对时间敏感的瞬时数据。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Format:** Concise, insightful analysis in markdown.
+    *   **Language:** Chinese (as requested in the system prompt override).
+    *   **Input:** Three pages of diffs (`hooks.md`, `llm-gateway.md`, `plugins.md`).
+    *   **Required Sections:** Overall Summary, Key Themes, Impact Level (with reasoning), Action Items (max 5).
+
+2.  **Analyze the Diffs:**
+
+    *   **`hooks.md` (Major changes):**
+        *   **New Section:** &#34;Add context for Claude&#34; (新增“为 Claude 添加上下文”章节). This explains a new field `additionalContext` in hooks. It allows injecting dynamic context (like branch info, CI status) into Claude&#39;s context window at specific points (SessionStart, ToolUse, etc.).
+        *   **Details:** It differentiates between static context (use `CLAUDE.md`) and dynamic context (use hooks). It warns about prompt injection phrasing (use facts, not commands). It explains persistence on resume (`SessionStart` runs again, mid-session hooks use cached text).
+        *   **Updates to specific event tables:**
+            *   `SessionStart`: Updated `additionalContext` description to link to the new section. Updated example JSON to be more realistic.
+            *   `UserPromptSubmit`: Updated `additionalContext` description.
+            *   `UserPromptExpansion`: Updated `additionalContext` description.
+        *   **Observation:** This is a significant feature addition for hook functionality, enhancing developer control over what Claude knows during a session.
+
+    *   **`llm-gateway.md` (Minor change):**
+        *   **New Note:** Mentions that Claude Code now prepends an attribution block (client version, fingerprint) to the system prompt.
+        *   **Important Detail:** The Anthropic API strips this, so it doesn&#39;t affect *their* prompt caching. However, if a custom gateway implements its own caching keyed on the *full* request body, this block changes the hash/cost money. Solution: Set `CLAUDE_CODE_ATTRIBUTION_HEADER=0`.
+        *   **Observation:** Technical nuance for proxy/gateway maintainers regarding caching costs/efficiency.
+
+    *   **`plugins.md` (Trivial change):**
+        *   **Text tweak:** Added a sentence about hosting private marketplaces in private repositories to keep plugins internal.
+        *   **Observation:** Documentation polish/clarification.
+
+3.  **Synthesize and Structure the Analysis:**
+
+    *   **Overall Summary:** The documentation updates primarily introduce a powerful new &#34;dynamic context&#34; mechanism for hooks (`additionalContext`), enabling richer environment-aware interactions. Minor updates clarify system prompt attribution behavior for LLM gateways and internal plugin hosting options.
+
+    *   **Key Themes:**
+        *   **Enhanced Context Control:** Moving beyond static `CLAUDE.md` to dynamic, event-driven context injection via hooks.
+        *   **Dynamic vs. Static State:** Clear distinction between permanent project rules and runtime environment data (e.g., current branch, CI status).
+        *   **Gateway Caching Optimization:** Addressing a specific edge case where internal metadata affects proxy-based prompt caching.
+
+    *   **Impact Level:**
+        *   *High* for developers building custom hooks/integrations (new capability).
+        *   *Low* for general plugin users or standard gateway users (unless they implement custom body-based caching).
+        *   *Overall:* Medium-High. Let&#39;s go with **High** because the `additionalContext` feature changes how developers can architect their Claude Code automation.
+
+    *   **Action Items:**
+        *   Review existing hooks to see if `additionalContext` can replace hardcoded stdout or JSON logic.
+        *   Update custom gateway implementations to check if `CLAUDE_CODE_ATTRIBUTION_HEADER=0` is needed for prompt caching efficiency.
+        *   Refactor `CLAUDE.md` by moving dynamic rules (e.g., &#34;Current branch is...&#34;) into `SessionStart` hooks.
+
+4.  **Drafting the Content (in Chinese):**
+
+    *   *Summary:* 文档更新重点引入了钩子系统中的“动态上下文”功能，允许开发者通过 `additionalContext` 向 Claude 注入运行时环境信息。同时，针对 LLM 网关的提示词缓存机制和插件的私有化部署进行了细节澄清。
+    *   *Themes:*
+        *   动态上下文注入：Hooks 新增 `additionalContext` 字段，区分静态配置与动态环境状态。
+        *   系统提示词归属元数据：解释了 Claude Code 如何在系统提示词中添加版本指纹，及其对自定义网关缓存的影响。
+        *   插件生态：完善了私有插件市场的部署指引。
+    *   *Impact:* High. The `additionalContext` feature fundamentally changes how environment data is fed into Claude, offering significant automation potential. Gateway change is technical but niche.
+    *   *Action Items:*
+        *   利用 `additionalContext` 字段优化 Hooks：将分支状态、CI 结果等动态信息从静态文档移至 `SessionStart` 或 `PostToolUse` 等钩子中。
+        *   检查自定义 LLM 网关：如果您的网关实现了基于完整请求体的缓存，请设置 `CLAUDE_CODE_ATTRIBUTION_HEADER=0` 以避免哈希失效。
+        *   遵循上下文编写规范：使用陈述性语气而非指令性语气编写注入文本，以避免触发 Claude 的防御机制。
+
+5.  **Review and Refine:**
+    *   The summary captures the essence.
+    *   Themes are distinct.
+    *   Impact level is justified.
+    *   Action items are actionable and specific.
+
+6.  **Final Polish:** Ensure markdown formatting is clean. (Proceed to generate output).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+44</span>
+                            <span class="removed">-32</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/llm-gateway.html" class="page-link">llm-gateway.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins.html" class="page-link">plugins.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">01:54 EST</div>
