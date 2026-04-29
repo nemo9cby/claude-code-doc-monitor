@@ -118,9 +118,126 @@
 
         <header>
             <h1>Changes on 2026-04-29</h1>
-            <p class="meta">6 total changes in 1 run</p>
+            <p class="meta">7 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">04:08 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 总体总结
+
+文档更新明确阐明了内置网络沙箱代理的安全边界，强调其**不终止或检查 TLS 流量**，并详细解释了攻击者可能如何利用“域名前置”技术绕过白名单限制。这属于对现有技术限制和威胁模型的澄清，而非功能性变更。
+
+### 关键主题
+
+*   **TLS 限制的透明化**：明确指出内置代理仅基于“客户端提供的主机名”强制执行白名单，这意味着它无法看到加密连接的内容。
+*   **安全绕过风险警示**：详细解释了由于不检查 TLS，恶意代码可以使用域名前端或类似技术与白名单之外的主机通信。
+*   **缓解策略指引**：为具有严格安全需求的开发者指明了方向，即通过配置自定义代理来终止 TLS 并检查流量。
+
+### 影响等级
+
+**Medium (中等)**
+
+**理由**：虽然这只是文档更新，软件行为未发生变化，但它揭示了一个关键的安全细微差别。对于依赖沙箱进行严格网络隔离的开发者来说，这可能会改变他们对安全边界的假设，迫使其重新评估当前的配置是否足以应对数据泄露风险。
+
+### 开发者行动项
+
+*   **审查白名单策略**：检查当前允许的域名是否过于宽泛（如 `*.com`），尽量缩小到具体的子域名。
+*   **评估威胁模型**：如果您的安全场景要求必须检查加密流量内容，请按照文档指引配置**自定义代理**。
+*   **了解局限性**：认识到内置代理无法防御域名前端攻击，并据此评估潜在的数据泄露风险。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Input:** A single diff file (`sandboxing.md`).
+    *   **Task:** Provide a concise, insightful analysis in markdown format, focusing on what matters to developers.
+    *   **Language:** Chinese.
+    *   **Format Requirements:**
+        1.  Overall Summary (1-2 sentences)
+        2.  Key Themes (bullets)
+        3.  Impact Level (Low/Medium/High/Breaking) + reasoning
+        4.  Action Items (bullets, max 5)
+
+2.  **Analyze the Diff (`sandboxing.md`):**
+    *   *Change 1:* Added a `&lt;Note&gt;` block after the &#34;Network sandboxing&#34; section bullet points.
+        *   Content: Clarifies that the built-in proxy enforces allowlists based on the requested hostname *without* terminating or inspecting TLS traffic. References &#34;Security limitations&#34; and &#34;Custom proxy configuration&#34;.
+    *   *Change 2:* Updated &#34;Network Sandboxing Limitations&#34; text.
+        *   Before: &#34;It does not otherwise inspect the traffic passing through the proxy...&#34;
+        *   After: &#34;The built-in proxy does not terminate or perform TLS inspection on outbound traffic, so the contents of encrypted connections are not examined.&#34;
+    *   *Change 3:* Updated the `&lt;Warning&gt;` block regarding data exfiltration and domain fronting.
+        *   Before: Generic warning about allowing broad domains and domain fronting.
+        *   After: More specific explanation. The proxy decides based on the *client-supplied hostname*. Since it doesn&#39;t inspect TLS, code inside the sandbox can use &#34;domain fronting&#34; or similar techniques to bypass the allowlist. Mentions that active development is ongoing for TLS-aware isolation.
+
+3.  **Synthesize the Analysis:**
+
+    *   **Overall Summary:** The documentation updates clarify the security boundaries of the built-in network sandboxing proxy, specifically emphasizing that it does not inspect TLS traffic and therefore is vulnerable to techniques like domain fronting. This is a clarification of the threat model rather than a feature change.
+
+    *   **Key Themes:**
+        *   **Transparency on TLS Limitations:** Explicitly stating that the proxy doesn&#39;t terminate/inspect TLS.
+        *   **Threat Model Clarification:** Explaining exactly *how* the allowlist works (client-supplied hostname) and how it can be bypassed (domain fronting).
+        *   **Mitigation Guidance:** Pointing users towards custom proxy configuration for higher security needs (TLS inspection).
+
+    *   **Impact Level:** **Medium** (or arguably Low because it&#39;s just a doc change, but High awareness for security).
+        *   *Reasoning:* While this is a documentation change (no code change implied), it reveals a critical security nuance. Developers who previously thought the network sandbox was air-tight for all protocols might be surprised to learn TLS content isn&#39;t inspected and domain fronting is possible. It changes how they configure their security policies. I will classify it as **Medium** because it&#39;s purely documentation, but the *implication* of the knowledge is high.
+
+    *   **Action Items:**
+        *   Review current domain allowlists to ensure domains are not overly broad (e.g., specific subdomains vs `*.com`).
+        *   Evaluate if the current threat model requires TLS inspection; if so, configure a custom proxy.
+        *   Be aware of the domain fronting risk and the technical limitation of the built-in proxy.
+
+4.  **Drafting the Response (in Chinese):**
+
+    *   *Summary:* 文档更新阐明了内置网络沙箱代理的安全边界，明确指出其**不终止或检查 TLS 流量**，因此容易受到域名前置等技术的影响。这属于对现有威胁模型的澄清，而非功能变更。
+
+    *   *Themes:*
+        *   **TLS 限制透明化：** 明确说明内置代理仅基于客户端提供的主机名实施白名单，不检查加密流量内容。
+        *   **安全绕过风险：** 详细解释了攻击者如何利用“域名前置”绕过白名单限制。
+        *   **高安全性方案指引：** 引导需要严格流量检查的开发者配置自定义代理以实现 TLS 检查。
+
+    *   *Impact:* **Medium** (中)。
+        *   *Reasoning:* 虽然只是文档变更，但它揭示了一个关键的安全细微差别。依赖沙箱作为主要网络隔离层的开发者需要重新评估其威胁模型，特别是关于加密流量的问题。
+
+    *   *Action Items:*
+        *   审查当前的域名白名单，避免允许过于宽泛的顶级域名。
+        *   评估安全需求，如果必须检查加密内容，请配置支持 TLS 拦截的自定义代理。
+        *   了解域名前置的潜在风险，并认识到内置代理无法防御此类特定攻击。
+
+5.  **Refinement:**
+    *   Ensure the tone is &#34;world-class programmer&#34; - precise, professional.
+    *   Check the &#34;Impact Level&#34; again. If a dev relies on this for security, this doc change is very important. But technically, the software behavior hasn&#39;t changed, so it&#39;s not &#34;Breaking&#34; or code-level &#34;High&#34;. I&#39;ll stick with Medium.
+
+6.  **Final Polish (Markdown):**
+    (Proceed to generate output based on step 4).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sandboxing.html" class="page-link">sandboxing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">01:49 EST</div>
