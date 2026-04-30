@@ -118,9 +118,161 @@
 
         <header>
             <h1>Changes on 2026-04-29</h1>
-            <p class="meta">9 total changes in 3 runs</p>
+            <p class="meta">12 total changes in 4 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">22:31 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更分析
+
+### 总体概述
+文档正式引入“缓存预热”功能以减少首字节延迟，同时增加了关于 `max_tokens: 0` 与扩展思考及批处理 API 不兼容的约束说明。
+
+### 关键变更主题
+*   **新功能：缓存预热**
+    详细介绍了通过设置 `max_tokens: 0` 在用户请求前预加载系统提示词或工具定义到缓存中的机制。该过程仅执行预填充阶段并写入缓存，不生成输出内容，旨在消除延迟敏感型应用中首次交互的缓存未命中惩罚。
+*   **参数互斥性约束**
+    明确指出了缓存预热 (`max_tokens: 0`) 的使用限制：
+    *   **与扩展思考不兼容**：由于 `budget_tokens` 必须小于 `max_tokens`，而预热要求 `max_tokens` 为 0，两者无法共存。
+    *   **与批处理不兼容**：批处理过程中的临时缓存条极可能在后续请求执行前过期，因此不支持在 Batch API 中使用。
+*   **实现细节要求**
+    强调在实现预热时，必须使用**显式缓存断点**（放置在共享的系统提示词上），而非自动缓存，以确保后续请求能正确命中缓存。
+
+### 影响等级
+**中等**
+*   **理由**：这是一个重要的性能优化新特性，对于追求低延迟的应用具有高价值。尽管它引入了新的参数组合限制，但这主要是为了防止逻辑错误或无效操作，不会破坏现有的正常工作流。
+
+### 开发者行动建议
+1.  **评估性能优化需求**：如果你的应用对首字节时间（TTFT）敏感，研究并在用户请求前实施缓存预热逻辑。
+2.  **检查批处理代码**：确保发送到 Message Batches API 的请求中 `max_tokens` 至少为 1，移除任何潜在的预热逻辑。
+3.  **避免功能冲突**：在设计系统时，不要尝试在同一个请求中同时启用 Extended Thinking 和缓存预热。
+4.  **调整断点策略**：若实施预热，需将 `cache_control` 断点显式地标记在系统提示词或工具定义上，而不是占位符消息上。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Understand the Goal**: The user wants a concise, insightful analysis of documentation changes in a specific batch of three pages. The persona is a world-class programmer, and the output must be in Markdown and Chinese.
+
+2.  **Analyze the Input Data**:
+    *   **Page 1: `extended-thinking.md`**
+        *   *Change*: Added a sentence explaining that `extended thinking` cannot be combined with `max_tokens: 0` (used for cache pre-warming).
+        *   *Reason*: Since `budget_tokens` must be less than `max_tokens`, and `max_tokens` is 0, it&#39;s impossible to set a valid budget for thinking.
+    *   **Page 2: `prompt-caching.md`**
+        *   *Change*: Added a massive new section on &#34;Pre-warming the cache&#34; (+147 lines).
+        *   *Content*: Explains what cache pre-warming is, how it works (set `max_tokens: 0`), usage notes (pricing, placement of `cache_control`), and full code examples in multiple languages (curl, CLI, Python, TS, C#, Go, Java, PHP, Ruby).
+        *   *Mechanism*: Run prefill phase, write cache, return empty content.
+        *   *Constraint*: Must use explicit cache breakpoints on system prompt/tools, not automatic caching (otherwise the placeholder breaks it).
+    *   **Page 3: `batch-processing.md`**
+        *   *Change*: Added a bullet point regarding `max_tokens: 0`.
+        *   *Constraint*: `max_tokens: 0` (cache pre-warming) is *not* supported inside the Batches API because ephemeral cache entries would expire before the batched request could utilize them.
+
+3.  **Synthesize the Analysis**:
+
+    *   **Overall Summary**: The docs introduce a new feature called &#34;Cache Pre-warming&#34; to optimize first-token latency, while adding constraints regarding its interaction with Extended Thinking and Batch Processing.
+
+    *   **Key Themes**:
+        *   *New Feature: Cache Pre-warming*: Detailed documentation and examples on using `max_tokens: 0` to load prompts into cache before user requests.
+        *   *Feature Constraints*:
+            *   Cannot use with Extended Thinking (because `budget_tokens` &gt; 0 and `max_tokens` = 0 conflict).
+            *   Cannot use with Batch Processing (ephemeral cache lifetime issue).
+        *   *Performance Optimization*: Focus on reducing Time-To-First-Token (TTFT).
+
+    *   **Impact Level**:
+        *   *Impact*: Medium to High (mostly feature addition).
+        *   *Reason*: It&#39;s a significant new capability for performance optimization (Medium), but with specific breaking/constraint clarifications (Low to Medium). Since it doesn&#39;t break existing code (only prevents combining specific parameters), it&#39;s mostly a feature addition. I&#39;ll stick with **Medium** because it&#39;s a new optimization pattern but strictly additive.
+
+    *   **Action Items**:
+        *   Check if latency-sensitive apps need cache pre-warming.
+        *   Update code to use `max_tokens: 0` with explicit cache breakpoints if pre-warming is implemented.
+        *   Ensure Batch jobs don&#39;t use `max_tokens: 0`.
+        *   Don&#39;t mix Extended Thinking with `max_tokens: 0`.
+
+4.  **Drafting the Content (in Chinese)**:
+
+    *   *Summary*: 文档引入了“缓存预热”功能以优化首字节延迟，并明确了该功能与扩展思考及批处理 API 的互斥限制。
+    *   *Themes*:
+        *   新增缓存预热功能。
+        *   参数组合限制。
+        *   性能优化。
+    *   *Impact*: Medium。这是一个重要的性能优化特性，但仅影响特定用例。
+    *   *Action Items*:
+        *   评估延迟敏感型应用。
+        *   避免在批处理中使用 `max_tokens: 0`。
+        *   避免在扩展思考中使用 `max_tokens: 0`。
+
+5.  **Refining the Output**:
+    *   Make it punchy.
+    *   Ensure technical accuracy (e.g., mention explicit vs automatic caching if relevant, but keep it high-level).
+    *   Check formatting (Markdown, headers).
+
+6.  **Final Polish (Self-Correction during drafting)**:
+    *   *Correction*: The prompt asks for &#34;Impact level (Low/Medium/High/Breaking)&#34;. Is it &#34;High&#34;? It&#39;s a new feature, so usually High impact means many people *should* use it. For latency-critical apps, yes. But broadly? Maybe Medium. Let&#39;s go with **Medium** as it adds capability but isn&#39;t a breaking change to existing behavior.
+    *   *Refining the Action Items*: Make sure developers know to look at the specific pages for code examples.
+
+7.  **Final Output Generation** (matches the provided good response).
+
+    *   Overall Summary: 文档正式引入“缓存预热”功能以减少首字节延迟，同时增加了关于 `max_tokens: 0` 与扩展思考及批处理 API 不兼容的约束说明。
+    *   Key Themes:
+        *   **新功能：缓存预热**: 详细介绍了通过设置 `max_tokens: 0` 在用户请求前预加载系统提示词或工具定义到缓存中的机制，旨在消除首次交互的延迟惩罚。
+        *   **参数互斥性**: 明确指出 `max_tokens: 0` 不能与 Extended Thinking（由于 `budget_tokens` 冲突）或 Message Batches API（由于缓存生命周期问题）结合使用。
+        *   **实现细节**: 强调预热时必须使用“显式缓存断点”，以确保后续请求能命中缓存。
+    *   Impact: Medium. 这是一个对高延迟敏感应用非常有价值的性能优化特性，属于功能增强而非破坏性变更。
+    *   Action Items:
+        *   评估高延迟敏感应用：检查是否需要通过预热缓存来优化首字节响应时间。
+        *   更新批处理逻辑：确保 Batch API 中的请求不包含 `max_tokens: 0`。
+        *   避免功能冲突：不要在同一个请求中同时启用 Extended Thinking 和缓存预热。
+        *   调整缓存策略：若使用预热功能，需改用显式 `cache_control` 断点，而非自动缓存。</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/extended-thinking.html" class="page-link">build-with-claude/extended-thinking.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-caching.html" class="page-link">build-with-claude/prompt-caching.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+147</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/batch-processing.html" class="page-link">build-with-claude/batch-processing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">11:07 EST</div>
