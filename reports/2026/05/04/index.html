@@ -118,9 +118,181 @@
 
         <header>
             <h1>Changes on 2026-05-04</h1>
-            <p class="meta">11 total changes in 5 runs</p>
+            <p class="meta">15 total changes in 6 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">19:49 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 文档变更分析
+
+#### 1. Overall Summary
+本次文档更新主要集中在增强 Windows 平台（特别是 PowerShell）对 Hooks 和 Sub-agents 的支持，修复了 OpenTelemetry 环境变量继承问题，并针对 macOS 快捷键冲突、插件系统及 Git Worktree 行为进行了多项修复与优化。
+
+#### 2. Key Themes
+*   **Windows 支持增强**: 为 CLI 定义的 Sub-agents 和 Hooks 脚本新增了详细的 PowerShell 示例，明确了跨平台脚本的编写差异。
+*   **环境变量隔离**: 子进程（Bash, Hooks, MCP 等）不再继承 `OTEL_*` 环境变量，防止了 CLI 自身的 OTLP 端点干扰用户应用的追踪配置。
+*   **跨平台兼容性修复**: 修正了 `EnterWorktree` 分支创建逻辑（现在基于本地 HEAD），以及 macOS Tahoe 版本下 `Cmd+Esc` 快捷键被游戏覆盖层拦截的问题。
+*   **功能优化与性能**: 优化了 MCP 重连时的工具展示（不再刷屏），降低了 Sub-agent 空闲时的 Token 消耗，并允许 `--plugin-dir` 接受 `.zip` 归档文件。
+
+#### 3. Impact Level: **Medium**
+**理由**: 虽然没有破坏性的 API 变更，但 **OpenTelemetry 环境变量不再继承** 是一个重要的行为变更，可能会影响依赖该特性的可观测性工具。此外，Windows 上的开发者配置流程有显著变化，且 CHANGELOG 中包含大量对现有 Bug 的修复，提升了工具的稳定性。
+
+#### 4. Action Items for Developers
+*   **检查追踪配置**: 如果您的脚本依赖从父进程继承 `OTEL_*` 环境变量进行数据上报，需显式配置这些变量，因为子进程现已隔离。
+*   **Windows 脚本迁移**: 如果您在 Windows 上使用 Bash 编写 Hooks 或 Sub-agents，建议参考文档中的 PowerShell 示例进行迁移，并添加 `shell: powershell` 配置。
+*   **macOS 快捷键排障**: 若您使用 macOS Tahoe+ 且发现 `Cmd+Esc` 无法唤起 Claude Code，请检查系统设置中“游戏控制器”的快捷键冲突。
+*   **插件分发**: 尝试使用 `.zip` 格式打包插件并通过 `--plugin-dir` 加载，以简化插件分发流程。
+*   **Git Worktree 更新**: 注意 `EnterWorktree` 现在的行为更符合文档预期（基于本地 HEAD），确保您的 CI/CD 脚本或工作流能正确处理未推送的提交。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Format:** Concise, insightful markdown analysis.
+    *   **Language:** Chinese (as requested: &#34;请用中文回复&#34;).
+    *   **Input:** Diff for 4 pages (`hooks.md`, `sub-agents.md`, `vs-code.md`, `CHANGELOG.md.md`).
+    *   **Output Structure:**
+        1.  Overall Summary (1-2 sentences).
+        2.  Key Themes (bullets).
+        3.  Impact Level (Low/Medium/High/Breaking) with reasoning.
+        4.  Action Items (max 5 bullets).
+
+2.  **Analyze the Diffs:**
+
+    *   **`hooks.md`**:
+        *   Change: Removed reference to `/rename` in the `sessionTitle` field description.
+        *   Implication: Slight clarification. `sessionTitle` sets the title, but the comparison to `/rename` was deemed unnecessary or inaccurate. It&#39;s a minor doc cleanup.
+
+    *   **`sub-agents.md`**:
+        *   Change 1: Table capitalization change (`Claude Code Guide` -&gt; `claude-code-guide`). Minor consistency fix.
+        *   Change 2: Added specific Windows PowerShell examples for CLI-defined subagents. Previously only showed bash. This is significant for Windows users.
+        *   Change 3: Clarified note about subagent loading. Distinguished between adding files on disk (needs restart) vs using `/agents` (immediate). Clarifies behavior.
+        *   Change 4: Added specific instructions for writing hooks on Windows (PowerShell) and references to a new section &#34;running hooks in PowerShell&#34;.
+        *   Change 5: Added `chmod +x` qualification &#34;On macOS and Linux&#34; and repeated the Windows PowerShell advice.
+        *   *Theme:* Windows support and cross-platform compatibility for hooks and subagents.
+
+    *   **`vs-code.md`**:
+        *   Change: Added a troubleshooting section for &#34;Cmd+Esc does nothing on macOS&#34;. Explains the conflict with Game Overlay shortcut on macOS Tahoe+.
+        *   *Theme:* Platform-specific bug fixes/UX issues.
+
+    *   **`CHANGELOG.md.md`**:
+        *   Change: Added entry for version `2.1.128`.
+        *   Key items:
+            *   OTel env vars no longer inherited by subprocesses (Bash, hooks, etc.). This is a **breaking change** for users relying on inherited tracing config.
+            *   `EnterWorktree` fixes (creates from local HEAD, not origin).
+            *   MCP improvements (reconnecting noise reduction, tool summaries).
+            *   Bash permissions now write to `.claude/settings.local.json`.
+            *   Various bug fixes (vim mode, plugin updates, sub-agent summaries).
+            *   Plugin support: `--plugin-dir` accepts `.zip`.
+
+3.  **Synthesize Key Themes:**
+    *   **Windows Support:** Heavy emphasis on PowerShell examples for hooks and subagents.
+    *   **Configuration &amp; Permissions:** Bash permissions persisting locally, OTel environment variable isolation.
+    *   **Bug Fixes &amp; UX:** macOS shortcut conflict, plugin loading, tool output formatting.
+    *   **Performance:** Sub-agent token cost reduction (caching).
+
+4.  **Determine Impact Level:**
+    *   *Reasoning:* The change to OpenTelemetry (OTEL) environment variable inheritance is a behavioral change that affects observability in subprocesses. This might break existing monitoring setups. The rest are feature additions or minor clarifications. However, usually, OTEL changes in subprocesses are considered high impact for observability engineers, but for general developers, it might be &#34;Medium&#34; because it fixes side effects. Let&#39;s look closer: &#34;Subprocesses... no longer inherit `OTEL_*` environment variables&#34;. This prevents the CLI&#39;s own OTLP endpoint from being picked up by user apps. This is likely a fix for a bug where user apps sent traces to Claude Code&#39;s endpoint. So it&#39;s a bug fix with a side effect. Most other changes are enhancements. I will rate it **Medium** because of the OTEL change and significant Windows documentation updates, but it&#39;s not &#34;Breaking&#34; in the API sense (though behavior changes).
+
+5.  **Draft Action Items (Max 5):**
+    *   Review OpenTelemetry (OTEL) configurations if you rely on inherited environment variables for subprocess tracing.
+    *   If you are on Windows, use the new PowerShell examples for configuring hooks and subagents.
+    *   macOS users on Tahoe+: Check Cmd+Esc shortcut conflicts if the extension stops responding.
+    *   Update scripts relying on `EnterWorktree` to respect local HEAD behavior (improvement, not breakage, but good to know).
+    *   Consider using `.zip` archives for plugins with `--plugin-dir`.
+
+6.  **Translate and Refine (Chinese):**
+
+    *   *Summary:* 文档更新主要集中在增强 Windows 平台（特别是 PowerShell）的支持、修正 OpenTelemetry 环境变量继承行为，以及针对 macOS 和插件系统的多项 Bug 修复与功能优化。
+    *   *Themes:*
+        *   **跨平台兼容性增强**: 大幅增加了 Windows PowerShell 下 Hooks 和 Sub-agents 的配置示例。
+        *   **行为变更与隔离**: 子进程不再继承 `OTEL_*` 环境变量，修复了追踪配置的副作用。
+        *   **用户体验修复**: 解决了 macOS 快捷键冲突、插件加载和 Git worktree 行为等问题。
+    *   *Impact:* **Medium**. 虽然 OTEL 变更影响子进程行为，但主要是修复副作用而非破坏性功能变更；Windows 支持的完善对跨平台开发者影响显著。
+    *   *Action Items:*
+        *   检查依赖 `OTEL_*` 环境变量自动传递的子进程监控/追踪脚本。
+        *   Windows 用户参考新增的 PowerShell 示例重写或验证 Hooks/Sub-agents 配置。
+        *   macOS 用户若遇到 `Cmd+Esc` 无响应，需检查系统游戏控制器的快捷键设置。
+        *   利用新增的 `.zip` 插件归档功能通过 `--plugin-dir` 加载插件。
+
+7.  **Final Review against constraints:**
+    *   Markdown format? Yes.
+    *   Concise? Yes.
+    *   Chinese? Yes.
+    *   4 sections? Yes.
+    *   Max 5 action items? Yes.
+
+8.  **Construct Final Output.** (Proceed to generate the markdown).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+24</span>
+                            <span class="removed">-15</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/vs-code.html" class="page-link">vs-code.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+38</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">18:53 EST</div>
