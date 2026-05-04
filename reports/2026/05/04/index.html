@@ -118,9 +118,150 @@
 
         <header>
             <h1>Changes on 2026-05-04</h1>
-            <p class="meta">9 total changes in 4 runs</p>
+            <p class="meta">11 total changes in 5 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">18:53 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 文档变更分析
+
+#### 1. 总体总结
+文档详细阐明了当 Hook 返回 `ok: false` 时的行为逻辑，从原先笼统的“除特定事件外终止回合”更新为**基于特定事件的差异化处理**。这一变更主要改变了 `PreToolUse` 等事件被拒绝时的反馈机制（从终止会话变为返回错误信息给模型），允许开发者在拦截操作时让模型进行自我修正。
+
+#### 2. 核心主题
+*   **行为细粒度化**：不再将大部分事件一视同仁，而是区分了哪些事件在拒绝时会向 Claude 返回错误（如 `PreToolUse`），哪些会直接向用户显示警告并结束回合（如 `PostToolUse`）。
+*   **模型可见性控制**：明确了 `reason` 字段的流向。在 `PreToolUse` 中，拒绝理由会被作为工具错误反馈给 Claude，使其能够调整行为；而在 `PostToolUse` 中，Claude 无法看到该理由。
+*   **指令 Hook 的关联性**：强调了对于需要更精细控制（特别是 `PermissionRequest`）的场景，应转向使用指令 Hook（Command Hook）。
+
+#### 3. 影响等级
+**High (高)**
+
+**理由**：这是一项重大的功能语义澄清或变更。此前文档暗示 `PreToolUse` 被拒绝时会终止回合，新文档明确指出它会将错误返回给 Claude 以供重试。这从根本上改变了开发者构建工具验证逻辑的方式——从“拦截并停止”转变为“拦截并修正”，直接影响应用的交互流程和用户体验。
+
+#### 4. 开发者行动项
+*   **审查 `PreToolUse` Hook**：检查现有的实现逻辑。如果您期望在拒绝工具使用时完全停止对话，您需要调整代码，因为现在的默认行为是让 Claude 看到错误并可能重试。
+*   **利用新的错误反馈机制**：在 `PreToolUse` 中编写更具体的 `reason`，引导 Claude 如何修正错误的工具调用参数，而不是简单地阻断。
+*   **检查 `PermissionRequest` 逻辑**：文档明确指出 `ok: false` 对该事件无效。如果您的代码依赖此逻辑来阻止权限请求，必须迁移到指令 Hook 的 `hookSpecificOutput.decision.behavior: &#34;deny&#34;`。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Format:** Markdown.
+    *   **Language:** Chinese (as requested in the system prompt).
+    *   **Input:** Diff for two pages (`hooks.md` and `hooks-guide.md`).
+    *   **Requirements:** Concise, insightful, developer-focused. Structure: Overall Summary, Key Themes, Impact Level, Action Items.
+
+2.  **Analyze the Content (The Diffs):**
+    *   **Context:** Documentation for &#34;Hooks&#34; (likely in an AI agent/interaction context, given references to &#34;Claude&#34;, &#34;Subagent&#34;, &#34;ToolUse&#34;).
+    *   **Change:** The documentation clarifies the behavior of returning `ok: false` in different hook types.
+    *   **Previous State:** It was generally stated that `ok: false` blocks the action. For `Stop` and `SubagentStop`, the reason goes to Claude. For others, the turn ends and a warning appears (Claude doesn&#39;t see it). It mentioned using command hooks for different semantics.
+    *   **New State:**
+        *   `hooks.md`: Expanded into a detailed list explaining specific behaviors for `Stop`, `SubagentStop`, `PreToolUse`, `PostToolUse`, `PostToolBatch`, `UserPromptSubmit`, `UserPromptExpansion`, `PostToolUseFailure`, `TaskCreated`, `TaskCompleted`, and `PermissionRequest`.
+        *   `hooks-guide.md`: Updated the general description to highlight that behavior depends on the event, specifically mentioning `PreToolUse` (reason becomes tool error, Claude sees it) vs. others (turn ends).
+
+3.  **Synthesize &#34;What Changed&#34;:**
+    *   The documentation moved from a general rule (mostly &#34;turn ends&#34;) to a granular specification of what happens when a hook returns `ok: false`.
+    *   Crucial distinction introduced: `PreToolUse` (and others like `TaskCreated`) now behave differently from `PostToolUse`. Specifically, `PreToolUse` denies the call and feeds the reason back to Claude as an error, allowing it to retry/adjust, whereas previously (or in the old text) the distinction might have been less clear or implied a hard stop.
+
+4.  **Synthesize &#34;Why It Matters to Developers&#34;:**
+    *   **Control:** Developers need to know exactly what happens when they block an action. Does the agent just stop? Does it get an error and try again? Does it get a warning visible to the user?
+    *   **Debugging/UX:** If a dev wants to prevent a tool use but let the agent fix it, they need to know `PreToolUse` allows this. If they want to hard stop the conversation, `PostToolUse` does that.
+    *   **Migration/Behavior:** This might be clarifying existing behavior or introducing new behavior. Either way, it changes how developers implement hooks for specific events (e.g., validation in `PreToolUse` vs. logging in `PostToolUse`).
+
+5.  **Draft the Response (Iterative refinement in Chinese):**
+
+    *   *Overall Summary:* The docs now provide a detailed, event-specific breakdown of the consequences of returning `ok: false` in hooks, distinguishing between feeding errors back to the model (for retries) vs. ending the turn.
+        *   *Draft (CN):* 文档更新了当 Hook 返回 `ok: false` 时的行为说明，从之前笼统的“阻塞并显示警告”细化为针对不同事件的差异化处理，明确区分了哪些会将原因反馈给 Claude 以供重试，哪些会直接终止会话。
+
+    *   *Key Themes:*
+        *   Granularity over generalization.
+        *   Distinction between &#34;Tool Error&#34; (Model sees it) and &#34;Warning&#34; (User sees it).
+        *   Specific focus on `PreToolUse` behavior changes/clarifications.
+        *   *Draft (CN):*
+            *   **行为细粒度化**：不同 Hook 事件（如 `PreToolUse` 与 `PostToolUse`）在拒绝授权时的处理逻辑现在有明确区别。
+            *   **模型可见性**：明确了哪些拒绝原因会作为错误返回给 Claude（使其能够自我修正），哪些仅作为警告显示给用户（导致回合结束）。
+            *   **PreToolUse 逻辑增强**：特别指出 `PreToolUse` 在拒绝时，原因会作为工具错误返回给 Claude，而非仅仅是终止回合。
+
+    *   *Impact Level:*
+        *   This is a &#34;High&#34; impact for developers currently building or maintaining hooks, especially if they rely on blocking tool use. If the code previously assumed `ok: false` always stopped the turn, their logic might break (or conversely, they can now implement smarter validation).
+        *   Let&#39;s look closer. The old text said: &#34;For all other supported events, the turn ends... Claude does not see it.&#34; The new text says: &#34;`PreToolUse`... reason is returned to Claude... so it can adjust.&#34;
+        *   This is a behavior change (or a major clarification) for `PreToolUse`. It used to be grouped with &#34;turn ends&#34;. Now it&#39;s grouped with &#34;tool error&#34;.
+        *   Verdict: High/Medium. Let&#39;s go with **High** because it fundamentally changes the control flow of `PreToolUse` (blocking no longer stops the turn, it returns an error).
+        *   *Draft (CN):* **High**。特别是对于 `PreToolUse` Hook 的行为，从“直接终止回合”变为“返回错误给 Claude 以便重试”，这显著改变了基于 Hook 的验证和交互逻辑。
+
+    *   *Action Items:*
+        *   Review existing `PreToolUse` hooks. Do you want to stop the conversation or just deny the tool?
+        *   Review `PostToolUseFailure`, `TaskCreated`, `TaskCompleted` hooks.
+        *   Adjust error handling logic if expecting a hard stop on `PreToolUse`.
+        *   *Draft (CN):*
+            *   检查现有的 `PreToolUse` Hook 实现，确认“拒绝工具调用”是否符合预期（现在会返回错误给模型而非直接停止）。
+            *   审查依赖于 `ok: false` 导致“回合结束”的 Hook（如 `PostToolUse`），确保其行为未受影响。
+            *   利用新的 `PreToolUse` 语义实现更智能的工具调用验证和重试机制。
+
+6.  **Final Polish (formatting and tone):** Ensure the tone is professional, concise, and insightful.
+
+    *   *Self-Correction during drafting:* I should check if the diff implies a change in the *product* or just the *docs*. The diff is in `hooks.md`. The change from &#34;turn ends&#34; to &#34;tool error&#34; for `PreToolUse` strongly implies a product change or a significant correction of previous misunderstanding. I must treat it as a potential functional change affecting developers.
+
+7.  **Final Output Generation:** (Proceed to generate the markdown response in Chinese).
+
+    *   Structure matches requirements.
+    *   Content matches analysis.
+    *   Language is Chinese.
+
+    *(Self-Correction on specific events)*:
+    Old: &#34;For all other supported events [besides Stop/SubagentStop], the turn ends...&#34;
+    New: &#34;PreToolUse: tool call denied... reason returned... equivalent to deny&#34;.
+    This is definitely a significant shift in behavior description for `PreToolUse`.
+
+8.  **Final Review against constraints:**
+    *   Concise? Yes.
+    *   Insightful? Yes, highlights the shift from hard stop to error feedback.
+    *   Developer focus? Yes.
+    *   Markdown? Yes.
+
+    (Ready to output)</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">15:21 EST</div>
