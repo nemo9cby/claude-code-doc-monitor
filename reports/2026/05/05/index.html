@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026-05-05 - Documentation Changes</title>
+    <style>
+        :root {
+            --bg-color: #1a1a2e;
+            --card-bg: #16213e;
+            --text-color: #eee;
+            --accent: #0f3460;
+            --add-text: #4ade80;
+            --del-text: #f87171;
+            --time-color: #60a5fa;
+        }
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg-color: #f5f5f5;
+                --card-bg: #fff;
+                --text-color: #333;
+                --accent: #e0e0e0;
+                --add-text: #155724;
+                --del-text: #721c24;
+                --time-color: #2563eb;
+            }
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+        .container { max-width: 800px; margin: 0 auto; }
+        header { margin-bottom: 2rem; }
+        h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+        .meta { color: #888; }
+        .batch { margin-bottom: 2rem; }
+        .batch-header {
+            color: var(--time-color);
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--accent);
+        }
+        .page-list { list-style: none; }
+        .page-item {
+            background: var(--card-bg);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .page-item:hover { background: var(--accent); }
+        .page-link {
+            color: var(--text-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .page-summary { color: #888; font-size: 0.9rem; }
+        .added { color: var(--add-text); }
+        .removed { color: var(--del-text); }
+        a { color: #60a5fa; }
+        .back-link { margin-bottom: 1rem; display: inline-block; }
+        .page-item-content { flex: 1; }
+        .page-analysis {
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: 0.25rem;
+        }
+        .source-section {
+            margin-bottom: 1.5rem;
+        }
+        .source-header {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: #8b5cf6;
+        }
+        .batch-analysis {
+            background: var(--card-bg);
+            border-left: 3px solid #22c55e;
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            margin: 0.75rem 0 1rem 0;
+        }
+        .batch-analysis h4 {
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+        .batch-analysis-content {
+            white-space: pre-wrap;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        .reasoning-section {
+            margin-top: 1rem;
+            padding-top: 0.75rem;
+            border-top: 1px dashed var(--accent);
+            font-size: 0.85rem;
+            color: #888;
+        }
+        .reasoning-section summary {
+            cursor: pointer;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../../../index.html" class="back-link">&larr; All reports</a>
+
+        <header>
+            <h1>Changes on 2026-05-05</h1>
+            <p class="meta">13 total changes in 1 run</p>
+        </header>
+
+        
+        <div class="batch">
+            <div class="batch-header">11:50 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 总体摘要
+
+本次更新主要增强了插件系统的灵活性（支持 ZIP 打包与加载错误反馈），将遥测后端从 Statsig 迁移至 Anthropic，并细化了 OpenTelemetry mTLS 配置与多平台路径说明，同时补充了多项 CLI 行为的边界条件。
+
+### 关键主题
+
+*   **插件系统增强**：`--plugin-dir` 现在支持直接加载 `.zip` 归档文件；优化了插件加载失败的错误报告（覆盖路径缺失及无效归档）；明确了插件更新时的路径生命周期与热重载机制。
+*   **遥测与监控变更**：指标采集服务由第三方 Statsig 迁移至 Anthropic 自有服务；重构了 OpenTelemetry 的 mTLS 认证文档，区分了 `http/protobuf` 与 `grpc` 协议的配置变量。
+*   **配置与行为澄清**：明确了 `PostToolUse` hooks 的拦截逻辑不会屏蔽原始输出；补充了 Windows 平台下的默认路径解析；解释了 `/compact` 命令对状态栏上下文数据的清空影响。
+*   **限制与保留项**：新增了非交互模式下 stdin 的 10MB 大小限制；保留了 `workspace` 作为 MCP 服务器名称的内部用途。
+
+### 影响等级：中 等
+
+**理由**：
+*   虽然主要是文档层面的澄清，但引入了新的功能（ZIP 插件）和潜在的破坏性变更。
+*   **OpenTelemetry mTLS 配置变更**可能导致现有的监控脚本需要调整环境变量设置。
+*   **stdin 10MB 限制**虽然阈值较高，但对于通过管道传输大量数据的自动化脚本可能产生意外中断。
+*   MCP `alwaysLoad` 行为变更（阻塞启动）可能影响依赖非阻塞连接的启动流程。
+
+### 开发者行动项
+
+1.  **检查 OTEL 配置**：如果您配置了 OpenTelemetry 的 mTLS，请参考文档确认使用正确的协议专用环境变量（如 `CLAUDE_CODE_CLIENT_KEY` 用于 HTTP，`OTEL_EXPORTER_OTLP_CLIENT_KEY` 用于 gRPC）。
+2.  **审查管道脚本**：如果您的 CI/CD 脚本通过管道向 Claude Code 传输超过 10MB 的输入，请改用文件路径引用以避免程序退出。
+3.  **适配插件开发**：注意 `${CLAUDE_PLUGIN_ROOT}` 目录在插件更新后会变化，不应持久化状态；同时避免在插件根目录放置 `CLAUDE.md`（不会被加载）。
+4.  **更新 MCP 配置**：确认没有 MCP 服务器被命名为 `workspace`，否则会被跳过；依赖 `alwaysLoad` 的服务器需注意现在会阻塞启动直至连接成功。
+5.  **自定义状态栏脚本**：更新处理 `context_window.current_usage` 的逻辑，因为该值在 `/compact` 命令执行后会重置为 `null`。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Input:** A batch of 13 documentation diff files (markdown).
+    *   **Output Language:** Chinese.
+    *   **Format:** Markdown (Concise, insightful).
+    *   **Structure:**
+        1.  Overall Summary (1-2 sentences).
+        2.  Key Themes (bullets).
+        3.  Impact Level (Low/Medium/High/Breaking) with reasoning.
+        4.  Action Items for Developers (bullets, max 5).
+
+2.  **Analyze the Diffs (Page by Page):**
+
+    *   **`cli-reference.md`**: `--plugin-dir` now supports loading from a `.zip` archive, not just a directory.
+    *   **`data-usage.md`**: Telemetry service moved from &#34;Statsig&#34; to &#34;Anthropic&#34;. Removed specific encryption details (TLS/AES mentions removed in text, though maybe implied/kept elsewhere?). Updated table references. Updated text regarding provider-managed metrics.
+    *   **`headless.md`**: Added note about `stdin` capped at 10MB (v2.1.128). Updated description of `plugin_errors` in `system/init` event to include `--plugin-dir` load failures (missing path, invalid archive).
+    *   **`hooks.md`**: Clarified behavior of `PostToolUse` hooks. Specifically, if `decision` is &#34;block&#34;, it adds reason *next* to the result, Claude still sees original output. Previously it implied Claude saw the reason instead? Or just clarified. Also clarified `decision: block` doesn&#39;t replace output; use `updatedToolOutput` for that.
+    *   **`iam.md`**: Clarified credential storage locations (split macOS/Linux/Windows clearly). Added Windows specific path `%USERPROFILE%`. Mentioned `CLAUDE_CONFIG_DIR` override.
+    *   **`mcp.md`**: `/mcp` panel now shows tool counts. Flags servers with no tools. &#34;workspace&#34; name is reserved. `alwaysLoad: true` now blocks startup (5s timeout) even if `MCP_CONNECTION_NONBLOCKING=1` is set.
+    *   **`monitoring-usage.md`**: Claude Code *does not* pass `OTEL_*` vars to subprocesses (Bash, hooks, etc.). Removed specific vars `OTEL_EXPORTER_OTLP_METRICS_CLIENT_KEY`/`CERTIFICATE` from the main table and moved them into a new &#34;mTLS authentication&#34; section, distinguishing between `http` and `grpc` protocols.
+    *   **`plugin-marketplaces.md`**: Clarified `strictKnownMarketplaces` URL matching (exact match doesn&#39;t normalize URLs).
+    *   **`plugins-reference.md`**: Clarified `${CLAUDE_PLUGIN_ROOT}` is ephemeral (doesn&#39;t survive updates). Note on lifecycle: hooks/monitors keep using old path until reload/restart. Added note: `CLAUDE.md` at plugin root is *not* loaded as context.
+    *   **`settings.md`**: Added note on Windows paths (`~/.claude` -&gt; `%USERPROFILE%\.claude`). Updated `channelsEnabled` description for API key auth (allowed by default unless managed settings exist).
+    *   **`skills.md`**: Added best practice tip: Keep skill body concise for token cost (since it stays in context).
+    *   **`slash-commands.md`**: Duplicate of `skills.md` change.
+    *   **`statusline.md`**: Update trigger for statusline script (now after `/compact`). Clarified `context_window.current_usage` is `null` after `/compact` until next API call.
+
+3.  **Synthesize Key Themes:**
+    *   **Plugin Loading &amp; Packaging:** Support for `.zip` plugins, better error reporting for plugin loads, clarification on update lifecycles.
+    *   **Observability &amp; Telemetry:** Shift from Statsig to Anthropic for metrics, improved mTLS config for OpenTelemetry, better subprocess behavior regarding env vars.
+    *   **UX &amp; Behavior Clarifications:** Better explanations of hooks behavior, `/compact` effects on statusline/context, stdin limits, reserved names.
+    *   **Cross-Platform Consistency:** Clarifying Windows paths in settings/IAM.
+
+4.  **Determine Impact Level:**
+    *   **Level:** Medium.
+    *   **Reasoning:**
+        *   Plugin zip support is a feature addition (positive).
+        *   Statsig to Anthropic is an infra change, invisible to most but affects privacy/monitoring.
+        *   `alwaysLoad` blocking startup is a behavior change (could break non-blocking setups if they relied on specific timing, but likely improves reliability).
+        *   OTEL mTLS config changes (env vars moved) might break existing configs if users hardcoded specific metrics vars that now need protocol-specific handling.
+        *   `stdin` cap is a breaking change for heavy piped users (though 10MB is generous).
+
+5.  **Formulate Action Items:**
+    *   Check plugin installs if using local paths.
+    *   Update OTEL mTLS config if using gRPC.
+    *   Watch for `/compact` behavior in custom scripts (statusline).
+    *   Be aware of the stdin limit if using heavy pipes.
+
+6.  **Drafting the Content (in Chinese):**
+
+    *   *Summary:* 本次更新主要集中在插件系统增强（支持 ZIP 打包、更明确的生命周期管理）、遥测迁移至 Anthropic 基础设施、以及多项配置和行为的澄清（如 OpenTelemetry 的 mTLS 配置、状态栏刷新逻辑）。
+    *   *Themes:*
+        *   **插件能力提升**：`--plugin-dir` 现支持 `.zip` 归档文件；增强了插件加载错误的反馈（如路径缺失或归档无效）；明确了插件更新时的路径生命周期处理。
+        *   **遥测与监控变更**：指标服务从 Statsig 迁移至 Anthropic；重构了 OpenTelemetry 的 mTLS 认证配置，区分了 HTTP 和 gRPC 协议的变量。
+        *   **配置与行为澄清**：明确了 `PostToolUse` hook 的行为；补充了 Windows 平台路径说明；解释了 `/compact` 命令对状态栏和上下文窗口的影响；新增 stdin 10MB 限制。
+    *   *Impact:* Medium. 引入了新的功能（ZIP 插件）和破坏性较小的行为变更（stdin 限制、OTEL mTLS 配置变更），主要是文档层面的澄清和基础设施更新。
+    *   *Action Items:*
+        *   如果使用了 OpenTelemetry 的 mTLS 功能，需检查并更新环境变量配置，特别是针对 gRPC 协议。
+        *   若脚本通过管道传输大量数据至 Claude Code，请注意新增的 10MB 限制，建议改用文件引用。
+        *   开发插件时，注意 `${CLAUDE_PLUGIN_ROOT}` 的临时性，且根目录下的 `CLAUDE.md` 不会被自动加载。
+        *   更新依赖 MCP `alwaysLoad` 标志的逻辑，因为它现在会阻塞启动（即使设置了非阻塞模式）。
+
+7.  **Review and Refine:**
+    *   Ensure tone is professional.
+    *   Check specific details (e.g., OTEL vars moved/renamed logic).
+    *   *Self-Correction on OTEL:* The diff shows specific metrics mTLS vars were removed from the general table and moved to a protocol-specific section. It says &#34;existing configurations that set the per-signal metrics variables continue to work&#34; for gRPC, but users should verify based on the new docs. It&#39;s worth mentioning as a check.
+    *   *Self-Correction on stdin:* It&#39;s a new cap, so it&#39;s a potential breaking edge case.
+
+8.  **Final Polish (Markdown Output):** Proceed to generate output.</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/cli-reference.html" class="page-link">cli-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/data-usage.html" class="page-link">data-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/headless.html" class="page-link">headless.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            <span class="removed">-7</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/iam.html" class="page-link">iam.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+43</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugin-marketplaces.html" class="page-link">plugin-marketplaces.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/statusline.html" class="page-link">statusline.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
+        
+    </div>
+</body>
+</html>
