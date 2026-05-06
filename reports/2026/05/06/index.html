@@ -118,9 +118,124 @@
 
         <header>
             <h1>Changes on 2026-05-06</h1>
-            <p class="meta">13 total changes in 2 runs</p>
+            <p class="meta">14 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">18:44 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 1. Overall Summary
+2.1.132 版本是一次专注于稳定性与终端交互体验的重大修复更新。该版本解决了大量导致 UI 异常、会话恢复失败及资源泄漏的边缘情况 Bug，并针对 IDE 集成（如 JetBrains, VS Code）和复杂 Unicode 文本处理进行了专项优化。
+
+### 2. Key Themes
+*   **终端与 IDE 交互深度优化：** 修复了在 JetBrains、VS Code、Cursor 等 IDE 中的鼠标滚动加速异常、方向键乱码及全屏模式渲染问题。
+*   **文本与 Unicode 处理增强：** 解决了涉及表情符号、Indic 复合字符及 NFD 重音符号时的光标错位、Vim 操作符破坏文本及字符串截断崩溃问题。
+*   **稳定性与资源管理：** 修复了外部 SIGINT 信号导致的粗暴退出、SSH 断连时的未捕获异常，以及 MCP 服务器因非协议输出导致的内存溢出（10GB+ RSS）。
+*   **会话与 MCP 改进：** 修复了 `--resume` 模式下的权限丢失与数据损坏问题，并增强了 MCP 工具获取失败时的错误提示与重试逻辑。
+
+### 3. Impact Level
+**High** (高)
+
+**Reasoning:** 尽管没有引入破坏性变更，但该版本修复了多个严重影响开发体验的关键缺陷，包括“死输入”状态、内存泄漏、强制中断崩溃以及常见的粘贴/滚动错误。对于活跃用户来说，此次更新显著提升了工具的鲁棒性和可用性。
+
+### 4. Action items for developers
+*   **升级以修复内存泄漏：** 如果您运行 MCP 服务器，必须更新以防止潜在的内存溢出。
+*   **尝试新的渲染控制：** 如果不习惯全屏渲染，可设置环境变量 `CLAUDE_CODE_DISABLE_ALTERNATE_SCREEN=1` 以使用终端原生滚动。
+*   **验证会话恢复：** 测试使用 `--resume` 恢复包含复杂表情符号或权限模式的会话，确认之前的截断错误已解决。
+*   **检查 MCP 状态：** 使用 `/mcp` 命令检查之前显示“0 工具”或静默失败的连接状态。
+*   **关注 `session_id` 集成：** 如需在 Bash Hook 中获取会话 ID，现在可以直接读取环境变量 `CLAUDE_CODE_SESSION_ID`。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer/analyst.
+    *   **Task:** Analyze documentation changes (Changelog) as a single batch.
+    *   **Input:** A diff for `CHANGELOG.md.md` (specifically version 2.1.132).
+    *   **Output Format:** Markdown.
+    *   **Language:** Chinese (requested at the end of the prompt).
+    *   **Structure:** 1. Overall Summary, 2. Key Themes, 3. Impact Level, 4. Action Items.
+
+2.  **Analyze the Input Data (Version 2.1.132):**
+    *   *Added Features:*
+        *   `CLAUDE_CODE_SESSION_ID` env var for Bash tool.
+        *   `CLAUDE_CODE_DISABLE_ALTERNATE_SCREEN=1` to opt out of fullscreen renderer.
+        *   &#34;Pasting…&#34; hint for Ctrl+V images.
+    *   *Fixes (Significant quantity &amp; variety):*
+        *   **Reliability/Stability:** Fixed SIGINT handling (graceful shutdown), fixed uncaught exception on terminal close/SSH disconnect.
+        *   **Resume/Session Handling:** Fixed `--resume` failing with emoji truncation errors (Unicode/surrogates), fixed `--permission-mode` ignored on resume.
+        *   **Terminal/Render/UX:** Fixed fullscreen blanking after sleep/ctrl+Z, fixed cursor placement with complex Unicode (Indic/ZWJ), fixed vim operators with NFD accents, fixed scrolling in various IDEs (Cursor, VS Code, JetBrains), fixed mouse wheel speed.
+        *   **Clipboard/Paste:** Fixed pasting text starting with `/`, fixed stray escape sequences during paste.
+        *   **Commands:** Fixed `/usage` Ctrl+S hang on Linux, `/terminal-setup` error on Windows, `/effort` picker not reflecting env var, `/status` showing wrong model, autocomplete popup height, statusline token counts, Alt+T on macOS.
+        *   **Platform Specific:** Fixed dead input on Windows after re-opening background session, fixed unbounded memory growth from MCP servers.
+        *   **MCP (Model Context Protocol):** Fixed servers failing `tools/list` (retry logic), fixed auth status display, fixed retry logic for headless mode.
+        *   **Cloud/Provider:** Fixed Bedrock/Vertex 400 errors with prompt caching.
+    *   *Improvements:* Visual consistency in dialogs, updated TUI banner text.
+
+3.  **Synthesize the Analysis (Drafting in English first, then translating/refining to Chinese):**
+
+    *   *Overall Summary:* This release is a massive &#34;bugfix and polish&#34; update. It focuses heavily on stability, terminal/UI edge cases (especially Unicode and IDE integration), and fixing session management/resume logic.
+    *   *Key Themes:*
+        *   **Terminal UX &amp; IDE Integration:** Lots of fixes for how the tool behaves inside VS Code, JetBrains, Cursor, and Windows Terminal. Scrolling, pasting, and rendering.
+        *   **Unicode/Text Handling:** Specific fixes for emojis, Indic conjuncts, NFD accents, and cursor positioning. This suggests complex text handling was a pain point.
+        *   **Stability &amp; Reliability:** Handling SIGINT, SSH disconnects, memory leaks (MCP), and crash recovery (graceful shutdown).
+        *   **MCP &amp; Environment Variables:** Better MCP error handling/auth display and new env vars for session ID and rendering control.
+    *   *Impact Level:* **High**. It&#39;s not a breaking change (API break), but it fixes critical usability issues (dead input, crashes, memory leaks) and annoying UX bugs (scrolling, pasting). It significantly improves the day-to-day developer experience.
+    *   *Action Items:*
+        *   Update the CLI.
+        *   Check if the `CLAUDE_CODE_DISABLE_ALTERNATE_SCREEN` is needed if users dislike fullscreen mode.
+        *   Verify MCP server error reporting for better debugging.
+
+4.  **Refining and Translating to Chinese (Target Language):**
+
+    *   *Overall Summary:* 2.1.132 版本是一次重大的稳定性与用户体验更新。主要修复了大量终端交互、IDE 兼容性、会话恢复及 Unicode 处理方面的边缘情况 Bug，并新增了环境变量控制功能。
+    *   *Key Themes:*
+        *   **终端与 IDE 交互体验:** 修复了在 Cursor, VS Code, JetBrains 等 IDE 中的滚动、粘贴、渲染及全屏模式问题。
+        *   **文本与 Unicode 处理:** 解决了包含表情符号、Indic 复合字符或重音符号时的光标定位、Vim 操作及字符串截断问题。
+        *   **稳定性与资源管理:** 修复了强制中断时的异常退出、SSH 断开时的崩溃、以及 MCP 服务器的内存泄漏问题。
+        *   **MCP 与配置:** 增强了 MCP 连接的错误提示与重试逻辑，修复了环境变量覆盖及权限模式在会话恢复时的逻辑。
+    *   *Impact Level:* **High** (高). 虽然没有破坏性变更，但修复了导致死锁（死输入）、内存溢出及强制退出崩溃的关键 Bug，显著提升了工具的鲁棒性和日常使用体验。
+    *   *Action Items:*
+        *   **立即更新:** 推荐所有开发者更新以解决潜在的内存泄漏和崩溃问题。
+        *   **检查渲染偏好:** 如果不喜欢全屏模式，可尝试设置 `CLAUDE_CODE_DISABLE_ALTERNATE_SCREEN=1`。
+        *   **验证 MCP 连接:** 关注更新后 MCP 服务器的连接状态提示，排查之前的静默失败问题。
+
+5.  **Final Review against Constraints:**
+    *   Single batch analysis? Yes.
+    *   Markdown format? Yes.
+    *   Concise? Yes.
+    *   Chinese language? Yes.
+    *   Focus on developers? Yes.
+
+6.  **Final Output Generation.** (Proceeding to generate the response).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+29</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">12:00 EST</div>
