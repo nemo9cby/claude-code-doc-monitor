@@ -118,9 +118,282 @@
 
         <header>
             <h1>Changes on 2026-05-06</h1>
-            <p class="meta">1 total change in 1 run</p>
+            <p class="meta">13 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">12:00 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">## 📄 文档变更分析报告
+
+### 1. 总体摘要
+本次更新主要集中在插件生态的架构升级（支持远程加载及结构调整）、配置管理的精细化控制（设置合并逻辑与技能可见性覆盖），以及安全加固（LLM 网关模型发现默认关闭）。这些变化提升了灵活性，但引入了插件开发者的破坏性变更。
+
+### 2. 关键主题
+
+*   **插件架构演进**：新增 `--plugin-url` 支持从远程 URL 加载插件；同时，`themes` 和 `monitors` 字段被移至 `plugin.json` 的 `experimental` 命名空间下，标志着功能向实验性质过渡。
+*   **配置控制增强**：引入 `skillOverrides` 设置，允许开发者在不修改源文件的情况下控制技能的可见性；同时明确了 `--settings` 的合并逻辑（覆盖同键，保留异键）。
+*   **安全与隐私**：LLM 网关的模型发现功能不再默认开启，必须设置环境变量 `CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY=1` 才能激活，以防止共享密钥泄露模型列表。
+*   **开发者体验优化**：交互模式下的反向搜索 (`Ctrl+R`) 默认范围改为“所有项目”；Homebrew 和 WinGet 支持通过环境变量配置自动更新。
+
+### 3. 影响等级
+**等级：中**
+
+**理由：**
+虽然大部分变更（如 CLI 参数、搜索优化）是新增功能或行为改进，但 **`plugins-reference.md` 中的 `plugin.json` 结构变更属于破坏性更新**。如果开发者使用了 `themes` 或 `monitors` 字段，必须更新插件配置文件才能在最新版本中正常工作。此外，网关模型发现的行为改变（由默认开启变为默认关闭）可能影响部分企业用户的预期行为。
+
+### 4. 开发者行动项
+
+*   **更新插件配置**：如果你开发了使用 `themes` 或 `monitors` 的插件，请立即修改 `plugin.json`，将这两个字段移至 `experimental` 对象内（即 `experimental.themes` 和 `experimental.monitors`）。
+*   **启用网关发现**：如果你依赖 Claude Code 自动从网关获取模型列表，请设置环境变量 `CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY=1`。
+*   **利用技能覆盖功能**：检查 `skillOverrides` 设置，通过将低频技能设为 `&#34;name-only&#34;` 来优化 Token 预算，避免技能描述占用过多上下文。
+*   **配置包管理器自动更新**：若使用 Homebrew 或 WinGet 安装并希望免去手动升级烦恼，可设置 `CLAUDE_CODE_PACKAGE_MANAGER_AUTO_UPDATE=1`。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Output:** Concise, insightful analysis in markdown format.
+    *   **Language:** Chinese.
+    *   **Input:** 12 pages of documentation diffs for a tool (Claude Code).
+    *   **Structure:** Overall Summary, Key Themes, Impact Level, Action Items.
+
+2.  **Analyze the Diffs (Page by Page):**
+
+    *   **`cli-reference.md`**:
+        *   Added `--plugin-url`: Fetch plugin zip from URL for this session.
+        *   Updated `--settings`: Clarified that it accepts an inline JSON string and overrides behavior (merge logic).
+
+    *   **`headless.md`**:
+        *   Updated table row: Added `--plugin-url` alongside `--plugin-dir`.
+
+    *   **`interactive-mode.md`**:
+        *   Updated Ctrl+R (reverse search): Changed default scope to &#34;all projects&#34;. Press Ctrl+S to cycle scopes (session/project/all).
+
+    *   **`llm-gateway.md`**:
+        *   Updated Gateway Model Discovery: Now requires an environment variable `CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY=1` to enable. Previously seemed automatic or the text implied it queries automatically. Now explicitly &#34;off by default&#34; for security/privacy reasons (shared keys). Requires v2.1.129.
+
+    *   **`model-config.md`**:
+        *   Updated `ANTHROPIC_CUSTOM_MODEL_OPTION` text: Added note about the discovery flag `CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY=1`.
+
+    *   **`monitoring-usage.md`**:
+        *   Updated &#34;Pull request counter&#34;: Now increments for merge requests created via shell command or MCP tool, not just direct creation.
+
+    *   **`plugins.md`**:
+        *   Added section on `--plugin-url`: Allows testing hosted plugins (e.g., CI artifacts) without downloading locally.
+
+    *   **`plugins-reference.md`**:
+        *   **Breaking/Structural Change**: `monitors` moved to root -&gt; `experimental.monitors`.
+        *   **Breaking/Structural Change**: `themes` moved to root -&gt; `experimental.themes`.
+        *   Updated table to reflect these structural changes.
+        *   Clarified `experimental` namespace.
+
+    *   **`settings.md`**:
+        *   Added `skillOverrides`: New setting to control skill visibility via settings files (`on`, `name-only`, `user-invocable-only`, `off`).
+        *   Updated `--settings` description: Clarified merge logic with file-based settings (overrides keys, keeps others).
+        *   Note: Requires v2.1.129.
+
+    *   **`setup.md`**:
+        *   Updated auto-update section: Homebrew and WinGet can now opt into auto-updates via `CLAUDE_CODE_PACKAGE_MANAGER_AUTO_UPDATE=1`. Linux (apt/dnf/apk) still manual.
+        *   WinGet update might fail due to file locking if Claude is running.
+
+    *   **`skills.md`** &amp; **`slash-commands.md`** (Identical changes in both):
+        *   Added section &#34;Override skill visibility from settings&#34;: Using `skillOverrides`.
+        *   Updated &#34;Context budget&#34; section: Mentioned using `skillOverrides` to save token budget by setting skills to `&#34;name-only&#34;`.
+
+3.  **Synthesize and Group Changes:**
+
+    *   **Plugin Enhancements:** `--plugin-url` support.
+    *   **Plugin Structure Changes:** `themes` and `monitors` moved to `experimental.*` namespace in `plugin.json`. *This is likely a breaking change for plugin developers.*
+    *   **Settings &amp; Config:** Clarification on `--settings` merge behavior. New `skillOverrides` feature.
+    *   **Gateway/Model Discovery:** Discovery is now opt-in via Env Var (`CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY=1`).
+    *   **UX Improvements:** Ctrl+R search defaults to all projects. Homebrew/WinGet auto-updates opt-in.
+    *   **Monitoring:** Broader definition of PR counting.
+
+4.  **Drafting the Analysis (Iterative refinement):**
+
+    *   *Summary:* This update focuses on plugin capabilities (remote loading, structural updates), refined configuration management (settings merging, skill overrides), and gateway model discovery security (opt-in only).
+    *   *Themes:*
+        1.  **Plugin Architecture Evolution**: Remote loading (`--plugin-url`) and structural refactoring (`experimental` namespace).
+        2.  **Configuration Precision**: Better control over settings merging and skill visibility without editing source files.
+        3.  **Security &amp; Privacy**: Gateway model discovery is now disabled by default to prevent info leakage in shared-key environments.
+        4.  **Developer Experience (DX)**: Improved search defaults and package manager auto-update options.
+
+    *   *Impact:*
+        *   *Breaking/Medium*: The `plugin.json` changes (`themes` -&gt; `experimental.themes`, `monitors` -&gt; `experimental.monitors`) will break existing plugins using these features until updated.
+        *   *Medium*: Gateway discovery change affects LLM gateway users.
+        *   *Low*: Others are additive/enhancements.
+
+    *   *Action Items:*
+        1.  Update `plugin.json` if you use themes or monitors.
+        2.  Set Env Var if you rely on automatic gateway model discovery.
+        3.  Review `skillOverrides` for better context management.
+        4.  Consider `CLAUDE_CODE_PACKAGE_MANAGER_AUTO_UPDATE` for smoother updates.
+
+5.  **Translating to Chinese (World-class programmer tone):**
+
+    *   *Summary:* 本次更新主要集中在插件能力的扩展（远程加载与结构调整）、配置管理的精细化（合并逻辑与技能覆盖），以及网关模型发现的安全加固（默认关闭）。
+    *   *Themes:* 插件架构升级, 配置控制增强, 安全与隐私, 开发者体验优化.
+    *   *Impact:* **中/高** (Medium/High). 主要原因在于 `plugin.json` 的结构性破坏性变更。
+    *   *Action Items:* 修复 `plugin.json`, 启用网关发现, 使用 `skillOverrides`, 设置包管理器自动更新.
+
+6.  **Final Polish (Markdown formatting):** Ensure it looks professional and &#34;world-class&#34;.
+
+    *   *Refining the impact:* The plugin change is breaking. The gateway change is a behavior change (off by default). The rest is additive. So overall &#34;Medium to High&#34; or &#34;High for plugin authors, Medium for users&#34;. Let&#39;s go with &#34;Medium&#34; but highlight the breaking change in reasoning.
+
+    *   *Refining Action Items:* Make them actionable verbs.
+
+7.  **Final Output Generation** (matching the drafted sections).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/cli-reference.html" class="page-link">cli-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/headless.html" class="page-link">headless.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/interactive-mode.html" class="page-link">interactive-mode.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/llm-gateway.html" class="page-link">llm-gateway.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/model-config.html" class="page-link">model-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins.html" class="page-link">plugins.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+23</span>
+                            <span class="removed">-20</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/setup.html" class="page-link">setup.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+19</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+19</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">07:01 EST</div>
