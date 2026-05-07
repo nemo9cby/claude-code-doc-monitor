@@ -118,9 +118,189 @@
 
         <header>
             <h1>Changes on 2026-05-07</h1>
-            <p class="meta">12 total changes in 3 runs</p>
+            <p class="meta">17 total changes in 4 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">14:19 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更分析
+
+## 1. 总体摘要
+本次更新重点增强了 Google Cloud Platform (GCP) 的身份验证可靠性（引入自动刷新机制），并扩展了企业级“受管理配置”的适用范围至 MCP 服务器和输出样式。同时，对插件添加、内存文件排除等开发者体验细节进行了澄清和优化。
+
+## 2. 关键主题
+*   **GCP/Vertex AI 认证增强**：新增 `gcpAuthRefresh` 设置，允许在凭证过期或无法加载时自动运行命令（如 `gcloud auth application-default login`）进行刷新；细化了项目 ID 的优先级解析逻辑。
+*   **企业级管理能力扩展**：MCP 服务器和输出样式现在均支持在“受管理策略”层级进行配置和部署，为企业统一管控提供了更多灵活性。
+*   **插件与工具链细节**：
+    *   明确了从 GitLab/Bitbucket 等非 GitHub 主源添加插件时，URL 必须包含 `.git` 后缀以避免被误判为 marketplace 链接。
+    *   输出样式新增 `force-for-plugin` 元数据，允许插件在启用时自动强制应用特定样式。
+    *   新增 `claudeMdExcludes` 设置，允许通过 Glob 模式排除特定的 `CLAUDE.md` 文件（如 vendor 目录）以防止干扰。
+
+## 3. 影响级别
+**Medium**
+**理由**：
+*   GCP 凭证自动刷新显著提升了长时间运行会话的稳定性，解决了潜在的认证中断痛点。
+*   企业级配置（Managed Configuration）功能的扩展对企业用户至关重要。
+*   变更主要为新增功能和澄清，未包含破坏性更改。
+
+## 4. 开发者行动项
+*   **配置 GCP 自动刷新**：如果你使用 Google Vertex AI，建议在设置中添加 `&#34;gcpAuthRefresh&#34;: &#34;gcloud auth application-default login&#34;` 以自动处理凭证过期问题。
+*   **修正插件 URL**：在添加非 GitHub 源的插件时，务必确保仓库链接以 `.git` 结尾，以确保 Claude Code 正确克隆仓库。
+*   **利用排除规则**：如果你的项目依赖包含大量 `CLAUDE.md` 文件（如 `vendor` 目录），配置 `claudeMdExcludes` 以避免内存污染。
+*   **插件开发优化**：插件开发者可使用 `force-for-plugin: true` 属性，确保用户启用插件时自动应用推荐的输出样式。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Input:** Diffs from 5 pages (`discover-plugins.md`, `google-vertex-ai.md`, `mcp.md`, `output-styles.md`, `settings.md`).
+    *   **Format:** Concise batch analysis in markdown.
+    *   **Language:** Chinese.
+    *   **Specific Sections:** Overall Summary, Key Themes, Impact Level, Action Items.
+
+2.  **Analyze the Diffs (Page by Page):**
+
+    *   **`discover-plugins.md`:**
+        *   *Change:* Added text: &#34;Include the `.git` suffix so Claude Code clones the repository rather than treating the URL as a direct link to a hosted `marketplace.json` file.&#34;
+        *   *Implication:* Clarifies a potential bug or confusion when adding plugins from non-GitHub hosts (GitLab, Bitbucket, self-hosted). It prevents the tool from trying to parse the URL as a marketplace JSON file instead of a repo.
+
+    *   **`google-vertex-ai.md`:**
+        *   *Change 1 (Note):* Refined the explanation of how project ID precedence works (`ANTHROPIC_VERTEX_PROJECT_ID` vs. `GCLOUD_PROJECT`, `GOOGLE_CLOUD_PROJECT`, etc.). It clarifies that credential settings take precedence over the Anthropic-specific env var.
+        *   *Change 2 (New Section):* Added &#34;Advanced credential configuration&#34;. Introduced `gcpAuthRefresh` setting.
+        *   *Detail:* `gcpAuthRefresh` runs a command (e.g., `gcloud auth application-default login`) when credentials expire. It works for browser flows. It times out after 3 mins. Requires workspace trust if in project settings.
+        *   *Change 3 (Troubleshooting):* Added specific steps for &#34;Could not load the default credentials&#34; errors.
+
+    *   **`mcp.md`:**
+        *   *Change:* Added mention of &#34;managed configuration&#34; (Enterprise level) in the &#34;MCP installation scopes&#34; section.
+        *   *Implication:* Clarifies that admins can push MCP server config, not just user/project levels.
+
+    *   **`output-styles.md`:**
+        *   *Change 1:* Updated the list of where output styles can be saved. Added &#34;Managed policy&#34; level.
+        *   *Change 2:* Added a new frontmatter key: `force-for-plugin`.
+        *   *Detail:* Plugin authors can force an output style automatically when the plugin is enabled.
+
+    *   **`settings.md`:**
+        *   *Change 1:* Added `claudeMdExcludes` setting. Allows ignoring specific `CLAUDE.md` files (memory) via glob patterns. Note: Managed policy files cannot be excluded.
+        *   *Change 2:* Added `gcpAuthRefresh` setting (matches the Vertex AI doc). Defined it as a script to refresh GCP creds.
+
+3.  **Synthesize and Group:**
+
+    *   *Theme 1: Google Cloud Platform (GCP) / Vertex AI Authentication.* Significant updates here. Credential refresh mechanisms, project ID precedence clarification, and troubleshooting additions.
+    *   *Theme 2: Enterprise/Managed Configuration Capabilities.* Several pages (`mcp`, `output-styles`) now explicitly mention &#34;managed&#34; or &#34;enterprise&#34; levels for configuration (MCP servers, Output styles). Also, `claudeMdExcludes` respects managed policy hierarchy.
+    *   *Theme 3: Plugin/Extension Improvements.* `discover-plugins` clarifies the `.git` suffix requirement. `output-styles` adds `force-for-plugin` for plugin authors.
+
+4.  **Drafting the Content (Iterative refinement for Chinese):**
+
+    *   *Overall Summary:* 本次更新主要集中在 GCP/Vertex AI 的身份验证增强、企业级配置（Managed Configuration）功能的扩展，以及插件和输出样式的细节优化。
+    *   *Key Themes:*
+        *   GCP 认证增强：新增自动刷新凭证机制 (`gcpAuthRefresh`)，澄清项目 ID 优先级。
+        *   企业级配置支持：MCP 服务器和输出样式现均支持“受管理策略”层级的配置。
+        *   细节修复与特性：添加插件时需明确 `.git` 后缀，插件可强制启用特定输出样式，新增排除 `CLAUDE.md` 的设置。
+    *   *Impact Level:* Medium. While not breaking, the GCP changes are crucial for stability, and the &#34;Managed&#34; level additions signal stronger enterprise support features.
+    *   *Action Items:*
+        *   检查 Git 插件 URL 是否包含 `.git` 后缀。
+        *   如果使用 GCP，配置 `gcpAuthRefresh` 以避免凭证过期问题。
+        *   插件开发者可利用 `force-for-plugin` 优化输出体验。
+        *   管理员可利用新设置管理 MCP 和输出样式。
+
+5.  **Final Polish (Formatting &amp; Tone):**
+    Ensure it sounds professional (&#34;World-class programmer&#34;). Use markdown features (tables, bolding) effectively.
+
+    *Drafting the Chinese response...*
+
+    *   **Summary:** 此次文档更新主要增强了 Google Cloud Platform (GCP) 的身份验证流程（特别是自动刷新机制），明确了企业级“受管理配置”的适用范围（MCP 服务器和输出样式），并修复了插件发现和内存管理的细节。
+    *   **Themes:**
+        *   **GCP/Vertex AI 可靠性提升**：引入了 `gcpAuthRefresh` 命令以自动刷新过期的凭证，并细化了环境变量优先级的说明。
+        *   **企业级管理能力扩展**：MCP 服务器和输出样式配置现均支持通过“受管理策略”进行统一部署。
+        *   **开发者体验优化**：明确了第三方 Git 仓库插件添加时的 `.git` 后缀要求，新增了插件强制输出样式的功能和排除 `CLAUDE.md` 文件的规则。
+    *   **Impact:** Medium. 虽非破坏性变更，但 GCP 凭证刷新机制对长期运行的会话至关重要，而“受管理配置”的扩展对企业用户影响显著。
+    *   **Action Items:**
+        *   **GCP 用户**：在配置文件中添加 `gcpAuthRefresh` 脚本（如 `gcloud auth application-default login`）以处理凭证过期。
+        *   **插件开发者**：确保在添加自托管 Git 插件时包含 `.git` 后缀；利用 `force-for-plugin` 元数据自动应用输出样式。
+        *   **管理员**：了解现在可通过托管配置强制部署 MCP 服务器和输出样式。
+        *   **项目配置**：使用 `claudeMdExcludes` 过滤不需要加载的 `CLAUDE.md` 文件（如 vendor 目录）。
+
+6.  **Review against constraints:**
+    *   Concise? Yes.
+    *   Markdown? Yes.
+    *   Focus on developers? Yes.
+    *   Chinese? Yes.
+
+7.  **Final Output Generation.** (Proceed to generate output based on step 5).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/discover-plugins.html" class="page-link">discover-plugins.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/google-vertex-ai.html" class="page-link">google-vertex-ai.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+14</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/output-styles.html" class="page-link">output-styles.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+11</span>
+                            <span class="removed">-8</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">12:03 EST</div>
