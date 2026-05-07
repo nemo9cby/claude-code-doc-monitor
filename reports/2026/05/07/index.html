@@ -118,9 +118,178 @@
 
         <header>
             <h1>Changes on 2026-05-07</h1>
-            <p class="meta">19 total changes in 6 runs</p>
+            <p class="meta">23 total changes in 7 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">19:52 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 总体概要
+本次更新主要集中在增强配置灵活性、提升系统稳定性以及跨编辑器兼容性。值得注意的是，`worktree` 的默认行为发生了回退变更，同时修复了多个关键的网络、认证及文件处理 Bug。
+
+### 关键变更主题
+
+*   **配置与互操作性增强**：新增了对 `AGENTS.md` 的符号链接支持，`/init` 现在能自动整合 `.cursorrules` 和 `.windsurfrules`，并明确支持 Windsurf 和 Kiro 等 VS Code 分支。
+*   **稳定性与修复**：解决了认证刷新时的 401 竞争条件、网络驱动器读写权限误判、OAuth 流程代理支持缺失以及内存压力下的崩溃问题。
+*   **开发者体验优化**：Hooks 现在可以接收当前的 effort 等级（通过 `$CLAUDE_EFFORT` 环境变量），便于根据不同任务强度执行不同逻辑。
+*   **行为回退**：Worktree 的基础分支引用默认值从 `head`（本地 HEAD）回退至 `fresh`（远程 origin/default）。
+
+### 影响等级：**中等 (Medium)**
+
+**理由**：
+虽然大部分改动是修复和增强，但 `worktree.baseRef` 默认值的变更可能破坏现有的工作流习惯（特别是在 2.1.128 之后习惯基于本地未推送提交创建 Worktree 的用户）。如果不手动配置，新创建的 Worktree 将不再包含本地的未提交更改。
+
+### 开发者行动项
+
+*   **检查 Worktree 配置**：如果你依赖本地 `HEAD` 创建 Worktree，请立即设置 `worktree.baseRef: &#34;head&#34;` 以恢复之前的行为。
+*   **利用新的 Hooks 变量**：检查并更新你的 Hooks 脚本，利用新增的 `$CLAUDE_EFFORT` 变量来根据任务等级优化自动化流程。
+*   **整合现有规则**：在现有项目中运行 `/init`，让工具自动读取并整合你已有的 `AGENTS.md`、`.cursorrules` 等配置文件，无需手动复制。
+*   **注意 Windows 权限问题**：在 Windows 上创建符号链接需要管理员权限，若权限不足，请改用 `@AGENTS.md` 导入语法。
+*   **审查代理设置**：如果你使用 `ANTHROPIC_BASE_URL` 进行 LLM 网关路由，请查阅文档确认其配置方式（仅改变请求目的地，不改变模型）。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Understand the Goal**: The user wants a concise, insightful analysis of documentation changes for &#34;Claude Code&#34; (based on context). The response must be in Chinese, in markdown format, covering specific sections: Overall Summary, Key Themes, Impact Level, and Action Items.
+
+2.  **Analyze the Input Data**:
+
+    *   **Page 1: `memory.md`**
+        *   *Change*: Added explanation about using symlinks (`ln -s AGENTS.md CLAUDE.md`) instead of copying content.
+        *   *Details*: Windows users need Admin/Dev Mode or use `@AGENTS.md`.
+        *   *New feature*: `/init` now reads existing `AGENTS.md`, `.cursorrules`, and `.windsurfrules` to generate `CLAUDE.md`.
+        *   *Relevance*: Developers configuring memory/context can save time and avoid duplication.
+
+    *   **Page 2: `model-config.md`**
+        *   *Change*: Added a Note about `ANTHROPIC_BASE_URL`.
+        *   *Details*: Clarifies that this env var changes request destination, not the *model* itself. Points to LLM gateway docs for routing.
+        *   *Relevance*: Crucial for developers configuring proxies, gateways, or custom endpoints to understand routing vs. model identity.
+
+    *   **Page 3: `vs-code.md`**
+        *   *Change*: Added info about installing in forks (Windsurf, Kiro).
+        *   *Details*: Mentioned Open VSX registry and fallback to CLI if extension fails.
+        *   *Relevance*: Expands compatibility to other editors and offers a fallback solution.
+
+    *   **Page 4: `CHANGELOG.md.md` (Version 2.1.133)**
+        *   *Changes*: A mix of new features and bug fixes.
+        *   *Key Features*:
+            *   `worktree.baseRef` setting (changed default behavior back to `fresh` from `head`).
+            *   `sandbox.bwrapPath`/`socatPath` (Linux/WSL customization).
+            *   Hooks now receive effort level (`$CLAUDE_EFFORT`).
+        *   *Key Fixes*: Memory usage, auth refresh race, drive root scoping (`C:\`), clock skew errors, Proxy support for OAuth, network drives, remote control, `/effort` isolation, subagent skills.
+        *   *Relevance*: Significant stability fixes and a potentially breaking behavior change regarding worktrees.
+
+3.  **Synthesize the Analysis (Drafting in Mental Sandbox)**:
+
+    *   *Overall Summary*: This update focuses on stability fixes, improved memory handling, and better compatibility with other editors and configs. Notably, it reverts a default worktree behavior and enhances memory initialization capabilities.
+    *   *Key Themes*:
+        *   Configuration &amp; Compatibility (Symlinks, VS Code forks, Proxy support).
+        *   Stability &amp; Bug Fixes (OAuth, Auth race, network drives, clock skew).
+        *   Developer Experience (Hooks getting effort level, better memory init).
+        *   Behavior Change (Worktree default).
+    *   *Impact Level*: Medium/High. Why? The worktree default change affects how worktrees are created (`fresh` vs `head`). If developers relied on local HEAD in 2.1.128, they need to reconfigure. Other fixes are stability improvements (positive impact).
+    *   *Action Items*:
+        *   Check `worktree.baseRef` setting if you use worktrees.
+        *   Review Hooks to utilize new `$CLAUDE_EFFORT` variable.
+        *   Use symlinks or `/init` to import rules from other editors.
+        *   Update Windows setup instructions if using symlinks.
+
+4.  **Translate and Refine to Chinese**:
+
+    *   *Summary*: 本次更新侧重于提升工具的稳定性和兼容性，特别是针对配置、内存管理和跨编辑器支持的优化。值得注意的是，Worktree 的默认行为发生了变更。
+    *   *Themes*:
+        *   **配置与互操作性增强**：支持通过符号链接导入配置，兼容 Windsurf/Kiro 等 VS Code 分支，并完善了代理设置。
+        *   **稳定性修复**：解决了认证刷新、网络驱动器读写、OAuth 代理支持及内存压力下的崩溃问题。
+        *   **开发者体验提升**：Hooks 现在支持获取 effort 等级，`/init` 命令能自动整合其他编辑器规则。
+        *   **行为变更**：Worktree 的基础分支引用默认值回退至 `fresh`。
+    *   *Impact*: **Medium (中等)**。虽然包含了大量重要修复，但 `worktree.baseRef` 默认值的回退对依赖本地 HEAD 创建 Worktree 的用户属于破坏性变更，需要手动调整配置。
+    *   *Action Items*:
+        *   如果使用了 Worktree 功能，请检查并调整 `worktree.baseRef` 设置以匹配预期行为。
+        *   更新 Hooks 脚本以利用新增的 `$CLAUDE_EFFORT` 环境变量。
+        *   尝试使用 `/init` 或符号链接迁移现有的 `AGENTS.md`、`.cursorrules` 配置。
+        *   Windows 用户在创建符号链接时需注意权限要求，或改用 `@AGENTS.md` 导入。
+        *   检查 Windows 根目录（如 `C:\`）下的读写权限配置，此前匹配逻辑有误。
+
+5.  **Final Review against Constraints**:
+    *   Format: Markdown? Yes.
+    *   Language: Chinese? Yes.
+    *   Sections included? Yes.
+    *   Concise? Yes.
+    *   Focus on what matters? Yes (highlighted the worktree break and the new hooks feature).
+
+6.  **Final Polish**: Ensure the tone is professional (&#34;world-class programmer&#34;). The change in worktree default is the most critical &#34;action&#34; item because it silently changes behavior.
+
+    *(Self-Correction during drafting)*: The changelog mentions the worktree change explicitly: &#34;Note: the default fresh changes EnterWorktree&#39;s base back to origin/&lt;default&gt;&#34;. This is crucial context for the &#34;Breaking&#34; or &#34;Medium&#34; impact.
+
+7.  **Output Generation**. (Proceeding to generate output based on step 4).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/memory.html" class="page-link">memory.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/model-config.html" class="page-link">model-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/vs-code.html" class="page-link">vs-code.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+18</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">18:57 EST</div>
