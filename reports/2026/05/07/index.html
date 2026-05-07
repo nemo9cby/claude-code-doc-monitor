@@ -118,9 +118,197 @@
 
         <header>
             <h1>Changes on 2026-05-07</h1>
-            <p class="meta">6 total changes in 1 run</p>
+            <p class="meta">11 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">07:05 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 文档变更分析
+
+#### 1. 总体概述
+本次更新主要涉及配置修正与功能增强，包括 Amazon Bedrock 模型 ID 的区域化变更、Claude Code Web 会话链接构建逻辑的修复，以及对 MCP 主机名匹配规则和配置文档的细化。
+
+#### 2. 关键变更主题
+*   **配置与模型 ID 变更**：Amazon Bedrock 的 Claude Sonnet 模型 ID 从 `global` 变更为 `us`，这可能意味着服务区域策略的调整。
+*   **URL 与网络逻辑修正**：
+    *   修正了 Claude Code Web 会话 URL 的构建方式，需要将环境变量中的 `cse_` 前缀替换为 `session_`。
+    *   明确了 MCP 服务器 URL 匹配规则，主机名匹配不区分大小写且忽略尾随的 FQDN 点号。
+*   **文档精确度提升**：大幅更新了 CLI 参考文档，并在设置文档中补充了覆盖特定功能（如扩展思考、自动记忆）的环境变量说明。
+
+#### 3. 影响等级
+**Medium (中)**
+
+**理由**：
+*   **破坏性变更风险**：Amazon Bedrock 用户如果硬编码了旧的 `global` 模型 ID，需立即更新，否则调用将失败。
+*   **脚本失效风险**：依赖 `CLAUDE_CODE_REMOTE_SESSION_ID` 自动生成 Transcript 链接的脚本需要修改代码以替换前缀，否则生成的链接将无法访问。
+*   其他变更（MCP 匹配规则、设置文档补充）属于行为澄清和功能增强，通常不会导致现有功能中断。
+
+#### 4. 开发者行动项
+*   **更新 Bedrock 配置**：检查并更新 Amazon Bedrock 相关的代码或配置文件，将 `global.anthropic.claude-sonnet-4-6` 替换为 `us.anthropic.claude-sonnet-4-6`。
+*   **修复 Web 会话链接脚本**：修改构建 Claude Code Web 会话链接的脚本逻辑，使用 `${CLAUDE_CODE_REMOTE_SESSION_ID/#cse_/session_}` 进行前缀替换。
+*   **审查 MCP Allowlist**：在配置 MCP 服务器 URL 白名单时，可利用新的主机名不区分大小写规则简化配置。
+*   **关注新增环境变量**：查看 `CLAUDE_CODE_DISABLE_THINKING`、`CLAUDE_CODE_API_KEY_HELPER_TTL_MS` 等新增的环境变量，以获得对扩展思考、API Key 刷新和自动记忆的更细粒度控制。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Input:** 5 pages of diffs (`amazon-bedrock.md`, `claude-code-on-the-web.md`, `cli-reference.md`, `mcp.md`, `settings.md`).
+    *   **Output Format:** Markdown, concise, insightful analysis.
+    *   **Language:** Chinese (as requested by &#34;请用中文回复&#34;).
+    *   **Structure:**
+        1.  Overall Summary (1-2 sentences).
+        2.  Key Themes (bullets).
+        3.  Impact Level (Low/Medium/High/Breaking) with reasoning.
+        4.  Action Items for developers (max 5).
+
+2.  **Analyze Each Diff:**
+
+    *   **`amazon-bedrock.md`:**
+        *   Change: `global.anthropic.claude-sonnet-4-6` -&gt; `us.anthropic.claude-sonnet-4-6`.
+        *   Implication: Specific model ID update for Bedrock. Region specificity changed from global to US. Might affect inference profile configuration.
+
+    *   **`claude-code-on-the-web.md`:**
+        *   Change: Transcript URL construction.
+        *   Before: Simple `echo &#34;https://claude.ai/code/${CLAUDE_CODE_REMOTE_SESSION_ID}&#34;`.
+        *   After: Explanation of prefix swap (`cse_` to `session_`) and the bash command `${CLAUDE_CODE_REMOTE_SESSION_ID/#cse_/session_}`.
+        *   Implication: The environment variable format changed, requiring string manipulation to get the correct URL. Developers using this variable to build links need to update their scripts.
+
+    *   **`cli-reference.md`:**
+        *   Change: A massive table change (+65/-65 lines).
+        *   Observation: The diff snippet shows the table headers and the first few rows. It looks like a reformatting or a large update to descriptions/examples. However, looking closely at the provided text, it&#39;s just the *start* of the table. Wait, the diff provided cuts off at `--dangerously-load-development-channels`.
+        *   *Correction:* I need to look at *what* changed in the visible part. The rows look similar but might be re-ordered or descriptions tweaked. Actually, looking at the snippet, the text seems mostly identical in the visible portion, but the line counts suggest a massive shift.
+        *   *Hypothesis:* This is likely a formatting change or a comprehensive update to the flag descriptions. Since I can&#39;t see the full context of the change in the snippet (it cuts off), I should note it as a comprehensive update to CLI flag documentation, potentially affecting how developers understand specific flags. *Wait, re-reading the diff snippet provided*: The snippet shows the *old* table vs the *new* table. In the visible part, the content looks *very* similar. The high line count (+65/-65) suggests either a lot of text changed or the formatting (spacing, markdown) changed significantly.
+        *   *Refined Analysis:* It&#39;s a substantial update to the CLI reference. Given the specific prompt asks me to analyze the *provided* diffs, and the provided diff is huge but the visible text looks similar, I will treat it as a &#34;Comprehensive update to CLI reference table, likely refining descriptions or examples.&#34;
+
+    *   **`mcp.md`:**
+        *   Change: Added note about hostname matching.
+        *   Content: Hostname matching is case-insensitive, ignores trailing FQDN dots (DNS semantics). Paths remain case-sensitive.
+        *   Implication: Clarification for URL pattern matching in MCP server allowlists. Developers writing allowlist patterns don&#39;t need to worry about case for hostnames or trailing dots.
+
+    *   **`settings.md`:**
+        *   Change: Updates to `alwaysThinkingEnabled`, `apiKeyHelper`, and `autoMemoryEnabled` descriptions.
+        *   Specifics:
+            *   `alwaysThinkingEnabled`: Added note about `CLAUDE_CODE_DISABLE_THINKING` env var to force it off.
+            *   `apiKeyHelper`: Added note about `CLAUDE_CODE_API_KEY_HELPER_TTL_MS` env var for refresh interval.
+            *   `autoMemoryEnabled`: Added note about `CLAUDE_CODE_DISABLE_AUTO_MEMORY` env var to disable it.
+        *   Implication: Added cross-references to relevant environment variables for these settings. Developers now have more control via env vars.
+
+3.  **Synthesize Key Themes:**
+    *   **Environment Variables &amp; Configuration:** Multiple pages (`settings.md`, `amazon-bedrock.md`) reference or introduce environment variables/IDs.
+    *   **URL/Network Configuration:** Changes to Bedrock model IDs (regional), MCP hostname matching rules, and Claude Code Web session URL construction.
+    *   **Documentation Clarity &amp; Corrections:** The MCP URL matching clarification and the CLI reference update suggest a focus on fixing inaccuracies and improving precision.
+
+4.  **Determine Impact Level:**
+    *   *Amazon Bedrock:* High for users of that specific model ID. Breaking change if they hardcoded the `global` ID.
+    *   *Claude Code Web:* Medium. Existing scripts building URLs from that env var will fail (broken links) due to the prefix change.
+    *   *MCP:* Low/Medium. Behavior clarification, likely making things more permissive (case-insensitive), so probably not breaking, but important to know.
+    *   *Settings/CLI:* Low. Documentation improvements.
+    *   *Overall:* **Medium**. The Bedrock ID change and the Web URL construction change require active updates from developers.
+
+5.  **Draft Action Items:**
+    *   Update Bedrock model ID from `global` to `us`.
+    *   Fix scripts generating Claude Code Web transcript URLs (swap `cse_` to `session_`).
+    *   Review MCP allowlist patterns (can simplify case handling).
+    *   Review new env vars for Thinking/Memory control.
+
+6.  **Translate and Format (in Chinese):**
+
+    *   *Summary:* 文档更新了 Amazon Bedrock 模型 ID，修正了 Claude Code Web 会话 URL 的构建逻辑，并细化了 MCP 主机名匹配规则及 CLI/Settings 的配置说明。
+    *   *Themes:* 配置与环境变量增强, 网络与 URL 匹配逻辑修正, 文档精确度提升.
+    *   *Impact:* Medium. Bedrock 模型 ID 的变更和 URL 构建逻辑的改变可能导致现有脚本失效，需要更新。
+    *   *Action Items:*
+        1.  更新 Bedrock 配置中的模型 ID。
+        2.  修改生成 Claude Code Web 会话链接的脚本，处理前缀替换。
+        3.  审查 MCP allowlist，确认是否可以利用新的不区分大小写匹配规则。
+        4.  了解新引入的 `CLAUDE_CODE_*` 环境变量，以覆盖或增强特定设置。
+
+7.  **Refine Content:**
+    *   Make sure the Amazon Bedrock change is clear: `global` -&gt; `us`.
+    *   Make sure the URL change is clear: `cse_` -&gt; `session_`.
+    *   Make sure MCP change is clear: Case-insensitive hostnames.
+
+8.  **Final Polish:** Ensure tone is professional and &#34;world-class programmer&#34; style.
+
+    *   *Self-Correction during drafting:* The CLI diff was huge (+65/-65) but the snippet didn&#39;t show the actual content changes. I should categorize it as a general documentation refresh to avoid over-speculating, but focus on the concrete changes in the other files.
+
+    *   *Final check on the CLI diff snippet:* The snippet provided ends abruptly. It lists flags. It looks like a table update. I will mention it as a CLI reference update.
+
+    *   *Final Output Generation.*</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/amazon-bedrock.html" class="page-link">amazon-bedrock.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/claude-code-on-the-web.html" class="page-link">claude-code-on-the-web.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/cli-reference.html" class="page-link">cli-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+65</span>
+                            <span class="removed">-65</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+16</span>
+                            <span class="removed">-16</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">01:56 EST</div>
