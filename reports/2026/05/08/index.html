@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026-05-08 - Documentation Changes</title>
+    <style>
+        :root {
+            --bg-color: #1a1a2e;
+            --card-bg: #16213e;
+            --text-color: #eee;
+            --accent: #0f3460;
+            --add-text: #4ade80;
+            --del-text: #f87171;
+            --time-color: #60a5fa;
+        }
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg-color: #f5f5f5;
+                --card-bg: #fff;
+                --text-color: #333;
+                --accent: #e0e0e0;
+                --add-text: #155724;
+                --del-text: #721c24;
+                --time-color: #2563eb;
+            }
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+        .container { max-width: 800px; margin: 0 auto; }
+        header { margin-bottom: 2rem; }
+        h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+        .meta { color: #888; }
+        .batch { margin-bottom: 2rem; }
+        .batch-header {
+            color: var(--time-color);
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--accent);
+        }
+        .page-list { list-style: none; }
+        .page-item {
+            background: var(--card-bg);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .page-item:hover { background: var(--accent); }
+        .page-link {
+            color: var(--text-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .page-summary { color: #888; font-size: 0.9rem; }
+        .added { color: var(--add-text); }
+        .removed { color: var(--del-text); }
+        a { color: #60a5fa; }
+        .back-link { margin-bottom: 1rem; display: inline-block; }
+        .page-item-content { flex: 1; }
+        .page-analysis {
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: 0.25rem;
+        }
+        .source-section {
+            margin-bottom: 1.5rem;
+        }
+        .source-header {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: #8b5cf6;
+        }
+        .batch-analysis {
+            background: var(--card-bg);
+            border-left: 3px solid #22c55e;
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            margin: 0.75rem 0 1rem 0;
+        }
+        .batch-analysis h4 {
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+        .batch-analysis-content {
+            white-space: pre-wrap;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        .reasoning-section {
+            margin-top: 1rem;
+            padding-top: 0.75rem;
+            border-top: 1px dashed var(--accent);
+            font-size: 0.85rem;
+            color: #888;
+        }
+        .reasoning-section summary {
+            cursor: pointer;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../../../index.html" class="back-link">&larr; All reports</a>
+
+        <header>
+            <h1>Changes on 2026-05-08</h1>
+            <p class="meta">1 total change in 1 run</p>
+        </header>
+
+        
+        <div class="batch">
+            <div class="batch-header">03:22 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">1.  **Overall Summary**
+    文档新增了 `sshHostAllowlist` 配置项，允许管理员通过托管设置限制 Claude Desktop 应用允许连接的 SSH 主机。这一变更增强了企业对远程开发环境的安全管控能力，但明确指出了该限制仅作用于 Desktop 应用界面，不涵盖 CLI、IDE 扩展或 Bash 工具。
+
+2.  **Key Themes**
+    *   **企业级安全管控**：引入白名单机制 (`sshHostAllowlist`)，管理员可指定允许连接的域名模式（支持通配符），甚至通过空数组完全禁用 SSH。
+    *   **作用域明确性**：文档特别强调此设置**仅**由 Desktop 应用读取和遵守，不影响 Claude Code CLI、IDE 扩展，也不限制通过 Bash 工具执行的 `ssh` 命令。
+    *   **解析逻辑**：匹配逻辑基于 `ssh -G` 解析后的最终主机名，这意味着 `~/.ssh/config` 中的别名和 `ProxyJump` 配置仍可正常使用，只要最终目标主机在白名单内。
+
+3.  **Impact Level**
+    *   **Medium (中等)**
+    *   **Reasoning**: 这是一个非破坏性的新增功能，主要面向企业管理员。对于开发者而言，如果所在组织启用了此策略，将直接限制在 Desktop 客户端中的连接范围。由于该设置不限制 CLI 和底层网络流量，开发者需理解其边界，误将其视为完全的网络安全隔离可能导致合规风险。
+
+4.  **Action items for developers**
+    *   **管理员**：如需管控 SSH 访问，请立即在托管设置文件中配置 `sshHostAllowlist`，并结合网络层控制以确保边界安全。
+    *   **开发者**：若在 Desktop 中遇到 SSH 连接被拒绝的情况，请先检查是否触发了新的白名单策略。
+    *   **开发者**：了解 `sshHostAllowlist` 不限制 CLI 或 IDE 扩展，必要时可通过这些渠道连接（需符合组织规定）。
+    *   **开发者**：注意通过 Claude 的 Bash 工具直接运行 `ssh` 命令不受此设置限制，切勿依赖此配置作为唯一的网络访问壁垒。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **理解目标**：用户希望对文档的一处变更（`desktop.md`）进行简洁、有见地的分析，特别关注其对开发人员的影响。输出必须使用 Markdown，并遵循特定的结构（总体摘要、关键主题、影响级别、行动项），并用中文呈现。
+
+2.  **分析 Diff**：
+    *   **文件**：`desktop.md`。
+    *   **新增内容**：新增了一个章节“Restrict which SSH hosts users can connect to”（限制用户可以连接的 SSH 主机）。
+    *   **关键功能**：介绍了一个名为 `sshHostAllowlist` 的新管理设置。
+    *   **机制**：管理员可以设置一个允许的主机名模式列表（例如 `*.devboxes.example.com`）。如果设置了该列表，用户只能连接到这些主机。空数组会完全禁用 SSH。
+    *   **解析**：根据 SSH 配置解析（使用 `ssh -G`）后的主机名进行检查，支持 `~/.ssh/config` 中的别名。
+    *   **范围**：*仅*由 Desktop 应用强制执行。CLI/IDE 扩展不会读取它。它不限制 `Bash` 工具内部运行的 `ssh` 命令。
+    *   **表格更新**：配置选项摘要表中添加了一行，用于记录 `sshHostAllowlist`。
+
+3.  **综合分析（按要求用中文起草）**：
+
+    *   **1. Overall Summary (总体摘要)**：
+        *   Claude Desktop 文档已更新，允许管理员通过新的 `sshHostAllowlist` 设置限制 SSH 主机连接。
+        *   此功能增强了安全控制，但仅限于 Desktop 应用界面。
+
+    *   **2. Key Themes (关键主题)**：
+        *   **企业安全/管控**：为管理员引入了一个白名单机制，用于管理允许连接的 SSH 主机。
+        *   **作用域限定**：澄清此限制仅适用于 Desktop 应用的 SSH 连接；它不影响 CLI、IDE 扩展或通过 Bash 工具执行的命令。
+        *   **配置灵活性**：支持通配符（`*`）和解析后的主机名，能够与现有的 `~/.ssh/config` 别名协同工作。
+
+    *   **3. Impact Level (影响级别)**：
+        *   **级别**：Medium (中等)。
+        *   **理由**：这是一项新增功能，允许管理员进行更严格的控制，而非破坏性变更。然而，开发人员需要了解其限制（仅限 Desktop）以避免关于安全边界的混淆。如果开发人员习惯使用 CLI 或 IDE，这会直接影响他们通过 Claude Desktop SSH 连接到任意机器的能力。
+
+    *   **4. Action Items for Developers (开发人员行动项)**：
+        *   **管理员**：如果需要限制访问权限，请更新托管设置文件（`sshHostAllowlist`）。
+        *   **开发人员**：如果连接被阻止，请留意 Desktop 应用中的新 SSH 限制。
+        *   **开发人员**：如果 `sshHostAllowlist` 阻止了连接，请改为使用 CLI 或 IDE 扩展（它们不受此限制），或者请求添加白名单。
+        *   **安全审计**：请注意，通过 Bash 工具进行的基于 CLI 的 SSH 不受此限制，因此对于严格的访问控制，仍需网络层防火墙。
+
+4.  **润色语言（中文）**：
+
+    *   *摘要*：文档新增了 `sshHostAllowlist` 功能，允许管理员通过托管设置限制 Claude Desktop 应用可连接的 SSH 主机列表。这增强了企业环境的安全性，但明确了该限制仅作用于 Desktop 应用本身。
+    *   *主题*：企业安全管控 (白名单机制), 作用域限制, 灵活配置 (通配符和别名支持).
+    *   *影响*：Medium (中等). 理由：这是管理性增强功能，而非破坏性更改。开发人员需要注意，此限制仅适用于 Desktop 应用，不适用于 CLI、IDE 扩展或 Bash 工具，因此它不是彻底的防火墙替代品。
+    *   *行动项*：
+        *   管理员需更新托管设置以应用白名单。
+        *   开发人员在遇到连接问题时，需排查是否受此新限制影响。
+        *   若需绕过限制（在不违反规定前提下），可使用 CLI 或 IDE 版本。
+        *   依赖 Bash 工具进行 SSH 的开发者需知晓这不受该设置管控。
+
+5.  **最终打磨**：确保格式为 Markdown 且简洁。
+
+    *   *起草过程中的自我修正*：务必强调 `ssh -G` 解析部分，因为这暗示别名是可行的，只要解析出的最终名称在列表中即可。此外，必须突出关于“网络出口控制”的警告，以管理安全预期。
+
+6.  **最终输出生成**（继续基于润色后的要点生成回复）。</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/desktop.html" class="page-link">desktop.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+13</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
+        
+    </div>
+</body>
+</html>
