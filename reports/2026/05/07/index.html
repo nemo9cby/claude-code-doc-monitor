@@ -118,9 +118,266 @@
 
         <header>
             <h1>Changes on 2026-05-07</h1>
-            <p class="meta">23 total changes in 7 runs</p>
+            <p class="meta">34 total changes in 8 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">22:35 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更分析报告
+
+## 整体摘要
+本次更新主要包含两部分：一是大幅清理了文档源码中的前端内嵌代码（如 A/B 测试逻辑和安装配置 UI），使其更纯粹；二是对 CLI、Hooks、Settings 和 Sub-agents 进行了功能增强与文档修正，提升了企业级管理能力和开发工作流效率。
+
+## 关键变更主题
+
+*   **文档源码清理**：移除了 `amazon-bedrock.md`、`google-vertex-ai.md`、`microsoft-foundry.md` 等页面中内嵌的 `Experiment` React 组件（包含复杂的 A/B 测试、用户追踪逻辑），以及 `overview.md` 和 `quickstart.md` 中的 `InstallConfigurator` 组件。这属于文档站点的基础设施清理，对工具功能无影响。
+*   **CLI 功能增强**：
+    *   `--plugin-url`：现在支持通过重复标志或单个引号内的空格分隔字符串来加载多个插件 URL。
+    *   `--worktree`：新增支持直接传入 `#&lt;number&gt;` 或 GitHub PR URL，自动拉取并基于该 PR 创建工作树。
+*   **Hooks 与企业级配置**：
+    *   `settings.md` 新增了大量管理选项，如 `defaultHookUrl`、`defaultHookDir`、`allowedChannelPlugins`、`allowManagedHooksOnly` 等，强化了对 Hooks 和 Channel 插件的集中管控能力。
+    *   `hooks.md` 新增 `effort` 字段，Hook 事件现在包含当前的“努力等级”，对应模型的思考强度。
+*   **Sub-agents 行为澄清**：明确了 `skills` 字段用于“预加载”内容到上下文，而非限制访问。即使未在 `skills` 中列出，Sub-agent 仍可通过 `Skill` 工具调用项目、用户或插件中的技能。
+
+## 影响等级：**中等**
+
+**理由**：虽然大部分删除内容（约 1000+ 行）仅为前端 UI 清理，但 CLI 新增的 PR 工作流支持、Hooks 的 `effort` 监控能力以及 Settings 中细粒度的企业管控选项，为开发者提供了实质性的新功能。Sub-agents 的文档澄清也有助于消除配置误解。
+
+## 开发者行动建议
+
+*   **利用 PR 工作流**：在处理 Code Review 时，尝试使用 `claude -w &lt;PR_URL&gt;` 直接为 PR 创建隔离环境，无需手动切换分支。
+*   **更新插件加载脚本**：如果您使用 `--plugin-url` 从 CI/CD 流水线加载插件，可简化命令为 `claude --plugin-url &#34;url1 url2&#34;`。
+*   **优化 Hooks 逻辑**：检查您的自定义 Hook 脚本，利用新增的 `effort` 字段（或 `$CLAUDE_EFFORT` 环境变量）来监控或限制高消耗的模型请求。
+*   **审查 Sub-agents 配置**：重新审视 `sub-agents.json` 中 `skills` 的用法，区分“上下文预加载”与“工具访问权限”，避免配置冗余。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer/developer tools expert.
+    *   **Input:** Documentation changes for 11 pages (markdown format).
+    *   **Task:** Batch analysis, single summary.
+    *   **Format:** Markdown (Summary, Themes, Impact, Action Items).
+    *   **Language:** Chinese (as requested: &#34;请用中文回复&#34;).
+
+2.  **Scan and Categorize the Diffs:**
+
+    *   *Page: amazon-bedrock.md, google-vertex-ai.md, microsoft-foundry.md, third-party-integrations.md*:
+        *   Massive deletions (around 80-90 lines each).
+        *   Content removed: A complex React component `&lt;Experiment&gt;` containing logic for A/B testing (Growthbook), user ID generation (`fnv1a`), consent checking (GDPR countries), cookie reading (`ajs_anonymous_id`), and event logging to `api.anthropic.com`.
+        *   Content added: Simple static component `&lt;ContactSalesCard surface=&#34;...&#34; /&gt;`.
+        *   *Interpretation:* This is a cleanup of frontend instrumentation code. The A/B testing logic is being removed from the documentation source files, likely moving it to the site build process or removing the experiment entirely. This is internal documentation infrastructure, not relevant to the tool&#39;s functionality.
+
+    *   *Page: overview.md, quickstart.md*:
+        *   Massive deletions (400-500+ lines each).
+        *   Content removed: A large React component `&lt;InstallConfigurator&gt;` (interactive UI for downloading Claude Code, handling OS selection, provider selection, etc.). Includes complex styles, state logic, and icons.
+        *   *Interpretation:* Similar to above. Removing a complex embedded UI component from the markdown. The docs are becoming &#34;cleaner&#34; source files, decoupling UI logic.
+
+    *   *Page: cli-reference.md*:
+        *   `--plugin-url` description update: Added &#34;or pass space-separated URLs in a single quoted value&#34;.
+        *   `--worktree` description update: Added &#34;Pass `#&lt;number&gt;` or a GitHub pull request URL to fetch that PR from `origin` and branch the worktree from it&#34;.
+        *   *Interpretation:* Functional enhancements/clarifications for CLI flags. Very relevant to developers.
+
+    *   *Page: plugins.md*:
+        *   Added documentation for the new `--plugin-url` behavior (multiple flags or space-separated URLs).
+        *   *Interpretation:* Supporting the CLI change mentioned above.
+
+    *   *Page: hooks.md*:
+        *   Added a new field `effort` to the Hook events JSON payload.
+        *   Description: Object with `level` field (`low`, `medium`, `high`, `xhigh`, `max`).
+        *   Context: Available for tool-use events like `PreToolUse`, `PostToolUse`, etc.
+        *   Also mentions `$CLAUDE_EFFORT` environment variable.
+        *   *Interpretation:* New feature. Hooks can now access the &#34;effort level&#34; (likely related to thinking intensity or compute cost) being used for the current turn.
+
+    *   *Page: settings.md*:
+        *   Added `defaultHookUrl` and `defaultHookDir`.
+        *   `disablePermissionAutoApprove` (renamed or clarified?).
+        *   `allowedHttpHookUrls` description refined (&#34;Arrays merge across settings sources&#34;).
+        *   `allowManagedHooksOnly` added (&#34;Only managed hooks... are loaded&#34;).
+        *   `channelAllowlist` renamed to `allowedChannelPlugins`.
+        *   Added `hookUrl` property to MCP servers? No, looking at the diff: It looks like general settings table updates.
+        *   New keys: `defaultHookUrl`, `defaultHookDir`, `allowedChannelPlugins`, `allowedHttpHookUrls`, `allowManagedHooksOnly`, `channelAllowlist` (removed/renamed).
+        *   *Interpretation:* Significant expansion of managed configuration capabilities, specifically around Hooks (centralized vs. local) and Channel plugins.
+
+    *   *Page: sub-agents.md*:
+        *   `tools` field clarification: &#34;To preload Skills into context, use the `skills` field rather than listing `Skill` here&#34;.
+        *   `skills` field clarification: &#34;preload into the subagent&#39;s context... The full skill content is injected... Subagents can still invoke unlisted project, user, and plugin skills through the Skill tool&#34;.
+        *   *Interpretation:* Important behavioral change/clarification for how Subagents handle Skills. Distinguishing between &#34;preload skills into context&#34; (skills field) vs &#34;allow tool access to skills&#34; (tools field).
+
+3.  **Synthesize and Structure (in Chinese):**
+
+    *   **Overall Summary:** 本次更新主要包含文档基础设施的大量清理（移除内嵌的前端 A/B 测试和安装配置组件代码），以及对 CLI 功能、Hooks 和 Sub-agents 的功能增强与说明更新。
+    *   **Key Themes:**
+        *   文档清理：移除了 React 组件代码（A/B 测试逻辑、安装 UI），使文档源文件更纯粹。
+        *   CLI 增强：`--plugin-url` 支持多 URL；`--worktree` 支持直接基于 GitHub PR 创建。
+        *   Hooks 扩展：新增 `effort` 字段，允许 Hooks 获取当前的&#34;努力等级&#34;（thinking intensity）。
+        *   配置管理：Settings 新增多个与 Hooks 和 MCP 相关的管理选项，细化权限控制。
+        *   Sub-agents 行为澄清：明确了 `skills`（预加载上下文）与 `tools`（工具权限）的区别。
+    *   **Impact Level:** Medium (中低)。
+        *   Reasoning: 大量是代码清理（对开发者无影响）。核心功能更新主要是 CLI flag 的增强和 Hooks 数据结构的新增字段，属于增量更新，不是破坏性变更。
+    *   **Action Items:**
+        *   更新使用 `--plugin-url` 的脚本，以支持新的多 URL 语法。
+        *   如果编写了 Hook 处理脚本，检查是否需要利用新增的 `effort` 字段来监控或控制资源消耗。
+        *   审阅 Sub-agents 配置中的 `skills` 字段用法，确保理解其&#34;预加载&#34;而非&#34;限制访问&#34;的语义。
+
+4.  **Refining the Output (Self-Correction):**
+
+    *   *Check:* Did I miss anything in `settings.md`?
+    *   *Detail:* The diff for `settings.md` is quite dense. It introduces `defaultHookUrl`, `defaultHookDir`, `allowedChannelPlugins` (replacing `channelAllowlist`?), `allowedHttpHookUrls`, `allowManagedHooksOnly`. This is important for enterprise/admin setups. I should emphasize &#34;Managed settings&#34; in the themes.
+    *   *Check:* `sub-agents.md` changes. The distinction between `skills` (preload content) and `tools` (access to Skill tool) is crucial. I must highlight this.
+    *   *Language:* Ensure professional Chinese terminology (e.g., &#34;Sub-agents&#34; -&gt; 子代理, &#34;Hooks&#34; -&gt; 钩子, &#34;Worktree&#34; -&gt; 工作树).
+
+5.  **Final Polish (Drafting the response):**
+
+    *   *Summary:* 重点关注功能变更。
+    *   *Themes:*
+        1.  文档源码清理 - React 组件移除。
+        2.  CLI 能力提升 - `--worktree` PR 支持, `--plugin-url` 多 URL。
+        3.  Hooks &amp; Settings 深化 - `effort` 字段, 企业级管理配置。
+        4.  Sub-agents 语义修正 - Skills 预加载机制。
+    *   *Impact:* Medium. 有新功能，但主要是增强。
+    *   *Action Items:* 针对 CLI 用户、Hooks 开发者和 Sub-agent 配置者的具体建议。
+
+6.  **Final Output Generation** (Matches the provided good response).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/amazon-bedrock.html" class="page-link">amazon-bedrock.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-87</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/cli-reference.html" class="page-link">cli-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/google-vertex-ai.html" class="page-link">google-vertex-ai.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-90</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-7</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/microsoft-foundry.html" class="page-link">microsoft-foundry.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-89</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/overview.html" class="page-link">overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            
+                            <span class="removed">-507</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins.html" class="page-link">plugins.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/quickstart.html" class="page-link">quickstart.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            
+                            <span class="removed">-422</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+92</span>
+                            <span class="removed">-88</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/third-party-integrations.html" class="page-link">third-party-integrations.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-90</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">19:52 EST</div>
