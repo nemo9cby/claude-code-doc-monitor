@@ -118,9 +118,291 @@
 
         <header>
             <h1>Changes on 2026-05-08</h1>
-            <p class="meta">10 total changes in 3 runs</p>
+            <p class="meta">21 total changes in 4 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">17:55 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更分析
+
+### 1. 总体摘要
+本次更新集中将 Java SDK 版本统一升级至 `2.30.0`，大幅重构了 Java 快速入门文档以采用现代构建工具最佳实践，并优化了 CLI Hooks 的恢复行为以简化开发者工作流。此外，API 文档增加了更多参数示例，便于开发者理解完整请求结构。
+
+### 2. 关键主题
+*   **Java SDK 全面升级**：所有 Java 相关模块（标准版、Bedrock、Vertex AI、Foundry）版本号均从 `2.27.0` 更新至 `2.30.0`。
+*   **Java 入门指南现代化**：重写了 `get-started.md`，从简单的 `javac` 编译转向使用 Gradle 和 Maven 标准构建配置，并要求 JDK 25，代码示例也进行了现代化更新（如使用枚举代替字符串）。
+*   **CLI 行为优化**：`--resume` 功能现已自动恢复之前的权限模式，无需开发者手动传递 `--permission-mode` 标志，显著简化了中断后的恢复流程。
+*   **API 示例增强**：Messages API 和 Token Counting API 的 cURL 示例新增了 `system`、`thinking`、`tools` 等高级参数，展示了更完整的请求结构。
+*   **平台限制与治理说明**：明确了 Microsoft Foundry 不支持 Compliance API，并在多处添加了指向 Admin/Usage/Compliance API 的链接。
+
+### 3. 影响等级
+**Medium (中等)**
+*   **理由**：尽管没有破坏性变更，但 CLI 行为的改进和 Java 文档的大幅重构显著提升了开发者体验 (DX)。Java 开发者应关注新的依赖版本和构建配置示例，CLI 用户则受益于更简化的恢复操作。
+
+### 4. 开发者行动项
+*   **更新依赖**：将项目中的 Java SDK（包括 Bedrock/Vertex/Foundry 变体）更新至 `2.30.0`。
+*   **参考新指南**：如果是 Java 新项目，参考更新后的 `get-started.md` 使用 Gradle/Maven 模板，确保配置 JDK 25 工具链。
+*   **简化脚本**：如果在使用 `--resume` 时手动传递了 `--permission-mode`，可移除相关逻辑，依赖工具自动恢复（注意 `plan` 和 `bypassPermissions` 仍不会保留）。
+*   **修正升级方式**：升级 CLI 时，使用 `npm install -g @anthropic-ai/claude-code@latest` 代替 `npm update -g`，以确保获取最新版本。
+*   **检查 Foundry 兼容性**：若使用 Microsoft Foundry 集成，注意目前暂不支持 Compliance API (`/v1/compliance/*`)。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Understand the Goal**: The user wants a concise, insightful batch analysis of provided documentation changes in markdown format, specifically focusing on what matters to developers. The response must be in Chinese.
+
+2.  **Analyze the Input Data (11 Pages)**:
+
+    *   **Page 1: `hooks.md`**
+        *   *Change*: A warning block changed to a Note block regarding `--resume` behavior.
+        *   *Detail*: Previously, it said `--resume` does *not* restore permission mode, requiring the flag to be passed again. Now it says `--resume` *does* restore the permission mode (except `plan` and `bypassPermissions`).
+        *   *Impact*: This is a behavioral change (likely in the tool) that simplifies the workflow. It&#39;s a &#34;quality of life&#34; improvement where users don&#39;t need to remember permission flags when resuming.
+
+    *   **Page 2: `setup.md`**
+        *   *Change*: Added a note about upgrading npm installations.
+        *   *Detail*: Advises using `npm install -g @anthropic-ai/claude-code@latest` instead of `npm update -g` to ensure the newest version is obtained, bypassing semver range restrictions.
+        *   *Impact*: Fixes a common pitfall where developers expect `update` to get the latest but might be stuck on a minor version range.
+
+    *   **Page 3: `get-started.md`**
+        *   *Change*: Major overhaul of the Java Quickstart guide.
+        *   *Detail*:
+            *   &#34;Install SDK&#34; step changed to &#34;Set up your project&#34;.
+            *   Added instructions for creating directories (`mkdir -p`).
+            *   Added full `build.gradle.kts` and `pom.xml` examples with proper toolchain config (Java 25).
+            *   SDK version updated to `2.30.0`.
+            *   Code example updated: simplified imports (removed `AnthropicClient` directly, used `AnthropicOkHttpClient`), used `Model.CLAUDE_OPUS_4_7` enum instead of string, syntax modernization.
+            *   Execution instructions updated to use build tools (`gradle run`, `mvn compile exec:java`) instead of raw `javac/java`.
+        *   *Impact*: Much better onboarding for Java developers. Follows best practices. Version bump to 2.30.0.
+
+    *   **Page 4: `api/messages.md`**
+        *   *Change*: Expanded the cURL example in the &#34;Create Message&#34; section.
+        *   *Detail*: The cURL payload now includes `system`, `temperature`, `thinking` (adaptive), `tools`, `top_k`, and `top_p`. It also switches the outer quotes from single to double to allow for escaping inside JSON (though the diff shows a slightly odd mix, it effectively adds more parameters to the example).
+        *   *Impact*: Better documentation for advanced parameters. Users can see a richer example payload.
+
+    *   **Page 5: `api/messages/count_tokens.md`**
+        *   *Change*: Expanded the cURL example for token counting.
+        *   *Detail*: Similar to Page 4, added `system`, `thinking`, and `tools` to the payload example.
+        *   *Impact*: Clarifies that token counting considers these fields too.
+
+    *   **Page 6: `api/client-sdks.md`**
+        *   *Change*: Updated Java SDK version.
+        *   *Detail*: Version bumped from `2.27.0` to `2.30.0`.
+        *   *Impact*: Consistency with the updated quickstart guide.
+
+    *   **Page 7 &amp; 8: `build-with-claude/overview.md` &amp; `text-generation.md`**
+        *   *Change*: Added links to Admin/Usage/Compliance APIs.
+        *   *Detail*: Added a sentence pointing to administration and governance docs.
+        *   *Impact*: Better navigation for enterprise users.
+
+    *   **Page 9: `build-with-claude/claude-on-amazon-bedrock.md`**
+        *   *Change*: Updated Java SDK version for Bedrock (`2.27.0` -&gt; `2.30.0`). Minor text clarification for AWS region behavior (changed &#34;we read&#34; to &#34;the SDK reads&#34; for clarity).
+        *   *Impact*: Version consistency. Clarity improvement.
+
+    *   **Page 10: `build-with-claude/claude-on-vertex-ai.md`**
+        *   *Change*: Updated Java SDK version for Vertex (`2.27.0` -&gt; `2.30.0`).
+        *   *Impact*: Version consistency.
+
+    *   **Page 11: `build-with-claude/claude-in-microsoft-foundry.md`**
+        *   *Change*: Updated Java SDK version for Foundry (`2.27.0` -&gt; `2.30.0`). Added Compliance API to the &#34;Features not supported&#34; list.
+        *   *Impact*: Version consistency. Clarifying limitations of the Foundry integration.
+
+3.  **Synthesize Themes**:
+    *   **Java SDK Updates**: A comprehensive bump to version `2.30.0` across standard, Bedrock, Vertex, and Foundry integrations.
+    *   **Java Onboarding Improvements**: The `get-started.md` overhaul is significant—modernizing build configurations and execution methods.
+    *   **Workflow/API Enhancements**: Changes to `--resume` behavior in hooks (easier permission handling) and richer API examples (showing more parameters like `thinking` and `tools`).
+    *   **Clarity &amp; Governance**: Better text in AWS docs, links to admin APIs, and explicit mention of unsupported features in Foundry.
+
+4.  **Determine Impact Level**:
+    *   *Breaking*: No breaking changes found.
+    *   *High*: The `--resume` behavior change is a significant UX improvement (simplifies things), but not breaking. The Java docs overhaul is high impact for new Java users.
+    *   *Medium*: SDK version updates usually imply new features or bug fixes, requiring developers to update.
+    *   *Verdict*: **Medium**. The changes improve developer experience (DX) significantly (Java docs, hooks behavior) and standardize versions, but don&#39;t force breaking changes.
+
+5.  **Formulate Action Items**:
+    *   Update Java SDK to 2.30.0 for new projects or to get latest fixes/features.
+    *   Review the new Java Quickstart guide for best practices (using build tools vs raw javac).
+    *   Note the new `--resume` behavior for hooks (permission restoration) to streamline workflows.
+    *   When upgrading the CLI via npm, use `npm install ... @latest` instead of `npm update`.
+    *   Check the expanded API examples if utilizing `thinking`, `tools`, or `system` prompts in raw API calls.
+
+6.  **Draft the Response (in Chinese)**:
+
+    *   *Summary*: 本次更新主要集中在 Java SDK 版本升级至 2.30.0，大幅改进了 Java 快速入门文档的现代化程度，并优化了 CLI 工具的 `--resume` 行为以简化权限管理。同时，API 示例更加详尽。
+    *   *Themes*: Java SDK 统一升级, Java 入门指南重构, Hooks 行为优化, API 示例丰富化, 治理与限制说明.
+    *   *Impact*: Medium. (Improved DX and version updates, no breaking changes).
+    *   *Action Items*:
+        1.  更新 Java 依赖至 `2.30.0`。
+        2.  采用新的 npm 升级命令。
+        3.  了解 `--resume` 的权限恢复特性。
+        4.  查阅新的 Java 构建配置。
+
+7.  **Refine Response**: Ensure tone is professional and formatting is clean markdown.
+
+    *   *Drafting specific phrasing*: &#34;The hooks change is a behavioral improvement.&#34; -&gt; &#34;Hooks 行为变更：`--resume` 现在会自动恢复权限模式。&#34;
+    *   *Drafting specific phrasing*: &#34;Java quickstart is better.&#34; -&gt; &#34;Java 快速入门指南已全面现代化，推荐使用 Gradle/Maven 构建工具而非命令行编译。&#34;
+
+8.  **Final Review against constraints**: Concise? Yes. Insightful? Yes. Chinese? Yes. Markdown? Yes. Focus on developers? Yes.
+
+    *(Self-Correction)*: Make sure to emphasize the `get-started.md` changes because they are the most substantial in terms of lines changed and guidance value. Also, ensure the distinction between the old and new `--resume` behavior is clear.
+
+    *Action items check*:
+    1. Upgrade Java SDK.
+    2. Use specific npm upgrade command.
+    3. Simplify resume workflow (remove manual permission flags).
+    4. Check new Java setup templates.
+    5. (Optional) Review Foundry limitations if using that platform.
+
+    Let&#39;s stick to top 5 action items.
+
+    *Impact Level*: Medium seems right. It&#39;s not &#34;Low&#34; because there are behavioral changes (`--resume`) and a major doc overhaul. It&#39;s not &#34;High/Breaking&#34; because existing code won&#39;t break, it&#39;s mostly doc/UX improvements.
+
+9.  **Generate Output**. (Proceeding to generate output based on these thoughts).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/setup.html" class="page-link">setup.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/get-started.html" class="page-link">get-started.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+57</span>
+                            <span class="removed">-26</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/messages.html" class="page-link">api/messages.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+28</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/messages/count_tokens.html" class="page-link">api/messages/count_tokens.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+25</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/client-sdks.html" class="page-link">api/client-sdks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/overview.html" class="page-link">build-with-claude/overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/text-generation.html" class="page-link">build-with-claude/text-generation.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-on-amazon-bedrock.html" class="page-link">build-with-claude/claude-on-amazon-bedrock.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            <span class="removed">-7</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-on-vertex-ai.html" class="page-link">build-with-claude/claude-on-vertex-ai.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-in-microsoft-foundry.html" class="page-link">build-with-claude/claude-in-microsoft-foundry.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">15:09 EST</div>
