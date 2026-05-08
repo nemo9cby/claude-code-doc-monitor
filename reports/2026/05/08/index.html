@@ -118,9 +118,218 @@
 
         <header>
             <h1>Changes on 2026-05-08</h1>
-            <p class="meta">1 total change in 1 run</p>
+            <p class="meta">8 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">13:08 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 整体摘要
+本次文档更新主要涉及监控事件语义的精细化调整（区分 CLI 和 SDK 中的权限决策来源），以及宣布结构化输出功能在 Google Cloud Vertex AI 上正式全面可用。此外，还包含 VS Code 扩展配置的澄清和文档链接修复。
+
+### 关键主题
+
+*   **监控事件语义调整**：修改了 `tool_use_decision` 事件中 `source` 字段的行为逻辑，特别是在交互式 CLI 中，现在严格区分“用户初始授权”与“基于已有规则的自动执行”。
+*   **Vertex AI 功能扩展**：结构化输出功能在 Google Cloud Vertex AI 上从 Beta/不支持状态升级为正式可用（GA），支持包括 Claude Mythos Preview 和 Opus 4.7 在内的多款模型。
+*   **文档与配置完善**：澄清了 `claudeProcessWrapper` 的用法，修正了内部文档链接，并泛化了终端配置说明。
+
+### 影响程度
+**中等**
+
+**理由**：虽然大多数更改为补充说明或新增功能，但 `monitoring-usage.md` 中关于 `source` 字段（`user_permanent` / `user_temporary` vs `config`）的逻辑变更属于**语义层面的重大调整**。如果开发者依赖这些遥测数据来分析用户行为或审计日志，现有的解析逻辑可能需要更新以适应新的定义，否则会导致数据归类错误。
+
+### 开发者行动项
+
+*   **更新遥测解析逻辑**：如果您处理 `tool_use_decision` OTel 事件，请务必更新解析逻辑。在交互式 CLI 环境下，后续匹配已有规则的调用现在会触发 `config` 事件，而不是 `user_permanent` 或 `user_temporary`。
+*   **启用 Vertex AI 结构化输出**：现在可以在 Vertex AI 上对 Claude Mythos Preview, Opus 4.7, 4.6, Sonnet 4.6 等模型正式使用结构化输出功能。
+*   **利用 VS Code 自定义二进制**：如果 VS Code 扩展的内置二进制文件不适用于您的平台，可以使用 `claudeProcessWrapper` 配置指向单独安装的 `claude` 二进制文件。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer, expert in dev tools/docs.
+    *   **Task:** Analyze a batch of documentation changes (7 pages).
+    *   **Output Format:** Markdown, concise, insightful, in Chinese.
+    *   **Specific Sections:** Overall Summary, Key Themes, Impact Level, Action Items.
+
+2.  **Analyze the Input (Page by Page):**
+
+    *   **Page 1: `monitoring-usage.md`** (Diff size: +3/-3)
+        *   *Context:* OTel events, specifically `decision` sources for tool usage.
+        *   *Changes:*
+            *   `&#34;config&#34;` source updated to include &#34;allow rules in user&#39;s personal settings&#34; and &#34;session-scoped grant from an earlier prompt&#34;.
+            *   `&#34;user_permanent&#34;` source redefined. *Crucial change:* In interactive CLI, this is now emitted *only* for the initial choice (&#34;Always allow&#34;). Subsequent matches emit `&#34;config&#34;`. (Agent SDK behavior remains unchanged).
+            *   `&#34;user_temporary&#34;` source redefined. Similar logic: Interactive CLI emits this only for the initial choice. Subsequent session-scoped matches emit `&#34;config&#34;`.
+        *   *Implication:* Semantic change in telemetry/metrics. Developers relying on these event sources to track *how* a permission was granted need to adjust their logic. The distinction between &#34;initial user choice&#34; and &#34;rule enforcement&#34; is now sharper in the CLI, but softer in the SDK (where both might emit the user choice type).
+
+    *   **Page 2: `terminal-config.md`** (Diff size: +1/-1)
+        *   *Context:* tmux configuration for `allow-passthrough`.
+        *   *Changes:* Removed specific terminal names (iTerm2, Ghostty, Kitty), replaced with &#34;outer terminal&#34;.
+        *   *Implication:* Generalization. It works for more than just those listed.
+
+    *   **Page 3: `vs-code.md`** (Diff size: +1/-1)
+        *   *Context:* `claudeProcessWrapper` configuration option.
+        *   *Changes:* Added explanation: &#34;The bundled binary path is passed as an argument when present.&#34; Explains *why* you would use it (if the extension build doesn&#39;t include one).
+        *   *Implication:* Clarification on how to use this setting effectively.
+
+    *   **Page 4: `build-with-claude/overview.md`** (Diff size: +1/-1)
+        *   *Context:* Feature availability table.
+        *   *Changes:* Added `vertexAi` to the platform availability list for &#34;Structured outputs&#34;.
+        *   *Implication:* Feature expansion.
+
+    *   **Page 5: `build-with-claude/text-generation.md`** (Diff size: +1/-1)
+        *   *Context:* Feature availability table.
+        *   *Changes:* Same as Page 4 (Structured outputs now available on Vertex AI).
+        *   *Implication:* Feature expansion.
+
+    *   **Page 6: `build-with-claude/structured-outputs.md`** (Diff size: +1/-1)
+        *   *Context:* Availability note.
+        *   *Changes:* Updated status on Google Cloud Vertex AI. Previously &#34;not supported for Mythos Preview&#34;. Now &#34;generally available for Claude Mythos Preview, Claude Opus 4.7, Claude Opus 4.6, and Claude Sonnet 4.6&#34;.
+        *   *Implication:* Major feature enablement on Vertex AI.
+
+    *   **Page 7: `build-with-claude/claude-on-vertex-ai.md`** (Diff size: +1/-1)
+        *   *Context:* &#34;Feature support&#34; section link.
+        *   *Changes:* Fixed internal link from `/api/overview` to `/build-with-claude/overview`.
+        *   *Implication:* Documentation maintenance/fix.
+
+3.  **Synthesize and Structure (Chinese):**
+
+    *   **Overall Summary:** The changes primarily refine monitoring event semantics (specifically regarding permission tracking) and announce general availability of Structured Outputs on Google Cloud Vertex AI. There are also minor clarifications regarding terminal configuration and VS Code extensions.
+        *   *Draft (CN):* 本次更新主要细化了监控事件中权限决策来源的语义定义，并宣布结构化输出功能在 Google Cloud Vertex AI 上正式全面可用。此外，还包含终端配置和 VS Code 扩展的轻微说明优化。
+
+    *   **Key Themes:**
+        *   *Telemetry/Monitoring Accuracy:* Changes to how `source` attributes are emitted for decisions (CLI vs SDK distinction).
+        *   *Feature Availability (Vertex AI):* Structured outputs are now fully supported there.
+        *   *Documentation Precision:* Fixing links and clarifying usage of specific config flags.
+
+    *   **Impact Level:**
+        *   *Telemetry change:* Potentially Medium/High if developers parse these specific logs. It changes the event schema logic (splitting &#34;initial grant&#34; from &#34;rule match&#34; in CLI). Let&#39;s call it **Medium** because it affects data interpretation logic.
+        *   *Vertex AI availability:* **Medium** (Feature enablement).
+
+    *   **Action Items:**
+        *   Update monitoring/telemetry parsers if you rely on `source=&#34;user_permanent&#34;` or `user_temporary` specifically in the CLI context.
+        *   Utilize Structured Outputs on Vertex AI now that it is supported.
+        *   Check internal link references if using the docs locally? (Maybe not needed for end devs).
+
+4.  **Refine the Output (Iterative Drafting):**
+
+    *   *Monitoring Usage Detail:* The change is subtle but important. In CLI, &#34;Always allow&#34; *creates* the event `user_permanent`. The *next* time that rule applies, it&#39;s `config`. This changes how you count &#34;user interactions&#34; vs &#34;automated decisions&#34;. This is the most technical/programmatic part of the update.
+
+    *   *Vertex AI Detail:* Explicit mention of model support (Mythos, Opus 4.7, etc.).
+
+5.  **Final Polish (Chinese):**
+
+    *   *Summary:* Focus on the telemetry logic change and the Vertex AI feature release.
+    *   *Themes:* 1. Telemetry semantics refinement. 2. Vertex AI feature expansion. 3. Documentation maintenance.
+    *   *Impact:* Medium. The telemetry change breaks backward compatibility in interpretation if you assumed every `user_permanent` meant a user clicked &#34;Always allow&#34; *at that moment* (in CLI, subsequent ones are now `config`).
+    *   *Action Items:*
+        1.  Review/Update logic parsing OTel `decision.source` events (especially distinguishing CLI vs SDK behavior).
+        2.  Enable/Use Structured Outputs on Vertex AI (including for new models like Mythos Preview).
+        3.  Use `claudeProcessWrapper` if needing custom binary paths in VS Code.
+
+6.  **Construct Final Markdown:** (Proceeding to generate response based on these points).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/terminal-config.html" class="page-link">terminal-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/vs-code.html" class="page-link">vs-code.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/overview.html" class="page-link">build-with-claude/overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/text-generation.html" class="page-link">build-with-claude/text-generation.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/structured-outputs.html" class="page-link">build-with-claude/structured-outputs.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-on-vertex-ai.html" class="page-link">build-with-claude/claude-on-vertex-ai.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">03:22 EST</div>
