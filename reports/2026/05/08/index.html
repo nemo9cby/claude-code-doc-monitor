@@ -118,9 +118,166 @@
 
         <header>
             <h1>Changes on 2026-05-08</h1>
-            <p class="meta">8 total changes in 2 runs</p>
+            <p class="meta">10 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">15:09 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 1. 总体摘要
+此次更新包含两个核心维度：一是 API 层面针对 Claude Opus 4.x 的速率限制进行了**大幅提升**（部分层级提升超 10 倍）；二是工具层面（v2.1.136）重点修复了 MCP 集成的 OAuth 认证与配置持久化问题，并解决了大量影响 CLI/IDE 开发体验的细节 Bug。
+
+### 2. 关键变更主题
+*   **Opus 性能爆发**：Claude Opus 4.x 在所有付费层级（Tier 1-4）的输入和输出 Token 限制均大幅放宽。例如，Tier 1 的输入限制从 3 万提升至 50 万，这意味着开发者可以在低配额下处理更长上下文的任务。
+*   **MCP 稳定性增强**：修复了关键的 OAuth 刷新令牌丢失问题（解决了多服务器环境下需每日重新认证的痛点），并修复了 `.mcp.json` 配置在执行 `/clear` 命令后静默丢失的问题。
+*   **工具链健壮性与 DX**：针对登录循环、插件管理、WSL2 剪贴板、CJK 字符渲染、会话恢复路径（支持含下划线路径）等进行了大量修复，显著提升了开发工具的稳定性和一致性。
+
+### 3. 影响等级：高
+**理由**：
+*   **架构影响**：Opus 限流的大幅放宽可能改变现有的限流处理逻辑或架构设计，特别是对于处理大规模文档或高并发请求的应用。
+*   **运维影响**：MCP 认证修复直接消除了高频用户的日常运维负担（每日重登）。
+*   **体验影响**：Changelog 中包含 40+ 项修复，表明该版本在消除“摩擦力”方面迈出了一大步。
+
+### 4. 开发者行动项
+*   **评估 Opus 限流策略**：检查当前代码中针对 Opus 的限流保护逻辑或重试机制，新的高限流可能允许更激进的并发调用或移除旧时的降级方案。
+*   **升级客户端工具**：如果您的团队重度使用 MCP 服务器或插件，强烈建议立即更新至 v2.1.136 以解决每日重新认证和配置丢失的严重 Bug。
+*   **测试会话恢复路径**：如果您的项目路径包含下划线，更新后请验证 `--resume` / `--continue` 功能是否恢复正常。
+*   **审查自动模式安全**：如需更严格的内容拦截，探索新增的 `settings.autoMode.hard_deny` 配置项，以确保无条件阻断特定操作。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Output:** Concise, insightful analysis in markdown format.
+    *   **Focus:** What matters to developers.
+    *   **Language:** Chinese.
+    *   **Input:** Two pages of changes (`api/rate-limits.md` and `CHANGELOG.md.md`).
+
+2.  **Analyze the Inputs:**
+
+    *   **Page 1: `api/rate-limits.md`**
+        *   *Change:* Increased rate limits for `Claude Opus 4.x` across Tiers 1-4.
+        *   *Details:*
+            *   Tier 1: Input 30k -&gt; 500k, Output 8k -&gt; 80k (Huge jump).
+            *   Tier 2: Input 450k -&gt; 2m, Output 90k -&gt; 200k.
+            *   Tier 3: Input 800k -&gt; 5m, Output 160k -&gt; 400k.
+            *   Tier 4: Input 2m -&gt; 10m, Output 400k -&gt; 800k.
+        *   *Theme:* Performance/Scaling/API capability improvement. Opus is getting a massive boost in processing capacity.
+
+    *   **Page 2: `CHANGELOG.md.md` (Version 2.1.136)**
+        *   *Changes:* A mix of fixes, improvements, and one addition.
+        *   *Key Highlights:*
+            *   **MCP/OAuth Fixes:** Fixed issues with OAuth refresh tokens for MCP servers (daily re-auth annoyance gone) and silent disappearance of MCP configs after `/clear`. This is a stability/UX improvement for heavy users of MCP.
+            *   **Auto Mode/Plugins:** Added `settings.autoMode.hard_deny` (security/control). Improved plugin behavior (hooks, uninstall, marketplace).
+            *   **Bug Fixes (General):** Long list of UI fixes (colors, CJK support, scrolling), CLI fixes (`--resume` paths, `/usage`, `/branch`), and stability fixes (login loops, crash on tool changes).
+            *   **WSL2:** Improved image paste support.
+            *   **Enterprise:** Added env var for session quality survey.
+
+3.  **Synthesize the Analysis:**
+
+    *   *Overall Summary:* This update combines a massive backend scalability boost for Opus with a focus on stability and developer experience (DX) in the CLI/IDE tools, particularly around MCP integration and session management.
+
+    *   *Key Themes:*
+        *   **API Performance:** Drastic increase in rate limits for Claude Opus 4.x (up to ~16x for input tokens in lower tiers).
+        *   **MCP Stability:** Critical fixes for Model Context Protocol (MCP) regarding OAuth token persistence and configuration retention.
+        *   **DX &amp; Reliability:** A bulk update of UI and CLI bug fixes, covering everything from session resumption to CJK character rendering and plugin management.
+
+    *   *Impact Level:* **High**.
+        *   *Reasoning:* The rate limit change for Opus is significant for production applications relying on high throughput. The MCP fixes resolve major friction points (daily re-auth) for power users. The sheer volume of bug fixes indicates a maturation of the tooling.
+
+    *   *Action Items for Developers:*
+        *   **Review Opus Limits:** If currently using Opus, check if increased limits allow removal of caching logic or optimization workarounds.
+        *   **Update CLI/Plugins:** Update to this version immediately if using MCP servers or plugins to avoid daily re-auth and silent config loss.
+        *   **Test Auto Mode:** Explore the new `hard_deny` setting if implementing strict safety constraints.
+        *   **Check Token Refresh:** If relying on MCP OAuth, verify the token persistence fix works in your specific environment.
+
+4.  **Drafting the Response (in Chinese):**
+
+    *   *Summary:* 此次更新大幅提升了 Claude Opus 4.x 的 API 速率限制，同时专注于修复 MCP（模型上下文协议）集成的稳定性及大量 CLI/IDE 工具的体验缺陷。
+    *   *Themes:*
+        *   Opus 算力显著提升。
+        *   MCP 认证与配置稳定性修复。
+        *   开发者体验（DX）与界面一致性优化。
+    *   *Impact:* High.
+    *   *Actions:*
+        *   评估 Opus 新限制的影响。
+        *   升级工具以解决 MCP 掉线问题。
+        *   关注 `hard_deny` 配置。
+        *   验证多语言环境下的修复。
+
+5.  **Refining the Output:**
+    *   Make it punchy. Ensure the &#34;Why it matters&#34; comes through clearly.
+    *   Translate technical terms accurately but keep standard terms like &#34;MCP&#34;, &#34;OAuth&#34;, &#34;Tier&#34;.
+
+    *   *Drafting Section 1 (Summary):* 本次更新包含两个主要方面：一是 API 层面针对 Claude Opus 4.x 模型的速率限制进行了大规模提升；二是工具层面（v2.1.136）集中修复了 MCP 集成、会话管理及大量 CLI/IDE 交互的 Bug。
+
+    *   *Drafting Section 2 (Key Themes):*
+        *   **Opus 性能爆发**: Opus 4.x 在各层级（Tier 1-4）的 Token 限制大幅提高（例如 Tier 1 输入限制从 3 万涨至 50 万），大幅降低了高负载场景下的限流风险。
+        *   **MCP 稳定性增强**: 修复了 MCP OAuth 刷新令牌丢失导致需每日重新认证的问题，以及 `.mcp.json` 配置在执行 `/clear` 后丢失的问题。
+        *   **工具链健壮性**: 修复了大量涉及登录循环、插件管理、WSL2 剪贴板、CJK 字符渲染、会话恢复等方面的 Bug，显著提升了开发体验。
+
+    *   *Drafting Section 3 (Impact):* **High**. Opus 的限流放宽对生产环境应用影响巨大；MCP 认证问题的解决直接改善了高频使用者的工作流；大量 Bug 修复表明工具链正在走向成熟。
+
+    *   *Drafting Section 4 (Action Items):*
+        *   **评估 Opus 用量**: 如果您的应用依赖 Opus，新的限流可能允许更激进的调用策略或移除之前的队列/降级逻辑。
+        *   **升级客户端工具**: 建议立即更新到最新版本以解决 MCP 每日重复登录的痛点及潜在的配置丢失风险。
+        *   **测试 Auto Mode 配置**: 如需更严格的自动模式控制，可尝试启用新增的 `settings.autoMode.hard_deny` 规则。
+        *   **检查 WSL2 集成**: 如果在 WSL2 环境下工作，验证通过 PowerShell 回退机制的图片粘贴功能是否正常。
+
+6.  **Final Polish:** Check against constraints. Markdown format? Yes. Concise? Yes. Chinese? Yes. Max 5 action items? Yes.
+
+    *   *Self-Correction on Impact:* Is it &#34;Breaking&#34;? No, limits going up isn&#39;t breaking. Changelog doesn&#39;t show breaking changes (only additions/fixes). So &#34;High&#34; is correct.
+
+    *   *Self-Correction on Opus stats:* Make sure to mention the magnitude. Tier 1 input went 30k -&gt; 500k. That&#39;s &gt;16x. That&#39;s huge.
+
+7.  **Final Output Generation.** (Proceeding to generate response based on these thoughts).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/rate-limits.html" class="page-link">api/rate-limits.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+53</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">13:08 EST</div>
