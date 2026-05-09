@@ -329,7 +329,7 @@ See [Beta headers](/docs/en/api/beta-headers) for available beta features.
 
 ## Requirements
 
-| SDK | Minimum Version |
+| SDK | Minimum version |
 |-----|-----------------|
 | Python | 3.9+ |
 | TypeScript | 4.9+ (Node.js 20+) |
