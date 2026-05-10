@@ -118,9 +118,145 @@
 
         <header>
             <h1>Changes on 2026-05-10</h1>
-            <p class="meta">1 total change in 1 run</p>
+            <p class="meta">4 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">19:45 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 总体摘要
+本次文档更新主要针对 Claude Code 中“技能”功能的上下文管理引入了更精细的控制。新增了两个配置项用于调整技能列表的上下文预算，并改进了预算超限时的处理逻辑，优先保留高频使用的技能描述。
+
+### 关键主题
+*   **上下文预算精细化管理**：新增 `skillListingBudgetFraction` 设置，允许开发者自定义分配给技能列表的上下文窗口比例（默认为 1%）。
+*   **智能截断策略**：当技能描述总长度超过预算时，系统现在会优先丢弃**最少使用**技能的描述，以确保高频技能的完整内容可见。
+*   **单技能字符上限可配置**：新增 `maxSkillDescriptionChars` 设置，允许调整单个技能（`description` + `when_to_use`）的字符上限（默认 1536）。
+*   **诊断工具集成**：文档强调了使用 `/doctor` 命令来监控预算溢出情况及查看具体受影响的技能。
+
+### 影响级别
+**中等**
+
+**理由**：尽管这不是破坏性变更（默认行为通常对大多数用户足够友好），但对于拥有大量技能集或编写复杂技能描述的开发者，新的设置和截断逻辑直接影响工具的可用性和准确性。
+
+### 开发者行动项
+1.  **运行诊断**：使用 `/doctor` 命令检查当前的技能预算是否溢出，以及哪些技能的描述被截断了。
+2.  **调整预算**：如果发现常用技能描述被截断，可在设置中适当调高 `skillListingBudgetFraction`（例如调至 `0.02`）。
+3.  **检查版本**：确保使用 Claude Code **v2.1.105** 或更高版本以启用新的配置选项。
+4.  **优化描述**：对于极少使用的技能，考虑在 `skillOverrides` 中将其设置为 `&#34;name-only&#34;` 以节省预算空间。
+5.  **配置单技能上限**：如果特定技能需要更长的描述，请调整 `maxSkillDescriptionChars` 设置。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Understand the Goal:** The user wants a batch analysis of documentation changes for a developer tool (likely &#34;Claude Code&#34; based on the content). I need to summarize the changes, identify themes, assess impact, and list action items. The response must be in Chinese and markdown format.
+
+2.  **Analyze the Input:**
+    *   **Page 1: `settings.md`**
+        *   Added `maxSkillDescriptionChars`: A cap (default 1536) on the combined `description` and `when_to_use` text per skill. Allows raising/lowering the limit. Requires v2.1.105.
+        *   Added `skillListingBudgetFraction`: Fraction (default 1%) of the model&#39;s context window reserved for the skill listing. If exceeded, descriptions for least-used skills are dropped. Requires v2.1.105.
+    *   **Page 2: `skills.md`**
+        *   Updated section &#34;Skill descriptions are cut short&#34;.
+        *   Old behavior: Budget scales dynamically at 1% with fallback 8000 chars.
+        *   New behavior: Budget scales at 1% of context window. When overflowing, least-used skills lose descriptions first (smart dropping).
+        *   New instructions: Use `/doctor` to check status. Use `skillListingBudgetFraction` setting or env var to raise budget. Mentioned `maxSkillDescriptionChars` as a way to configure the per-skill cap.
+    *   **Page 3: `slash-commands.md`**
+        *   (Identical changes to `skills.md`) Updated section &#34;Skill descriptions are cut short&#34;.
+
+3.  **Synthesize the Findings:**
+
+    *   **Core Change:** The documentation updates revolve around how &#34;Skills&#34; (likely custom tools or commands) are managed in the context window.
+    *   **New Settings:** Two new configuration options were introduced: `maxSkillDescriptionChars` (per skill limit) and `skillListingBudgetFraction` (total budget for all skills).
+    *   **Behavior Change:** The system now intelligently drops descriptions for *least-used* skills when the budget is exceeded, rather than just a hard truncation or simple scaling.
+    *   **Diagnostic Tool:** The `/doctor` command can now be used to monitor this budget and see which skills are affected.
+
+4.  **Drafting the Analysis (Mental Draft):**
+
+    *   *Overall Summary:* The documentation adds granular control over skill context management, introducing new settings to configure skill description budgets and a smart truncation strategy that prioritizes frequently used skills.
+    *   *Key Themes:*
+        *   Context Window Management.
+        *   Skill Optimization.
+        *   Configuration Granularity.
+    *   *Impact Level:* Medium. It&#39;s not breaking (default behavior is likely preserved or improved), but it requires awareness for power users managing many skills.
+    *   *Action Items:*
+        *   Check version (2.1.105).
+        *   Review current skill descriptions length.
+        *   Use `/doctor` to check status.
+        *   Tune settings if using many skills.
+
+5.  **Translating and Formatting to Chinese (Markdown):**
+
+    *   *Summary:* 本次更新主要针对技能描述的上下文管理引入了更精细的控制机制，新增了两个设置项用于调整技能列表预算及单个技能字符上限，并优化了溢出时的处理策略。
+    *   *Key Themes:*
+        *   **上下文窗口管理**: 新增 `skillListingBudgetFraction` 设置，允许自定义分配给技能列表的上下文比例。
+        *   **智能截断策略**: 当预算超限时，系统现在优先保留高频使用技能的描述，丢弃低频技能的描述，而非简单截断。
+        *   **单技能容量控制**: 新增 `maxSkillDescriptionChars` 设置，可配置单个技能描述的最大字符数。
+    *   *Impact:* Medium (中等). 虽然不是破坏性变更，但对于依赖大量技能的高级用户，理解新的预算机制至关重要。
+    *   *Action Items:*
+        *   使用 `/doctor` 命令检查当前技能预算是否溢出及受影响的技能。
+        *   如果有大量技能，考虑在设置中调整 `skillListingBudgetFraction` 增加预算。
+        *   如果单个技能描述过长，可调整 `maxSkillDescriptionChars`。
+        *   确保 Claude Code 版本至少为 v2.1.105 以使用新功能。
+
+6.  **Refining the Output:**
+    *   Make sure the tone is professional and concise.
+    *   Ensure the distinction between the new settings and the behavioral change is clear.
+    *   The changes in `skills.md` and `slash-commands.md` are identical, so group the theme around &#34;Skill Description Optimization&#34;.
+
+7.  **Final Polish (Self-Correction during drafting):**
+    *   Did I mention the environment variable? Yes, keep it brief.
+    *   Did I mention the version requirement? Yes, important.
+
+8.  **Final Output Generation** (matches the provided good response).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">13:45 EST</div>
