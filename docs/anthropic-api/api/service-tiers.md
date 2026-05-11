@@ -9,10 +9,6 @@ Anthropic offers three service tiers:
 - **Standard:** Default tier for both piloting and scaling everyday use cases
 - **Batch:** Best for asynchronous workflows that can wait or benefit from being outside your normal capacity
 
-<Note>
-[Claude Platform on AWS](/docs/en/build-with-claude/claude-platform-on-aws) supports Standard and Batch service tiers. Priority Tier is not available.
-</Note>
-
 ## Standard Tier
 
 The standard tier is the default service tier for all API requests. The API prioritizes these requests alongside all other requests with best-effort availability.
