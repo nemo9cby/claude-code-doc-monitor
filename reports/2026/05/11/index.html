@@ -118,9 +118,199 @@
 
         <header>
             <h1>Changes on 2026-05-11</h1>
-            <p class="meta">44 total changes in 2 runs</p>
+            <p class="meta">50 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">16:43 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 总体概览
+此次文档更新主要引入了全新的 **Claude Platform on AWS** 集成支持，并对**子代理的权限行为**进行了关键的澄清与修正，同时完善了 Hooks 系统的相关文档。
+
+### 关键变更主题
+
+*   **新 Provider 支持**：全面增加了对 &#34;Claude Platform on AWS&#34; 的支持。文档涵盖了该服务的默认数据行为、LLM Gateway 配置、模型版本映射及集成对比表。
+*   **子代理权限逻辑变更**：修正了**后台子代理** 的行为描述。明确指出后台子代理不再在启动时预先申请权限，而是直接继承当前会话已有的权限，并自动拒绝任何需要新权限的操作。这与之前“启动前预批准”的描述有显著不同。
+*   **Hooks 系统增强与澄清**：
+    *   新增了 `ExitPlanMode` 钩子的文档，用于在退出计划模式时干预。
+    *   澄清了 `agent_type` 字段：对于自定义子代理，Hooks 接收的是 Frontmatter 中的 `name`，而非文件名。
+    *   明确了 `model` 字段仅在 `SessionStart` 钩子中可用，且不存在 `$CLAUDE_MODEL` 环境变量。
+    *   细化了 `SubagentStop` 的决策控制行为。
+
+### 影响等级：中等
+**理由**：虽然新增 AWS Provider 只是文档补全，但关于**后台子代理权限机制**的澄清属于行为层面的重要修正。依赖之前“预批准”描述的开发者可能会发现其后台任务因为权限不足而失败，需要重新审视权限授予策略。
+
+### 开发者行动项
+
+*   **审查后台子代理工作流**：如果您使用后台子代理，请确保在启动子代理前，主会话已经授予了其所需的所有权限，因为后台子代理现在会自动拒绝任何需要新权限的请求，而不会弹窗提示。
+*   **更新 Hook 代码逻辑**：如果您的 Hook 依赖子代理的文件名进行逻辑判断，请改用 Frontmatter 中的 `name` 字段。
+*   **利用新的 ExitPlanMode Hook**：现在可以通过 Hooks 捕获并修改“退出计划模式”的审批流程，增加了自动化控制的灵活性。
+*   **配置 AWS 集成**：如需使用 Claude Platform on AWS，请设置 `CLAUDE_CODE_USE_ANTHROPIC_AWS` 及相关环境变量。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Understand the Goal:** The user wants a concise, insightful analysis of documentation changes in markdown format, focusing on what matters to developers. I need to analyze 6 specific pages with diffs provided.
+
+2.  **Analyze the Diffs:**
+
+    *   **Page: `data-usage.md`**
+        *   *Changes:* Added &#34;Claude Platform on AWS&#34; to the list of API providers. Updated the table to include a new column for &#34;Claude Platform on AWS&#34; with default behaviors (all metrics off, surveys on, webfetch on). Added environment variable `CLAUDE_CODE_USE_ANTHROPIC_AWS`.
+        *   *Significance:* New provider integration. Privacy-conscious developers need to know defaults.
+
+    *   **Page: `hooks.md`**
+        *   *Changes:*
+            *   Clarified `agent_type` in hooks: specifically notes that for custom subagents, it uses the `name` field from frontmatter, not the filename.
+            *   Added note: Only `SessionStart` hooks receive a `model` field. Clarified `$CLAUDE_MODEL` doesn&#39;t exist, only `$ANTHROPIC_MODEL` (from parent env).
+            *   Added new `ExitPlanMode` tool hook documentation (input fields: `plan`, `planFilePath`, `allowedPrompts`).
+            *   Updated `SubagentStart` description regarding custom subagent names (same as `agent_type` clarification).
+            *   Updated `SubagentStop` decision control: Clarifies it doesn&#39;t support `additionalContext`. Suggests using `PostToolUse` on `Agent` tool to inject context.
+            *   Added Tip linking `/goal` command to session-scoped Stop hooks.
+        *   *Significance:* API stability/behavior clarification for hooks developers (especially around subagents). New capability for hooking into plan mode exit.
+
+    *   **Page: `llm-gateway.md`**
+        *   *Changes:* Added section &#34;Claude Platform on AWS through a gateway&#34; with example env vars (`ANTHROPIC_AWS_BASE_URL`, `CLAUDE_CODE_SKIP_ANTHROPIC_AWS_AUTH`, etc.).
+        *   *Significance:* Configuration guidance for the new provider through proxies/gateways.
+
+    *   **Page: `model-config.md`**
+        *   *Changes:* Updated model version mapping to include &#34;Claude Platform on AWS&#34; in the list of providers where `opus` -&gt; 4.7 and `sonnet` -&gt; 4.6. Added &#34;Claude Platform on AWS&#34; to the list of providers where model pinning is recommended for deployment.
+        *   *Significance:* Deployment/Versioning consistency for the new provider.
+
+    *   **Page: `sub-agents.md`**
+        *   *Changes:*
+            *   Clarified `name` field definition: it acts as `agent_type` in hooks.
+            *   Refined behavior of &#34;Foreground&#34; vs &#34;Background&#34; subagents. Specifically: Foreground prompts for permissions as they come up. Background subagents run with *already granted* permissions and auto-deny anything that would prompt (removed the bit about pre-approving background tasks at launch).
+            *   Updated Fork Mode section: clarified prompts surface as they occur for forks, but named subagents in background mode auto-deny.
+            *   Updated Comparison Table (Fork vs Named): Changed Permissions column for Named subagent to &#34;Auto-denied when running in the background&#34; (removed pre-approval mention).
+        *   *Significance:* *Crucial behavioral change/clarification*. Background subagents no longer pre-approve permissions at launch; they strictly adhere to what&#39;s already granted and auto-deny new prompts. This changes how developers design workflows requiring background task permissions.
+
+    *   **Page: `third-party-integrations.md`**
+        *   *Changes:*
+            *   Added &#34;Claude Platform on AWS&#34; column to the comparison table.
+            *   Added `ANTHROPIC_AWS_BASE_URL` to the LLM Gateway configuration list.
+            *   Added &#34;Claude Platform on AWS&#34; to the list of providers requiring model pinning.
+        *   *Significance:* Documentation for the new provider integration.
+
+3.  **Synthesize Themes:**
+
+    *   **New Provider:** &#34;Claude Platform on AWS&#34; is now fully integrated (billing, auth, models, gateways, data usage).
+    *   **Subagent Permissions Behavior:** Significant clarification on how background subagents handle permissions (no pre-approval at launch, strictly auto-deny new prompts).
+    *   **Hooks Refinement:** Better documentation on `agent_type` resolution (frontmatter vs filename) and model availability in hooks. New hook for `ExitPlanMode`.
+
+4.  **Determine Impact Level:**
+    *   *New Provider:* Medium impact for AWS users, but additive.
+    *   *Subagent Permissions:* Medium/High impact. If developers were relying on the &#34;pre-approval at launch&#34; flow described in previous docs for background subagents, their workflows might break or behave differently (fail silently on permissions). The change text says &#34;Auto-denied... when running in the background&#34; vs &#34;Pre-approved... before launch&#34;. This is a behavioral clarification/correction.
+    *   *Hooks:* Low/Medium impact (fixing confusion).
+    *   *Overall:* **Medium**. The new provider is additive. The subagent permission change is a behavior clarification that requires attention from developers using background tasks.
+
+5.  **Draft Action Items:**
+
+    *   Check if you use the new &#34;Claude Platform on AWS&#34; provider and update config.
+    *   Review background subagent logic: ensure it has necessary permissions at session start because it won&#39;t ask for them during execution.
+    *   Update hook scripts relying on filenames vs frontmatter names for `agent_type`.
+    *   Note that `ExitPlanMode` is now available for tool hooks.
+
+6.  **Refine Output (Chinese):**
+
+    *   *Summary:* Added &#34;Claude Platform on AWS&#34; support and clarified critical behavior for background subagent permissions.
+    *   *Themes:*
+        *   New Provider: Claude Platform on AWS integration across docs.
+        *   Subagent Permissions: Background subagents no longer pre-approve; they run with current permissions and auto-deny new requests.
+        *   Hooks: Added `ExitPlanMode`, clarified `agent_type` (frontmatter vs filename) and `model` field availability.
+    *   *Impact:* Medium. The subagent permission change affects workflow reliability.
+    *   *Actions:*
+        *   Adjust background subagent workflows to ensure permissions are granted before execution.
+        *   Update hook code if relying on subagent filenames instead of frontmatter names.
+        *   Configure `CLAUDE_CODE_USE_ANTHROPIC_AWS` if applicable.
+
+7.  **Final Polish:** Ensure markdown format and concise tone. (Self-correction: The subagent change is technically a documentation correction to match actual behavior, but to a developer reading it, it looks like a change in how they should design their systems).
+
+    *   *Drafting the subagent point carefully:* The docs changed from &#34;Before launching, Claude Code prompts for any tool permissions the subagent will need&#34; to &#34;run with the permissions already granted... and auto-deny&#34;. This is a significant functional difference in description.
+
+8.  **Final Output Generation:** (Proceed to generate markdown).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/data-usage.html" class="page-link">data-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-8</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+16</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/llm-gateway.html" class="page-link">llm-gateway.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/model-config.html" class="page-link">model-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+11</span>
+                            <span class="removed">-11</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/third-party-integrations.html" class="page-link">third-party-integrations.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">14:54 EST</div>
