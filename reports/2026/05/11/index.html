@@ -118,9 +118,150 @@
 
         <header>
             <h1>Changes on 2026-05-11</h1>
-            <p class="meta">74 total changes in 5 runs</p>
+            <p class="meta">77 total changes in 6 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">22:33 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">1.  **Overall Summary**
+    文档进行了重大更新，强烈推荐在 Hook 命令配置中使用 **Exec Form（执行模式）**。通过显式添加 `&#34;args&#34;: []` 字段，文档指导开发者摆脱复杂的 Shell 引号转义，并规范了环境变量（如 `${CLAUDE_PROJECT_DIR}`）的引用方式，以提高脚本的调用安全性和可靠性。
+
+2.  **Key Themes across pages**
+    *   **推广 Exec Form**：核心变更在于不再建议直接通过 Shell 执行命令字符串，而是通过添加 `&#34;args&#34;: []`（即使为空）来启用直接执行模式，这会绕过 Shell 解析器。
+    *   **变量引用与引号移除**：在新的模式下，环境变量的写法从带引号的 `&#34;$VAR&#34;` 变更为无引号的 `${VAR}`。文档明确指出在 Exec Form 下路径无需引号包裹。
+    *   **处理特殊字符**：此次更新旨在解决路径中包含空格或特殊字符时的兼容性问题。通过直接生成进程而非通过 Shell，避免了参数解析错误。
+    *   **统一插件与 Hooks 的指导**：`hooks.md` 和 `plugins-reference.md` 同步更新了对 `${CLAUDE_PLUGIN_ROOT}` 和 `${CLAUDE_PROJECT_DIR}` 的最佳实践说明。
+
+3.  **Impact level**
+    **Medium**。虽然旧式的 Shell 写法可能暂时向后兼容，但这是一项针对最佳实践的显著修正。它改变了定义 Hook 命令的标准范式，对于正在编写或维护 Claude 配置文件的开发者来说，需要调整配置习惯以符合新的健壮性标准。
+
+4.  **Action items for developers**
+    *   更新 `command` 配置：在现有的 Hook 配置中添加 `&#34;args&#34;: []` 字段以切换到 Exec Form。
+    *   简化路径语法：将命令中的路径变量从 `&#34;${VAR}/path&#34;` 改为 `${VAR}/path`（去掉外层双引号）。
+    *   变量名标准化：将 `$CLAUDE_PROJECT_DIR` 更新为 `${CLAUDE_PROJECT_DIR}` 以确保一致性。
+    *   检查插件脚本：审查 Plugin 中使用 `${CLAUDE_PLUGIN_ROOT}` 的脚本调用，应用同样的 `args` 模式。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer, deep expertise in dev tools/docs.
+    *   **Task:** Analyze documentation changes as a single batch.
+    *   **Output:** Concise, insightful analysis in markdown format.
+    *   **Language:** Chinese.
+    *   **Input:** Diffs for `hooks.md`, `hooks-guide.md`, `plugins-reference.md`.
+
+2.  **Analyze the Input Data (The Diffs):**
+
+    *   **`hooks.md` changes:**
+        *   Multiple code examples updated.
+        *   Old: `&#34;command&#34;: &#34;\&#34;$CLAUDE_PROJECT_DIR\&#34;/.claude/hooks/block-rm.sh&#34;` (and similar variations).
+        *   New: `&#34;command&#34;: &#34;${CLAUDE_PROJECT_DIR}/.claude/hooks/block-rm.sh&#34;, &#34;args&#34;: []` (and similar).
+        *   Key observation: Change from `$CLAUDE_PROJECT_DIR` to `${CLAUDE_PROJECT_DIR}` and removal of surrounding quotes around the path variable. Addition of `&#34;args&#34;: []`.
+        *   Bullet point change in &#34;Best Practices&#34;: Changed guidance on absolute paths. Specifically distinguishes between &#34;exec form&#34; (use `${VAR}`, no quoting) and &#34;shell form&#34; (wrap in double quotes).
+
+    *   **`hooks-guide.md` changes:**
+        *   Troubleshooting section update.
+        *   Old advice: use absolute paths or `$CLAUDE_PROJECT_DIR`.
+        *   New advice: use `${CLAUDE_PROJECT_DIR}`. **Crucial addition:** &#34;To avoid shell quoting entirely, add `&#34;args&#34;: []` to switch to [exec form](...), which spawns the script directly without a shell&#34;.
+        *   This reinforces the pattern seen in `hooks.md`.
+
+    *   **`plugins-reference.md` changes:**
+        *   Variable definition update for `${CLAUDE_PLUGIN_ROOT}`.
+        *   Old: &#34;In hook and monitor commands, wrap it in double quotes...&#34;
+        *   New: &#34;In hook commands, use [exec form](...) with `args`... In shell-form hooks and monitor commands, wrap it in double quotes...&#34;
+        *   This clarifies the distinction between exec form and shell form specifically for path handling.
+
+3.  **Synthesize Findings (Internal Monologue):**
+
+    *   **What changed?** The documentation now strongly encourages using &#34;exec form&#34; (by adding `&#34;args&#34;: []`) for hook commands. It changes the syntax for environment variables from `$VAR` to `${VAR}` in the command field and removes quotes when using this specific form.
+    *   **Why?** To avoid shell quoting issues (shells mishandling spaces or special characters) and to invoke scripts directly without an intermediate shell wrapper, which is safer and more robust.
+    *   **The Pattern:** `command` + `args: []` = Exec form.
+    *   **Old Way:** `command: &#34;\&#34;$VAR/path\&#34;&#34;`, no args. (Shell form)
+    *   **New Way:** `command: &#34;${VAR}/path&#34;`, `args: []`. (Exec form)
+
+4.  **Drafting the Response (in Chinese):**
+
+    *   **Overall Summary:** Documentation has been updated to recommend the &#34;exec form&#34; (exec 形式) for defining hook commands by adding an explicit `args` field. This change simplifies path handling by removing the need for complex quoting and clarifies the usage of environment variables like `${CLAUDE_PROJECT_DIR}`.
+    *   **Key Themes:**
+        *   Promoting &#34;Exec Form&#34; over &#34;Shell Form&#34;: Explicitly encouraging the use of `&#34;args&#34;: []` to switch to direct execution.
+        *   Variable Syntax Update: Changing `$VAR` to `${VAR}` and removing surrounding quotes in the new recommended pattern.
+        *   Path Handling Safety: Clarifying how to handle paths containing spaces or special characters by bypassing the shell interpretation layer.
+    *   **Impact Level:** Medium. It&#39;s not strictly &#34;breaking&#34; (the old way likely still works), but it&#39;s a strong best practice update that affects how developers should write their configurations. If developers follow the new docs, their code becomes more robust.
+    *   **Action Items:**
+        *   Update hook configurations to include `&#34;args&#34;: []`.
+        *   Switch variable syntax from `&#34;$VAR&#34;` to `${VAR}` when using exec form.
+        *   Review and update existing hooks that might have quoting issues.
+
+5.  **Refining the Output (Translating to &#34;World-class programmer&#34; tone):**
+
+    *   *Summary:* 文档已更新，强烈推荐在 Hook 命令中使用 **exec form（执行模式）**。通过显式添加 `&#34;args&#34;: []` 字段，简化了路径引用的引号处理，并修正了环境变量（如 `${CLAUDE_PROJECT_DIR}`）的使用方式，以避免 shell 解析带来的潜在问题。
+    *   *Key Themes:*
+        *   **推广 Exec Form**：文档核心变更在于提倡使用 `args` 数组来直接调用脚本，而非通过 shell 字符串。
+        *   **路径引用规范化**：从旧式的 `&#34;$VAR&#34;`（带引号）切换为 `${VAR}`（无引号，配合 args 使用）。
+        *   **安全性增强**：通过绕过 shell 层，减少了路径中包含空格或特殊字符时解析失败的风险。
+    *   *Impact Level:* **Medium**。虽然旧语法（Shell form）可能依然兼容，但这是一项重要的最佳实践更新，旨在提高配置的健壮性和可维护性。
+    *   *Action Items:*
+        *   更新现有的 `hooks` 配置，在 `command` 对象中添加 `&#34;args&#34;: []`。
+        *   将 `command` 字段中的路径引用从 `&#34;$VAR&#34;` 改为 `${VAR}` 并移除外层引号。
+        *   检查涉及 `${CLAUDE_PLUGIN_ROOT}` 的插件配置，应用新的 exec form 模式。
+
+6.  **Final Polish:** Ensure markdown formatting matches the prompt requirements. The logic holds up. The shift from &#34;wrapping in quotes&#34; to &#34;using exec form with args&#34; is the critical technical insight.
+
+    *   *Self-Correction during drafting:* Is it strictly `args: []` or `args: [...]`? The diff shows `&#34;args&#34;: []` specifically in the examples. It implies if there are no arguments, use empty array. If there were arguments, they would likely go there. The key is the presence of the key to trigger exec form. I will focus on the *presence* of the `args` field.
+
+7.  **Final Output Generation** (matches the logic above).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+10</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">19:53 EST</div>
