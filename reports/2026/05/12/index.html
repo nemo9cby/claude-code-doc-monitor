@@ -118,9 +118,277 @@
 
         <header>
             <h1>Changes on 2026-05-12</h1>
-            <p class="meta">1 total change in 1 run</p>
+            <p class="meta">12 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">17:14 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 1. Overall Summary
+此次更新主要集中在优化配置策略的文档说明（阐明系统提示词、输出样式与 CLAUDE.md 的区别），增强了企业环境下的遥测数据控制能力（特别是反馈调查的开关），修复了 Ubuntu 24.04 上的沙箱兼容性问题，并扩展了 Opus 4.7 对快速模式的支持。
+
+### 2. Key Themes
+*   **配置最佳实践与策略澄清**：大幅重写了关于系统提示词 (`--system-prompt`)、输出样式 (`output-styles`) 和 `CLAUDE.md` 的对比文档，明确指导开发者应根据“是否改变 Claude 身份”来选择不同的配置方式，避免滥用系统提示词覆盖。
+*   **企业级隐私与遥测控制**：引入了更细粒度的环境变量（如 `DO_NOT_TRACK`, `CLAUDE_CODE_ENABLE_FEEDBACK survey_FOR_OTEL`）来控制反馈调查的弹出与数据上报，增强了在 OpenTelemetry 环境下的监控能力。
+*   **平台兼容性与稳定性修复**：针对 Ubuntu 24.04+ 添加了 AppArmor 配置指南以解决 `bwrap` 沙箱启动失败的问题；CLI 和后台服务修复了多项潜在挂起和崩溃问题。
+*   **模型与 Agent 功能扩展**：为 Agent Team 引入了 `teammateDefaultModel` 设置，并将 Claude Opus 4.7 纳入快速模式支持范围。
+
+### 3. Impact Level
+**Medium**
+
+**Reasoning**:
+虽然此次更新不包含破坏性变更，但文档的显著修正有助于开发者避免错误的配置模式。对于在 Ubuntu 24.04 上使用沙箱功能的开发者，新增的 AppArmor 配置步骤至关重要，否则功能将无法正常工作。对于企业用户，遥测控制的变更直接关系到合规性和内部监控流程。
+
+### 4. Action items for developers
+*   **配置沙箱环境**：如果在 Ubuntu 24.04 或更高版本上使用 Claude Code 的沙箱功能，必须按照 `sandboxing.md` 中的指南添加 AppArmor 配置文件，否则隔离将失败。
+*   **审查配置策略**：检查现有的启动脚本或设置，如果通过硬编码替换系统提示词，建议根据新文档迁移至“输出样式”或“CLAUDE.md”以保留 Claude 的内置能力。
+*   **更新遥测设置**：如果使用了 `DO_NOT_TRACK` 或拦截非必要流量，且希望通过 OpenTelemetry 收集反馈调查数据，需设置 `CLAUDE_CODE_ENABLE_FEEDBACK_SURVEY_FOR_OTEL=1`。
+*   **利用新模型特性**：确认 Opus 4.7 已支持快速模式，如需更快的生成速度，可在计费允许的情况下更新 API 调用参数。
+*   **检查 Agent 配置**：如果使用 Agent Teams，可在 `settings.json` 中新增 `teammateDefaultModel` 字段以预设默认模型。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request**:
+    *   **Role**: World-class programmer analyzing documentation changes.
+    *   **Input**: 11 pages of documentation diffs (Markdown).
+    *   **Output Format**: Markdown.
+    *   **Language**: Chinese (requested: &#34;请用中文回复&#34;).
+    *   **Structure**:
+        1.  Overall Summary (1-2 sentences).
+        2.  Key Themes (bullets).
+        3.  Impact Level (Low/Medium/High/Breaking) with reasoning.
+        4.  Action Items (max 5 bullets).
+
+2.  **Analyze the Diffs (Page by Page)**:
+
+    *   **`cli-reference.md`**:
+        *   Change 1: `--exclude-dynamic-system-prompt-sections` description updated from &#34;git status&#34; to &#34;git-repo flag&#34;. *Significance*: Minor clarification on dynamic prompts.
+        *   Change 2: Expanded guidance on `--system-prompt` vs append flags. It now recommends using &#34;Output Styles&#34; for personas and &#34;CLAUDE.md&#34; for project conventions, instead of just replacing system prompts blindly. *Significance*: Better DX (Developer Experience), guides best practices.
+
+    *   **`data-usage.md`**:
+        *   Change 1: Added `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` to the list of conditions preventing survey popups.
+        *   Change 2: Added `DO_NOT_TRACK` to the list of env vars disabling surveys.
+        *   Change 3: Added a new env var `CLAUDE_CODE_ENABLE_FEEDBACK_SURVEY_FOR_OTEL=1` to re-enable surveys *only* for internal OpenTelemetry collectors when non-essential traffic is blocked. *Significance*: Improved telemetry control for enterprise/privacy-focused environments.
+
+    *   **`mcp.md`**:
+        *   Change: Removed a large chunk of code (React component `MCPServersTable` fetching from an API). The text &#34;Claude Code can connect to...&#34; remains. *Significance*: Likely moved to a dynamic component or handled differently in the build system. Documentation text is mostly unchanged, just implementation details removed from the source markdown.
+
+    *   **`monitoring-usage.md`**:
+        *   Change: Added a new telemetry event `claude_code.feedback_survey` with attributes like `event_type`, `appearance_id`, `enabled_via_override`. *Significance*: Aligns with the changes in `data-usage.md`. Allows monitoring survey participation via OTEL.
+
+    *   **`output-styles.md`**:
+        *   Change: Rewrote the comparison section &#34;Output Styles vs. CLAUDE.md vs. --append-system-prompt&#34;. It clarifies *when* to use which (e.g., use Output Styles for identity changes, Append for extra rules). Also updated the comparison with Agents. *Significance*: Conceptual clarity for configuration management.
+
+    *   **`sandboxing.md`**:
+        *   Change: Added instructions for Ubuntu 24.04+ to configure AppArmor profile for `bwrap` (bubblewrap) because the default policy prevents user namespaces. *Significance*: Fixes a critical setup issue for newer Ubuntu users using sandboxing.
+
+    *   **`security.md`**:
+        *   Change: Updated the statement about MCP servers. Instead of &#34;does not manage or audit&#34;, it says Anthropic &#34;reviews connectors against listing criteria&#34; but &#34;does not security-audit&#34;. *Significance*: Legal/clarification on security responsibility.
+
+    *   **`settings.md`**:
+        *   Change: Added a new setting `teammateDefaultModel` for agent teams. *Significance*: New feature support for default model selection in agent teams.
+
+    *   **`about-claude/pricing.md`**:
+        *   Change: Added &#34;Claude Opus 4.7&#34; to the list of models supporting Fast Mode. *Significance*: Model availability update.
+
+    *   **`api/rate-limits.md`**:
+        *   Change: Added &#34;Opus 4.7&#34; to Fast Mode rate limits. *Significance*: Consistency with pricing update.
+
+    *   **`CHANGELOG.md.md`**:
+        *   Change: Added entry for version 2.1.140. Includes fixes for settings hot-reload (symlinks), background service startup, `/goal` hanging, and improvements to agent tool matching. *Significance*: Stability and performance improvements.
+
+3.  **Synthesize and Categorize**:
+
+    *   **Themes**:
+        *   **Configuration &amp; Best Practices**: `cli-reference.md` and `output-styles.md` clarify when to use system prompts, output styles, and CLAUDE.md.
+        *   **Telemetry &amp; Privacy Control**: `data-usage.md` and `monitoring-usage.md` introduce granular control over feedback surveys (OTEL override, `DO_NOT_TRACK`).
+        *   **Platform Support &amp; Fixes**: `sandboxing.md` adds AppArmor fix for Ubuntu 24.04. `settings.md` adds agent team settings. `CHANGELOG` lists bug fixes.
+        *   **Model Updates**: Pricing and Rate limits added Opus 4.7 support for Fast Mode.
+
+    *   **Impact Level**: Medium. There are no breaking changes for existing workflows. The Ubuntu fix is important for new setups, and the telemetry changes are relevant for enterprise. The clarifications help avoid configuration errors.
+
+    *   **Action Items**:
+        *   Update Ubuntu 24.04 AppArmor config if using sandboxing.
+        *   Review telemetry settings if `DO_NOT_TRACK` or OTEL is used.
+        *   Check agent team settings for the new default model option.
+
+4.  **Draft the Response (in Chinese)**:
+
+    *   *Summary*: 此次更新主要优化了配置指南（系统提示词 vs 输出样式），增强了企业级遥测控制（特别是针对反馈调查），修复了 Ubuntu 24.04 上的沙箱问题，并增加了对 Opus 4.7 快速模式的支持。
+    *   *Themes*:
+        *   配置最佳实践澄清。
+        *   企业隐私与遥测控制增强。
+        *   操作系统兼容性修复。
+        *   模型与 Agent 功能扩展。
+    *   *Impact*: Medium. 多为优化和修复，无破坏性变更，但 Ubuntu 沙箱问题对新用户影响较大。
+    *   *Actions*:
+        *   如果在 Ubuntu 24.04+ 使用沙箱，需配置 AppArmor。
+        *   企业用户检查新的遥测环境变量设置。
+        *   Agent Team 用户可配置新的默认模型。
+
+5.  **Refine Content**:
+    *   Make sure the tone is professional (&#34;World-class programmer&#34;).
+    *   Ensure the distinction between `--append-system-prompt` and Output Styles is captured in the themes, as that was a big documentation rewrite.
+    *   Highlight the specific Ubuntu fix as it prevents runtime errors.
+
+6.  **Final Polish (Self-Correction during drafting)**:
+    *   *Correction*: The `mcp.md` diff removed a lot of code. I should mention it briefly as a docs implementation detail removal, but focus more on the functional changes.
+    *   *Correction*: Ensure `teammateDefaultModel` is mentioned in the settings section.
+
+7.  **Final Output Generation**: (Proceed to generate markdown based on the drafted points).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/cli-reference.html" class="page-link">cli-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/data-usage.html" class="page-link">data-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+12</span>
+                            <span class="removed">-189</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+9</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/output-styles.html" class="page-link">output-styles.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+17</span>
+                            <span class="removed">-9</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sandboxing.html" class="page-link">sandboxing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+10</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/security.html" class="page-link">security.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/about-claude/pricing.html" class="page-link">about-claude/pricing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/rate-limits.html" class="page-link">api/rate-limits.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+14</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">13:05 EST</div>
