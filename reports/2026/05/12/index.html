@@ -118,9 +118,146 @@
 
         <header>
             <h1>Changes on 2026-05-12</h1>
-            <p class="meta">12 total changes in 2 runs</p>
+            <p class="meta">15 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">18:55 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">1.  **Overall Summary**
+    此次文档更新重点增强了企业级管理能力，允许管理员在托管设置中强制执行插件自动更新，并优化了嵌入宿主（如 Claude Desktop）的策略合并机制；同时，澄清了 CLI 命令在自动化脚本中的非交互式行为，并改进了插件配置冲突的诊断信息。
+
+2.  **Key Themes**
+    *   **增强的企业管控**: 新增了在 `extraKnownMarketplaces` 托管设置项中配置 `autoUpdate` 的能力，使组织能够绕过用户手动设置，强制更新特定市场插件。
+    *   **嵌入宿主集成优化**: 引入了 `parentSettingsBehavior` 设置，允许嵌入宿主（通过 SDK）的托管策略与现有托管层级（如 MDM）进行合并，默认行为则保持忽略。
+    *   **CLI 自动化兼容性**: 修正了 `uninstall` 和 `prune` 命令中 `-y/--yes` 标志的文档描述，明确指出当 `stdout`（输出）或 `stdin`（输入）非 TTY 时均需该标志，以适应复杂的 CI/CD 管道环境。
+    *   **插件配置诊断**: 明确了当 v2.1.140+ 版本检测到 manifest 键覆盖了默认目录（如 `commands`）时的行为，系统会在 `/doctor` 等视图中发出警告，帮助开发者避免配置被意外忽略。
+
+3.  **Impact level**
+    **Low**
+    *理由*: 此次变更主要涉及新增的可选配置参数和文档澄清，属于功能增强而非破坏性变更。普通开发者不会受到直接影响，主要受益者为负责大规模部署的管理员及工具集成商。
+
+4.  **Action items for developers**
+    *   **企业/团队管理员**: 评估是否需要在 `managed-settings` 中为第三方或内部 Marketplace 启用 `autoUpdate: true`，以确保插件的一致性。
+    *   **插件开发者**: 检查插件 manifest 配置，如果使用了 `commands` 等 manifest 键，请确保无需扫描默认目录，或根据 `/doctor` 的提示调整路径配置。
+    *   **自动化脚本编写者**: 确认现有的卸载/清理脚本在输出被重定向（如 piping 到日志文件）时使用了 `-y` 标志，以避免潜在的交互阻塞。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer.
+    *   **Task:** Analyze documentation changes (3 pages) as a single batch.
+    *   **Output Format:** Markdown, concise, insightful.
+    *   **Language:** Chinese.
+    *   **Structure:**
+        1.  Overall Summary (1-2 sentences).
+        2.  Key Themes (bullets).
+        3.  Impact Level (Low/Medium/High/Breaking) with reasoning.
+        4.  Action Items (max 5 bullets).
+
+2.  **Analyze the Changes (Page by Page):**
+
+    *   **Page 1: `discover-plugins.md`**
+        *   *Change:* Added info about `autoUpdate` in managed settings (`extraKnownMarketplaces`).
+        *   *Context:* Previously, auto-update was on for official, off for others. Now admins can force it on via managed settings entries.
+
+    *   **Page 2: `plugins-reference.md`**
+        *   *Change 1:* Added note about version 2.1.140 behavior regarding ignored default folders when manifest keys exist. It mentions the `/doctor` command flagging ignored folders.
+        *   *Change 2:* Updated `uninstall` command flag `-y/--yes`. Old description: &#34;Required when stdin is not a TTY&#34;. New description: &#34;Required when stdin or stdout is not a TTY&#34;.
+        *   *Change 3:* Updated `prune` command flag `-y/--yes`. Same change as above (&#34;stdin or stdout is not a TTY&#34;).
+
+    *   **Page 3: `settings.md`**
+        *   *Change 1:* Added info about &#34;Embedding hosts&#34; (like Claude Desktop) supplying policy via SDK `managedSettings`. Mentions `parentSettingsBehavior` set to `&#34;merge&#34;` to combine managed tiers.
+        *   *Change 2:* Added info about `autoUpdate` boolean in `extraKnownMarketplaces` entries (linking back to the change in `discover-plugins.md`).
+
+3.  **Synthesize Key Themes:**
+    *   **Theme 1: Enhanced Admin Control over Plugins/Auto-Updates.** The ability to set `autoUpdate` in managed marketplaces allows organizations to enforce plugin updates for security or consistency.
+    *   **Theme 2: Enterprise/Embedding Integration.** The `settings.md` change about embedding hosts merging settings implies better support for enterprise deployment (e.g., Claude Desktop embedding the Claude Code engine).
+    *   **Theme 3: CLI/UX Refinement.** The `-y` flag description change suggests an improvement in non-interactive environments (pipelines, scripts) where `stdout` might be redirected, not just `stdin`. The warning about ignored folders helps developers debug plugin configurations.
+
+4.  **Determine Impact Level:**
+    *   *Reasoning:*
+        *   The auto-update setting is additive (new option), not breaking.
+        *   The embedding host policy setting is additive/config behavior change.
+        *   The `-y` flag description update is a documentation clarification (or implies a bug fix) for edge cases in automation, but the flag itself existed.
+        *   The ignored folder warning is helpful for developers but not a breaking change.
+    *   *Conclusion:* **Low to Medium**. It&#39;s mostly configurability improvements and documentation clarifications. I&#39;ll lean towards **Low** for existing users, but **Medium** for enterprise admins/integrators because of the new `parentSettingsBehavior` and managed settings capabilities.
+
+5.  **Draft Action Items:**
+    *   Check if your organization needs to enforce auto-updates via managed settings.
+    *   Review `/doctor` or plugin details if you suspect a manifest key is overriding a default folder.
+    *   Verify scripts/pipelines: if you use `-y` with redirected output, it now officially covers stdout redirection.
+    *   (For embedders) Evaluate if `parentSettingsBehavior: &#34;merge&#34;` is needed to combine host and managed settings.
+
+6.  **Translate to Chinese &amp; Refine (Drafting the Response):**
+
+    *   *Summary:* 此次更新主要增强了企业级配置能力，特别是针对插件自动更新的强制控制及嵌入宿主（如 Claude Desktop）的设置合并策略，同时优化了 CLI 命令在非交互式环境下的行为描述。
+    *   *Themes:*
+        *   **企业级管理增强**: 新增了在托管设置中强制启用 `autoUpdate` 的能力，并允许嵌入宿主通过 SDK 合并策略设置。
+        *   **配置与诊断改进**: 针对插件 manifest 覆盖默认目录的情况，提供了更清晰的诊断警告。
+        *   **CLI 自动化支持**: 修正了 `-y/--yes` 标志的描述，明确其在 stdout 或 stdin 非 TTY 终端时的必要性。
+    *   *Impact:* **Low** (主要针对管理员和集成商，现有功能无破坏性变更)。
+    *   *Action Items:*
+        *   企业管理员检查是否需要通过 `extraKnownMarketplaces` 强制开启插件自动更新。
+        *   开发者利用新增的诊断信息排查插件 manifest 配置路径问题。
+        *   脚本编写者确认在输出被重定向时使用 `-y` 标志的兼容性（虽然逻辑可能已支持，但文档现已明确）。
+
+7.  **Final Polish (Self-Correction during drafting):**
+    *   Make sure the `-y` flag explanation is clear: it&#39;s a documentation change to reflect that the requirement is now `stdin OR stdout`, not just `stdin`.
+    *   Ensure the &#34;Embedding hosts&#34; point is clear—it&#39;s about `managedSettings` merging.
+
+8.  **Final Output Generation** (matches the provided good response).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/discover-plugins.html" class="page-link">discover-plugins.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-7</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">17:14 EST</div>
