@@ -118,9 +118,324 @@
 
         <header>
             <h1>Changes on 2026-05-13</h1>
-            <p class="meta">7 total changes in 2 runs</p>
+            <p class="meta">25 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">19:01 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 文档变更分析摘要
+
+#### 1. Overall Summary
+本次更新全面清理了文档中对旧版模型（主要是 Claude 3.7 和 Haiku 3.5 系列）的引用，明确区分了 Anthropic 自有平台与合作伙伴平台（AWS Bedrock, Vertex AI）不同的模型生命周期和退役日期，同时修正了关于设置优先级、插件覆盖及 Hook 禁用逻辑的说明。
+
+#### 2. Key Themes
+*   **模型生命周期清理与平台差异**：大规模移除了对 `Claude Sonnet 3.7` 和 `Claude Haiku 3.5` 的单独引用，将它们归类为“已弃用”或“已退役（除特定合作伙伴平台外）”。新增了关于 Bedrock 和 Vertex AI 拥有独立退役时间表的明确警告。
+*   **配置优先级与合并规则**：细化了 Settings 的作用域逻辑，明确指出标量值是“覆盖”，而数组值（如权限规则、文件路径）是“合并并去重”。
+*   **托管设置的强制力**：明确修正了插件和 Hook 的覆盖逻辑，强调 Managed Settings（托管设置）具有最高优先级，`--plugin-dir` 或本地设置无法覆盖由托管设置强制启用/禁用的插件或 Hook。
+*   **行为描述通用化**：移除了针对 Claude Sonnet 3.7 的特定行为描述（如扩展思考、上下文窗口溢出处理），转而描述当前 4.x 模型的标准行为。
+
+#### 3. Impact Level
+**Medium**
+**理由**：虽然大部分变更属于模型列表的清理，但关于**平台特定的退役日期**和**设置合并规则**的澄清对开发者的迁移规划和配置调试有实质性影响。特别是依赖 Bedrock/Vertex AI 的用户需要注意不同的时间表。
+
+#### 4. Action Items for Developers
+*   **关注平台特定退役时间**：如果您使用 AWS Bedrock 或 Vertex AI，请务必查阅文档中的特定表格，这些平台的模型退役日期（如 Haiku 3.5, Sonnet 3.7）与 Anthropic 官方 API 不一致。
+*   **审查权限配置逻辑**：利用文档中关于“数组设置合并”的新说明，检查您的 `permissions.allow` 或文件系统设置是否按预期在多层级（User/Project/Managed）间生效。
+*   **检查插件与 Hook 覆盖**：如果尝试使用 `--plugin-dir` 本地覆盖插件，或通过 `disableAllHooks` 禁用 Hook，请确认这些配置未被 Managed Settings 强制锁定。
+*   **移除旧版模型硬编码**：检查代码中是否仍有对 `claude-3-7-sonnet` 等旧版 ID 的硬编码引用，并准备迁移至 4.x 系列。
+*   **更新上下文窗口处理逻辑**：注意文档更新了关于 `max_tokens` 超过上下文窗口时的行为描述（Claude 4.5+ 会停止并返回特定原因，而非直接报错），请据此调整错误处理代码。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Input:** 18 pages of diffs (Markdown).
+    *   **Output Format:** Concise, insightful analysis in Markdown, focusing on developer impact, in Chinese.
+
+2.  **Analyze the Diffs (Page by Page):**
+
+    *   *hooks-guide.md*: Clarifies that `disableAllHooks` in managed settings might need to be set separately if hooks are defined there.
+    *   *plugins.md*: Clarifies that `--plugin-dir` cannot override plugins that managed settings force-enable or force-disable.
+    *   *settings.md*: Refines how settings scopes interact. Clarifies that scalar values are overridden by higher priority, but arrays (like permissions) are merged/concatenated.
+    *   *about-claude/pricing.md*: Removes older models (Claude 3, Haiku 3, Sonnet 3.7) from main tables or marks them as &#34;Deprecated&#34; or &#34;Retired, except on Bedrock/Vertex&#34;. Updates pricing tables to be cleaner.
+    *   *about-claude/model-deprecations.md*: Adds a note about lifecycle status/dates differing between Anthropic-operated platforms and Partner platforms (Bedrock, Vertex).
+    *   *api/rate-limits.md*: Updates model lists (removing Sonnet 3.7, etc.), updates &#34;Retired&#34; labels for Haiku 3.5 to be specific to Bedrock/Vertex.
+    *   *build-with-claude/extended-thinking.md*: Removes specific references to Claude Sonnet 3.7. Updates context window behavior explanation (now strict limit, but 4.5+ handles overflow differently). Generalizes thinking behavior descriptions.
+    *   *build-with-claude/prompt-caching.md*: Updates pricing tables, removes specific old model references or labels them correctly (e.g., Haiku 3.5 retired except Bedrock/Vertex).
+    *   *build-with-claude/batch-processing.md*: Updates pricing tables, similar to prompt caching.
+    *   *build-with-claude/context-windows.md*: Removes specific 3.7 references. Clarifies context window overflow behavior (4.5+ stops gracefully vs earlier models erroring).
+    *   *build-with-claude/search-results.md*: Updates model availability list. Notes Haiku 3.5 is retired except on Bedrock/Vertex. Removes Sonnet 3.7.
+    *   *build-with-claude/files.md*: Minor rewording about file support.
+    *   *build-with-claude/claude-on-amazon-bedrock.md*: Updates lifecycle dates and status in the table (e.g., Sonnet 3.7 &#34;Retired April 28, 2026&#34;). Adds a disclaimer that dates are platform-specific.
+    *   *build-with-claude/claude-on-vertex-ai.md*: Similar to Bedrock, updates dates (Sonnet 3.7 &#34;Retired May 11, 2026&#34;). Adds disclaimer.
+    *   *agents-and-tools/tool-use/overview.md*: Updates tool pricing tables, removes old models.
+    *   *agents-and-tools/tool-use/text-editor-tool.md*: Removes reference to an older text editor version specific to Sonnet 3.7.
+    *   *agents-and-tools/tool-use/computer-use-tool.md*: Removes beta header references to Sonnet 3.7. Removes code examples specific to 3.7 thinking budgets. Removes specific notes about 3.7 improvements, generalizing to &#34;current models&#34;.
+    *   *agents-and-tools/tool-use/code-execution-tool.md*: Removes references to Sonnet 3.7 and Haiku 3.5 from the tool version table.
+
+3.  **Synthesize Themes:**
+
+    *   **Model Lifecycle Cleanup:** There is a massive cleanup across almost all pricing, rate limit, and tool-related pages. Older models (Claude 3.x, Sonnet 3.7, Haiku 3.5) are being removed from main lists, marked as deprecated/retired, or explicitly noted as &#34;only available on Bedrock/Vertex&#34;.
+    *   **Platform-Specific Deprecation:** A crucial new distinction is being made: &#34;Anthropic-operated&#34; vs &#34;Partner-operated&#34; (Bedrock/Vertex) platforms have different model lifecycle schedules. This is explicitly added to deprecation pages.
+    *   **Settings/Hooks Logic Refinement:** Documentation is tightening up the rules for settings precedence (merge vs override) and plugin/hook override capabilities (managed settings are king).
+    *   **Behavior Generalization:** Specific references to &#34;Claude Sonnet 3.7&#34; behavior (especially in extended thinking and computer use) are being removed, suggesting the docs are focusing on the current 4.x generation behavior as the standard.
+
+4.  **Determine Impact:**
+
+    *   **Impact Level:** Medium. While mostly documentation cleanup, the specific clarification on *platform-specific deprecation schedules* and *settings merge behavior* has real-world implications for developers planning migrations or configuring complex permissions/hooks.
+
+5.  **Draft Action Items:**
+
+    *   Check if your code relies on the specific &#34;merge&#34; behavior of settings (now explicitly documented).
+    *   Note the differing deprecation dates for Bedrock/Vertex vs Anthropic API.
+    *   Update any hardcoded logic relying on specific 3.7 model IDs.
+    *   Verify plugin override logic if using managed settings.
+
+6.  **Translate and Format (Chinese):**
+
+    *   *Summary:* 本次更新主要清理了旧版模型（如 Claude 3.7, 3.5 系列）的文档引用，明确区分了 Anthropic 自有平台与合作伙伴平台（AWS Bedrock, GCP Vertex）的模型生命周期差异，并完善了设置合并/覆盖逻辑的说明。
+    *   *Themes:*
+        *   模型生命周期清理与平台差异.
+        *   配置优先级与合并规则.
+        *   行为描述通用化.
+    *   *Impact:* Medium. (Reason: 主要是文档清理，但关于平台特定的退役日期和设置合并规则的澄清对长期规划和配置调试很重要).
+    *   *Action Items:*
+        *   检查代码中是否硬编码了旧版模型 ID（如 Sonnet 3.7）。
+        *   若使用 AWS Bedrock 或 Vertex AI，请查阅文档中特定于这些平台的模型退役日期，它们与 Anthropic API 的日期不同。
+        *   审查权限和插件设置，理解数组类设置（如权限）是“合并”而非“覆盖”。
+        *   更新有关插件和 Hook 的配置逻辑，明确“托管设置”拥有最高优先级。
+
+7.  **Final Review against Constraints:**
+    *   Single batch analysis? Yes.
+    *   Markdown format? Yes.
+    *   Chinese response? Yes.
+    *   Concise? Yes.
+
+8.  **Construct Final Output.** (Proceeding to generate the Markdown response).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins.html" class="page-link">plugins.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/about-claude/pricing.html" class="page-link">about-claude/pricing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+9</span>
+                            <span class="removed">-21</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/about-claude/model-deprecations.html" class="page-link">about-claude/model-deprecations.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/rate-limits.html" class="page-link">api/rate-limits.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-9</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/extended-thinking.html" class="page-link">build-with-claude/extended-thinking.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+11</span>
+                            <span class="removed">-16</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-caching.html" class="page-link">build-with-claude/prompt-caching.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-8</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/batch-processing.html" class="page-link">build-with-claude/batch-processing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/context-windows.html" class="page-link">build-with-claude/context-windows.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/search-results.html" class="page-link">build-with-claude/search-results.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/files.html" class="page-link">build-with-claude/files.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-on-amazon-bedrock.html" class="page-link">build-with-claude/claude-on-amazon-bedrock.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-on-vertex-ai.html" class="page-link">build-with-claude/claude-on-vertex-ai.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/overview.html" class="page-link">agents-and-tools/tool-use/overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-7</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/text-editor-tool.html" class="page-link">agents-and-tools/tool-use/text-editor-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/computer-use-tool.html" class="page-link">agents-and-tools/tool-use/computer-use-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            <span class="removed">-19</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/code-execution-tool.html" class="page-link">agents-and-tools/tool-use/code-execution-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">15:47 EST</div>
