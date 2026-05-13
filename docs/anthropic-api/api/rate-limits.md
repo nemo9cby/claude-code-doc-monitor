@@ -48,8 +48,8 @@ To qualify for the next tier, you must meet a deposit requirement. To minimize t
     <tr>
       <td>Tier 1</td>
       <td>\$5</td>
-      <td>\$100</td>
-      <td>\$100</td>
+      <td>\$500</td>
+      <td>\$500</td>
     </tr>
     <tr>
       <td>Tier 2</td>
