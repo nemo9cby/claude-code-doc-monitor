@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026-05-13 - Documentation Changes</title>
+    <style>
+        :root {
+            --bg-color: #1a1a2e;
+            --card-bg: #16213e;
+            --text-color: #eee;
+            --accent: #0f3460;
+            --add-text: #4ade80;
+            --del-text: #f87171;
+            --time-color: #60a5fa;
+        }
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg-color: #f5f5f5;
+                --card-bg: #fff;
+                --text-color: #333;
+                --accent: #e0e0e0;
+                --add-text: #155724;
+                --del-text: #721c24;
+                --time-color: #2563eb;
+            }
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+        .container { max-width: 800px; margin: 0 auto; }
+        header { margin-bottom: 2rem; }
+        h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+        .meta { color: #888; }
+        .batch { margin-bottom: 2rem; }
+        .batch-header {
+            color: var(--time-color);
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--accent);
+        }
+        .page-list { list-style: none; }
+        .page-item {
+            background: var(--card-bg);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .page-item:hover { background: var(--accent); }
+        .page-link {
+            color: var(--text-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .page-summary { color: #888; font-size: 0.9rem; }
+        .added { color: var(--add-text); }
+        .removed { color: var(--del-text); }
+        a { color: #60a5fa; }
+        .back-link { margin-bottom: 1rem; display: inline-block; }
+        .page-item-content { flex: 1; }
+        .page-analysis {
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: 0.25rem;
+        }
+        .source-section {
+            margin-bottom: 1.5rem;
+        }
+        .source-header {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: #8b5cf6;
+        }
+        .batch-analysis {
+            background: var(--card-bg);
+            border-left: 3px solid #22c55e;
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            margin: 0.75rem 0 1rem 0;
+        }
+        .batch-analysis h4 {
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+        .batch-analysis-content {
+            white-space: pre-wrap;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        .reasoning-section {
+            margin-top: 1rem;
+            padding-top: 0.75rem;
+            border-top: 1px dashed var(--accent);
+            font-size: 0.85rem;
+            color: #888;
+        }
+        .reasoning-section summary {
+            cursor: pointer;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../../../index.html" class="back-link">&larr; All reports</a>
+
+        <header>
+            <h1>Changes on 2026-05-13</h1>
+            <p class="meta">1 total change in 1 run</p>
+        </header>
+
+        
+        <div class="batch">
+            <div class="batch-header">13:12 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 1. Overall Summary
+文档更新了 Prompt Caching 的最小 token 限制规则，区分了 Claude API/Vertex AI/Foundry 与 Amazon Bedrock 的不同行为，并将 Claude Sonnet 4.6 的最小缓存门槛从 2,048 tokens 下调至 1,024 tokens。
+
+### 2. Key Themes
+*   **平台差异化说明**：明确将 Amazon Bedrock 与其他平台（Claude API, AWS上的 Claude Platform, Vertex AI, Microsoft Foundry）区分开来，指出 Bedrock 有独立的缓存限制、失败行为和字段名称规范。
+*   **Sonnet 4.6 缓存门槛降低**：Claude Sonnet 4.6 的最小可缓存长度要求减半，从 2,048 tokens 降至 1,024 tokens，使其与 Sonnet 4.5 和旧版 Opus 保持一致。
+*   **行为透明化**：重申了当提示词低于最小长度限制时，请求会“静默”成功（不报错但不缓存），并强调通过检查响应中的 usage 字段来验证缓存状态。
+
+### 3. Impact level
+**Medium (中等)**
+*   **理由**：对于使用 Claude Sonnet 4.6 的开发者，这是一个积极的变更，允许在更小的上下文中启用缓存以降低成本。对于 Amazon Bedrock 用户，这是一个重要的澄清，防止直接套用通用文档规则导致预期外的行为或计费问题。
+
+### 4. Action items for developers
+*   **Bedrock 用户**：请立即查阅 [AWS Bedrock 文档](https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-caching.html)，以获取特定于该平台的模型缓存最小值和字段名称，**不要**套用本文档的通用规则。
+*   **Sonnet 4.6 用户**：利用新的 1,024 tokens 门槛，检查现有的短提示词是否现在可以被缓存，从而优化成本。
+*   **调试验证**：在开发中监控 `cache_creation_input_tokens` 和 `cache_read_input_tokens` 字段，如果两者均为 0，说明提示词长度不足或发生了其他静默失败。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **分析请求：**
+    *   **角色：** 世界级程序员。
+    *   **任务：** 分析文档变更（单个批次）。
+    *   **输入：** 一个文件的 Diff：`build-with-claude/prompt-caching.md`（+9 / -8 行）。
+    *   **输出格式：** Markdown。
+    *   **语言：** 中文（按要求）。
+    *   **要求：** 简洁，有见地，关注开发者的需求。
+
+2.  **分析 Diff：**
+    *   **文件：** `build-with-claude/prompt-caching.md`
+    *   **章节：** “缓存策略与考量” -&gt; “缓存限制”。
+    *   **变更内容：**
+        *   *原文：* 仅列出了最小可缓存提示词长度（如 4096, 2048, 1024 等具体数值）以及特定模型。
+        *   *新版：*
+            *   阐明了具体平台：Claude API、AWS 上的 Claude Platform、Vertex AI 和 Microsoft Foundry (beta)。
+            *   *关键数据变更：*
+                *   Claude Sonnet 4.6：2048 -&gt; **1024** tokens（原文未明确列出 4.6，但现在归入 1024 类别，尽管原文暗示较低模型为 2048）。等等，让我仔细看看列表。
+                *   旧版：Claude Sonnet 4.6 (2048)，Claude Sonnet 4.5/Opus 4.1 等 (1024)。
+                *   新版：Claude Sonnet 4.6 (1,024)。*降低*。
+                *   新列表将 Claude Sonnet 4.6、4.5 等归为 1024。
+            *   新增文本：“Model availability varies by platform.”（模型可用性因平台而异）。
+            *   更新了验证建议（提到检查缓存字段以确认）。
+            *   新增关于 **Amazon Bedrock** 的注释。这是一个特殊/例外情况。它说 Bedrock 是 AWS 运营的平台，并指向 AWS 文档以获取具体的每模型最小值、失败行为和字段名称。这暗示了 Bedrock 的行为与其他平台 *不同*。
+            *   更新了故障排查列表以反映“你的模型和平台”（而不仅仅是模型）。
+
+3.  **综合变更（头脑风暴）：**
+    *   *什么变了？* 缓存限制表的细化。
+    *   *关键点：* Claude Sonnet 4.6 的最小缓存大小从 2048 降至 1024。这对该模型来说是件好事。
+    *   *关键点：* 平台区分。文档明确列出了 API、AWS Platform、Vertex AI、Foundry 的新规则。
+    *   *关键点：* Bedrock 被特别排除/例外化。开发者在 Bedrock 上必须查看 AWS 文档，因为“缓存限制”章节可能不适用于它（或者至少，最小值/字段名称不同）。
+    *   *原因？* 准确性，处理不同云提供商之间的实现差异（特别是 Bedrock 的运作方式似乎不同）。
+
+4.  **起草输出（中文迭代完善）：**
+
+    *   **1. Overall Summary（总体摘要）：**
+        *   *草稿：* 文档更新了 Prompt Caching 的最小 token 限制，明确了不同平台（AWS Bedrock 除外）的规则，降低了 Claude Sonnet 4.6 的缓存门槛。
+        *   *润色：* 更新了 Prompt Caching（提示词缓存）的最小 token 限制，区分了支持平台与 Amazon Bedrock 的不同行为，并显著降低了 Claude Sonnet 4.6 的缓存门槛。
+
+    *   **2. Key Themes（关键主题）：**
+        *   *Theme 1: 降低阈值。* Claude Sonnet 4.6 降至 1024。
+        *   *Theme 2: 平台碎片化。* API/Vertex/Foundry 遵循一套规则；Bedrock 则不同。
+        *   *Theme 3: 精确性。* 明确说明“可用性因平台而异”。
+        *   *草稿：*
+            *   **平台差异化**：明确区分了 Claude API/Vertex AI/Foundry 与 Amazon Bedrock 在缓存限制上的差异，Bedrock 需参考独立文档。
+            *   **缓存门槛降低**：将 Claude Sonnet 4.6 的最小可缓存长度从 2048 tokens 下调至 1024 tokens。
+            *   **行为透明化**：强调了当缓存长度不足时请求会静默成功（无错误），增加了开发者验证建议。
+
+    *   **3. Impact Level（影响级别）：**
+        *   *评级：* Medium（中）。
+        *   *推理：* Sonnet 4.6 的降低是一个积极的功能变更。Bedrock 的分离是一个关键的澄清，防止了那些在 Bedrock 上但遵循此处通用规则的开发者出现 Bug。
+        *   *草稿：* **Medium (中等)**。Claude Sonnet 4.6 的缓存门槛降低有利于成本优化，但对 Amazon Bedrock 用户的特殊说明意味着部分开发者需要查阅特定文档以避免配置错误。
+
+    *   **4. Action Items for Developers（开发者行动项）：**
+        *   *Action 1:* Bedrock 用户检查 AWS 文档。
+        *   *Action 2:* Sonnet 4.6 用户可以利用新的 1024 限制。
+        *   *Action 3:* 检查缓存字段 (`cache_creation_input_tokens`) 以确保实际上达到了最小值。
+        *   *草稿：*
+            *   **Bedrock 用户**：请务必查阅 [AWS Bedrock 文档](https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-caching.html)，因为本文档列出的限制和行为不适用于 Bedrock。
+            *   **Sonnet 4.6 用户**：利用新降低的 1,024 tokens 门槛优化缓存策略，在较小上下文中也能启用缓存。
+            *   **通用检查**：在调试缓存时，检查响应中的 `cache_creation_input_tokens` 和 `cache_read_input_tokens` 字段，确认缓存是否因长度不足而静默失败。
+
+5.  **最终审查：**
+    *   是否覆盖了所有变更？是（Sonnet 4.6 降低，Bedrock 警告，平台列表）。
+    *   是否简洁？是。
+    *   是否为中文？是。
+    *   格式是否正确？是。
+
+6.  **最终润色（输出生成）：**（根据起草的要点继续生成回答）。</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-caching.html" class="page-link">build-with-claude/prompt-caching.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+9</span>
+                            <span class="removed">-8</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
+        
+    </div>
+</body>
+</html>
