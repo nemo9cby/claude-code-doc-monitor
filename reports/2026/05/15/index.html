@@ -118,9 +118,245 @@
 
         <header>
             <h1>Changes on 2026-05-15</h1>
-            <p class="meta">10 total changes in 3 runs</p>
+            <p class="meta">17 total changes in 4 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">18:50 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更分析
+
+### 1. 总体摘要
+此次更新主要简化了 CLI 的认证流程（推荐直接使用 API Key 替代 OAuth），回滚了所有 Java SDK 版本，并增强了 `/feedback` 命令的隐私控制能力。同时引入了大量针对 Windows PowerShell、后台会话及 Agent 交互的错误修复。
+
+### 2. 关键主题
+*   **认证流程简化**：入门文档移除了基于浏览器的 OAuth 登录流程（`ant auth login`），转为推荐直接设置 `ANTHROPIC_API_KEY` 环境变量。
+*   **Java SDK 版本回退**：所有 Java 相关的 SDK（包括标准版、Bedrock、Vertex、Foundry）版本号均从 `2.32.0` 回退至 `2.30.0`。
+*   **隐私与反馈机制升级**：`/feedback` 命令现在允许用户选择发送多少历史记录（仅当前会话、24小时或7天）。对于非 Anthropic 直连的用户（如 Bedrock/Vertex），反馈将默认写入本地归档文件而不是上传云端，且敏感信息会被自动脱敏。
+*   **v2.1.143 版本修复**：修复了大量关键 Bug，包括 Windows 下的 PowerShell 默认启用策略、后台会话 的模型保留、Agent 视图的无响应问题等。
+
+### 3. 影响等级：Medium (中等)
+*   **理由**：Java SDK 的回退表明 `2.32.0` 可能存在未说明的缺陷或发布错误，这对 Java 开发者是一个强信号。认证方式的改变改变了新用户的上手路径。虽然大部分是错误修复，但 SDK 版本波动需要开发者注意。
+
+### 4. 开发者行动建议
+*   **Java 开发者**：立即检查项目依赖，如果使用了 `2.32.0` 版本，请**立即回退至 `2.30.0`** 以避免潜在问题。
+*   **新用户**：在配置 CLI 时，忽略旧文档中的登录步骤，直接使用 `export ANTHROPIC_API_KEY=&#39;your-api-key-here&#39;` 进行配置。
+*   **企业/隐私敏感用户**：知晓在使用 Bedrock 或 Vertex 等第三方提供商时，`/feedback` 数据现在默认保存于本地 (`~/.claude/feedback-bundles/`)，不会自动上传。
+*   **Windows 用户**：注意 v2.1.143 中 PowerShell 工具默认启用并绕过执行策略 (`Bypass`)。如果这不符合你的安全策略，请设置 `CLAUDE_CODE_POWERSHELL_RESPECT_EXECUTION_POLICY=1`。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">用户希望我分析一份文档变更清单（主要是针对 &#34;Claude Code&#34; 工具）。我需要用中文提供简洁、深刻的分析，并以 Markdown 格式呈现。
+
+**1. 逐页分析：**
+
+*   **Page: `data-usage.md`**
+    *   **变更：**
+        *   更新了 `/feedback` 命令的描述。此前它发送完整的对话历史。现在允许用户选择包含多少历史记录（仅限当前会话为默认，或 24 小时/7 天）。
+        *   增加了使用第三方提供商（Bedrock、Vertex）或未配置 Anthropic 凭证时的逻辑。在这些情况下，反馈会写入本地归档（`~/.claude/feedback-bundles/`）而不是发送到 Anthropic。在写入本地归档之前会隐藏 API 密钥/令牌。用户稍后可以手动发送此文件。
+    *   **重要性：** 增强了隐私/用户控制。对于非 Anthropic 用户来说是一个重大的行为变更（离线反馈）。
+
+*   **Page: `get-started.md`**
+    *   **变更：**
+        *   在先决条件中增加了 &#34;API key&#34;。
+        *   修改了 CLI 的 &#34;Steps&#34;（步骤）选项卡。
+            *   *新增：* 步骤 1 &#34;设置你的 API 密钥&#34;（使用 `export ANTHROPIC_API_KEY`）。
+            *   *移除：* 步骤 2 &#34;Authenticate&#34;（使用 `ant auth login` 和 OAuth 流程）。
+        *   Java SDK 版本回退：`2.32.0` -&gt; `2.30.0`（在 Gradle 和 Maven 代码块中）。
+    *   **重要性：** 从 OAuth 登录（`ant auth login`）转变为基于环境密钥的认证，作为入门的主要方式。Java 版本回退可能暗示该版本有问题并已回撤，或者文档发生冲突（需要在变更日志中验证，但看起来 `get-started.md` 降级了）。
+
+*   **Page: `api/client-sdks.md`**
+    *   **变更：**
+        *   Java SDK 版本回退：`2.32.0` -&gt; `2.30.0`。
+    *   **重要性：** 与 `get-started.md` 一致。
+
+*   **Page: `build-with-claude/claude-on-amazon-bedrock.md`**
+    *   **变更：**
+        *   Java Bedrock SDK 版本回退：`2.32.0` -&gt; `2.30.0`。
+    *   **重要性：** 版本变更一致性。
+
+*   **Page: `build-with-claude/claude-on-vertex-ai.md`**
+    *   **变更：**
+        *   Java Vertex SDK 版本回退：`2.32.0` -&gt; `2.30.0`。
+    *   **重要性：** 版本变更一致性。
+
+*   **Page: `build-with-claude/claude-in-microsoft-foundry.md`**
+    *   **变更：**
+        *   Java Foundry SDK 版本回退：`2.32.0` -&gt; `2.30.0`。
+    *   **重要性：** 版本变更一致性。
+
+*   **Page: `CHANGELOG.md.md`**
+    *   **变更：**
+        *   增加了 `2.1.143` 版本的条目。
+        *   **提及的亮点：** 插件依赖执行，上下文成本预估，`worktree.bgIsolation` 设置，PowerShell 绕过策略，会话保留的模型/努力级别，大量的 Bug 修复（OAuth，Windows 终端，停止钩子，删除会话等）。
+        *   **关键点：** &#34;PowerShell tool now enabled by default on Windows for Bedrock, Vertex, and Foundry users&#34;。
+        *   *关于 Java SDK 的说明：* 更新日志并未明确提及 &#34;Java SDK 2.32.0 回退至 2.30.0&#34;，但文档变更显示了这一点。这表明 2.32.0 可能被意外发布或发现有问题，因此被回退了。我会将此视为 &#34;版本回退&#34;。
+
+**2. 综合与分组：**
+
+*   **主题 1：认证变更（高重要性）。** &#34;快速入门&#34;指南不再推广 `ant auth login`（OAuth），转而支持使用环境变量设置 `ANTHROPIC_API_KEY`。这简化了初始设置，并优先考虑 CI/CD 中标准的基于密钥的认证。
+*   **主题 2：隐私与反馈（中重要性）。** `/feedback` 命令现在是数据感知的（用户选择历史记录范围）且提供商感知的（第三方提供商的本地归档）。
+*   **主题 3：SDK 版本回退（中重要性）。** Java SDK（以及 Bedrock/Vertex/Foundry 的变体）版本从 `2.32.0` 回退至 `2.30.0`。开发者应检查他们是否在 2.32.0 上，如果是，则需要降级或等待修复。
+*   **主题 4：功能性增强与 Bug 修复（变更日志）。** 大量修复，特别是针对 Windows/PowerShell、后台会话和代理。
+
+**3. 起草分析（中文）：**
+
+*   **Summary（摘要）：** 本次文档更新主要围绕认证流程的简化（从 OAuth 转向 API Key）、Java SDK 版本的回退以及数据隐私控制的增强。同时包含了大量的功能修复和改进（v2.1.143）。
+*   **Key Themes（关键主题）：**
+    *   **认证方式变更**：入门文档移除了 `ant auth login` (OAuth)，改为直接推荐设置 `ANTHROPIC_API_KEY` 环境变量。
+    *   **SDK 版本回退**：所有 Java SDK（标准版、Bedrock、Vertex、Foundry）版本从 `2.32.0` 回退至 `2.30.0`。
+    *   **反馈机制隐私升级**：`/feedback` 命令现在允许选择历史记录范围，且对非 Anthropic 提供商支持本地归档而非直接上传。
+    *   **功能修复**：v2.1.143 版本修复了大量 Windows/PowerShell 相关问题、后台会话问题及 Agent 管理问题。
+*   **Impact Level（影响等级）：** Medium。
+    *   理由：认证流程的改变是新用户的“心理突破点”。SDK 版本回退会影响 Java 开发者。其余变更属于修复/改进。
+*   **Action Items（待办事项）：**
+    *   Java 开发者：如果你升级到了 2.32.0，请回退到 2.30.0。
+    *   新用户：遵循新的 `export ANTHROPIC_API_KEY` 指令，而不是 OAuth 登录。
+    *   隐私敏感型用户：查阅新的 `/feedback` 行为，特别是如果你使用的是 Bedrock/Vertex（数据现在默认保留本地）。
+    *   Windows 用户：查看变更日志中默认启用 PowerShell 绕过执行策略的说明。
+
+**4. 润色（Markdown 格式）：**
+
+再次检查提示要求：&#34;世界级程序员... 简洁、深刻... 侧重对开发者重要的内容... 中文回复。&#34;
+
+*   *摘要：* 保持紧凑。
+*   *主题：* 使用粗体标题。
+*   *影响：* 确定等级为 &#34;Medium&#34;（相对于纯修复而言，SDK 回退是重要/破坏性的）。
+*   *行动：* 可执行的要点。
+
+**Java SDK 问题的最终检查：**
+变更日志未提及 2.32.0 的发布或回退。然而，4 个不同文件（标准、Bedrock、Vertex、Foundry）中从 2.32 到 2.30 的同步回退强烈暗示了一次撤回。我会将其作为关键操作项。
+
+**认证问题的最终检查：**
+这很明确。文档已将步骤 2（认证）替换为步骤 1（设置密钥）。
+
+**反馈问题的最终检查：**
+隐私方面的改进。
+
+让我们生成输出。
+
+*   **总体摘要：** 此次更新主要简化了 CLI 认证流程（改用 API Key 替代 OAuth），回退了 Java SDK 版本，并增强了 `/feedback` 命令的隐私控制功能。
+*   **关键主题：**
+    *   **认证流程变更**：入门文档移除了 OAuth 登录（`ant auth login`），推荐直接使用环境变量 `ANTHROPIC_API_KEY`。
+    *   **Java SDK 版本回退**：所有 Java 相关 SDK（标准版、Bedrock、Vertex、Foundry）版本号从 `2.32.0` 回退至 `2.30.0`。
+    *   **隐私与反馈优化**：`/feedback` 命令增加了历史记录范围选择，并针对第三方云提供商改为本地归档模式。
+    *   **v2.1.143 版本修复**：修复了大量 Windows PowerShell、后台会话 及 Agent 交互相关的 Bug。
+*   **影响等级：** Medium（中等）
+    *   **理由**：Java SDK 的回退意味着 2.32.0 可能存在问题，依赖该版本的 Java 开发者需要立即降级。认证流程的改变会影响所有新用户的上手体验。
+*   **行动建议：**
+    *   **Java 开发者**：检查你的依赖版本，如果当前使用的是 `2.32.0`，请立即回退至 `2.30.0`。
+    *   **新用户**：忽略旧的 `ant auth login` 文档，直接配置 `ANTHROPIC_API_KEY` 环境变量。
+    *   **隐私合规**：了解 `/feedback` 命令的新行为，特别是在使用 Bedrock/Vertex 等非 Anthropic 直连服务时，反馈数据现在默认存储在本地。
+    *   **Windows 用户**：查阅 v2.1.143 更新日志，PowerShell 工具现在默认在 Windows 上启用并绕过执行策略，如需旧行为请设置环境变量。</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/data-usage.html" class="page-link">data-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/get-started.html" class="page-link">get-started.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-8</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/client-sdks.html" class="page-link">api/client-sdks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-on-amazon-bedrock.html" class="page-link">build-with-claude/claude-on-amazon-bedrock.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-on-vertex-ai.html" class="page-link">build-with-claude/claude-on-vertex-ai.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-in-microsoft-foundry.html" class="page-link">build-with-claude/claude-in-microsoft-foundry.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+34</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">17:54 EST</div>
