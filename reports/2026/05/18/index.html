@@ -118,9 +118,153 @@
 
         <header>
             <h1>Changes on 2026-05-18</h1>
-            <p class="meta">6 total changes in 2 runs</p>
+            <p class="meta">9 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">17:06 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 1. Overall Summary
+此次文档更新主要阐明了 JetBrains 和 VS Code 集成中自动上下文共享的隐私边界，明确 `Read` deny rules 可用于阻止敏感文件被发送；同时更新了 1M 上下文窗口的计费术语并细化了 Subagent 模型配置的说明。
+
+### 2. Key Themes
+*   **增强隐私控制与数据安全**：在 JetBrains 和 VS Code 文档中，明确指出了 IDE 集成会自动将当前选区或打开的文件路径发送给 Claude。文档强调了现有的 [`Read` deny rules](/en/permissions#read-and-edit) 同样适用于此场景，开发者可以通过配置规则来防止 `.env` 等敏感文件被意外共享。
+*   **计费术语更新**：在 `model-config.md` 中，将涉及 1M 上下文计费的术语从 &#34;extra usage&#34; 统一更新为 &#34;usage credits&#34;，反映了计费系统术语的规范化。
+*   **配置项优先级澄清**：对于 `CLAUDE_CODE_SUBAGENT_MODEL` 环境变量，文档明确指出它会覆盖 subagent 定义中的 frontmatter 设置以及单次调用的 `model` 参数，给予了开发者更底层的控制权。
+
+### 3. Impact level
+**Medium**
+虽然这些主要是文档层面的澄清和术语更新，并未引入破坏性变更，但关于 IDE 自动上下文共享与权限规则关联的说明非常重要。这对关注代码隐私和企业合规的开发者而言，是至关重要的安全配置信息。
+
+### 4. Action items for developers
+*   **审查权限配置**：如果你在 IDE 中使用 Claude Code，请检查现有的 [`Read` deny rules](/en/permissions#read-and-edit) 配置，确保 `.env`、密钥文件等敏感路径已被正确屏蔽，防止通过选区或当前文件标签页泄露。
+*   **留意计费术语变化**：在使用 1M 上下文模型时，注意账单或用量报告中可能出现的 &#34;usage credits&#34; 术语变更。
+*   **利用环境变量控制 Subagent**：如果你需要强制所有 Subagent 使用特定模型，可以配置 `CLAUDE_CODE_SUBAGENT_MODEL` 环境变量，它具有最高优先级。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">用户希望我分析一份文档变更摘要，重点在于对开发者的实际影响，并使用中文回复。
+
+**1. 分析每个页面的变更：**
+
+*   **Page: `jetbrains.md`**
+    *   *变更*：在“Selection context”这一项中，增加了一个句子，说明 `Read` deny rules 会阻止匹配文件被共享。
+    *   *含义*：当在 JetBrains IDE 中使用 Claude Code 时，如果开发者选中了文本或打开了某个标签页，它会被自动共享。现在，文档明确了如果存在针对该文件的 `Read` deny rule，则共享会被阻止。这是关于隐私/安全控制的关键澄清。
+
+*   **Page: `model-config.md`**
+    *   *变更*：将“extra usage”（额外使用量）替换为“usage credits”（使用额度），用于指代通过 1M 上下文模型进行计费的方式。还在表格中略微更新了 `CLAUDE_CODE_SUBAGENT_MODEL` 的描述，注明它覆盖 per-invocation 参数和 frontmatter 定义。
+    *   *含义*：
+        *   **术语变更**：从“extra usage”变为“usage credits”。这可能是为了与营销/计费术语保持一致。它并不改变关于*如何*计费的技术机制，只是改变了名称。
+        *   **Subagent 模型覆盖**：阐明了环境变量 `CLAUDE_CODE_SUBAGENT_MODEL` 强制覆盖其他配置（subagent 内部的 frontmatter 或 per-invocation 参数）。这增强了开发者在控制底层代理行为方面的能力。
+
+*   **Page: `vs-code.md`**
+    *   *变更*：增加了一个关于“Selection and open-file context”（选区和打开文件上下文）的新段落，解释了当前选区和活动文件路径会被共享。关键在于，它明确指出 `Read` deny rules（读取拒绝规则）可以防止这种共享（针对敏感文件如 `.env`）。
+    *   *含义*：与 `jetbrains.md` 的变更类似，这明确了连接时的自动上下文共享行为。它通过允许使用现有的权限系统（`Read` deny rules）来防止敏感文件（如 `.env`）通过选区或当前标签页被意外泄露，从而增强了隐私性。
+
+**2. 综合主题：**
+
+*   **主题 1：隐私与控制（重要）**：`jetbrains.md` 和 `vs-code.md` 的更新都集中在 IDE 的自动上下文共享机制上。两者都澄清了现有的“Read deny rules”充当守门人的角色，防止敏感文件被共享，即使它们被打开或被选中。
+*   **主题 2：术语与配置（次要）**：`model-config.md` 更新了计费术语，并澄清了针对 subagents 的特定环境变量的行为。
+
+**3. 确定影响级别：**
+
+*   是破坏性变更吗？不。
+*   是高优先级吗？对于那些关注数据隐私/安全的用户来说，隐私澄清具有高优先级。对于普通用户来说，它是低到中等优先级。
+*   术语变更属于低优先级。
+*   *总体评估*：**中等**。隐私更新显著，因为它们解决了使用 IDE 集成时常见的担忧（“我的 `.env` 文件是否被发送到了 AI？”）。
+
+**4. 构思行动项：**
+
+*   检查 `Read` deny rules 配置，确保敏感文件（如 `.env`）被正确保护，特别是在使用 IDE 集成时。
+*   如果使用 1M 上下文模型，需注意计费显示中可能发生的术语变更。
+*   如果希望统一控制 subagent 模型，可利用 `CLAUDE_CODE_SUBAGENT_MODEL`。
+
+**5. 起草中文回复（ Markdown 格式）：**
+
+*   *摘要*：此次文档更新主要阐明了 IDE 集成中自动上下文共享的隐私控制机制，并更新了模型配置中的计费术语。
+*   *关键主题*：
+    *   **隐私与权限控制**：重点说明了 JetBrains 和 VS Code 扩展会自动分享选区和当前文件，但受到 `Read` deny rules（读取拒绝规则）的限制。
+    *   **配置与计费**：统一了 1M 上下文计费术语，明确了 Subagent 模型的环境变量优先级。
+*   *影响级别*：中等。主要是澄清现有行为，帮助开发者更好地保护敏感数据，未引入破坏性变更。
+*   *行动项*：
+    *   配置 `Read` deny rules 以保护 `.env` 等敏感文件在 IDE 集成中被误传。
+    *   留意账单/用量显示中“usage credits”术语的变化。
+    *   如需统一控制子代理模型，使用 `CLAUDE_CODE_SUBAGENT_MODEL`。
+
+**6. 优化内容：**
+
+*   确保 `jetbrains.md` 和 `vs-code.md` 之间的联系清晰可见。
+*   确保术语变更清晰明了（“extra usage” -&gt; “usage credits”）。
+*   确保语气符合“世界级程序员”的特点。
+
+*起草过程中的自我修正*：我最初认为 `model-config.md` 的变更只是表格格式，但仔细观察后，文本从 &#34;extra usage&#34; 变为了 &#34;usage credits&#34;。这是一个值得注意的语义变化，可能是产品层面的变更。Subagent 变量的描述也变得更具描述性，说明它覆盖了 frontmatter。
+
+让我们组装最终输出。
+
+**结构：**
+1.  **Overall Summary**: 指向隐私控制/IDE 上下文共享和术语更新。
+2.  **Key Themes**:
+    *   IDE 上下文隐私（Read deny rules 适用于自动共享）。
+    *   计费术语更新。
+    *   Subagent 配置清晰度。
+3.  **Impact Level**: 中等（主要针对安全/隐私）。
+4.  **Action Items**:
+    *   更新权限设置。
+    *   留意术语变更。
+    *   检查 subagent 配置。
+
+一切看起来都很可靠。继续进行翻译和格式化。</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/jetbrains.html" class="page-link">jetbrains.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/model-config.html" class="page-link">model-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+13</span>
+                            <span class="removed">-13</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/vs-code.html" class="page-link">vs-code.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">15:40 EST</div>
