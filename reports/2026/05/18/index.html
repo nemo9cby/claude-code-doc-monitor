@@ -118,9 +118,148 @@
 
         <header>
             <h1>Changes on 2026-05-18</h1>
-            <p class="meta">2 total changes in 1 run</p>
+            <p class="meta">6 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">15:40 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 文档变更分析
+
+#### 1. 总体摘要
+本次更新主要澄清了 **Explore** 和 **Plan** 内置子代理的特殊上下文加载行为（即跳过 `CLAUDE.md` 和 git status），并补充了桌面版应用中特定终端命令不可用的限制说明。
+
+#### 2. 核心变更主题
+*   **Explore 与 Plan 的上下文隔离**：明确指出这两个内置代理为了保持轻量和快速，**不会**加载 `CLAUDE.md` 文件和 git 状态。这与 fork 的技能行为一致，且与其他代理不同。
+*   **子代理启动机制详解**：新增了关于子代理启动时上下文构成的详细说明，强调了子代理具有隔离的上下文窗口，并详细列出了加载的内容层级。
+*   **桌面版功能限制**：明确了桌面版 Code 标签页中不支持终端交互类命令（如 `/permissions`、`/config` 等），需通过 CLI 或直接编辑配置文件进行管理。
+
+#### 3. 影响级别
+**中等 (Medium)**
+**理由**：虽然不是破坏性的 API 变更，但它修正了开发者对 `Explore` 和 `Plan` 代理行为的潜在误解。如果开发者依赖 `CLAUDE.md` 来控制这些代理的行为，可能会发现规则未生效。此外，桌面版用户需要调整部分配置工作流。
+
+#### 4. 开发者行动项
+*   **审查 Skills 配置**：检查使用了 `context: fork` 且指定 `agent: Explore` 或 `agent: Plan` 的 Skills。如果依赖 `CLAUDE.md` 中的规则，需要将这些规则显式写在 Skills 的任务提示中，因为它们不会被自动加载。
+*   **调整桌面版工作流**：若需在桌面版中修改权限或配置，请直接编辑 `settings` 文件或使用独立 CLI，不要尝试在 Code 标签页中使用 `/config` 等命令。
+*   **优化代理提示词**：在使用 Explore/Plan 代理时，若需忽略特定目录（如 `vendor/`）或遵循特定规则，必须在提示词中显式声明，不能仅依赖项目根目录的 `CLAUDE.md`。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Understand the Goal**: The user wants a concise analysis of a set of documentation changes across four pages (`desktop.md`, `skills.md`, `slash-commands.md`, `sub-agents.md`). The response needs to be in Chinese, formatted as markdown, and focused on what matters to developers.
+
+2.  **Analyze the Diffs**:
+
+    *   **`desktop.md`**: Added a limitation note. Specifically, built-in terminal-dialog commands (`/permissions`, `/config`, `/agents`, `/doctor`) are not available in the Desktop Code tab. Users need to edit settings files or use the CLI.
+    *   **`skills.md`**: Updated a comparison table regarding &#34;Skills with `context: fork`&#34;. It now clarifies that `CLAUDE.md` is *not* loaded when the agent is `Explore` or `Plan`. Added explanatory text that these built-in agents skip `CLAUDE.md` and git status to keep context small.
+    *   **`slash-commands.md`**: Same exact changes as `skills.md`. This makes sense because skills and slash commands often interact or share similar context-loading behaviors.
+    *   **`sub-agents.md`**:
+        *   Added a note in &#34;Built-in subagents&#34; section: Explore and Plan skip `CLAUDE.md` and git status.
+        *   Added a whole new subsection &#34;What loads at startup&#34;:
+            *   Explains that subagents have fresh/isolated context.
+            *   Lists what *is* loaded (System prompt, Task message, CLAUDE.md/memory, Git status, Preloaded skills).
+            *   Explicitly states Explore/Plan are the *only* ones skipping CLAUDE.md and git status.
+            *   Explains that the main conversation reads results with full context, so usually rules don&#39;t need to be in the subagent, but if they do, they need to be restated in the prompt.
+
+3.  **Synthesize the Changes (The &#34;Why&#34;)**:
+    *   The core theme is **Context Management and Scope**.
+    *   Specifically, how `Explore` and `Plan` agents (built-in) behave differently regarding `CLAUDE.md` and git status compared to other agents or the main conversation.
+    *   The goal is performance optimization (keeping context small/fast/cheap).
+    *   There is also a UI limitation clarification for Desktop users regarding specific slash commands.
+
+4.  **Drafting the Sections**:
+
+    *   **Overall Summary**: Focus on clarifications regarding subagent behavior (specifically Explore/Plan) and limitations in the Desktop app.
+    *   **Key Themes**:
+        *   *Context Optimization*: Explore and Plan agents intentionally skip `CLAUDE.md` and git status.
+        *   *Desktop Limitations*: Terminal slash commands (`/config`, etc.) don&#39;t work in the Desktop Code tab.
+        *   *Subagent Lifecycle*: Detailed explanation of what data is loaded when a subagent starts.
+    *   **Impact Level**: Medium. It&#39;s not code-breaking, but it changes how developers configure agents (especially `Explore` and `Plan`) and how they debug issues (thinking rules are loaded when they aren&#39;t). It also affects Desktop workflow.
+    *   **Action Items**:
+        *   Update Skills/Subagents configuration if relying on `CLAUDE.md` for Explore/Plan.
+        *   Use CLI or direct file editing for config/permissions in Desktop.
+        *   Restate critical rules in prompts if using Explore/Plan and context is vital.
+
+5.  **Translating to Chinese (Mental Draft &amp; Refinement)**:
+
+    *   *Summary*: 本次更新主要澄清了内置代理（Explore 和 Plan）的上下文加载行为，并补充了桌面版应用的限制说明。
+    *   *Themes*:
+        *   上下文隔离与优化：Explore 和 Plan 代理会跳过 `CLAUDE.md` 和 git status。
+        *   桌面版功能限制：某些终端对话框命令在桌面版不可用。
+        *   启动上下文详解：明确了子代理启动时加载的具体内容。
+    *   *Impact*: Medium (中等)。主要是澄清文档，对逻辑有影响但非破坏性。
+    *   *Actions*:
+        *   检查使用了 Explore/Plan 的 Skill 配置，因为它们不再加载 CLAUDE.md。
+        *   桌面版用户需改用 CLI 或直接编辑文件来管理权限/配置。
+        *   确保 Explore/Plan 任务的提示词中包含必要规则。
+
+6.  **Final Polish (Formatting)**: Ensure markdown structure is clean.
+
+    *   *Self-Correction during drafting*: The changes in `skills.md` and `slash-commands.md` are identical. I should group them under the &#34;Explore/Plan context behavior&#34; theme to avoid repetition.
+
+7.  **Final Output Generation** (matching the requested format):
+    (Proceed to generate the markdown response).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/desktop.html" class="page-link">desktop.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+11</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">13:55 EST</div>
