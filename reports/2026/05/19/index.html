@@ -118,9 +118,137 @@
 
         <header>
             <h1>Changes on 2026-05-19</h1>
-            <p class="meta">24 total changes in 4 runs</p>
+            <p class="meta">25 total changes in 5 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">16:26 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">```markdown
+1. **Overall Summary**
+文档更新阐明了 `--disallowedTools` 参数的语义，现在支持“作用域拒绝规则”，允许开发者拦截特定的工具调用（如 `Bash(rm *)`）而无需完全禁用该工具，从而在保持功能的同时提升安全性。
+
+2. **Key Themes**
+*   **细粒度权限控制**：从工具级别的“全有或全无”禁用，升级为对特定参数或命令模式的精准拦截。
+*   **安全与可用性平衡**：允许保留通用工具（如 Bash）的能力，同时仅拦截高危操作，避免因噎废食。
+*   **语义规范化**：明确了“从上下文中移除工具”与“保留工具但拒绝特定调用”的机制区别。
+
+3. **Impact Level**: **High**
+**Reasoning**: 这是一个功能性增强，显著改变了开发者配置 AI 行为的能力。它解决了之前为了安全必须牺牲工具便利性的痛点（例如为了防止误删文件而禁用 Bash），提供了更强大的安全沙箱配置手段。
+
+4. **Action items**
+*   **审查现有配置**：检查是否为了防止特定危险命令（如 `rm` 或 `git push`）而粗暴地禁用了整个工具，限制了 Claude 的能力。
+*   **实施作用域规则**：更新 CLI 调用脚本，使用类似 `Bash(rm *)` 的语法来限制危险操作，而非移除工具。
+*   **理解机制差异**：区分使用“裸工具名”（彻底移除上下文）与“作用域规则”（拒绝匹配调用）的适用场景。
+```</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request**:
+    *   **Role**: World-class programmer analyzing documentation changes.
+    *   **Input**: A diff for a single file (`cli-reference.md`), specifically a change to the description of the `--disallowedTools` flag.
+    *   **Output Format**: Markdown.
+    *   **Language**: Chinese.
+    *   **Structure**: 1. Overall Summary, 2. Key Themes, 3. Impact Level with reasoning, 4. Action items.
+
+2.  **Analyze the Diff**:
+    *   **File**: `cli-reference.md`.
+    *   **Flag**: `--disallowedTools`.
+    *   **Old Description**: &#34;Tools that are removed from the model&#39;s context and cannot be used&#34; (被移除且不能使用的工具).
+    *   **New Description**: &#34;Deny rules. A bare tool name removes that tool from the model&#39;s context. A scoped rule such as `Bash(rm *)` leaves the tool available and denies only matching calls&#34; (拒绝规则。仅工具名会将其从上下文中移除。作用域规则如 `Bash(rm *)` 则保留工具可用，仅拒绝匹配的调用).
+    *   **Example Command**: Remained the same (`&#34;Bash(git log *)&#34; &#34;Bash(git diff *)&#34; &#34;Edit&#34;`), which suggests the example demonstrates both capabilities (global edit removal vs scoped bash blocking) or simply wasn&#39;t updated to reflect the nuance perfectly (though the example uses scoped rules for Bash, which aligns with the new description of leaving the tool available but denying calls).
+
+3.  **Synthesize the Change**:
+    *   This is a significant functional update to the `--disallowedTools` CLI flag.
+    *   Previously, it seemed like a blanket ban list for tools.
+    *   Now, it supports &#34;scoped rules&#34; (scoped deny rules). This means developers can allow a tool (like `Bash`) but forbid specific dangerous commands within it (like `rm *`), rather than disabling the entire `Bash` tool.
+    *   This is a &#34;deny rules&#34; system upgrade.
+
+4.  **Drafting the Content (in Chinese)**:
+
+    *   **Overall Summary**: The documentation clarifies and expands the `--disallowedTools` flag to support scoped deny rules, allowing developers to block specific dangerous tool calls without disabling the entire tool.
+    *   **Key Themes**:
+        *   Granularity: Moving from tool-level blocking to command/argument-level blocking.
+        *   Security/Control: Enhanced control over what the AI can execute.
+        *   Precision: Differentiating between removing a tool vs restricting specific usage patterns.
+    *   **Impact Level**: High (or Medium-High). Reason: It fundamentally changes how the flag can be used, enabling more powerful security sandboxes without breaking functionality. It adds a new dimension (scoped rules) to the existing feature. Let&#39;s stick with **High** because it unlocks a new capability (allowing tools while blocking specific calls) that was previously ambiguous or impossible.
+    *   **Action Items**:
+        *   Review existing usage of `--disallowedTools` if you were using it to block specific dangerous commands (maybe you were removing `Bash` entirely to stop `rm` - now you can be smarter).
+        *   Update scripts to use scoped rules for better utility (e.g., allow `Bash` but block `rm`, `sudo`, etc.).
+        *   Understand the distinction between &#34;removing context&#34; vs &#34;denying calls&#34;.
+
+5.  **Refining the Language (Professional Programmer Persona)**:
+
+    *   *Summary*: `--disallowedTools` 的文档更新揭示了该参数的功能增强，现在支持“作用域拒绝规则”，允许在不完全禁用工具的情况下拦截特定的危险调用。
+    *   *Themes*: 细粒度权限控制, 安全沙箱, 功能描述精确化.
+    *   *Impact*: High. The change implies a shift from a simple blacklist to a flexible policy engine for tool usage.
+    *   *Actions*: Check current scripts. Utilize scoped rules. Read the new semantics carefully.
+
+6.  **Final Polish (Markdown formatting)**:
+
+    *   Check against constraints: Chinese response, concise, max 5 action items.
+
+    *   *Self-Correction during drafting*: Is it a &#34;Breaking Change&#34;? Probably not. If you used `&#34;Edit&#34;`, it still removes Edit from context. The new description clarifies that `&#34;Bash(git log)&#34;` acts differently than just removing Bash. It&#39;s an enhancement/clarification.
+
+7.  **Final Output Generation**: (Proceed to generate output based on these thoughts).
+
+    *   **Summary**: 文档更新了 `--disallowedTools` 参数，将其从单纯的工具黑名单细化为支持“作用域规则”的拒绝策略，允许在不移除工具的情况下拦截特定调用。
+    *   **Themes**: 细粒度权限控制, 安全性增强, 功能语义澄清.
+    *   **Impact**: High. Reason: It fundamentally improves control over AI agent behavior by allowing &#34;allow-by-default, deny-specific&#34; patterns rather than just &#34;deny-all&#34; for a tool.
+    *   **Actions**:
+        *   Audit current usage of `--disallowedTools` to see if you can be more specific.
+        *   Implement scoped rules (e.g., `Bash(rm *)`) to block dangerous commands while keeping the tool functional.
+        *   Differentiate between removing a tool from context (bare name) vs blocking specific calls (scoped).
+
+8.  **Translation check**:
+    *   &#34;Scoped rule&#34; -&gt; 作用域规则 / 范围规则.
+    *   &#34;Bare tool name&#34; -&gt; 仅工具名 / 裸工具名.
+    *   &#34;Context&#34; -&gt; 上下文.
+
+    *Let&#39;s write it out.*
+
+    1. **Overall Summary**: 文档更新阐明了 `--disallowedTools` 参数的语义，现在支持“作用域拒绝规则”，允许开发者拦截特定的工具调用（如 `rm *`）而无需完全禁用该工具。
+    2. **Key Themes**:
+        *   **细粒度控制**：从工具级别的禁用升级为对特定参数或命令模式的拦截。
+        *   **安全与实用性平衡**：允许保留工具（如 Bash）的通用功能，同时仅拦截高危操作。
+        *   **语义澄清**：明确了“移除上下文”与“拒绝调用”的区别。
+    3. **Impact Level**: **High**
+       **Reasoning**: 这不仅是一个文档更新，更暗示了底层能力的重大增强。它解锁了更精细的安全沙箱配置，使得开发者不再需要在“完全禁止工具”和“允许所有操作”之间做非此即彼的选择。
+    4. **Action items**:
+        *   **审查现有配置**：检查当前脚本中是否为了防止某些危险命令（如 `git push` 或 `rm`）而粗暴地禁用了整个 `Bash` 工具。
+        *   **采用作用域规则**：更新配置以使用类似 `Bash(rm *)` 的语法，既保留工具可用性又限制风险。
+        *   **区分使用场景**：区分何时应使用“裸工具名”（彻底移除）与“作用域规则”（限制调用）。
+
+    Looks good.</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/cli-reference.html" class="page-link">cli-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">14:00 EST</div>
