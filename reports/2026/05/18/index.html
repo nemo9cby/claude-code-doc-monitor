@@ -118,9 +118,260 @@
 
         <header>
             <h1>Changes on 2026-05-18</h1>
-            <p class="meta">14 total changes in 4 runs</p>
+            <p class="meta">23 total changes in 5 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">20:02 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 整体总结
+本次文档更新主要集中在 **Claude Code v2.1.142+** 的功能迭代，重点强化了插件生态系统的依赖管理与展示体验（如 `displayName` 和单技能插件结构），同时引入了 **Stop Hook 的硬性安全限制（8 次阻塞）** 以防止无限循环，并优化了 MCP 服务器的工具等待机制。
+
+### 核心变更点
+*   **插件生态系统增强**：引入 `displayName` 字段以改善 UI 展示，支持插件的传递性依赖管理（启用/禁用时自动处理依赖），并简化了单技能插件的目录结构（支持根目录 `SKILL.md`）。
+*   **Hook 行为变更与安全**：Stop Hook 现在具有 **8 次连续阻塞的硬性上限**，超过后 Claude Code 将强制结束本轮对话，以防止无限循环。可通过环境变量 `CLAUDE_CODE_STOP_HOOK_BLOCK_CAP` 调整。
+*   **MCP 可靠性提升**：优化了工具调用逻辑，当所需工具来自正在连接的服务器时，Claude 会自动等待（通过 `ToolSearch` 或 `WaitForMcpServers`），确保工具就绪后再继续。
+*   **Agent 与 CLI 体验**：启动 Agent 时支持使用短名称（无需插件命名空间），仅在名称冲突时才需要限定范围。
+*   **新增配置项**：新增 `worktree.bgIsolation` 设置，允许配置后台会话的隔离模式（默认为 `worktree`）。
+
+### 影响等级
+**Medium** (中等)
+
+**理由**：虽然大部分变更是新增功能（如 `displayName`、依赖管理），但 **Stop Hook 的默认行为变更**（引入 8 次限制）属于破坏性变更，可能导致现有的自动化脚本或 Hook 逻辑中断。其他变更主要为体验优化或向后兼容的新特性。
+
+### 开发者行动项
+*   **审查 Stop Hook 逻辑**：检查现有的 Stop hook 是否会因为新引入的“8 次阻塞上限”而提前终止；如果需要更多迭代，请设置 `CLAUDE_CODE_STOP_HOOK_BLOCK_CAP`。
+*   **更新插件清单**：如果是插件作者，建议在 `plugin.json` 中添加 `displayName` 字段以提升用户体验，并利用新的依赖管理功能。
+*   **简化单技能插件**：针对只有一个技能的插件，可以考虑将目录结构简化为根目录下的单个 `SKILL.md`（需 v2.1.142+）。
+*   **测试后台会话配置**：如果在项目中使用了后台 Agent，请根据需求检查新的 `worktree.bgIsolation` 设置是否符合预期。
+*   **更新 Agent 调用脚本**：利用新的短名称调用特性简化启动命令，但在多插件同名场景下需确保使用限定名称。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Input:** A batch of diffs for 9 documentation pages (`cli-reference.md`, `discover-plugins.md`, `hooks.md`, `hooks-guide.md`, `mcp.md`, `plugin-marketplaces.md`, `plugins-reference.md`, `settings.md`, `sub-agents.md`).
+    *   **Output Format:** Markdown, Chinese language.
+    *   **Structure:** Overall Summary, Key Themes, Impact Level, Action Items.
+
+2.  **Analyze the Diffs (Page by Page):**
+
+    *   `cli-reference.md`:
+        *   Change: The diff provided is truncated (`+29 / -28`, but the table content is cut off at `claude attach &lt;id&gt;`).
+        *   *Correction*: Looking closely at the provided diff, it seems to be a formatting or content update to the command reference table. It starts with the table headers and updates some descriptions/examples.
+        *   *Observation*: Since the diff is truncated, I can&#39;t fully analyze the `cli-reference.md` changes. However, based on the visible part, it looks like standard documentation updates to the CLI table. I should focus on the other pages which are complete, or acknowledge the limitation if the summary needs specific details from the cut-off part. *Wait, looking at the prompt again*: The diff cuts off right after `claude attach`. I can&#39;t see the bottom. I will treat this as a &#34;Documentation Refresh&#34; for the CLI but focus analysis on the concrete changes in other files.
+
+    *   `discover-plugins.md`:
+        *   Change: Added info about &#34;Context cost&#34; estimate in the plugin details pane for v2.1.143+.
+        *   *Relevance*: Helps developers understand token usage before installing plugins.
+
+    *   `hooks.md`:
+        *   Change 1: Updated description of `stop_hook_active`. Changed &#34;prevent Claude Code from running indefinitely&#34; to &#34;avoid blocking on a condition that will never resolve. Claude Code overrides the hook and ends the turn after 8 consecutive blocks.&#34;
+        *   Change 2: Updated troubleshooting link text (&#34;Stop hooks that keep blocking&#34; vs &#34;infinite Stop hook loops&#34;).
+        *   *Relevance*: Breaking change/behavior change for hooks. Stop hooks now have a hard limit (8 blocks) unless configured otherwise.
+
+    *   `hooks-guide.md`:
+        *   Change 1: Renamed section from &#34;Stop hook runs forever&#34; to &#34;Stop hook hits the block cap&#34;.
+        *   Change 2: Explained the new behavior: &#34;Claude Code overrides a Stop hook after it blocks 8 times in a row.&#34;
+        *   Change 3: Added info on raising the cap using `CLAUDE_CODE_STOP_HOOK_BLOCK_CAP`.
+        *   *Relevance*: Confirms the hard limit on Stop hook iterations to prevent infinite loops.
+
+    *   `mcp.md`:
+        *   Change 1: Clarified behavior when tools are needed from a server still connecting. Claude now waits. Explains the difference between `ToolSearch` vs `WaitForMcpServers` based on configuration.
+        *   Change 2: Clarified `alwaysLoad` behavior regarding non-blocking startup. &#34;Other servers continue to connect in the background.&#34;
+        *   *Relevance*: Improved reliability of tool availability and startup behavior.
+
+    *   `plugin-marketplaces.md`:
+        *   Change 1: Added `anthropic-agent-skills` to reserved names.
+        *   Change 2: Added `displayName` field (min-version 2.1.143) for human-readable names.
+        *   *Relevance*: New feature for better plugin naming, and a new reserved name.
+
+    *   `plugins-reference.md`:
+        *   Change 1: Skills can now be a single `SKILL.md` at the root.
+        *   Change 2: Added `displayName` to manifest (v2.1.143+).
+        *   Change 3: Auto-detection of single-skill plugins (v2.1.142+).
+        *   Change 4: `plugin enable` now handles dependencies transitively.
+        *   Change 5: `plugin disable` fails if other plugins depend on it, provides chained command.
+        *   Change 6: `plugin details` output updated to include LSP servers.
+        *   *Relevance*: Significant quality-of-life improvements for plugin authors and users (dependencies, simpler single-skill structure, display names).
+
+    *   `settings.md`:
+        *   Change: Added `worktree.bgIsolation` setting (v2.1.143+) to control isolation mode for background sessions (&#34;worktree&#34; vs &#34;none&#34;).
+        *   *Relevance*: New configuration option for background behavior.
+
+    *   `sub-agents.md`:
+        *   Change: Updated CLI usage for launching agents. Now allows passing just the agent name (`--agent security-reviewer`) instead of the scoped name, unless there&#39;s a naming collision.
+        *   *Relevance*: Improved usability/DX for running agents.
+
+3.  **Synthesize and Structure:**
+
+    *   **Overall Summary**: 本次文档更新主要集中在 CLI 和插件系统的改进，引入了版本 2.1.142/2.1.143 的新功能（如 `displayName` 和依赖管理），同时也加强了对 Hook 循环的控制（限制为 8 次）以及 MCP 服务器的连接稳定性。
+    *   **Key Themes**:
+        *   *Plugin Ecosystem Enhancements*: `displayName` support, dependency management (enable/disable), simplified single-skill structure.
+        *   *Hooks Safety &amp; Limits*: Hard limit (8 blocks) on Stop hooks to prevent infinite loops.
+        *   *MCP Reliability*: Better handling of connecting servers during tool selection.
+        *   *Agent UX*: Easier agent invocation (no scoped name needed unless collision).
+        *   *New Configs*: `worktree.bgIsolation`.
+
+    *   **Impact Level**: **Medium**.
+        *   *Reasoning*: While there are breaking changes (Stop hook behavior limits), most changes are additive features or documentation clarifications. The plugin dependency changes are significant for plugin authors but smooth for users. The specific version requirements (2.1.142+) need attention.
+
+    *   **Action Items**:
+        *   Check Stop hooks for potential infinite loops (limit is now 8).
+        *   Update plugin manifests to use `displayName` for better UX (if targeting 2.1.143+).
+        *   Refactor single-skill plugins to use the simpler root `SKILL.md` structure (2.1.142+).
+        *   Review `worktree.bgIsolation` setting if using background sessions.
+        *   Update agent invocation scripts/commands to use shorter names if unambiguous.
+
+4.  **Drafting the Content (in Chinese):**
+
+    *   *Summary*: 本次更新引入了多个质量改进和新特性（主要集中在 v2.1.142+），特别是插件生态系统的增强（依赖管理、`displayName`）、Hook 安全性限制以及 MCP 连接的优化。
+    *   *Themes*:
+        *   **插件系统增强**: 引入 `displayName` 字段，支持插件依赖的传递性启用/禁用，简化了单技能插件的目录结构。
+        *   **Hook 行为变更**: 引入了 Stop Hook 的“阻塞上限”（默认 8 次），防止无限循环。
+        *   **MCP 与工具可用性**: 优化了服务器连接时的等待逻辑，确保工具就绪。
+        *   **Agent 与 CLI**: 简化了 Agent 启动命令，支持无需命名空间的短名称调用。
+        *   **新配置项**: 新增 `worktree.bgIsolation` 以控制后台会话的隔离模式。
+    *   *Impact*: **Medium**.
+        *   原因：Stop hook 的行为变更可能导致现有工作流中断（需检查 8 次限制），其他主要为新功能和体验优化。
+    *   *Action Items*:
+        *   审查 Stop hook 代码，确保不会触发新的 8 次阻塞上限。
+        *   更新插件 `plugin.json` 以支持 `displayName` 和依赖管理。
+        *   利用新的单技能插件结构简化代码。
+        *   根据 MCP 连接行为调整配置。
+        *   测试后台会话的 `bgIsolation` 设置。
+
+5.  **Refining the Output:**
+    Make it concise and &#34;world-class programmer&#34; tone. Direct and actionable.
+
+    *   *Refined Summary*: 这一批次更新主要集中在 Claude Code v2.1.142+ 的功能迭代，强化了插件生态的依赖管理与展示体验，同时引入了 Stop Hook 的硬性安全限制（8 次阻塞）以防止无限循环，并优化了 MCP 工具等待机制。
+    *   *Refined Themes*: (Use the bullet points derived above).
+    *   *Refined Impact*: Medium.
+    *   *Refined Actions*: (Use the bullet points derived above).
+
+6.  **Final Polish (Self-Correction during drafting)**:
+    *   Make sure to mention the specific version numbers (2.1.142, 2.1.143) as developers care about compatibility.
+    *   Note the behavior change in Stop hooks clearly as it&#39;s the most &#34;breaking&#34; aspect here.
+    *   The `cli-reference.md` diff was truncated, so I will generally treat it as &#34;minor CLI reference updates&#34; without getting specific about the cut-off part.
+
+7.  **Final Output Generation** (Translate thoughts to final markdown response).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/cli-reference.html" class="page-link">cli-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+29</span>
+                            <span class="removed">-28</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/discover-plugins.html" class="page-link">discover-plugins.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugin-marketplaces.html" class="page-link">plugin-marketplaces.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+10</span>
+                            <span class="removed">-9</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">18:55 EST</div>
