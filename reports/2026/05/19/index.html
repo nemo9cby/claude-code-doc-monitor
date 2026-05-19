@@ -118,9 +118,231 @@
 
         <header>
             <h1>Changes on 2026-05-19</h1>
-            <p class="meta">5 total changes in 2 runs</p>
+            <p class="meta">13 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">11:25 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更分析摘要
+
+## Overall Summary
+本次更新主要围绕 **v2.1.144** 版本的行为变更，核心在于 `/model` 命令不再自动持久化配置，转而采用显式保存机制以增强会话隔离性。同时，文档新增了 `model_not_found` 错误处理、W3C 分布式追踪支持以及官方插件的监控指标事件，显著提升了系统的可观测性和错误管理能力。
+
+## Key Themes
+*   **模型配置隔离增强**：`/model` 命令现在仅影响当前会话，不再自动写入配置文件。通过选择器按 `d` 键可显式保存默认模型；恢复的会话将保持其原有模型配置，避免意外切换。
+*   **可观测性与错误处理扩展**：在流式 API 重试和 Hooks 中新增 `model_not_found` 错误类型；支持 W3C `traceparent` 头以打通客户端与服务端追踪；新增 `claude_code.hook_plugin_metrics` 事件用于监控官方市场插件。
+*   **会话与后台任务管理**：`claude rm` 现在明确说明仅移除会话列表项，对话记录保留本地以便恢复；`--resume` 选择器现在能显示后台会话（标记为 `bg`）。
+*   **环境变量与插件细节**：细化了 `NO_COLOR`/`FORCE_COLOR` 在子进程中的传递规则；插件详情页新增“最后更新”时间显示。
+
+## Impact Level
+**Medium**
+
+**Reasoning**:
+*   `/model` 命令的行为改变属于**功能性变更**，虽然不会导致代码编译失败，但改变了用户的长期操作习惯（从自动保存改为显式保存），用户需适应新的交互逻辑。
+*   新增的错误类型和追踪功能属于**非破坏性增强**，主要为开发者和运维人员提供更深入的洞察能力。
+
+## Action Items for Developers
+1.  **适应模型配置变更**：更新团队操作习惯，在使用 `/model` 切换模型后，若需设为默认，需按 `d` 键确认保存，不再自动持久化。
+2.  **更新监控与告警规则**：在日志分析或监控系统中（如 Datadog, Prometheus）增加对 `model_not_found` 错误类型的捕获，以便及时处理模型不可用问题。
+3.  **利用新的插件指标**：如果使用了官方市场插件，可集成新增的 `claude_code.hook_plugin_metrics` 事件来监控插件的性能和成本。
+4.  **检查环境变量传递**：确认依赖 `NO_COLOR` 或 `FORCE_COLOR` 的子进程脚本是否符合新的传递逻辑（环境变量仅影响子进程，不影响 CLI 界面）。
+5.  **升级追踪集成**：若系统集成了 OpenTelemetry，确认是否需要利用新增的 W3C `traceparent` 头来实现客户端到 Anthropic API 的端到端链路追踪。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer.
+    *   **Task:** Analyze a batch of documentation changes (8 pages).
+    *   **Output Format:** Markdown (Overall Summary, Key Themes, Impact Level, Action Items).
+    *   **Language:** Chinese.
+
+2.  **Analyze the Input Diffs:**
+
+    *   **`cli-reference.md`**:
+        *   `claude rm &lt;id&gt;`: Added clarification that the transcript stays locally and can be resumed.
+        *   `--resume`: Added info that v2.1.144 shows background sessions marked with `bg` in the picker.
+        *   *Insight:* Better management of background sessions and clarification on data persistence after `rm`.
+
+    *   **`discover-plugins.md`**:
+        *   Added note for v2.1.144: &#34;Last updated&#34; date shown in plugin details pane.
+        *   *Insight:* Minor UI enhancement for plugin management.
+
+    *   **`headless.md`**:
+        *   `system/api_retry` event: Added `model_not_found` to the list of error categories.
+        *   *Insight:* Improved error handling/reporting in streaming/headless modes, specifically for model availability issues.
+
+    *   **`hooks.md`**:
+        *   StopFailure event: Added `model_not_found` to the list of error types matchable by the matcher.
+        *   *Insight:* Consistency with `headless.md` changes; allows hook scripts to catch model-not-found errors.
+
+    *   **`hooks-guide.md`**:
+        *   StopFailure event: Same change as `hooks.md` (added `model_not_found` to error types).
+        *   *Insight:* Documentation sync for hooks.
+
+    *   **`model-config.md`**:
+        *   **Breaking/Behavior Change:** `/model` command now applies *only to the current session* (v2.1.144). It is *not* automatically saved to user settings anymore.
+        *   To save: Press `d` in the picker.
+        *   Resumed sessions: Keep the model they were saved with, preventing cross-session interference.
+        *   *Insight:* Significant behavioral change. Prevents unintended side effects where changing the model in one session accidentally changes the default for others. Improves isolation.
+
+    *   **`monitoring-usage.md`**:
+        *   Tracing: Added W3C `traceparent` header integration with Anthropic API for client-server linking.
+        *   New Event: `claude_code.hook_plugin_metrics` for official marketplace plugins to emit metrics.
+        *   *Insight:* Enhanced observability/tracing capabilities, particularly for plugins.
+
+    *   **`settings.md`**:
+        *   `env` setting: Clarification about `NO_COLOR` and `FORCE_COLOR` handling in v2.1.143 (passed to subprocesses but don&#39;t affect CLI interface).
+        *   *Insight:* Better environment variable handling documentation.
+
+3.  **Synthesize and Categorize:**
+
+    *   *Theme 1: Model Isolation &amp; Persistence (`model-config.md`, `cli-reference.md`).* The `/model` command behavior change is the biggest piece. It now affects the current session only.
+    *   *Theme 2: Error Handling &amp; Observability (`headless.md`, `hooks.md`, `hooks-guide.md`, `monitoring-usage.md`).* Added `model_not_found` error handling across streams and hooks. Added new tracing headers and plugin metrics.
+    *   *Theme 3: Session Management (`cli-reference.md`).* Clarifications on `rm` and `--resume` regarding background sessions.
+    *   *Theme 4: UI/UX Polish (`discover-plugins.md`, `settings.md`).* Plugin dates, env color handling.
+
+4.  **Draft the Analysis (in Chinese):**
+
+    *   **Overall Summary:** 更新主要集中在 v2.1.144 版本的行为变更，特别是模型选择的持久化逻辑，增强了可观测性（W3C tracing、插件指标），并细化了错误处理与后台会话管理。
+
+    *   **Key Themes:**
+        *   **模型配置行为变更**：`/model` 命令不再自动保存到设置文件，仅作用于当前会话，防止跨会话干扰。恢复会话将保持原有模型。
+        *   **增强的可观测性与监控**：引入 `model_not_found` 错误类型；支持 W3C `traceparent` 头连接客户端与服务端追踪；新增官方插件指标事件。
+        *   **会话与插件管理优化**：改进了后台会话的清理与恢复逻辑；插件详情页新增“最后更新”时间。
+
+    *   **Impact Level:** **Medium**.
+        *   *Reasoning:* The change in `/model` behavior affects daily workflow (saving defaults now requires an explicit key press `d`), which might surprise existing users but prevents accidental config changes. New tracing and error features are additive and low risk.
+
+    *   **Action Items:**
+        *   Review scripts or workflows relying on `/model` auto-saving; update user habits to press `d` to save.
+        *   Update hooks or monitoring dashboards to handle the new `model_not_found` error type and the new `hook_plugin_metrics` event.
+        *   Check if tracing infrastructure needs updates to consume the new W3C traceparent links.
+
+5.  **Refine Language:** Ensure professional, concise Chinese suitable for a &#34;world-class programmer&#34;.
+
+    *   *Refinement on Impact:* Is it &#34;High&#34;? Probably not &#34;Breaking&#34; in terms of code compilation, but &#34;Behavioral Breaking&#34; for UX. &#34;Medium&#34; is appropriate.
+    *   *Refinement on Summary:* Make sure to emphasize the v2.1.144 aspect.
+
+6.  **Final Output Generation:** (Proceed to generate markdown).
+
+    *   *Self-Correction during drafting:* Make sure to mention the `rm` behavior change (transcripts staying) as it&#39;s a common confusion point.
+
+7.  **Final Polish:** Check against the &#34;Action items for developers (max 5)&#34; constraint.
+
+    1. Adjust workflows for `/model`.
+    2. Update monitoring for new error type and metrics.
+    3. Benefit from new tracing headers.
+    4. Check color env vars.
+    5. Update documentation.
+
+    Looks good.</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/cli-reference.html" class="page-link">cli-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/discover-plugins.html" class="page-link">discover-plugins.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/headless.html" class="page-link">headless.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+11</span>
+                            <span class="removed">-11</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+21</span>
+                            <span class="removed">-21</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+18</span>
+                            <span class="removed">-18</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/model-config.html" class="page-link">model-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">04:24 EST</div>
