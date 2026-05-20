@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026-05-20 - Documentation Changes</title>
+    <style>
+        :root {
+            --bg-color: #1a1a2e;
+            --card-bg: #16213e;
+            --text-color: #eee;
+            --accent: #0f3460;
+            --add-text: #4ade80;
+            --del-text: #f87171;
+            --time-color: #60a5fa;
+        }
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg-color: #f5f5f5;
+                --card-bg: #fff;
+                --text-color: #333;
+                --accent: #e0e0e0;
+                --add-text: #155724;
+                --del-text: #721c24;
+                --time-color: #2563eb;
+            }
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+        .container { max-width: 800px; margin: 0 auto; }
+        header { margin-bottom: 2rem; }
+        h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+        .meta { color: #888; }
+        .batch { margin-bottom: 2rem; }
+        .batch-header {
+            color: var(--time-color);
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--accent);
+        }
+        .page-list { list-style: none; }
+        .page-item {
+            background: var(--card-bg);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .page-item:hover { background: var(--accent); }
+        .page-link {
+            color: var(--text-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .page-summary { color: #888; font-size: 0.9rem; }
+        .added { color: var(--add-text); }
+        .removed { color: var(--del-text); }
+        a { color: #60a5fa; }
+        .back-link { margin-bottom: 1rem; display: inline-block; }
+        .page-item-content { flex: 1; }
+        .page-analysis {
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: 0.25rem;
+        }
+        .source-section {
+            margin-bottom: 1.5rem;
+        }
+        .source-header {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: #8b5cf6;
+        }
+        .batch-analysis {
+            background: var(--card-bg);
+            border-left: 3px solid #22c55e;
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            margin: 0.75rem 0 1rem 0;
+        }
+        .batch-analysis h4 {
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+        .batch-analysis-content {
+            white-space: pre-wrap;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        .reasoning-section {
+            margin-top: 1rem;
+            padding-top: 0.75rem;
+            border-top: 1px dashed var(--accent);
+            font-size: 0.85rem;
+            color: #888;
+        }
+        .reasoning-section summary {
+            cursor: pointer;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../../../index.html" class="back-link">&larr; All reports</a>
+
+        <header>
+            <h1>Changes on 2026-05-20</h1>
+            <p class="meta">10 total changes in 1 run</p>
+        </header>
+
+        
+        <div class="batch">
+            <div class="batch-header">03:42 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 总体摘要
+本次文档更新主要集中在 **v2.1.145** 版本的功能增强上，包括显著提升了 Hooks 对后台任务和定时任务的感知能力，引入了用于应用运行与验证的新内置 Skills（`/run`, `/verify`），并增强了监控（OpenTelemetry）和状态栏的元数据丰富度。
+
+### 关键主题
+
+*   **Hooks 自动化增强**：`Stop` 和 `SubagentStop` Hooks 现在会接收 `background_tasks` 和 `session_crons` 数组。这使得 Hook 脚本能够区分“会话已结束”与“会话因后台任务等待而暂停”的状态，从而做出更智能的决策（例如避免阻塞）。
+*   **应用运行与验证工作流**：新增了 `/run`（启动并驱动应用）、`/verify`（构建并验证更改）以及 `/run-skill-generator`（记录项目特定的启动配方）这三个内置 Skills，旨在替代简单的自动推断，提供更可靠的应用运行和测试体验。
+*   **可观测性提升**：
+    *   **监控**：`claude_code.tool` span 新增 `agent_id` 和 `parent_agent_id` 属性，便于追踪是哪个 Agent 或子代理执行了特定工具。
+    *   **状态栏**：新增 `workspace.repo.*`（解析自 origin 远程仓库）和 `pr.*`（当前分支的 PR 状态及审查状态）字段。
+*   **插件生态改进**：`plugin.json` 现在会忽略无法识别的字段，允许同一个清单文件兼容 VS Code 或 npm 生态系统。同时，`claude plugin validate` 新增 `--strict` 标志，用于在 CI 中将警告视为错误。
+*   **文档与细节修正**：澄清了 PR 状态徽章的消失逻辑（合并或关闭后消失）、`Proactive` 输出样式与 Auto 模式的区别，以及命令替换中 `!` 符号必须位于行首或空白字符后的解析规则。
+
+### 影响等级
+**中等**
+本次更新主要是对现有功能的增强和新特性的引入，没有破坏性变更。Hook 开发者和插件作者将获得更强大的控制能力，而普通开发者将获得更流畅的应用测试体验。
+
+### 开发者行动项
+
+1.  **更新 Hook 逻辑**：如果你维护使用了 `Stop` 或 `SubagentStop` 事件的 Hooks，请更新代码以检查 `background_tasks` 和 `session_crons` 数组，防止在有后台任务运行时错误地终止会话。
+2.  **尝试新的运行 Skills**：对于复杂的项目，运行 `/run-skill-generator` 来记录并标准化应用的启动和构建流程，替代依赖自动推断的 `/run` 命令。
+3.  **强化插件 CI 验证**：在插件发布流程的 CI 中加入 `claude plugin validate ./my-plugin --strict`，以捕获拼写错误的字段名或不兼容的遗留清单字段。
+4.  **利用新的追踪数据**：如果你使用 OpenTelemetry 监控 Claude Code，请更新仪表板以利用新增的 `agent_id` 字段，从而更精确地分析工具调用链路。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Input:** 10 documentation pages with diffs (Markdown format).
+    *   **Task:** Summarize changes and why they matter to developers.
+    *   **Output Format:** Markdown (Specifically: Summary, Key Themes, Impact Level, Action Items).
+    *   **Language:** Chinese (per instruction &#34;请用中文回复&#34;).
+
+2.  **Analyze the Diffs (Page by Page):**
+
+    *   `cli-reference.md`: Minor changes (+28/-28). It looks like formatting or table row updates. The diff shows the table definition, likely reordering or slight wording tweaks in descriptions, but the core commands remain. *Wait, looking closer at the context provided in the snippet:* The snippet ends abruptly at `--permission-mode`, `--mo`. It suggests a table update. Let&#39;s re-read carefully. Ah, the snippet provided in the prompt for `cli-reference.md` is truncated. It shows a table structure. The changes seem to be mostly formatting or wording adjustments within the table, as the +/- count is identical (+28/-28). This implies a rewrite or reformatting of the table content rather than adding new features. I&#39;ll treat it as a cleanup/refinement.
+
+    *   `discover-plugins.md`: Enhancements (+5/-2).
+        *   *Change:* Added &#34;Will install&#34; section in plugin details (v2.1.145+) listing commands, agents, skills, etc.
+        *   *Change:* Clarified text about checking plugin details vs homepage.
+        *   *Impact:* Users can see what a plugin installs before committing.
+
+    *   `hooks.md`: Major Enhancements (+39/-3).
+        *   *Change:* Added `background_tasks` and `session_crons` arrays to `SubagentStop` hooks (v2.1.145).
+        *   *Change:* Added `background_tasks` and `session_crons` arrays to `Stop` hooks (v2.1.145).
+        *   *Detail:* These arrays help hooks distinguish &#34;done&#34; from &#34;paused for background work&#34;.
+        *   *Schema:* Detailed table definitions for these arrays (fields like `id`, `type`, `status`, `description`, etc.).
+        *   *Impact:* Hook authors can make more intelligent decisions about whether to block or continue based on active background tasks.
+
+    *   `interactive-mode.md`: UI/UX fix (+1/-2).
+        *   *Change:* Clarified behavior of the PR badge. It disappears when merged/closed.
+        *   *Change:* Status refresh timing (every 60s + immediate after `gh pr` or `git push`).
+        *   *Impact:* Better clarity on PR status behavior.
+
+    *   `monitoring-usage.md`: Observability update (+11/-9).
+        *   *Change:* Added `agent_id` and `parent_agent_id` attributes to `claude_code.tool` span.
+        *   *Impact:* Better tracing of which agent/subagent ran a tool.
+
+    *   `output-styles.md`: Documentation clarification (+2/-2).
+        *   *Change:* Clarified &#34;Proactive&#34; style is stronger than &#34;auto mode&#34;.
+        *   *Impact:* Better understanding of configuration nuances.
+
+    *   `plugins-reference.md`: Validation enhancement (+17/-0).
+        *   *Change:* Added section on &#34;Unrecognized fields&#34;. Claude ignores unknown fields in `plugin.json` (making it dual-use with VS Code/npm manifests).
+        *   *Change:* `claude plugin validate` reports unknown fields as warnings, not errors.
+        *   *Change:* Added `--strict` flag for CI to treat warnings as errors.
+        *   *Impact:* Easier plugin dev across ecosystems, better CI practices.
+
+    *   `skills.md` (and `slash-commands.md`, identical content): New feature (+11/-0).
+        *   *Change:* Introduced `/run`, `/verify`, and `/run-skill-generator` bundled skills (v2.1.145).
+        *   *Detail:* `/run` drives the app, `/verify` builds/verifies against the app. `/run-skill-generator` records the recipe.
+        *   *Change:* Clarified inline command substitution logic (must be at start of line or after whitespace).
+        *   *Impact:* New workflow for running and testing applications. Fix to substitution edge cases.
+
+    *   `statusline.md`: Observability update (+14/-1).
+        *   *Change:* Added `workspace.repo.*` fields (host, owner, name) parsed from `origin` remote.
+        *   *Change:* Added `pr.*` fields (number, url, review_state) mirroring the PR badge.
+        *   *Impact:* Richer statusline customization and git context awareness.
+
+3.  **Synthesize and Structure:**
+
+    *   **Overall Summary:** Version 2.1.145 brings significant enhancements to hooks (background task awareness), new bundled skills for app running/verification (`/run`, `/verify`), and richer observability in monitoring and status bars.
+    *   **Key Themes:**
+        *   *Hooks &amp; Automation:* Hooks now see background tasks/crons to better manage state.
+        *   *App Workflow:* New `/run` and `/verify` skills replace simple inference with recordable &#34;recipes&#34;.
+        *   *Observability:* Tool spans include agent IDs; status line gets repo and PR details.
+        *   *Plugin Ecosystem:* Better validation (`--strict`) and tolerance for cross-platform manifests.
+        *   *Docs Polish:* Clarifications on PR status, output styles, and command substitution.
+    *   **Impact Level:** **Medium**. New features (skills, hook inputs) are additive. No breaking changes indicated.
+    *   **Action Items:**
+        *   Plugin authors: Update hook logic to utilize `background_tasks` to prevent premature exits.
+        *   Devs: Try `/run-skill-generator` to standardize app launches.
+        *   Plugin maintainers: Run `claude plugin validate --strict` in CI.
+        *   Observability: Update OTEL dashboards to use new `agent_id` fields.
+
+4.  **Translate and Refine (Chinese):**
+
+    *   *Summary:* 版本 2.1.145 带来了多项重要更新，包括增强了 Hooks 对后台任务的感知能力，新增了用于运行和验证应用的内置 Skills（`/run`, `/verify`），并显著提升了监控和状态栏的元数据丰富度。
+    *   *Themes:*
+        *   **Hooks 增强**: Hooks 现在可以接收 `background_tasks` 和 `session_crons` 数组，以便更智能地判断会话状态。
+        *   **应用运行工作流**: 新增 `/run` 和 `/verify` skills，配合 `/run-skill-generator` 可记录项目特定的启动配方。
+        *   **可观测性**: 工具调用追踪增加 `agent_id`，状态栏增加仓库和 PR 详情。
+        *   **插件生态**: `plugin.json` 容错性提高（忽略未知字段），验证工具新增 `--strict` 模式。
+        *   **文档修正**: 澄清了 PR 状态行为、输出样式差异及命令替换的边缘情况。
+    *   *Impact:* Medium (中等). 主要是功能增强和文档完善，无破坏性变更。
+    *   *Action Items:*
+        *   插件开发者：更新 Hook 逻辑以利用新的 `background_tasks` 数据，避免在后台任务运行时意外退出。
+        *   开发者：尝试使用 `/run-skill-generator` 来标准化应用的启动流程。
+        *   插件维护者：在 CI 流程中引入 `claude plugin validate --strict`。
+        *   运维/监控：更新 OTEL 仪表板以利用新的 `agent_id` 和 `parent_agent_id` 字段追踪工具调用来源。
+
+5.  **Final Review against Constraints:**
+    *   Concise? Yes.
+    *   Insightful? Yes, identified the specific v2.1.145 features.
+    *   Markdown format? Yes.
+    *   Focus on developers? Yes (hooks, skills, CI).
+    *   Chinese language? Yes.
+
+    *Self-Correction on `cli-reference.md`:* Since the diff was cut off and appeared to be a wash (+28/-28) in a table, I will mention it briefly as a cleanup/reformatting or simply omit if it adds no developer value compared to the other substantial changes. Given the prompt says &#34;Focus on what matters&#34;, the table formatting is likely less important than the new hook inputs or skills. I&#39;ll omit specific mention of it in the summary to keep it concise, as it looks like a documentation refactor rather than a functional change.
+
+    *Refining Action Items:* Make them actionable.
+    1. Update Hooks.
+    2. Try new Skills.
+    3. CI Validation.
+    4. Monitoring Dashboards.
+    (This looks good).
+
+6.  **Construct Final Output.** (Proceed to generate response).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/cli-reference.html" class="page-link">cli-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+28</span>
+                            <span class="removed">-28</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/discover-plugins.html" class="page-link">discover-plugins.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+39</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/interactive-mode.html" class="page-link">interactive-mode.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+11</span>
+                            <span class="removed">-9</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/output-styles.html" class="page-link">output-styles.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+17</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+11</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+11</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/statusline.html" class="page-link">statusline.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+14</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
+        
+    </div>
+</body>
+</html>
