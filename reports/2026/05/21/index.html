@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026-05-21 - Documentation Changes</title>
+    <style>
+        :root {
+            --bg-color: #1a1a2e;
+            --card-bg: #16213e;
+            --text-color: #eee;
+            --accent: #0f3460;
+            --add-text: #4ade80;
+            --del-text: #f87171;
+            --time-color: #60a5fa;
+        }
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg-color: #f5f5f5;
+                --card-bg: #fff;
+                --text-color: #333;
+                --accent: #e0e0e0;
+                --add-text: #155724;
+                --del-text: #721c24;
+                --time-color: #2563eb;
+            }
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+        .container { max-width: 800px; margin: 0 auto; }
+        header { margin-bottom: 2rem; }
+        h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+        .meta { color: #888; }
+        .batch { margin-bottom: 2rem; }
+        .batch-header {
+            color: var(--time-color);
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--accent);
+        }
+        .page-list { list-style: none; }
+        .page-item {
+            background: var(--card-bg);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .page-item:hover { background: var(--accent); }
+        .page-link {
+            color: var(--text-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .page-summary { color: #888; font-size: 0.9rem; }
+        .added { color: var(--add-text); }
+        .removed { color: var(--del-text); }
+        a { color: #60a5fa; }
+        .back-link { margin-bottom: 1rem; display: inline-block; }
+        .page-item-content { flex: 1; }
+        .page-analysis {
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: 0.25rem;
+        }
+        .source-section {
+            margin-bottom: 1.5rem;
+        }
+        .source-header {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: #8b5cf6;
+        }
+        .batch-analysis {
+            background: var(--card-bg);
+            border-left: 3px solid #22c55e;
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            margin: 0.75rem 0 1rem 0;
+        }
+        .batch-analysis h4 {
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+        .batch-analysis-content {
+            white-space: pre-wrap;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        .reasoning-section {
+            margin-top: 1rem;
+            padding-top: 0.75rem;
+            border-top: 1px dashed var(--accent);
+            font-size: 0.85rem;
+            color: #888;
+        }
+        .reasoning-section summary {
+            cursor: pointer;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../../../index.html" class="back-link">&larr; All reports</a>
+
+        <header>
+            <h1>Changes on 2026-05-21</h1>
+            <p class="meta">3 total changes in 1 run</p>
+        </header>
+
+        
+        <div class="batch">
+            <div class="batch-header">02:49 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">```markdown
+1. Overall Summary
+本次文档更新主要修正了 Hook 机制的语义说明（明确 `exit 0` 仅表示“无决策”而非“批准”），并引入了新的托管设置 `strictPluginOnlyCustomization`，允许管理员严格限制自定义项仅来自插件或托管配置。
+
+2. Key Themes
+*   **Hook 语义纠正（关键）**：文档多处修正了对 `exit 0` 的解释。现在明确指出，退出码 0 意味着 Hook 没有做出决策，操作仍需经过正常的[权限流程](/en/permissions)。若要显式批准操作以绕过用户提示，必须使用 JSON 输出（`decision: &#34;allow&#34;`），而不是简单的 `exit 0`。
+*   **企业级供应链管控**：新增 `strictPluginOnlyCustomization` 设置，允许管理员锁定技能、代理、Hook 和 MCP 服务器，禁止从用户本地或项目源加载，从而强制执行仅限插件或托管策略的安全策略。
+
+3. Impact level
+**Medium**
+*   **开发者**：需要审查现有的 Hook 脚本。如果依赖 `exit 0` 来绕过权限检查，这可能是一个潜在的逻辑错误，因为现在的文档澄清了这种行为并不会自动批准操作。
+*   **管理员**：这是一个高价值的安全更新，允许完全锁定自定义环境，但需要客户端升级到 v2.1.82+ 才能生效。
+
+4. Action items for developers
+*   **审查 Hook 脚本**：检查所有使用 `exit 0` 的 Hook 逻辑，确保你没有误以为它会自动批准工具调用。
+*   **使用 JSON 进行显式控制**：如果你希望 Hook 批准操作并绕过用户提示，请修改脚本以输出 JSON 格式的决策（如 `{&#34;decision&#34;: &#34;allow&#34;}`）。
+*   **更新客户端版本**：若计划使用 `strictPluginOnlyCustomization` 进行环境锁定，请确保团队使用的 Claude Code 客户端版本不低于 v2.1.82。
+```</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request**:
+    *   **Role**: World-class programmer, expert in dev tools/docs.
+    *   **Task**: Analyze documentation changes for 3 pages (`hooks.md`, `hooks-guide.md`, `settings.md`) as a single batch.
+    *   **Format**: Markdown (Concise, insightful).
+    *   **Output Language**: Chinese (as requested in the prompt instructions &#34;请用中文回复&#34;).
+    *   **Structure**:
+        1.  Overall Summary.
+        2.  Key Themes.
+        3.  Impact Level.
+        4.  Action Items.
+
+2.  **Analyze the Changes**:
+
+    *   **Page 1: `hooks.md`** (+32 / -26):
+        *   *Change 1*: Changed comment `# allow the command` to `# no decision; normal permission flow applies`.
+        *   *Change 2*: Updated explanatory text about `exit 0`. Clarifies that `exit 0` (no output) means &#34;no decision to report&#34; and proceeds via normal permission flow. Explicitly states: &#34;The hook can deny the call, but staying silent doesn&#39;t approve it.&#34;
+        *   *Change 3*: Updated comment `# Success: tool call proceeds` to `# No decision: the normal permission flow applies`.
+        *   *Change 4*: Updated explanation: &#34;Exit codes only let you block or stay silent&#34; instead of &#34;allow or block&#34;.
+        *   *Change 5*: Clarified `suppressOutput` behavior: &#34;hides the hook&#39;s stdout from the transcript&#34; vs &#34;omits stdout from the debug log&#34;.
+        *   *Change 6*: Table update for decision patterns. (Seems to be a reformat or minor clarification, though the diff is slightly truncated here, it looks like a table reference).
+
+    *   **Page 2: `hooks-guide.md`** (+3 / -3):
+        *   *Change 1*: Same comment change as above (`exit 0` explanation).
+        *   *Change 2*: Re-iteration of the `exit 0` behavior: &#34;reports no objection... normal permission flow still applies&#34;.
+        *   *Change 3*: Re-iteration: &#34;Exit codes only let you block or stay silent&#34;.
+
+    *   **Page 3: `settings.md`** (+14 / -0):
+        *   *Change 1*: Added new table row for `strictPluginOnlyCustomization`.
+        *   *Change 2*: Added new section documenting `strictPluginOnlyCustomization`.
+        *   *Content of new setting*: Managed settings only. Blocks skills, agents, hooks, and MCP servers from user/project sources. Only allows them from plugins or managed settings. Works with `strictKnownMarketplaces`. Requires v2.1.82+.
+
+3.  **Synthesize Insights**:
+
+    *   **Theme 1: Clarification of Hook Exit Codes (Critical Semantics)**. The docs are actively correcting a misconception. Previously, it might have seemed that `exit 0` in a hook (specifically for tool use) meant &#34;Approved&#34;. The new docs make it very clear: `exit 0` means &#34;I don&#39;t care / I have no opinion&#34;. It does *not* mean &#34;Approved&#34;. The &#34;normal permission flow&#34; (user prompts, etc.) still happens. This is a significant mental model shift for hook authors. To approve, you *must* use JSON output.
+    *   **Theme 2: Enhanced Security/Control for Enterprise (Managed Settings)**. A new feature `strictPluginOnlyCustomization` allows admins to strictly enforce that customizations (skills, agents, hooks, MCP) only come from approved sources (Plugins or Managed settings), preventing users from injecting local scripts or config into the environment. This completes a supply-chain security model alongside marketplace restrictions.
+
+4.  **Drafting the Content (in Chinese)**:
+
+    *   *Overall Summary*: The changes focus on two main areas: clarifying the semantics of hook exit codes (specifically that `exit 0` means &#34;no decision&#34; rather than &#34;approve&#34;) and introducing a new managed setting (`strictPluginOnlyCustomization`) for enterprise-grade control over customization sources.
+
+    *   *Key Themes*:
+        *   **Hook Semantics Correction**: Explicitly redefining `exit 0` behavior. It signals &#34;no decision&#34; rather than &#34;approval&#34;, requiring normal permission flows to still run. To actively approve, JSON output is required.
+        *   **Enterprise Lockdown**: Introducing `strictPluginOnlyCustomization` to restrict customizations (skills, hooks, MCP, agents) solely to managed settings or plugins, tightening security in managed environments.
+
+    *   *Impact Level*: **Medium**. For enterprise admins, the new setting is High impact (security). For hook developers, the semantic clarification is Medium impact (correcting potential logic errors where they assumed `exit 0` bypassed permissions).
+
+    *   *Action Items*:
+        *   Review existing hooks that rely on `exit 0` to implicitly approve tool calls; they might not be working as intended (bypassing permissions) if that was the goal.
+        *   Use JSON output (`{ &#34;decision&#34;: &#34;allow&#34; }`) if the goal is to explicitly approve a tool call and bypass user prompts.
+        *   Admins: Update Claude Code clients to v2.1.82+ to enforce the new `strictPluginOnlyCustomization` setting.
+
+5.  **Refining the Output**:
+
+    *   *Drafting the &#34;What Changed&#34;*:
+        *   Hooks: Clarified `exit 0` means &#34;no decision&#34;, not &#34;allow&#34;. Updated comments and explanatory text.
+        *   Settings: Added `strictPluginOnlyCustomization` documentation.
+    *   *Drafting &#34;Why it matters&#34;*:
+        *   Hooks: Prevents security risks where devs think they are approving but actually just passing it to the user prompt logic.
+        *   Settings: Allows stricter enterprise control.
+
+6.  **Final Polish (Markdown &amp; Chinese)**:
+
+    *   Summary: 本次更新主要修正了 Hook 脚本的退出码语义（明确 `exit 0` 仅表示“无决策”而非“允许”），并引入了新的托管设置 `strictPluginOnlyCustomization` 以增强企业级环境对自定义来源的管控。
+    *   Themes:
+        *   **Hook 语义纠正**：文档明确指出 `exit 0` 不会自动批准操作，而是遵循默认的权限流程。若需绕过用户提示显式批准，必须使用 JSON 输出。
+        *   **企业级合规锁定**：新增设置允许管理员禁止用户或项目源的自定义项，强制仅通过插件或托管策略加载。
+    *   Impact: Medium. (Reasoning: It changes the understanding of existing hook behavior logic and adds new security constraints).
+    *   Action Items:
+        1.  Check hook scripts expecting `exit 0` to auto-approve.
+        2.  Switch to JSON output for explicit approvals.
+        3.  Update client versions for the new security setting.
+
+7.  **Final Review against constraints**: Concise? Yes. Insightful? Yes. Markdown? Yes. Chinese? Yes. 4 sections? Yes.
+
+    *Self-Correction during drafting*: Make sure to emphasize that &#34;exit 0&#34; doesn&#39;t approve tools. This is the subtle but dangerous trap in the old docs. The new docs say &#34;staying silent doesn&#39;t approve it&#34;.
+
+    *Action items refinement*:
+    1.  Review hooks relying on `exit 0`.
+    2.  Use JSON for explicit approval.
+    3.  Update for new security setting.
+
+    Looks good.</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+32</span>
+                            <span class="removed">-26</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+14</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
+        
+    </div>
+</body>
+</html>
