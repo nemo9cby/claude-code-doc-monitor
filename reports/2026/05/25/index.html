@@ -118,9 +118,146 @@
 
         <header>
             <h1>Changes on 2026-05-25</h1>
-            <p class="meta">5 total changes in 1 run</p>
+            <p class="meta">8 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">18:55 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更分析摘要
+
+### 1. 总体概述
+此次更新主要旨在提高可观测性数据的准确性，严格区分了“工具执行结果”与“工具权限决策”的触发逻辑；同时明确界定了子代理对 UI 依赖型工具的不可用性，并记录了一个已废弃 CLI 命令的移除情况。
+
+### 2. 核心主题
+*   **监控事件模型重构**：将 `tool_result` 事件的范围限制为仅包含“已接受并执行”的工具调用。拒绝调用不再触发此事件，必须通过 `tool_decision` 事件进行追踪。同时细化了 `decision_source` 的分类，特别是在交互式 CLI 和 SDK/非交互式环境下的行为差异。
+*   **子代理能力边界界定**：明确列出了子代理无法继承的特定内部工具（如 `Agent`、`AskUserQuestion` 等），这些工具依赖主会话的 UI 状态或特定的生命周期管理。
+*   **API 清理**：正式确认并文档化了 `/output-style` 命令在 v2.1.91 版本中的移除，引导用户使用 `/config`。
+
+### 3. 影响级别
+**Medium (中等)**
+
+**理由**：虽然命令行变更的影响较小，但监控事件结构的变更对现有的遥测处理逻辑具有潜在的破坏性。依赖 `tool_result` 事件来检测拒绝操作或解析 `user_abort` 来源的系统将面临数据丢失或逻辑错误的风险，需要相应的代码调整。
+
+### 4. 开发者行动项
+*   **更新日志解析管道**：检查所有处理 `claude_code.tool_result` 事件的代码。移除对 `decision_type=&#34;reject&#34;` 及相关 `decision_source`（如 `user_abort`）的处理逻辑，改为监听 `claude_code.tool_decision` 事件来获取拒绝详情。
+*   **调整子代理工具配置**：审查使用子代理的代码，移除对受限工具（`Agent`, `AskUserQuestion`, `EnterPlanMode`, `ScheduleWakeup`, `WaitForMcpServers`）的调用或依赖。
+*   **更新用户文档/脚本**：将仍在引用 `/output-style` 命令的文档、自动化脚本或教程更新为使用 `/config` 命令或直接编辑 `outputStyle` 配置。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Input:** Three specific documentation diffs (`monitoring-usage.md`, `output-styles.md`, `sub-agents.md`).
+    *   **Format:** Markdown, concise, insightful, Chinese language response.
+    *   **Structure:** 1. Overall Summary, 2. Key Themes, 3. Impact Level, 4. Action Items.
+
+2.  **Analyze the Diffs:**
+
+    *   **Page 1: `monitoring-usage.md`**
+        *   *Change 1 (Tool result event):* Clarified that `tool_result` events are *not* emitted if a tool call was rejected. Instead, see the &#34;Tool decision event&#34;.
+        *   *Change 2 (Tool result event fields):* Updated `decision_type` to say it&#39;s always `&#34;accept&#34;` (obvious, since it only logs execution). Updated `decision_source` to remove reject-only sources (`user_abort`, `user_reject`) because this event doesn&#39;t fire for rejections anymore.
+        *   *Change 3 (Tool decision event):* Refined the description of `&#34;config&#34;` source to include &#34;allow or deny rules&#34;.
+        *   *Change 4 (Tool decision event):* Refined the description of `&#34;user_reject&#34;` source to distinguish behavior between interactive CLI (where it&#39;s just the user clicking &#34;No&#34;) and SDK/non-interactive (where it matches a deny rule in personal settings).
+        *   *Theme:* Refinement of telemetry/monitoring logic to distinguish between permission decisions and actual tool execution results. Improves accuracy of event filtering.
+
+    *   **Page 2: `output-styles.md`**
+        *   *Change 1:* Added a deprecation note for the `/output-style` command (removed in v2.1.91), recommending `/config` instead.
+        *   *Theme:* Deprecation/Removal of a CLI command. Maintenance/Cleanup.
+
+    *   **Page 3: `sub-agents.md`**
+        *   *Change 1:* Clarified that subagents inherit tools by default but explicitly listed exceptions (tools dependent on UI/session state): `Agent`, `AskUserQuestion`, `EnterPlanMode`, `ExitPlanMode` (conditional), `ScheduleWakeup`, `WaitForMcpServers`.
+        *   *Theme:* Clarification of sub-agent capabilities and limitations regarding specific UI/State-dependent tools.
+
+3.  **Synthesize and Structure (in Chinese):**
+
+    *   **Overall Summary:** The updates focus on refining telemetry accuracy regarding tool execution vs. permission decisions, clarifying sub-agent tool limitations, and noting the removal of a deprecated CLI command.
+        *   *Draft (CN):* 此次更新主要聚焦于完善遥测数据的准确性，明确区分了“工具执行结果”与“工具权限决策”事件的触发逻辑；同时阐明了子代理对特定 UI 依赖型工具的不可用性，并标记了一个已废弃 CLI 命令的移除。
+
+    *   **Key Themes:**
+        *   **Observability Precision:** Separating decision logic (accept/reject) from execution results in monitoring logs.
+        *   **Sub-Agent Constraints:** Defining boundaries for tools requiring main session state or UI interaction.
+        *   **API Lifecycle:** Removing deprecated `/output-style` command.
+        *   *Draft (CN):*
+            *   **遥测精准度提升**：严格区分了 `tool_result`（仅包含成功的执行）与 `tool_decision`（包含所有许可判定）事件，消除了逻辑歧义。
+            *   **子代理边界明确**：列出了子代理无法使用的特定工具（如 `AskUserQuestion`、`Agent` 等），这些工具依赖主会话的 UI 或状态。
+            *   **生命周期管理**：确认并记录了旧版 `/output-style` 命令的移除时间节点。
+
+    *   **Impact Level:**
+        *   *Reasoning:*
+            *   Monitoring changes (`monitoring-usage.md`) are breaking changes for anyone parsing `tool_result` events expecting rejections or specific `decision_source` values. If they expected `user_abort` in `tool_result`, it&#39;s gone. If they filtered for rejections in `tool_result`, they will get 0 results. This is significant for telemetry pipelines.
+            *   Sub-agent changes are clarifications; they describe behavior that already exists (tools not available), but developers might have been confused. Low to Medium impact depending on if they were trying to use those tools.
+            *   Output style deprecation is Low impact (just a UI command).
+        *   *Conclusion:* Medium to High for telemetry users, Low generally. I&#39;ll rate it &#34;Medium&#34; overall because of the event schema change implications.
+        *   *Draft (CN):* **Medium (中等)**
+            *   *Reasoning:* 监控事件模型发生了实质性变更（`tool_result` 不再包含拒绝调用的事件），依赖旧日志结构的遥测系统需要更新。子代理工具限制的明确化有助于调试，命令移除的影响较小。
+
+    *   **Action Items:**
+        *   Update log parsers (monitoring).
+        *   Check sub-agent code (if trying to use restricted tools).
+        *   Update scripts/docs using `/output-style`.
+        *   *Draft (CN):*
+            *   **更新日志解析逻辑**：检查并修改处理 `tool_result` 事件的代码，不再依赖其中的 `decision_source` 来追踪拒绝情况，应改用 `tool_decision` 事件。
+            *   **审查子代理工具配置**：若在使用子代理时尝试调用 `Agent`、`AskUserQuestion` 或 `ExitPlanMode` 等工具，需调整代码逻辑，因为这些工具不可用。
+            *   **更新脚本与文档**：将遗留的 `/output-style` 命令替换为 `/config` 或直接修改配置文件。
+
+4.  **Final Review:**
+    *   Does it meet the &#34;World-class programmer&#34; persona? Yes, precise and technical.
+    *   Is it in Chinese? Yes.
+    *   Is the format correct? Yes (Summary, Themes, Impact, Action Items).
+
+5.  **Construct Final Output.** (Proceeding to generate the response based on the drafted points).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/output-styles.html" class="page-link">output-styles.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">17:00 EST</div>
