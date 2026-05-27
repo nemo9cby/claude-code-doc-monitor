@@ -118,9 +118,189 @@
 
         <header>
             <h1>Changes on 2026-05-27</h1>
-            <p class="meta">12 total changes in 2 runs</p>
+            <p class="meta">16 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">19:57 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 整体摘要
+
+此次文档更新主要围绕**消息批处理 API（Message Batches API）的功能扩展与限制澄清**，特别是明确了对服务端工具（包括 MCP 和 Web 搜索）的全面支持，并详细列出了不支持的参数及速率控制行为。
+
+### 关键主题
+
+*   **批处理 API 的代理能力增强**：明确确认所有服务端工具，包括 MCP 连接器、Web 搜索、代码执行等，现在均支持在批处理请求中使用。
+*   **明确的参数限制清单**：新增表格详细列出了批处理请求中不支持的参数（如 `stream`、`speed`、`cache_hint` 等），帮助开发者规避验证错误。
+*   **执行行为差异说明**：批处理工作进程中的代理循环比同步请求运行更多的迭代次数；同时，为了保护共享容量，批处理会对 Web 搜索进行组织级别的速率限制。
+*   **模型可用性更新**：在 Vertex AI 上，结构化输出功能现在正式支持 Claude Haiku 4.5。
+
+### 影响等级
+
+**中**
+
+*   **理由**：这虽然不是破坏性变更，但显著提升了批处理 API 的能力，允许开发者运行更复杂的代理工作流。同时，关于参数限制和速率控制的澄清对现有和未来的批处理任务设计有实质性指导意义，有助于避免运行时错误和性能误判。
+
+### 开发者行动项
+
+*   **审查代码**：检查现有的批处理代码，确保没有使用不支持的参数（如 `stream: true` 或 `speed`），以免触发验证错误。
+*   **利用新功能**：探索在批处理任务中使用 MCP 和 Web 搜索工具，以低成本或高吞吐量处理数据 enrichment 或研究类任务。
+*   **调整性能预期**：在规划大规模 Web Search 批处理任务时，考虑到速率限制可能会延长总体处理时间，尽管系统会自动重试。
+*   **关注 Beta 特性**：确认你的批处理任务没有依赖 `research_preview_2026_02` 或其他不支持的特定路由提示。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Understand the Goal**: The user wants a concise, insightful analysis of documentation changes provided as a diff. The output needs to be in Markdown, in Chinese, and focused on what matters to developers. The user provided diffs for 4 pages: `batch-processing.md`, `structured-outputs.md`, `web-search-tool.md`, and `mcp-connector.md`.
+
+2.  **Analyze the Diffs**:
+
+    *   **Page 1: `build-with-claude/batch-processing.md`**
+        *   *Changes*:
+            *   Changed &#34;Any request&#34; to &#34;Almost any request&#34; regarding batching.
+            *   Expanded the list of supported features: Added &#34;Extended thinking&#34; and changed &#34;Any beta features&#34; to &#34;Most beta features&#34;.
+            *   **New Section**: Added a table explicitly listing *unsupported* parameters in batch requests: `stream: true`, `speed`, `store`/`previous_thread_event_id`, `cache_hint`/`context_hint`, `max_tokens: 0`, `research_preview_2026_02: &#34;active&#34;`.
+            *   **New Section**: &#34;Server tools and the agentic loop&#34;. Explains that server tools (web search, web fetch, code execution, MCP connectors, advisor, tool search) work in batch.
+            *   *Specific detail*: Batch worker runs *more iterations* before pausing compared to sync requests.
+            *   *Specific detail*: Batch worker throttles `web_search` per org to prevent rate limit exhaustion. Retries are automatic.
+            *   Updated FAQ text to reflect the &#34;nearly all features&#34; and point to the unsupported list.
+
+    *   **Page 2: `build-with-claude/structured-outputs.md`**
+        *   *Changes*:
+            *   Added &#34;Claude Haiku 4.5&#34; to the list of models where structured outputs are GA on Vertex AI.
+            *   This is a minor availability update.
+
+    *   **Page 3: `agents-and-tools/tool-use/web-search-tool.md`**
+        *   *Changes*:
+            *   Added a paragraph about using Web Search in Batches API.
+            *   Mentions throttling per org to protect shared capacity.
+            *   Mentions price is the same.
+            *   Suggests typical workloads (enrichment, research, grounding).
+
+    *   **Page 4: `agents-and-tools/mcp-connector.md`**
+        *   *Changes*:
+            *   Added a section &#34;Batch requests&#34;.
+            *   Confirms `mcp_servers` can be included in Batches API.
+            *   Mentions pricing is the same.
+
+3.  **Synthesize Themes**:
+    *   **Batch API Expansion**: The main theme is expanding the capabilities of the Message Batches API.
+    *   **Server Tools Support**: Explicitly confirming support for server tools (MCP, web search, etc.) in batches.
+    *   **Constraints &amp; Clarifications**: Clarifying what *isn&#39;t* supported (streams, specific params) and how behavior differs (agentic loop iterations, rate limiting).
+    *   **Model Availability**: Minor update for Haiku 4.5 on Vertex AI.
+
+4.  **Determine Impact Level**:
+    *   *Low*: No breaking changes for existing code (unless someone was trying to use `stream: true` in batches and it was silently failing or unclear, but usually that&#39;s a validation error). It adds new capabilities and clarifies limitations.
+    *   *Medium*: Significant enhancement for developers using batch processing with agentic workflows (Server tools, MCP). The throttling info is important for performance expectations.
+    *   *Reasoning*: It enables more complex workflows in batch mode (agentic loops) but doesn&#39;t break existing synchronous flows. The clarification on unsupported params prevents confusion.
+
+5.  **Draft Action Items**:
+    *   Review unsupported parameters in Batch API if planning complex batch jobs.
+    *   Take advantage of server tools (MCP, Web Search) in batch jobs for data enrichment.
+    *   Monitor batch job times if using extensive Web Search due to throttling.
+    *   Update code/docs if relying on `research_preview_2026_02` or specific params in batches.
+
+6.  **Draft the Response (in Chinese)**:
+
+    *   *Overall Summary*: Documentation updates primarily focus on expanding and clarifying the capabilities of the Message Batches API, specifically enabling support for server tools (MCP, Web Search) and detailing unsupported parameters and rate limiting behaviors.
+    *   *Key Themes*:
+        *   Enhanced Batch API Support for Server Tools: Explicitly confirmed that server tools (Web Search, MCP, Code Execution, etc.) are supported.
+        *   Clarification of Limitations: Added a clear table of unsupported parameters (e.g., `stream`, `speed`, `cache_hint`).
+        *   Performance and Rate Limiting: Noted that the batch agentic loop runs longer before pausing, and web search is throttled per organization.
+        *   Model Availability: Added Structured Outputs support for Claude Haiku 4.5 on Vertex AI.
+    *   *Impact Level*: Medium (Functional enhancement and clarification).
+        *   *Reasoning*: While not a breaking change, it significantly expands what developers can do with batch processing (agentic workflows) and clears up potential confusion about compatibility, requiring developers to adjust their expectations regarding throttling and specific parameter exclusions.
+    *   *Action Items*:
+        *   Check the updated list of unsupported parameters before designing complex batch workflows.
+        *   Leverage the newly confirmed support for MCP and Web Search tools in batch jobs for high-volume processing.
+        *   Account for potential throttling delays when using Web Search in large batches.
+        *   Update documentation or code if previously assuming all beta features or specific routing hints worked in batch mode.
+
+7.  **Review and Refine**:
+    *   Ensure tone is professional and concise.
+    *   Check against the diffs again.
+    *   The &#34;more iterations per turn&#34; point is a specific technical detail worth mentioning in themes or action items? Probably themes under &#34;Behavioral changes&#34;.
+    *   Make sure the Chinese translation is natural.
+
+    *Refining the &#34;Overall Summary&#34;*: 此次文档更新主要围绕消息批处理 API（Message Batches API）的功能扩展与限制澄清，特别是明确了服务端工具和 MCP 在批处理中的支持情况，以及新增的参数限制和速率控制说明。
+
+    *Refining &#34;Key Themes&#34;*:
+    *   批处理 API 能力增强：明确了支持 MCP 连接器、Web 搜索等服务端工具。
+    *   限制条件清单化：新增表格详细列出不支持的参数（如 `stream`, `speed` 等）。
+    *   行为差异说明：批处理中的代理循环会有更多迭代次数，且 Web 搜索受限于组织级别的速率限制。
+    *   模型可用性微调：在 Vertex AI 上新增了对 Claude Haiku 4.5 结构化输出的支持。
+
+    *Refining &#34;Impact&#34;*: Medium.
+    *   Reasoning: 新增了对复杂代理工作流在批处理中的支持，这对开发者非常有用，但也引入了速率限制这一潜在的性能瓶颈因素，需要开发者关注。
+
+    *Refining &#34;Action Items&#34;*:
+    *   重新审视现有的批处理任务，确保未使用不支持的参数（如 `stream` 或 `cache_hint`）。
+    *   利用新增的 MCP 和 Web Search 支持功能，将代理式任务迁移至批处理以降低成本或提高吞吐量。
+    *   在设计大规模 Web Search 批处理任务时，预留额外时间以应对自动重试带来的延迟。
+    *   若使用了 `research_preview_2026_02` 等标记，需调整批处理请求配置。
+
+8.  **Final Polish**: Looks good. Formatting matches the request.</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/batch-processing.html" class="page-link">build-with-claude/batch-processing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+18</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/structured-outputs.html" class="page-link">build-with-claude/structured-outputs.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/web-search-tool.html" class="page-link">agents-and-tools/tool-use/web-search-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/mcp-connector.html" class="page-link">agents-and-tools/mcp-connector.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">16:07 EST</div>
