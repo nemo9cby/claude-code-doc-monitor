@@ -118,9 +118,273 @@
 
         <header>
             <h1>Changes on 2026-05-27</h1>
-            <p class="meta">1 total change in 1 run</p>
+            <p class="meta">12 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">16:07 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 文档变更分析
+
+**总体摘要**
+此次更新主要集中在**提升系统的可观测性**（新增多个遥测指标与追踪控制选项）和**增强开发者对工具及技能的控制粒度**（新增工具黑名单机制和 Hook 事件）。同时，插件市场管理和 CLI 交互体验也进行了细微优化。
+
+**关键主题**
+
+*   **可观测性深度增强**
+    *   **新增指标属性**：遥测中新增 `app.entrypoint`（区分 CLI、SDK 或 VSCode 等入口）以及 `mcp_server.name` 和 `mcp_tool.name`，有助于更精确地追踪 MCP 工具的使用成本和来源。
+    *   **追踪上下文传播**：明确了 `traceparent` 在 HTTP MCP 请求中的传播行为，并新增环境变量 `CLAUDE_CODE_PROPAGATE_TRACEPARENT`，允许在使用自定义代理时强制启用追踪上下文传播。
+
+*   **技能与钩子系统的精细化控制**
+    *   **技能工具黑名单**：在 Skill 和 Slash Command 定义中新增 `disallowed-tools` 字段，允许开发者明确禁止特定技能调用某些工具（如禁止后台循环调用 `AskUserQuestion`），增强了自动化流程的安全性。
+    *   **格式兼容性**：`allowed-tools` 现在支持逗号分隔的字符串格式。
+    *   **新增 Hook 事件**：新增 `MessageDisplay` 事件，允许开发者在助手消息流式输出时触发逻辑（例如实时 UI 更新）。
+
+*   **插件与配置管理改进**
+    *   **市场移除作用域**：`claude plugin marketplace remove` 命令新增 `--scope` 选项，支持仅在特定作用域（user/project/local）移除市场声明，避免误删全局配置。
+    *   **受管设置扩展**：新增 `pluginSuggestionMarketplaces` 配置，允许管理员指定哪些市场的插件可以出现在上下文安装建议中。
+
+*   **CLI 体验微调**
+    *   **Fallback 模型**：明确了 `--fallback-model` 不仅在模型过载时生效，在模型不可用（如已退役）时同样有效。
+    *   **Vim 模式**：新增 `/` 键绑定，用于反向历史搜索（同 `Ctrl+R`）。
+
+**影响级别**
+**Medium** (中等)
+*   **理由**：本次变更主要是功能的**增强和扩展**（Additive Changes），提供了更多配置选项和监控维度。虽然未发现破坏性变更，但新增的遥测属性和 Skill 字段为开发者提供了更强大的控制力，建议及时适配以利用新特性。
+
+**开发者行动项**
+
+*   **更新监控仪表盘**：利用新增的 `app.entrypoint` 和 MCP 相关指标（`mcp_server.name`, `mcp_tool.name`）来细化和优化成本分析及性能监控。
+*   **加固自动化技能**：审查现有的后台或自动化 Skill 配置，利用新的 `disallowed-tools` 字段显式禁用交互式工具，防止意外的用户中断。
+*   **检查追踪配置**：如果您通过自定义 `ANTHROPIC_BASE_URL` 代理运行 Claude Code 并需要端到端追踪，请设置环境变量 `CLAUDE_CODE_PROPAGATE_TRACEPARENT=1`。
+*   **适配插件管理脚本**：如果您的运维脚本涉及插件市场的移除，请更新以支持新的 `--scope` 参数，实现更精细的配置管理。
+*   **利用 Hook 实现实时反馈**：如果您的插件或集成需要实时响应 AI 输出，可以开始集成新的 `MessageDisplay` Hook 事件。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Understand the Goal:** The user wants a concise, insightful analysis of documentation changes for 11 pages. The output must be in markdown, in Chinese, focusing on what matters to developers.
+
+2.  **Analyze the Changes (Page by Page):**
+
+    *   **cli-reference.md:**
+        *   Change: `--fallback-model` description updated.
+        *   Detail: Added &#34;or not available, for example a retired model&#34;.
+        *   Significance: Clarifies that fallback works for more than just overload (e.g., deprecated models).
+
+    *   **headless.md:**
+        *   Change: Example in Note updated.
+        *   Detail: Changed `/commit` to `/code-review`.
+        *   Significance: Likely a typo fix or reflecting a change in default/bundled skills. Minor documentation update.
+
+    *   **hooks.md, hooks-guide.md, plugins-reference.md:**
+        *   Change: Added `MessageDisplay` event to the list of available hook events.
+        *   Detail: &#34;While assistant message text is displayed&#34;. Diagram updated in `hooks.md`.
+        *   Significance: New capability for developers to react to message streaming in real-time.
+
+    *   **interactive-mode.md:**
+        *   Change: Added keybinding `/` to the Vim mode table.
+        *   Detail: &#34;Open reverse history search, same as `Ctrl+R`&#34;.
+        *   Significance: UX improvement for Vim users in the terminal.
+
+    *   **monitoring-usage.md:**
+        *   Changes:
+            1.  New env var: `OTEL_METRICS_INCLUDE_ENTRYPOINT`.
+            2.  New attribute: `app.entrypoint` (values: `cli`, `sdk-cli`, `sdk-ts`, `sdk-py`, `claude-vscode`).
+            3.  Updated Tracing section: Added `traceparent` propagation details for MCP HTTP requests.
+            4.  Updated Tracing section: Added `CLAUDE_CODE_PROPAGATE_TRACEPARENT` env var for custom proxies.
+            5.  New attributes for counters: `mcp_server.name`, `mcp_tool.name` added to Cost, Token, Code edit decision, API error, and API request body counters.
+        *   Significance: Significant enhancement for observability and telemetry. Better tracking of entry points and MCP tool usage.
+
+    *   **plugin-marketplaces.md:**
+        *   Change: `claude plugin marketplace remove` command updated.
+        *   Detail: Added `--scope` option (`user`, `project`, `local`). Updated warning text to be more specific about &#34;last remaining scope&#34;.
+        *   Significance: Finer control over plugin management. Prevents accidental removals across scopes.
+
+    *   **settings.md:**
+        *   Change: Added `pluginSuggestionMarketplaces` setting.
+        *   Detail: Managed settings only. Allows specifying marketplaces for contextual plugin suggestions.
+        *   Significance: Enterprise/Managed settings feature for controlling plugin discovery.
+
+    *   **skills.md, slash-commands.md:**
+        *   Changes:
+            1.  `allowed-tools` description updated: Added support for comma-separated strings (in addition to space-separated or YAML list).
+            2.  New field: `disallowed-tools`. Allows specifying tools to explicitly *exclude* during skill execution (e.g., preventing `AskUserQuestion` in background loops). Format same as `allowed-tools`.
+        *   Significance: Enhanced safety and flexibility in skill/command definition. Negative permissions (blacklisting) added.
+
+3.  **Synthesize and Structure:**
+
+    *   **Overall Summary:** The updates focus on enhancing observability (telemetry/tracing), improving tool management (skills/plugins), and refining fallback mechanisms.
+    *   **Key Themes:**
+        *   *Observability:* New OTEL attributes (entrypoint, MCP details) and tracing context propagation control.
+        *   *Tool/Skill Control:* New `disallowed-tools` field for skills, comma support in `allowed-tools`, new `MessageDisplay` hook.
+        *   *Plugin Management:* Scoped removal of marketplaces and managed marketplace suggestions.
+        *   *Usability:* Vim mode keybinding, clarified fallback model behavior.
+    *   **Impact Level:** Medium. Mostly additive features and refinements. No breaking changes explicitly mentioned (except maybe existing behavior clarifications), but significantly enhances developer control and visibility.
+    *   **Action Items:**
+        *   Update telemetry dashboards to utilize new entrypoint and MCP attributes.
+        *   Review skills to potentially utilize `disallowed-tools` for safer background automation.
+        *   Adjust plugin marketplace scripts to handle the new `--scope` option if needed.
+        *   Update hooks implementations if real-time message handling is desired.
+        *   Review tracing configuration if using custom proxies (`CLAUDE_CODE_PROPAGATE_TRACEPARENT`).
+
+4.  **Drafting the Response (in Chinese):**
+
+    *   *Summary:* 此次更新主要增强了可观测性（遥测与追踪能力）、改进了工具/技能管理的控制粒度，并优化了插件市场及 CLI 的易用性。
+    *   *Themes:*
+        *   **可观测性增强**: 新增 `app.entrypoint` 和 MCP 相关 (`mcp_server.name`, `mcp_tool.name`) 指标属性；支持通过环境变量更灵活地控制 `traceparent` 的传播。
+        *   **技能与钩子系统**: 技能定义新增 `disallowed-tools` 字段以实现工具黑名单；Hook 系统新增 `MessageDisplay` 事件用于实时响应消息流。
+        *   **插件与市场管理**: 支持按作用域移除插件市场 (`--scope`)；新增受管设置 `pluginSuggestionMarketplaces`。
+        *   **CLI 体验**: 明确了 `--fallback-model` 对退役模型的支持；Vim 模式新增反向搜索快捷键。
+    *   *Impact:* **Medium** (中等)。主要是功能增强和文档更新，提供了更细粒度的控制和更深入的监控能力，未发现破坏性变更。
+    *   *Action Items:*
+        *   利用新增的 MCP 和入口点属性更新监控仪表盘，以细化成本和性能分析。
+        *   审查并更新自动化的 Skill 配置，使用 `disallowed-tools` 提升后台运行的安全性。
+        *   若使用自定义代理或需要分布式追踪，检查并配置 `CLAUDE_CODE_PROPAGATE_TRACEPARENT`。
+        *   插件管理脚本需适配 `claude plugin marketplace remove` 的新 `--scope` 选项。
+        *   评估在 Hook 中使用新的 `MessageDisplay` 事件以实现实时 UI 反馈。
+
+5.  **Final Polish:** Ensure markdown format is correct and tone is professional/insightful. (Self-correction: Make sure to mention comma-separated support for allowed-tools as a small but handy UX improvement).
+
+6.  **Final Output Generation.** (Proceed to generate output based on step 4).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/cli-reference.html" class="page-link">cli-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/headless.html" class="page-link">headless.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+70</span>
+                            <span class="removed">-35</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+19</span>
+                            <span class="removed">-18</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/interactive-mode.html" class="page-link">interactive-mode.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugin-marketplaces.html" class="page-link">plugin-marketplaces.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">13:55 EST</div>
