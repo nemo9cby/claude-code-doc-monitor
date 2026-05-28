@@ -118,9 +118,142 @@
 
         <header>
             <h1>Changes on 2026-05-27</h1>
-            <p class="meta">16 total changes in 3 runs</p>
+            <p class="meta">17 total changes in 4 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">23:34 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 1. Overall Summary
+版本 2.1.153 是一次以**稳定性**和**安全性**为核心的更新，主要修复了后台代理、MCP 服务器集成以及跨平台（特别是 Windows 和 macOS）兼容性方面的多项 Bug，同时优化了 CLI 脚本环境支持和模型选择器的交互体验。
+
+### 2. Key Themes
+*   **后台代理稳定性:** 修复了大量后台会话中的边缘情况，包括 tmux 剪贴板失效、Windows IME 窗口位置错误、权限提示异常及僵尸进程清理等。
+*   **MCP 与安全增强:** 修复了一个严重的回归问题（自定义 API 网关可能错误接收到用户的 Anthropic OAuth 凭据），并改进了子代理 MCP 服务器的配置管理（`--strict-mcp-config`）。
+*   **跨平台与安装修复:** 解决了 Windows 安装器误报成功、更新回滚机制、npm 全局安装更新失败以及 macOS 权限持久化等问题。
+*   **开发者体验 (DX):** 新增 `skipLfs` 选项以加速 Git 克隆，状态行脚本现在支持 `COLUMNS` 和 `LINES` 环境变量以适配终端宽度，并优化了模型选择器的持久化逻辑。
+
+### 3. Impact Level
+**High**
+
+**Reasoning:**
+*   **安全性:** 修复了 API 网关凭据泄露的回归问题，这对企业用户和自定义网关部署至关重要。
+*   **核心功能修复:** 修复了恢复会话时的内存泄漏（可能导致数 GB 占用）以及 MCP 服务器的重连循环问题，直接影响工具的可用性和性能。
+*   **操作变更:** 模型选择器的快捷键逻辑发生了变化（`d` 变为 `s`），且相关的自定义快捷键 ID 需要重命名，这属于用户体验层面的较大调整。
+
+### 4. Action Items for Developers
+*   **更新快捷键配置:** 如果你自定义了 `modelPicker:setAsDefault` 快捷键，请将其重命名为 `modelPicker:thisSessionOnly`（因为默认保存逻辑已改变，快捷键现在用于“仅本次会话”）。
+*   **检查环境变量:** 如果你在状态行命令中编写了脚本，现在可以利用新增的 `COLUMNS` 和 `LINES` 环境变量来动态调整输出宽度。
+*   **利用 Git LFS 跳过选项:** 在使用 `github`/`git` 插件市场源时，如果不需要 LFS 文件，可配置 `skipLfs` 选项以大幅加快克隆和更新速度。
+*   **排查安装问题:** 如果之前遇到 npm 全局安装无法自动更新的情况，请运行 `/doctor` 查看修复建议和上次更新尝试的结果。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer, expert in developer tools/documentation.
+    *   **Input:** A single diff for `CHANGELOG.md.md` (version 2.1.153).
+    *   **Output Format:** Markdown (Concise, insightful, in Chinese).
+    *   **Structure:** 1. Overall Summary, 2. Key Themes, 3. Impact Level, 4. Action Items.
+
+2.  **Analyze the Content (Changelog 2.1.153):**
+    *   *New Features:* `skipLfs` for git/github sources, npm auto-update notice + doctor fixes, `COLUMNS`/`LINES` env vars for status line commands, autocomplete improvements for `claude agents`, PR column display changes.
+    *   *Core Logic Fixes:*
+        *   MCP (Model Context Protocol) fixes: Reconnect loops, regression with API gateway credentials vs. user tokens, subagent MCP server strict mode issues, strict-mcp-config behavior changes, background agents/macOS permissions.
+        *   Update mechanism: Windows PowerShell installer bug, `claude update` installing wrong channel version, Windows update rollback handling.
+    *   *Session/CLI Experience:*
+        *   Memory usage fix (transcript resume).
+        *   Stale daemon issues.
+        *   Stream-json mode hang fix.
+        *   File link clickable fix.
+        *   Help text rendering fix.
+    *   *Background Sessions (Agents) - Heavy Focus:*
+        *   `/bg` continuation behavior.
+        *   `/btw` responsiveness.
+        *   Temp file permission prompts.
+        *   Worktree recovery errors.
+        *   `EnterWorktree` availability.
+        *   `cmd+k` repaint.
+        *   IME window positioning (Windows).
+        *   Background color bleed.
+        *   Clipboard (`/copy`) issues in tmux.
+        *   Zombie session entries.
+        *   `/rename` banner update.
+    *   *IDE/VSCode Integration:* Process shutdown clean-up on Windows.
+    *   *Model Picker:* Saves default (`d` replaced by `s` for session-only). Keybinding rename.
+
+3.  **Synthesize Themes:**
+    *   **Stability &amp; Bug Fixes:** Massive number of fixes, especially regarding background agents, MCP, and CLI behavior on different platforms (Windows/macOS).
+    *   **Developer Experience (DX):** Better autocomplete, status line scripts env vars, cleaner model picker.
+    *   **Background Agents:** This seems to be a major focus area of this release, fixing many edge cases (tmux, clipboard, IME, permissions).
+
+4.  **Determine Impact:**
+    *   *High:* Fixes memory usage, authentication leakage (API gateway regression), and update failures. The MCP fixes are critical for enterprise/power users. The background agent fixes significantly improve reliability of a core feature.
+    *   *Breaking:* Minor UI change (`d` vs `s` in model picker), and a keybinding rename instruction. Not a code-breaking change for most, but users need to be aware of the keybinding change if they customized it.
+
+5.  **Draft Action Items:**
+    *   Update Keybindings if customized (`modelPicker:setAsDefault` -&gt; `modelPicker:thisSessionOnly`).
+    *   Run `/doctor` if you&#39;ve had npm update issues.
+    *   Check `COLUMNS`/`LINES` usage in status line scripts (new opportunity).
+    *   Be aware of the new `skipLfs` option if using Git LFS.
+
+6.  **Translate and Refine (Chinese):**
+
+    *   *Summary:* Version 2.1.153 is a stability-focused update, primarily fixing issues with MCP servers, background agents, and platform-specific bugs (Windows/macOS). It also introduces improvements for CLI scripts and the model picker.
+        *   *Draft (CN):* v2.1.153 是一次以稳定性为核心的更新，重点修复了 MCP 服务器、后台代理以及平台特定的 Bug（尤其是 Windows 和 macOS），同时优化了 CLI 脚本支持和模型选择器体验。
+
+    *   *Key Themes:*
+        *   Background Session Reliability (后台会话稳定性).
+        *   MCP &amp; Authentication Security (MCP 与认证安全).
+        *   Cross-platform Compatibility (跨平台兼容性).
+        *   Developer Experience (DX) Enhancements (开发体验增强).
+
+    *   *Impact:* High. It fixes critical regressions (API gateway credentials, memory usage) and improves the reliability of a major feature (background agents).
+        *   *Draft (CN):* 高。修复了 API 网关凭据泄露的回归问题、严重的内存泄漏以及后台会话的多个异常，显著提升了系统稳定性和安全性。
+
+    *   *Action Items:*
+        *   Rename keybinding if customized.
+        *   Review status line scripts for `COLUMNS`/`LINES`.
+        *   Use `skipLfs` if Git LFS is slowing down clones.
+        *   Run `/doctor` if install updates were failing.
+
+7.  **Final Polish (Markdown Structure):**
+
+    *   *Headings:* Use H2 or bold for sections.
+    *   *Tone:* Professional, concise.
+
+    *(Self-Correction during drafting)*: Ensure I mention the specific API gateway credential leak fix. That&#39;s a security fix that matters.
+    The change `d` -&gt; `s` in the model picker is a UX change but requires action for users with custom keybindings.
+
+8.  **Final Output Generation** (matching the requested format).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+37</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">19:57 EST</div>
