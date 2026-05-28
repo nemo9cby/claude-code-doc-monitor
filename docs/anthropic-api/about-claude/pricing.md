@@ -31,7 +31,7 @@ MTok = Million tokens. The "Base Input Tokens" column shows standard input prici
 </Note>
 
 <Note>
-Opus 4.7 uses a new tokenizer compared to previous models, contributing to its improved performance on a wide range of tasks. This new tokenizer may use up to 35% more tokens for the same fixed text.
+Opus 4.7 and later use a new tokenizer compared to previous models, contributing to their improved performance on a wide range of tasks. This new tokenizer may use up to 35% more tokens for the same fixed text.
 </Note>
 
 For Claude Platform on AWS pricing, see [Claude Platform on AWS pricing](#claude-platform-on-aws-pricing).
@@ -351,7 +351,7 @@ Session runtime replaces the [Code Execution](#code-execution-tool) container-ho
 
 ### Worked example
 
-A one-hour coding session using Claude Opus 4.7 that consumes 50,000 input tokens and 15,000 output tokens:
+A one-hour coding session using Claude Opus 4.8 that consumes 50,000 input tokens and 15,000 output tokens:
 
 | Line item | Calculation | Cost |
 | --- | --- | --- |
