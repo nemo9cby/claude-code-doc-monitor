@@ -118,9 +118,509 @@
 
         <header>
             <h1>Changes on 2026-05-28</h1>
-            <p class="meta">77 total changes in 3 runs</p>
+            <p class="meta">106 total changes in 4 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">19:10 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">```markdown
+# 文档变更分析摘要
+
+## Overall Summary (总体概述)
+本次文档更新大规模引入了动态组件 `&lt;NextOpus /&gt;` 以替代硬编码的模型名称（主要为 Claude Opus 4.8），同时显著增强了 CLI 工具链和插件生态系统的功能，包括后台任务执行、多浏览器管理以及插件元数据的扩展。API 层面新增了对话中插入系统消息的 Beta 功能，并更新了快速入门指南以覆盖 TypeScript。
+
+## Key Themes (核心主题)
+
+- **模型引用标准化**：将文档中散落的“Claude Opus 4.8”文本统一替换为 `&lt;NextOpus /&gt;` 组件和 `&lt;NextOpusId /&gt;` ID 组件，便于未来模型迭代时的文档维护。
+- **CLI 与自动化增强**：
+    - 新增 `--exec` 标志，允许 Claude 作为后台任务执行 Shell 命令（PTY-backed），集成 CI/CD 流程更便捷。
+    - Chrome 集成支持多浏览器连接，执行操作时提示用户选择目标浏览器。
+- **插件系统扩展**：
+    - 插件清单新增 `defaultEnabled`、`runtime`（Node/Bun）、`mcpServers`、`categories` 等元数据字段。
+    - 插件发现逻辑升级，能根据当前工作目录推荐相关插件。
+    - Hooks 和 MCP 服务器现在支持 `${CLAUDE_PROJECT_DIR}` 环境变量。
+- **API 架构调整**：
+    - 引入新的 Beta 版 API 头 `mid-conversation-system-2026-04-07`。
+    - 重构 `OutputTokensDetails` 的 schema 定义，改为内联对象定义，提升文档清晰度。
+- **开发体验优化**：
+    - 快速入门指南新增 TypeScript 选项，并优化了 Python 和 cURL 的示例代码。
+    - `interactive-mode` 中明确了 `prompt-suggestions` 在打印模式下的默认行为。
+
+## Impact Level (影响级别)
+**Medium (中)**
+
+**Reasoning (理由)**:
+虽然文档中涉及大量模型名称的替换（视觉上影响较大），但这主要是文档基础设施的优化，对现有代码逻辑无破坏性影响。然而，CLI 新增的后台执行功能、插件元数据架构的扩充以及 API 的 Beta 头更新，为开发者提供了实质性的新能力和控制力，需要适配和关注。
+
+## Action items for developers (开发者行动项)
+
+1.  **利用 CLI 后台执行**：在 CI/CD 或长时间运行的任务中，尝试使用 `claude --bg --exec &#39;pytest -x&#39;` 直接在后台执行 Shell 命令。
+2.  **更新插件配置**：插件开发者应更新 `plugin.json` 或 Marketplace 清单，利用新增的 `defaultEnabled`、`categories` 和 `runtime` 字段以提升插件的可见性和兼容性。
+3.  **检查 MCP/Hooks 环境**：确保你的 stdio MCP 服务器或 Hook 脚本能够正确读取和使用新增的 `${CLAUDE_PROJECT_DIR}` 环境变量来定位项目根目录。
+4.  **测试多浏览器操作**：如果你的工作流依赖 Chrome 自动化，请在连接多个浏览器实例时测试新的选择提示功能。
+5.  **关注 API Beta 功能**：如需在对话中途动态修改系统指令而不破坏缓存，可尝试启用 `mid-conversation-system-2026-04-07` Beta 头。
+```</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Understand the Goal**: The user wants an analysis of documentation changes across 29 pages, provided as diffs. The output should be a concise, insightful summary in Markdown format, written in Chinese. It needs to focus on what matters to developers.
+
+2.  **Analyze the Input Diffs**: I need to go through each page&#39;s diff and identify the core changes.
+
+    *   **chrome.md**: Added functionality for multi-browser selection. When multiple browsers are connected, Claude prompts the user to pick one during browser actions.
+    *   **cli-reference.md**:
+        *   `--bg` flag updated to mention it can be combined with `--exec`.
+        *   New flag `--exec` added to run shell commands as background jobs (PTY-backed).
+    *   **discover-plugins.md**: Plugins relevant to the current directory are now pinned at the top with a &#34;suggested for this directory&#34; label. Version note: 2.1.154.
+    *   **hooks.md**: `${CLAUDE_PROJECT_DIR}` is now set in the environment for stdio MCP servers and plugin LSP servers.
+    *   **interactive-mode.md**: Clarification on prompt suggestions. They are off by default in print mode. Can be enabled with `--prompt-suggestions` and specific flags.
+    *   **mcp.md**: Updates on how pending/rejected project-scoped servers from `.mcp.json` appear in `claude mcp list`.
+    *   **plugin-marketplaces.md**: Table updated. Added `defaultEnabled`, `runtime`, `mcpServers` fields to metadata. Added `strict` mode description. Added `categories` support for discovery. Note: The diff shows table format changes but the key content is adding `defaultEnabled`, `runtime`, `mcpServers`, `categories`, `strict`.
+    *   **plugins-reference.md**: Similar to `plugin-marketplaces.md`. Added `defaultEnabled`, `runtime`, `mcpServers`, `categories`, `strict` to metadata fields.
+    *   **settings.md**: Updated `enabledPlugins` description to mention fallback to `defaultEnabled` value if no entry exists.
+    *   **vs-code.md**: &#34;Claude Process Wrapper&#34; setting removed from the table? Or just reformatted? The diff shows `vs-code.md` table changes (columns removed/collapsed). Let&#39;s look closer. It looks like a table reformat, but the content for `claudeProcessWrapper` seems gone in the visible diff block. Wait, actually, the diff shows the *whole* table being replaced. The row for `claudeProcessWrapper` is removed in the new version (based on the provided lines).
+    *   **intro.md**: &#34;Claude Opus 4.8&#34; replaced with `&lt;NextOpus /&gt;` component. This suggests a rebranding or preparation for a new name/version that is being dynamically injected (likely Opus 4.8 is the &#34;Next&#34; one or it&#39;s a placeholder for the *next* Opus version to be released). *Correction*: Looking at `about-claude/models/overview.md`, Opus 4.8 is referred to as `&lt;NextOpus /&gt;`. This implies a documentation template change where &#34;Next Opus&#34; refers to Opus 4.8, possibly for consistent future-proofing or a branding update before an official launch name is finalized or just a specific doc component. However, seeing `intro.md` links to `/news/claude-opus-4-8`, it seems `NextOpus` is the new display name component for Opus 4.8.
+    *   **get-started.md**: Updated quickstart guide. Added API key prerequisite. Cleaned up cURL/CLI/Python/TS examples. Added TypeScript tab. Streamlined instructions.
+    *   **about-claude/models/overview.md**: Replaced specific &#34;Claude Opus 4.8&#34; text with `&lt;NextOpus /&gt;` component and `&lt;NextOpusId /&gt;` for IDs. Updated migration links.
+    *   **about-claude/models/migration-guide.md**: Same `&lt;NextOpus /&gt;` replacement. Updated migration notes (mid-conversation system messages, effort defaults, etc.).
+    *   **about-claude/pricing.md**: Replaced &#34;Claude Opus 4.8&#34; with `&lt;NextOpus /&gt;`.
+    *   **about-claude/model-deprecations.md**: Same replacement pattern.
+    *   **api/messages.md**: Significant cleanup of `OutputTokensDetails` schema definition. Moved the specific definition inline or removed the dedicated section to inline it? The diff removes a dedicated section &#34;Output Tokens Details&#34; and moves the `thinking_tokens` definition inline where referenced. It also updates types.
+    *   **api/models/list.md**: Added `mid-conversation-system-2026-04-07` to beta headers.
+    *   **api/beta/files/upload.md**: Added `mid-conversation-system-2026-04-07` to beta headers.
+    *   **build-with-claude/vision.md**: Replaced &#34;Claude Opus 4.8&#34; with `&lt;NextOpus /&gt;`.
+    *   **build-with-claude/extended-thinking.md**: Replaced &#34;Claude Opus 4.8&#34; with `&lt;NextOpus /&gt;`. Updated effort/thinking descriptions.
+    *   **build-with-claude/prompt-caching.md**: Replaced &#34;Claude Opus 4.8&#34; with `&lt;NextOpus /&gt;`.
+    *   **build-with-claude/batch-processing.md**: Replaced &#34;Claude Opus 4.8&#34; with `&lt;NextOpus /&gt;`.
+    *   **build-with-claude/context-windows.md**: Replaced &#34;Claude Opus 4.8&#34; with `&lt;NextOpus /&gt;`.
+    *   **build-with-claude/search-results.md**: Replaced &#34;Claude Opus 4.8&#34; with `&lt;NextOpus /&gt;`.
+
+3.  **Synthesize Key Themes**:
+
+    *   **&#34;Next Opus&#34; Branding/Componentization**: A massive documentation refactor replacing the hard-coded string &#34;Claude Opus 4.8&#34; with a component `&lt;NextOpus /&gt;` (and `&lt;NextOpusId /&gt;`). This standardizes references to the latest model and likely prepares for future model iterations with easier doc updates.
+    *   **CLI &amp; Tooling Enhancements**:
+        *   New `--exec` flag for background shell commands.
+        *   Multi-browser support in Chrome integration.
+        *   Project-scoped plugin recommendations (&#34;suggested for this directory&#34;).
+        *   Hooks/MCP environment variable propagation (`CLAUDE_PROJECT_DIR`).
+    *   **Plugin System Improvements**:
+        *   New metadata fields: `defaultEnabled`, `runtime`, `mcpServers`, `categories`.
+        *   Enhanced discovery logic.
+    *   **API Changes/Beta Headers**:
+        *   Introduction of `mid-conversation-system-2026-04-07` beta header.
+        *   Cleanup of `OutputTokensDetails` schema in API docs.
+    *   **Getting Started Improvements**:
+        *   Added TypeScript quickstart.
+        *   Refined cURL/CLI instructions.
+
+4.  **Determine Impact Level**:
+    *   *High*: The &#34;Next Opus&#34; change is widespread. While it might just be a doc update, it signals the stability/prominence of Opus 4.8 (or whatever &#34;Next Opus&#34; is).
+    *   *Medium*: The CLI flags (`--exec`, Chrome multi-browser) and Plugin metadata changes (`defaultEnabled`, etc.) affect how developers interact with the tool and build plugins.
+    *   *Low*: Minor formatting, text refinements.
+
+    *Overall Impact*: **Medium**. The branding change is visually large but likely just a doc consistency update. The functional changes to the CLI and Plugin system are actionable and improve workflows.
+
+5.  **Drafting the Response (in Chinese)**:
+
+    *   *Summary*: 重点更新包括将“Claude Opus 4.8”替换为动态组件 `&lt;NextOpus /&gt;`，增强了 CLI 工具链（如 `--exec` 标志、多浏览器支持），扩展了插件系统元数据（支持 `defaultEnabled`、`categories` 等），并引入了 `mid-conversation-system` Beta 版功能。
+
+    *   *Themes*:
+        1.  **文档标准化与“Next Opus”**: 大规模替换“Claude Opus 4.8”为组件化引用，简化未来模型更新。
+        2.  **CLI 与浏览器自动化增强**: 新增 `--exec` 后台执行命令，Chrome 集成支持多浏览器选择。
+        3.  **插件生态升级**: 新增 `defaultEnabled`、`categories` 等元数据字段，优化插件发现机制（目录相关推荐）。
+        4.  **API 细节调整**: 清理 `OutputTokensDetails` 架构定义，新增 `mid-conversation-system-2026-04-07` Beta 头。
+        5.  **入门指南优化**: 新增 TypeScript 快速开始示例。
+
+    *   *Impact Level*: **Medium** (中)。
+        *   *Reasoning*: 虽然文档模型名称的替换范围很广，但对现有代码逻辑影响较小。CLI 新功能和插件元数据的扩展为开发者提供了更强大的控制能力和扩展性。
+
+    *   *Action Items*:
+        1.  更新插件配置以利用新的 `defaultEnabled` 和 `categories` 字段。
+        2.  在 Hook 脚本或 MCP 服务器中使用新增的环境变量 `${CLAUDE_PROJECT_DIR}`。
+        3.  尝试使用 `claude --bg --exec` 在后台运行耗时测试或构建任务。
+        4.  了解并测试 `mid-conversation-system` Beta 功能以实现对话中途更新系统指令。
+        5.  根据新的 TypeScript 快速开始指南更新入门项目模板。
+
+6.  **Review and Refine**:
+    *   Check the `vs-code.md` diff again. It looks like it removed `claudeProcessWrapper` from the settings table? Or just reformatted? Actually, the table rows are different.
+        *   Old: `claudeProcessWrapper` | - | Executable used...
+        *   New: It seems to be gone or merged into something else? The `vs-code.md` diff provided is truncated or only shows part of the table.
+        *   Let&#39;s look at the `vs-code.md` diff block provided.
+        *   It shows `Setting | Default | Description` columns.
+        *   It ends with `claudeProcessWrapper` in the old version. In the new version, the last visible row is `allowDangerouslySkipPermissions`.
+        *   Wait, looking closely at the new version: `| Setting ... |`. It seems the diff might have cut off, but actually, usually, these diffs are comprehensive. Let&#39;s assume `claudeProcessWrapper` might have been removed or just not shown in the snippet.
+        *   *Correction*: Looking at the raw text of the new version, it stops after `allowDangerouslySkipPermissions`. The old version has `claudeProcessWrapper`. It&#39;s likely removed or deprecated. But without explicit &#34;removed&#34; text, I&#39;ll stick to the clearer changes. Actually, looking at the line count, it&#39;s just a reformat or cut-off. I won&#39;t highlight it as a major point unless sure. Wait, looking at `vs-code.md` diff: It ends with `| preferredLocation | panel | Where Claude opens...`. The old version has `claudeProcessWrapper`. The new version *doesn&#39;t show it*. This is ambiguous. I will skip this specific detail in the summary to avoid misinformation, focusing on the clear CLI changes.
+
+    *   Check `plugin-marketplaces.md` and `plugins-reference.md`.
+        *   Added: `defaultEnabled` (boolean, default true? No, description missing in diff snippet but implies it exists). `runtime` (node/bun). `mcpServers` (array). `categories` (for discovery). `strict` (boolean).
+        *   This is significant for plugin developers.
+
+    *   Check `cli-reference.md`.
+        *   `--exec`: &#34;Run a shell command as a PTY-backed background job instead of starting a Claude session. Use with --bg to launch from the shell&#34;.
+        *   Example: `claude --bg --exec &#39;pytest -x&#39;`. This is a nice CI/CD integration feature.
+
+    *   Check `chrome.md`.
+        *   &#34;choose which connected browser to use. If more than one browser is connected when a browser action starts, Claude prompts you to pick one.&#34;
+        *   Good for multi-instance testing.
+
+    *   Check `intro.md` &amp; Model pages.
+        *   This is purely a string replacement for the *docs*. The actual API IDs are now `&lt;NextOpusId /&gt;` which resolves to `claude-opus-4-8`.
+        *   This is a &#34;doc tech&#34; change to make updating easier.
+
+7.  **Final Polish (Chinese)**:
+    *   Ensure tone is professional (&#34;world-class programmer&#34;).
+    *   Structure matches the request: Summary, Themes, Impact, Action Items.
+
+    *(Self-Correction during drafting)*: The `NextOpus` thing is interesting. It suggests they are positioning Opus 4.8 as the &#34;Current&#34; or &#34;Next&#34; generation and want to avoid hardcoding the name everywhere. It also appears in pricing and migration guides.
+
+    *Action Item refinement*: Ensure developers know about the new `--exec` flag, as it&#39;s a very practical CLI improvement. Also, the environment variable change for MCP servers is important for server developers.
+
+    Let&#39;s write the markdown.</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/chrome.html" class="page-link">chrome.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/cli-reference.html" class="page-link">cli-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/discover-plugins.html" class="page-link">discover-plugins.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/interactive-mode.html" class="page-link">interactive-mode.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugin-marketplaces.html" class="page-link">plugin-marketplaces.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+15</span>
+                            <span class="removed">-13</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+18</span>
+                            <span class="removed">-11</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/vs-code.html" class="page-link">vs-code.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+16</span>
+                            <span class="removed">-16</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/intro.html" class="page-link">intro.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/get-started.html" class="page-link">get-started.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+136</span>
+                            <span class="removed">-85</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/about-claude/models/overview.html" class="page-link">about-claude/models/overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+13</span>
+                            <span class="removed">-13</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/about-claude/models/migration-guide.html" class="page-link">about-claude/models/migration-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+12</span>
+                            <span class="removed">-12</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/about-claude/pricing.html" class="page-link">about-claude/pricing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/about-claude/model-deprecations.html" class="page-link">about-claude/model-deprecations.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/messages.html" class="page-link">api/messages.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-15</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/models/list.html" class="page-link">api/models/list.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/beta/files/upload.html" class="page-link">api/beta/files/upload.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/vision.html" class="page-link">build-with-claude/vision.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/extended-thinking.html" class="page-link">build-with-claude/extended-thinking.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-8</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-caching.html" class="page-link">build-with-claude/prompt-caching.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/batch-processing.html" class="page-link">build-with-claude/batch-processing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/context-windows.html" class="page-link">build-with-claude/context-windows.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/search-results.html" class="page-link">build-with-claude/search-results.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/effort.html" class="page-link">build-with-claude/effort.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+10</span>
+                            <span class="removed">-9</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/working-with-messages.html" class="page-link">build-with-claude/working-with-messages.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/claude-prompting-best-practices.html" class="page-link">build-with-claude/prompt-engineering/claude-prompting-best-practices.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+17</span>
+                            <span class="removed">-17</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/overview.html" class="page-link">agents-and-tools/tool-use/overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">17:04 EST</div>
