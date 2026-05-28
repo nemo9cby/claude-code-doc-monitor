@@ -55,7 +55,7 @@ You can control which service tiers can be used for a request by setting the `se
 
 ```python Python
 message = client.messages.create(
-    model="claude-opus-4-7",
+    model="claude-opus-4-8",
     max_tokens=1024,
     messages=[{"role": "user", "content": "Hello, Claude!"}],
     service_tier="auto",  # Automatically use Priority Tier when available, fallback to standard
