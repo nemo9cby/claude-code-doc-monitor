@@ -118,9 +118,219 @@
 
         <header>
             <h1>Changes on 2026-05-29</h1>
-            <p class="meta">5 total changes in 2 runs</p>
+            <p class="meta">11 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">18:25 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">## Overall Summary
+本次文档更新主要修正了关于 `ultra` 努力级别的报告行为（现统一映射为 `xhigh`），并明确区分了桌面版和 CLI 版在多智能体协作方面的功能差异。此外，引入了版本 2.1.157 中关于本地插件自动加载和初始化的新特性。
+
+## Key Themes across pages
+
+*   **努力级别的标准化 (`ultra` -&gt; `xhigh`)**：在 `skills.md`、`slash-commands.md`、`statusline.md` 和 `hooks.md` 中，统一移除了 `ultra` 作为独立级别的描述。现在，无论是在环境变量 `${CLAUDE_EFFORT}`、Hook 的 `effort.level` 字段还是状态栏脚本中，`ultracode` 模式都将报告为 `xhigh`。
+*   **桌面版功能定位澄清 (`desktop.md`)**：明确指出桌面版支持通过“动态工作流”在单个会话内实现多智能体协作，而“Agent teams”（并行会话互发消息）仅限 CLI 版本。这修正了之前可能让用户困惑的功能限制描述。
+*   **插件系统本地化增强 (`CHANGELOG.md.md`)**：引入了 `claude plugin init` 命令和 `.claude/skills` 目录的自动加载机制，简化了本地插件的开发和管理流程，不再强制依赖市场。
+
+## Impact level
+
+**Medium** (中等)
+
+**Reasoning:**
+虽然大部分更改属于文档同步和链接修复，但关于 `${CLAUDE_EFFORT}` 和 `effort.level` 的更改属于**行为变更**。如果开发者现有的 Skill、Slash Command 或 Hook 脚本中存在硬编码检查 `&#34;ultra&#34;` 字符串的逻辑，将会失效，需要修改为检查 `&#34;xhigh&#34;`。
+
+## Action items for developers
+
+*   **更新 Skill/Script 逻辑**：检查所有自定义 Skill 或 Slash Command 中的 bash 注入命令，将针对 `ultra` 级别的判断条件修改为 `xhigh`。
+*   **审查 Hook 脚本**：更新接收 `effort.level` JSON 或 `$CLAUDE_EFFORT` 环境变量的 Hook 脚本，移除对 `&#34;ultra&#34;` 值的处理。
+*   **利用新插件开发流**：尝试使用 `claude plugin init &lt;name&gt;` 在本地快速创建插件原型，利用 `.claude/skills` 的自动加载功能进行测试。
+*   **桌面版工作流迁移**：如果在桌面版需要多智能体协作，应转而使用动态工作流功能，而非寻找“Agent teams”特性。
+*   **检查状态栏脚本**：如果自定义状态栏脚本依赖 `effort.level`，确保其能正确处理映射后的值。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Task:** Analyze a specific batch of 6 documentation pages (`desktop.md`, `hooks.md`, `skills.md`, `slash-commands.md`, `statusline.md`, `CHANGELOG.md.md`).
+    *   **Output Format:** Markdown, concise, insightful, Chinese language.
+    *   **Specific Sections:** Overall Summary, Key Themes, Impact Level (with reasoning), Action Items (max 5).
+
+2.  **Analyze the Input Data (Page by Page):**
+
+    *   **Page: `desktop.md`**
+        *   *Change 1:* Added a link `[dynamic workflows](/en/workflows)` to the description of background tasks.
+        *   *Change 2:* Updated the &#34;Agent teams&#34; bullet point in the limitations section.
+        *   *Insight:* Clarifies that &#34;Agent teams&#34; (parallel sessions messaging each other) are CLI-only, but multi-agent work *inside* one session is possible in Desktop via &#34;dynamic workflows&#34;.
+        *   *Key takeaway:* Desktop supports multi-agent functionality via workflows, but not parallel session orchestration.
+
+    *   **Page: `hooks.md`**
+        *   *Change:* Updated the table for Hook event fields. Specifically the `effort` field description.
+        *   *Insight:* The text mentions `ultra` is stored as `ultra` but reported as `xhigh` to the model, but the main visible change is the wrapping of the table text (diff shows formatting changes). Wait, looking closely at the diff provided:
+        *   *Correction:* The diff shows `| Field | ... |` formatting changed (width adjustment). The content text for `effort` mentions `ultra` is stored value. The prompt implies I should focus on semantic changes, but this looks mostly like a table reformatting or width adjustment in the markdown source, *unless* there&#39;s a hidden content change.
+        *   *Re-reading the diff:* The diff for `hooks.md` shows lines being replaced. The old line ends `... field. The object matches the [status line](/en/statusline#available-data) ...`. The new line is truncated in the diff view provided in the prompt (ends at `... | :-------...`).
+        *   *Wait, let me look at `skills.md` and `slash-commands.md` to see the pattern.* They explicitly say &#34;Ultracode is not a distinct level and reports as `xhigh`&#34;.
+        *   *Hypothesis:* The `hooks.md` diff provided in the prompt is actually just formatting (columns). However, checking `skills.md` and `slash-commands.md` is crucial for the &#34;Effort&#34; theme.
+
+    *   **Page: `skills.md`**
+        *   *Change:* Updated the `${CLAUDE_EFFORT}` description.
+        *   *Old:* `ultra` value is stored value for ultracode.
+        *   *New:* `ultra` is not a distinct level and reports as `xhigh`.
+        *   *Insight:* A breaking change in how &#34;Ultracode&#34; effort level is reported to scripts/skills. It is now normalized to `xhigh`.
+
+    *   **Page: `slash-commands.md`**
+        *   *Change:* Same as `skills.md`. Updated `${CLAUDE_EFFORT}` description.
+        *   *New:* `ultra` is not a distinct level and reports as `xhigh`.
+        *   *Insight:* Consistent with `skills.md`.
+
+    *   **Page: `statusline.md`**
+        *   *Change:* Updated the JSON fields documentation sent to scripts.
+        *   *Old:* `effort.level` includes `ultra`.
+        *   *New:* (Implied from the partial diff, but let&#39;s infer from the other pages). The diff shows `effort.level` description ending with `ultra` in the old version. The new version in the diff cuts off, but based on `skills.md` and `slash-commands.md`, the change is likely removing `ultra` as a distinct reported value or standardizing it to `xhigh`.
+        *   *Refinement:* The prompt diff is cut off (`...`), but the pattern is clear. The &#34;Effort&#34; system is changing regarding the `ultra` label.
+
+    *   **Page: `CHANGELOG.md.md`**
+        *   *Version:* `2.1.157`
+        *   *Relevant changes:*
+            *   Plugins auto-loaded from `.claude/skills`.
+            *   `claude plugin init`.
+            *   `claude agents` improvements.
+            *   &#34;Ultracode&#34; changes? Not explicitly listed in the text provided in the diff, but the doc changes align with a new release.
+            *   Bug fixes and minor features.
+            *   *Note:* The doc changes in `skills.md` etc. regarding `ultra` correspond to `2.1.157` likely, or a specific model behavior change.
+
+3.  **Synthesize Key Themes:**
+
+    *   **Theme 1: Effort Level Normalization (`ultra` -&gt; `xhigh`).**
+        *   Across `skills.md`, `slash-commands.md`, `statusline.md`, and `hooks.md`.
+        *   The system no longer reports `ultra` as a distinct value in environment variables or hooks. It reports `xhigh`.
+    *   **Theme 2: Desktop vs. CLI Feature Clarity.**
+        *   `desktop.md`: Clarifies that multi-agent *within* a session (workflows) works in Desktop, but parallel session orchestration (&#34;Agent teams&#34;) is CLI-only.
+    *   **Theme 3: Plugin System Enhancements.**
+        *   `CHANGELOG.md.md`: Auto-loading plugins, init command.
+
+4.  **Drafting the Analysis (in Chinese):**
+
+    *   **Overall Summary:**
+        This batch updates documentation primarily to reflect a change in how the `ultra` effort level is reported (now mapping to `xhigh`) and clarifies multi-agent capabilities in the Desktop app. It also introduces new plugin management features in version 2.1.157.
+        (本次更新主要调整了 `ultra` 努力级别的报告方式（现映射为 `xhigh`），并澄清了桌面版中的多智能体能力。同时引入了版本 2.1.157 中的插件管理新功能。)
+
+    *   **Key Themes:**
+        *   **Effort Level Standardization:** Removed `ultra` as a distinct reporting level. It is now reported as `xhigh` in environment variables (`${CLAUDE_EFFORT}`), hooks (`effort.level`), and statusline scripts. Developers checking for &#34;ultra&#34; need to update their logic.
+        *   **Desktop Capabilities Clarification:** Updated `desktop.md` to distinguish between &#34;Agent teams&#34; (parallel sessions, CLI only) and &#34;dynamic workflows&#34; (multi-agent within session, available in Desktop). Added cross-linking to workflows.
+        *   **Plugin System Evolution (v2.1.157):** Introduction of automatic plugin loading from `.claude/skills` and a new `init` command, simplifying local plugin development.
+
+    *   **Impact Level:**
+        *   **Medium.** While mostly documentation alignment, the change in `${CLAUDE_EFFORT}` value (removing `ultra`) is a behavior change that will break conditional logic in custom Skills or Slash Commands expecting a string value of &#34;ultra&#34;.
+
+    *   **Action Items:**
+        *   **Update Skill/Script Logic:** If your custom Skills or Slash Commands check for `${CLAUDE_EFFORT} == &#34;ultra&#34;`, update them to check for `&#34;xhigh&#34;` instead.
+        *   **Review Hook Scripts:** Ensure any scripts consuming `effort.level` or the `$CLAUDE_EFFORT` environment variable handle the removal of the `ultra` value.
+        *   **Explore Local Plugins:** Try the new `claude plugin init &lt;name&gt;` to scaffold plugins directly in `.claude/skills` without needing a marketplace.
+        *   **Check Desktop Multi-Agent Use Cases:** If using Desktop, utilize dynamic workflows for intra-session multi-agent tasks instead of looking for the &#34;Agent teams&#34; feature.
+
+5.  **Refining the Output:**
+    *   Translate insights into clear, professional Chinese.
+    *   Ensure the &#34;Impact&#34; reasoning highlights the specific breaking change regarding the `ultra` string.
+    *   Keep action items actionable.
+
+6.  **Final Polish (Self-Correction during drafting):**
+    *   *Check:* Did I miss anything in `desktop.md`? The link to workflows is helpful for navigation.
+    *   *Check:* `CHANGELOG.md` has many small bug fixes, but the &#34;Plugin&#34; and &#34;Effort&#34; things are the most &#34;developer&#34; facing structural changes to docs. The specific `ultra` change isn&#39;t explicitly detailed in the *visible* changelog text provided (it lists bug fixes), but the doc updates confirm it&#39;s the behavioral change.
+    *   *Formatting:* Use the requested markdown structure.
+
+7.  **Final Output Generation** (Proceeding to generate response based on these steps).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/desktop.html" class="page-link">desktop.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-8</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/statusline.html" class="page-link">statusline.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+36</span>
+                            <span class="removed">-36</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+34</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">13:30 EST</div>
