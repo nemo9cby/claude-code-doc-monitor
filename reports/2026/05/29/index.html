@@ -118,9 +118,158 @@
 
         <header>
             <h1>Changes on 2026-05-29</h1>
-            <p class="meta">2 total changes in 1 run</p>
+            <p class="meta">5 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">13:30 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 整体摘要
+本次文档更新引入了对 MCP 服务器的 WebSocket 支持，明确了插件市场的注册命名规则（防止冲突），并将自动化模型迁移工具的提示提升至文档顶部，提升了开发者的配置灵活性和迁移体验。
+
+### 关键主题
+*   **MCP 传输协议扩展**：新增了 WebSocket 作为 MCP 服务器的第四种配置选项，支持服务器主动向 Claude 推送事件的双向持久连接。
+*   **配置限制与约束**：明确了插件市场的 `name` 字段具有“覆盖”性质，即每个用户只能注册一个同名市场，后续添加会替换之前的配置。
+*   **开发者体验优化**：将模型迁移的自动化工具提示从特定章节移至文档通用开头，强调其跨模型迁移的通用性和便捷性。
+
+### 影响等级
+**中等**
+*   **理由**：虽然新增了 WebSocket 功能，但也明确指出了其不支持 OAuth 和特定 CLI 标志的**限制**，这对开发者选型至关重要。插件市场的命名规则变更对市场发布者有直接影响，属于关键操作指南。模型迁移指南的调整主要是信息架构优化，风险较低。
+
+### 开发者行动项
+*   **评估 WebSocket 需求**：如果您的 MCP 场景需要服务器主动推送事件，请使用新的 `ws` 类型配置；如果仅需请求响应，建议继续使用 HTTP（支持 OAuth）。
+*   **更新插件市场配置**：市场维护者需确保所有插件集中在单个 `marketplace.json` 文件中发布，避免因同名重复注册导致旧配置被意外覆盖。
+*   **使用自动化迁移**：在升级 Claude 模型（如 Opus 4.8）时，优先使用文档顶部的 `/claude-api migrate` 命令来自动处理参数变更和校准。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request**:
+    *   **Role**: World-class programmer analyzing documentation changes.
+    *   **Output**: Concise, insightful analysis in markdown format.
+    *   **Focus**: What matters to developers.
+    *   **Language**: Chinese (requested in the prompt: &#34;请用中文回复&#34;).
+    *   **Input**: 3 pages of diffs (`mcp.md`, `plugin-marketplaces.md`, `about-claude/models/migration-guide.md`).
+
+2.  **Analyze the Diffs**:
+
+    *   **Page 1: `mcp.md` (MCP Server Configuration)**
+        *   *Change 1*: Updated the introduction sentence from &#34;three different ways&#34; to &#34;several ways&#34;. (Minor wording).
+        *   *Change 2*: Added &#34;Option 4: Add a remote WebSocket server&#34;.
+            *   Details: WebSocket servers allow persistent bidirectional connections (push events).
+            *   Comparison with HTTP: HTTP is for request-response, supports OAuth and `--transport` flag. WebSocket does *not* support OAuth or `--transport` flag.
+            *   Configuration: Use `.mcp.json` or `claude mcp add-json`.
+            *   JSON structure: `type: &#34;ws&#34;`. Supports `url`, `headers`, `headersHelper`, `timeout`, `alwaysLoad`.
+            *   Auth: Header-only (static token or `headersHelper`).
+        *   *Change 3*: Updated &#34;Plugin MCP servers&#34; section list of transports. Added &#34;WebSocket&#34; to the list of supported transports (stdio, SSE, HTTP, WebSocket).
+
+    *   **Page 2: `plugin-marketplaces.md` (Marketplace Configuration)**
+        *   *Change*: Modified the description of the `name` field in the `marketplace.json` schema.
+            *   Added constraint: &#34;Each user can register only one marketplace per name: adding a second marketplace with the same name replaces the first.&#34;
+            *   Added instruction: To publish multiple plugins, list them in a *single* `marketplace.json`. This implies a one-to-one mapping between marketplace name and the JSON file for a user.
+            *   Note: The &#34;Reserved names&#34; list seems mostly unchanged (scrolling check), but the context implies stricter definition.
+
+    *   **Page 3: `about-claude/models/migration-guide.md` (Model Migration)**
+        *   *Change 1*: Moved the &#34;Automate your migration with the Claude API skill&#34; tip *up* to the top of the page (near the intro), moving it from the &#34;Migrating from Claude Opus 4.7&#34; section.
+        *   *Change 2*: Updated the example command in the moved tip to be more generic/forward-looking (e.g., `/claude-api migrate this project to claude-opus-4-8`) instead of specific to Opus 4.7.
+        *   *Change 3*: Removed the duplicate/lower tip from the Opus 4.7 section.
+        *   *Logic*: This makes the migration tip more prominent and general for *any* model migration covered on the page, rather than burying it in a specific section.
+
+3.  **Synthesize the Analysis**:
+
+    *   **Overall Summary**: The documentation updates introduce WebSocket support for MCP servers and clarify marketplace registration rules, while also promoting automated migration tools more prominently.
+    *   **Key Themes**:
+        *   *Protocol Expansion*: MCP now supports WebSocket for persistent connections (event pushing).
+        *   *Configuration Constraints*: stricter rules on how users register plugin marketplaces (one name = one file).
+        *   *Developer Experience (DX)*: Highlighting automated migration tools to reduce friction when upgrading models.
+    *   **Impact Level**: Medium.
+        *   *Reasoning*: WebSocket is a new feature (feature addition), marketplace naming rules are a specific constraint that could confuse existing authors if misunderstood, and the migration guide change is purely organizational (better DX). No breaking changes to existing APIs are explicitly shown, but the marketplace &#34;one name replaces another&#34; rule is critical data for developers.
+    *   **Action Items**:
+        *   Evaluate if WebSocket fits MCP use cases (need for push events).
+        *   Review marketplace packaging strategy (single JSON file per name).
+        *   Use the `/claude-api migrate` command for model updates.
+        *   Note limitations of WebSocket transport (no OAuth, no CLI transport flag).
+
+4.  **Drafting the Response (in Chinese)**:
+
+    *   *Overall Summary*: 本次文档更新引入了 WebSocket 支持以实现持久化 MCP 连接，明确了插件市场的注册规则（每个名称只能注册一个市场），并将自动化模型迁移工具的提示提升到了更显眼的位置。
+    *   *Key Themes*:
+        *   **MCP 协议扩展**: 新增 `Option 4`，支持通过 WebSocket 配置远程 MCP 服务器，适用于需要主动推送事件的场景。
+        *   **配置约束**: 插件市场配置更加严格，明确了 `name` 字段的唯一性规则（重复注册会覆盖旧配置）。
+        *   **开发者体验**: 将模型迁移的自动化工具提示移至文档顶部，突出了通用性，方便开发者快速迁移到新模型。
+    *   *Impact Level*: Medium.
+        *   *Reasoning*: 新增 WebSocket 传输方式提供了重要的双向通信能力，但存在不支持 OAuth 等**限制**。插件市场的命名规则对市场维护者有直接影响。模型迁移指南的调整属于优化，对功能无实质影响，但对操作流程有正面引导。
+    *   *Action Items*:
+        *   如果您的 MCP 服务器需要向 Claude **主动推送事件**，请考虑使用新的 `ws` 类型配置，并注意其不支持 OAuth 和 `claude mcp add --transport` 标志。
+        *   插件市场维护者应检查 `marketplace.json` 结构，确保将所有插件列在**单个文件**中，以避免因重复名称导致配置被覆盖。
+        *   在进行模型迁移时，优先使用文档顶部的 `/claude-api migrate` 命令来自动处理参数调整。
+
+5.  **Refining the Response**:
+    *   Ensure the &#34;Why it matters&#34; aspect is clear.
+    *   Keep it concise.
+
+6.  **Final Polish (Self-Correction during drafting)**:
+    *   Make sure to mention the &#34;HTTP vs WebSocket&#34; trade-off, as that&#39;s crucial for developers choosing the right tool.
+    *   Emphasize the &#34;replacement&#34; aspect of the marketplace name rule.
+
+7.  **Final Output Generation** (similar to the drafted text in step 4).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugin-marketplaces.html" class="page-link">plugin-marketplaces.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/about-claude/models/migration-guide.html" class="page-link">about-claude/models/migration-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">09:55 EST</div>
