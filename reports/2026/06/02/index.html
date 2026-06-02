@@ -118,9 +118,197 @@
 
         <header>
             <h1>Changes on 2026-06-02</h1>
-            <p class="meta">37 total changes in 3 runs</p>
+            <p class="meta">41 total changes in 4 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">18:58 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 1. Overall Summary
+本次更新（v2.1.161）主要针对企业云部署（特别是 Google Cloud Vertex AI）适配了 Auto mode 的规则，显著扩展了绕过权限模式下的安全防护范围，并修复了多项影响并行执行和第三方提供商的关键 Bug。
+
+### 2. Key Themes across pages
+*   **企业部署与云支持**: 明确了 Vertex AI 环境下 Auto mode 默认关闭，需通过 `CLAUDE_CODE_ENABLE_AUTO_MODE` 手动开启，且仅支持 Opus 4.7/4.8。
+*   **安全边界扩大**: `bypassPermissions` 现在保护的目录列表新增了 `.devcontainer`、`.yarn`、`.mvn` 及 `.config/git`，防止误删关键配置。
+*   **执行行为优化**: 并行工具调用（Parallel tool calls）的容错性提升，单个 Bash 命令失败不再取消同批次的其他调用。
+*   **Bug 修复与兼容性**: 修复了导致 Bedrock/Vertex/Foundry 等第三方提供商会话被阻止的回归问题，以及 Git worktree 和深路径下的 Socket 绑定错误。
+*   **可观测性增强**: `OTEL_RESOURCE_ATTRIBUTES` 现在可作为指标标签，支持按团队或仓库等维度统计用量。
+
+### 3. Impact level
+**Medium** (中等)
+**理由**: 尽管主要是增量更新，但 `bypassPermissions` 保护目录的扩大和并行工具调用失败处理逻辑的改变，可能影响现有的自动化脚本预期行为。此外，Vertex AI 用户面临新的配置要求和模型版本限制。
+
+### 4. Action items for developers
+*   **Vertex AI 配置**: 如果在企业环境中通过 Google Cloud Vertex AI 使用 Desktop，需设置 `CLAUDE_CODE_ENABLE_AUTO_MODE` 并确保使用 Opus 4.7 或 4.8。
+*   **检查受保护目录**: 如果代码依赖 `bypassPermissions` 跳过权限检查，需确认新增的 `.yarn`、`.mvn` 等目录不会导致脚本意外中断。
+*   **验证并行脚本**: 升级后测试涉及并行 Bash 命令的脚本，确认单一任务失败不会导致整个批次回滚。
+*   **解决登录问题**: 若在 v2.1.146 后遇到 Bedrock 或 Vertex 登录被阻，请升级此版本。
+*   **利用新指标**: 如果使用 OpenTelemetry，可通过设置 `OTEL_RESOURCE_ATTRIBUTES` 来优化按团队或仓库维度的资源使用统计。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Understand the Goal**: The user wants a concise, developer-focused analysis of a batch of documentation changes. The response must be in Chinese, formatted in Markdown.
+
+2.  **Analyze the Input Data**:
+    *   **Page: `desktop.md`**:
+        *   *Change*: Updated description of &#34;Auto mode&#34;.
+        *   *Before*: Research preview, API only, no third-party providers, requires Opus 4.6 or Sonnet 4.6.
+        *   *After*: Research preview, API only. *New info*: In Enterprise deployments routing Desktop to Google Cloud Vertex AI, auto mode is off unless `CLAUDE_CODE_ENABLE_AUTO_MODE` is set. Only Opus 4.7 and 4.8 supported there.
+        *   *Implication*: Enterprise/Vertex AI users have new requirements and version constraints for Auto mode.
+
+    *   **Page: `settings.md`**:
+        *   *Change*: Updated description for `tui` setting.
+        *   *Before*: Mentions &#34;fullscreen&#34; vs &#34;default&#34;. Mentions `CLAUDE_CODE_NO_FLICKER`.
+        *   *After*: Adds note: &#34;Background sessions opened from agent view always use the fullscreen renderer regardless of this setting&#34;.
+        *   *Implication*: Agent background sessions will look different (fullscreen) even if user prefers classic mode.
+
+    *   **Page: `sub-agents.md`**:
+        *   *Change*: Warning block for `bypassPermissions`.
+        *   *Before*: List of protected directories: `.git`, `.claude`, `.vscode`, `.idea`, `.husky`, `.cargo`.
+        *   *After*: List expanded to include `.config/git`, `.devcontainer`, `.yarn`, and `.mvn`.
+        *   *Implication*: The &#34;circuit breaker&#34; for dangerous operations now protects more config directories (Yarn, Maven, Dev Containers, deeper git config).
+
+    *   **Page: `CHANGELOG.md.md`**:
+        *   *Change*: Added entry for version 2.1.161.
+        *   *Highlights*:
+            *   `OTEL_RESOURCE_ATTRIBUTES` included in metrics.
+            *   `claude agents` UI improvements.
+            *   `/mcp` UI improvements.
+            *   **Parallel tool calls**: Failed Bash no longer cancels others (important behavior change).
+            *   Clipboard improvements on Linux.
+            *   **Fixes**: Reduced motion, third-party provider sessions (Bedrock/Vertex/Foundry) blocking bug (reverted regression), stdout corruption in `-p`, `/autofix-pr` in worktrees, secret redaction in `claude mcp`, isolation worktree fixes, socket binding path issues (`EADDRINUSE`).
+            *   Performance: Terminal rendering JIT profile, large file writes.
+
+3.  **Synthesize Key Themes**:
+    *   *Enterprise/Cloud Provider Support*: Specific updates for Vertex AI and `CLAUDE_CODE_ENABLE_AUTO_MODE`.
+    *   *Safety/Permissions*: Expanded list of protected directories in `bypassPermissions`. Secret redaction fixes.
+    *   *Robustness/Performance*: Parallel tool calls handling (failure isolation), rendering performance, socket path handling.
+    *   *UI/UX*: Agent view behavior (fullscreen TUI), MCP list UI.
+    *   *Bug Fixes*: Significant fixes for worktrees, third-party providers, and background sessions.
+
+4.  **Determine Impact Level**:
+    *   *High/Medium*: The change to parallel tool calls (failures not cancelling others) is a behavior change that affects scripting/automation logic. The expansion of protected directories affects `bypassPermissions` logic. The fix for third-party provider sessions resolves a regression from 2.1.146, which is high for Enterprise users.
+    *   *Reasoning*: While not a &#34;Breaking Change&#34; in the API spec sense, behavior changes in tool execution and permission handling are impactful for developers relying on specific behaviors. The Vertex AI Auto mode restriction is also important for Enterprise users.
+    *   *Selection*: **Medium**. (Mostly fixes and enhancements, but the tool call behavior change is significant enough to note).
+
+5.  **Draft Action Items**:
+    *   Enterprise users on Vertex AI need to check Auto mode settings and model versions.
+    *   Developers using `bypassPermissions` should note the new protected directories.
+    *   Users experiencing issues with parallel bash scripts in previous versions should verify behavior.
+    *   Developers using third-party providers (Bedrock/Vertex) should upgrade to fix the login blocking bug.
+    *   Review `OTEL_RESOURCE_ATTRIBUTES` if using metrics for custom slicing.
+
+6.  **Draft the Response (in Chinese)**:
+
+    *   *Summary*: Update 2.1.161 focuses on improving robustness for cloud providers (Vertex AI), enhancing safety protections, and fixing critical bugs related to parallel tool execution and worktrees.
+    *   *Themes*:
+        *   **Enterprise Support**: Auto mode specific rules for Vertex AI.
+        *   **Safety**: Expanded `bypassPermissions` protection.
+        *   **Behavior**: Parallel tool call failure isolation.
+        *   **Fixes**: Third-party provider login, worktrees, secret redaction.
+    *   *Impact*: Medium.
+    *   *Actions*: Check Vertex AI config, note protected dirs, verify parallel scripts, upgrade if on Bedrock/Vertex.
+
+7.  **Refine Language (World-class Programmer Persona)**:
+    *   Use professional terminology (e.g., &#34;并行工具调用&#34;, &#34;绕过权限&#34;, &#34;企业部署&#34;).
+    *   Be concise.
+
+    *Drafting Section 1 (Summary)*:
+    本次更新（v2.1.161）主要增强了对企业云部署（特别是 Google Cloud Vertex AI）的支持，扩展了安全保护机制，并修复了并行工具调用和工作树相关的关键 Bug。
+
+    *Drafting Section 2 (Themes)*:
+    *   **企业级部署适配**: 明确了 Vertex AI 环境下 Auto mode 的开启条件及模型版本限制。
+    *   **权限与安全防护**: 扩展了 `bypassPermissions` 模式下的受保护目录列表，新增 `.devcontainer`、`.yarn` 等关键配置路径。
+    *   **并行执行行为优化**: 修复了并行工具调用中单一 Bash 命令失败导致批次取消的问题，提升了容错性。
+    *   **第三方提供商修复**: 解决了阻止 Bedrock/Vertex/Foundry 等第三方提供商会话的回归问题。
+    *   **环境与可观测性**: 新增对 `OTEL_RESOURCE_ATTRIBUTES` 的指标支持，优化了 Linux 剪贴板及 MCP 秘钥屏蔽。
+
+    *Drafting Section 3 (Impact)*:
+    **Medium** (中等)
+    原因：虽然主要是功能增强和 Bug 修复，但 `bypassPermissions` 保护范围的扩大和并行工具调用失败处理逻辑的改变，可能影响现有的自动化脚本行为。此外，Vertex AI 用户必须进行配置调整才能使用新功能。
+
+    *Drafting Section 4 (Actions)*:
+    *   **Vertex AI 用户**: 如果使用 Google Cloud Vertex AI，需检查 `CLAUDE_CODE_ENABLE_AUTO_MODE` 环境变量，并确认使用 Opus 4.7/4.8。
+    *   **安全审查**: 如果脚本依赖 `bypassPermissions`，请确认 `.yarn`、`.mvn` 等新增受保护目录不会导致操作被拦截。
+    *   **脚本验证**: 升级后测试并行 Bash 脚本的错误处理逻辑，确保单一失败不再中断整个批次。
+    *   **第三方提供商**: 如果遇到 Bedrock 或 Vertex 登录受阻，请升级此版本以修复回归问题。
+    *   **监控配置**: 利用新的 `OTEL_RESOURCE_ATTRIBUTES` 标签能力优化自定义维度（如团队、仓库）的指标统计。
+
+8.  **Final Review**: Check against constraints. Concise? Yes. Insightful? Yes. Markdown? Yes. Chinese? Yes.
+
+    *Self-correction during drafting*: Make sure to mention the `tui` change regarding background sessions. It&#39;s minor but relevant for UX.
+    *Action items refinement*: Keep max 5. The items selected cover the most critical aspects.
+
+9.  **Final Output Generation**. (Matches the provided good response).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/desktop.html" class="page-link">desktop.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+23</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">16:40 EST</div>
