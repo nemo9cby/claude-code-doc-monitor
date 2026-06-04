@@ -118,9 +118,137 @@
 
         <header>
             <h1>Changes on 2026-06-04</h1>
-            <p class="meta">6 total changes in 1 run</p>
+            <p class="meta">7 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">19:05 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 整体摘要
+版本 2.1.163 主要侧重于**稳定性修复**和**环境兼容性**提升，解决了 Bazel/EDR 工作流、Windows 环境及 CI 管道中的关键回归问题。同时，它增强了企业级版本控制能力，并改进了 Hooks、Plugins 和 MCP 服务器的扩展性与交互逻辑。
+
+### 核心变更主题
+
+*   **关键环境修复**：修复了影响 Bazel 和 EDR 保护 Go 工作流的 `TMPDIR` 覆盖问题（2.1.154 版本的回归），解决了 Windows（特别是 OneDrive）下的 Bash 命令失败问题。
+*   **后台进程与 CI 稳定性**：解决了 `claude -p` 在后台命令不退出时永久挂起的问题，以及在非 Anthropic 提供商（Bedrock/Vertex）下 CI 模式的认证失败；修复了后台 Agent 任务在更新后丢失的问题。
+*   **扩展性与管控增强**：新增了企业级版本锁定设置，允许 Hooks 在不报错的情况下通过 `additionalContext` 返回反馈，改进了 MCP 服务器的会话 ID 传递。
+*   **交互体验优化**：增加了插件列表命令及 `/btw` 的快捷复制功能，修复了终端输入卡顿和键盘无响应等 UX 问题。
+
+### 影响等级
+**中等**
+
+**理由**：虽然主要是 Bug 修复，不包含破坏性的 API 变更，但修复的几个问题（如 Bazel 环境变量处理、CI 模式下的挂起、Windows 兼容性）对特定工作流的开发体验有**直接且显著**的影响。Hooks 条件匹配逻辑的变化可能间接影响现有的自动化脚本行为。
+
+### 开发者行动建议
+
+*   **如果你使用 Bazel 或 Windows 开发**：强烈建议立即更新，以修复 `TMPDIR` 导致的构建失败和文件访问冲突（EEXIST）。
+*   **检查 Hooks 脚本逻辑**：Hook 条件 `if: &#34;Bash(...)&#34;` 现在匹配子 shell 和反引号内的命令，需确认这是否改变了现有 Hook 的触发频率。
+*   **利用新的 Hook 反馈机制**：更新 `Stop` 和 `SubagentStop` hooks，利用 `hookSpecificOutput.additionalContext` 向 Claude 提供上下文反馈，避免被误判为错误。
+*   **审查 CI 管道配置**：如果你在 `CI=true` 环境下使用 `claude -p` 配合 Bedrock/Vertex，此次更新解决了之前的启动失败问题。
+*   **尝试插件管理新功能**：使用新增的 `/plugin list` 命令配合 `--enabled`/`--disabled` 过滤器来优化插件管理。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer with deep expertise in developer tools/documentation.
+    *   **Task:** Analyze documentation changes (CHANGELOG.md) for a specific version (2.1.163).
+    *   **Format:** Markdown, Chinese language.
+    *   **Structure:** Overall Summary, Key Themes, Impact Level (with reasoning), Action Items.
+
+2.  **Analyze the Input (Diff of CHANGELOG.md):**
+    *   **Source:** `CHANGELOG.md.md`
+    *   **Version:** 2.1.163
+    *   **Content:** A list of additions, fixes, and improvements.
+
+3.  **Detailed Content Analysis:**
+    *   *Added `requiredMinimumVersion` and `requiredMaximumVersion` managed settings*: Enterprise/Team management feature. Forces specific versions.
+    *   *Added `/plugin list` command with filters*: Plugin management improvement.
+    *   *Added &#34;c to copy&#34; shortcut to `/btw`*: UX improvement for clipboard usage.
+    *   *Hooks: Stop and SubagentStop hooks can now return `hookSpecificOutput.additionalContext`*: Developer/API enhancement for hooks.
+    *   *Skills: added `\$` escape syntax*: Scripting/Skills improvement.
+    *   *stdio MCP servers receive `CLAUDE_CODE_SESSION_ID` on `--resume`*: MCP server consistency.
+    *   *Fixed `claude -p` hanging forever*: Reliability fix for CI/prompt mode.
+    *   *Fixed `claude -p` failing on Bedrock/Vertex/Foundry when CI=true*: Multi-provider compatibility fix.
+    *   *Fixed bash commands failing under bazel and EDR-protected Go workflows (TMPDIR regression)*: Environment fix for specific dev tools.
+    *   *Fixed Bash commands failing on Windows (OneDrive/read-only)*: Windows compatibility fix.
+    *   *Fixed org-managed permission rules not applying*: Security/Policy enforcement fix.
+    *   *Fixed background sessions in `claude agents` losing tasks*: Agent management fix.
+    *   *Fixed terminal misalignment/hang on Esc*: UX fix.
+    *   *Fixed clicking Stop not clearing chip*: Desktop app UX fix.
+    *   *Fixed keyboard input unresponsive after paste*: Terminal interaction fix.
+    *   *Fixed hook conditions firing incorrectly*: Logic fix for hooks.
+    *   *Fixed deny rules on home-directory paths*: Security/Permission fix.
+    *   *Fixed stray &#34;(no content)&#34; line*: UI polish.
+    *   *Background agent sessions update in background*: Performance/UX improvement for updates.
+    *   *Clearer descriptions*: Documentation/UX polish.
+    *   *Subscription-switch suggestion location*: UX polish.
+    *   *`claude agents` dispatching directory*: UX/Workflow fix.
+
+4.  **Synthesize for &#34;World-Class Programmer&#34; Persona:**
+    *   Focus on what *developers* care about: reliability (fixes), environment support (Bazel/Windows/Cloud providers), and extensibility (Hooks/Plugins/MCP).
+    *   Ignore minor UI polish (&#34;subscription-switch suggestion&#34;, &#34;clearer descriptions&#34;) unless they affect daily workflow.
+
+5.  **Drafting the Response (Iterative Refinement in Chinese):**
+
+    *   *Overall Summary:* This release (2.1.163) focuses heavily on stability, fixing critical bugs related to environment handling (Bazel, Windows), background process management, and CI pipelines. It also introduces enterprise-grade version control and enhances the extensibility of Hooks, Plugins, and MCP servers.
+
+    *   *Key Themes:*
+        *   **Stability &amp; Compatibility Fixes:** Significant fixes for Bazel/EDR workflows, Windows (OneDrive), and multi-provider CI environments (`claude -p`).
+        *   **Process Management:** Fixes regarding background tasks hanging or disappearing, especially for `claude agents` and backgrounded commands.
+        *   **Extensibility &amp; Control:** New managed settings for version locking, improved Hooks API (context return), and MCP server session ID consistency.
+        *   **UX Polish:** Improved plugin listing and clipboard shortcuts.
+
+    *   *Impact Level:* **Medium**.
+        *   *Reasoning:* While it&#39;s a &#34;fix-heavy&#34; release (no breaking changes), it addresses critical regressions (TMPDIR in 2.1.154) and frustrating hangs. Developers using Bazel, Windows, or CI pipelines will feel the impact immediately. The hook enhancement allows for more complex integrations.
+
+    *   *Action Items:*
+        *   **Update if using Bazel/EDR:** The TMPDIR regression fix is crucial for Go/Bazel workflows.
+        *   **Review Hook Logic:** If you have hooks using `if: &#34;Bash(...)&#34;`, the matching logic changed (now checks subshells/backticks), which might alter execution flow.
+        *   **Leverage New Hook Capability:** Update Stop hooks to use `hookSpecificOutput.additionalContext` to provide feedback without triggering errors.
+        *   **Check CI Pipelines:** If using `claude -p` with non-Anthropic providers (Bedrock/Vertex) in `CI=true`, this fixes a crash.
+
+6.  **Final Polish (Markdown &amp; Tone):**
+    *   Ensure the tone is professional and concise.
+    *   Translate technical terms appropriately or keep them if standard (e.g., &#34;regression&#34;, &#34;subshell&#34;).
+
+7.  **Final Output Generation (matches the provided good response):**
+    *   Summary: Focus on stability and control.
+    *   Themes: Reliability, DevEnv support, Extensibility.
+    *   Impact: Medium (Critical fixes for specific envs).
+    *   Actions: Update for Bazel/Windows, check hooks, review CI usage.
+
+**(Self-Correction during drafting):** I initially thought about &#34;High&#34; impact because of the hangs, but since it&#39;s not a &#34;Breaking Change&#34; in the API sense (unless you relied on the buggy behavior), &#34;Medium&#34; with a strong reasoning for stability is more accurate. The `if: &#34;Bash(...)&#34;` change is subtle but potentially breaking logic, so that must be highlighted.
+
+8.  **Final Output Construction** (Proceeding to generate the Chinese response).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+23</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">13:41 EST</div>
