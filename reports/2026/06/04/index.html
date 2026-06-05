@@ -118,9 +118,142 @@
 
         <header>
             <h1>Changes on 2026-06-04</h1>
-            <p class="meta">7 total changes in 2 runs</p>
+            <p class="meta">10 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">22:53 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 总体概述
+本次文档更新主要涉及 **v2.1.162** 版本的行为变更与功能增强。核心变化包括修正了 MCP 服务器的超时逻辑（&lt;1000ms 时不再默认为 1s）、限制了部分云端连接器在 CLI 中的本地 OAuth 认证、新增了对 `.devin` 配置文件的支持，并扩展了 OpenTelemetry 遥测数据的追踪能力。
+
+### 关键主题
+*   **MCP 行为与认证调整**：
+    *   **超时逻辑变更**：低于 1000ms 的 `timeout` 值不再向下取整为 1 秒，而是回退到 `MCP_TOOL_TIMEOUT`（默认约 28 小时）。
+    *   **OAuth 限制**：Microsoft 365、Gmail 和 Google Calendar 等 Anthropic 托管连接器不再支持本地 OAuth，需在 Claude.ai 网页端进行连接。
+*   **工具兼容性增强**：`/init` 命令现在能识别并读取 `.devin/rules/` 目录下的配置文件。
+*   **可观测性提升**：OpenTelemetry schema 新增了 `tool_use_id` 和 `gen_ai.tool.call.id` 字段，用于关联工具调用事件。
+
+### 影响级别
+**中等 (Medium)**
+
+**理由**：
+*   MCP 超时逻辑的改变对特定配置具有实质性影响：原本设置为短超时（&lt;1s）的用户，现在实际上会获得极长的默认超时（~28小时），这可能导致挂起的请求长时间不返回，而非预期的快速失败。
+*   特定云服务连接器的认证流程变更迫使开发者改变操作习惯。
+*   遥测字段和配置文件的扩展属于非破坏性增强，对现有用户影响较小。
+
+### 开发者行动项
+*   **审查 MCP 超时配置**：如果您依赖小于 1000ms 的超时值来实现快速失败，请立即显式设置 `MCP_TOOL_TIMEOUT` 环境变量或调整配置，否则现在会默认为约 28 小时。
+*   **调整连接器认证流程**：若使用 Microsoft 365 或 Google 系列连接器，请直接前往 Claude.ai 的 Settings → Connectors 页面进行连接，而非尝试在 CLI 中通过 `/mcp` 认证。
+*   **更新日志解析逻辑**：如果您正在解析 OpenTelemetry 数据，请更新代码以处理新增的 `tool_use_id` 属性，利用它来关联 `tool_result` 和 `tool_decision` 事件。
+*   **利用新配置路径**：您现在可以将 `.devin/rules/` 用作存放代理规则的目录，`/init` 会自动将其整合到 `CLAUDE.md` 中。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Understand the Goal**: The user wants a concise analysis of documentation changes for a world-class programmer audience. The response must be in Chinese, formatted as markdown, covering specific sections (Summary, Key Themes, Impact, Action Items).
+
+2.  **Analyze the Input Data**:
+    *   **Page 1: `mcp.md`**:
+        *   *Change 1 (Timeout logic)*: Behavior for timeout values &lt; 1000ms changed. Previously floored to 1s, now ignored and falls back to `MCP_TOOL_TIMEOUT` (default ~28h). Added version marker `v2.1.162`. Removed specific mention of 60s minimum in the first sentence (moved to later context).
+        *   *Change 2 (OAuth Connectors)*: Added note that certain Anthropic-hosted connectors (Microsoft 365, Gmail, Google Calendar) don&#39;t support local OAuth in Claude Code. From `v2.1.162`, trying to auth via `/mcp` redirects users to claude.ai web settings.
+    *   **Page 2: `memory.md`**:
+        *   *Change*: Updated list of tool configs read by `/init`. Added `.devin/rules/` to the list alongside `.cursorrules` and `.windsurfrules`.
+    *   **Page 3: `monitoring-usage.md`**:
+        *   *Change*: Updated OpenTelemetry schema for `claude_code.tool` and `claude_code.tool.execution` spans.
+        *   *New Attributes*: Added `tool_use_id` (the model&#39;s `tool_use` block id) and `gen_ai.tool.call.id` (semantic convention equivalent) to both spans. This allows joining spans to other events.
+
+3.  **Synthesize Analysis**:
+
+    *   **Overall Summary**: The updates focus on version `v2.1.162` improvements, specifically refining MCP timeout logic and OAuth handling for cloud connectors, extending config file support (`.devin`), and enhancing OpenTelemetry observability with better correlation IDs (`tool_use_id`).
+
+    *   **Key Themes**:
+        *   *MCP Configuration &amp; Authentication*: Clarification on server timeouts and restriction on local OAuth for major providers (Google/Microsoft).
+        *   *Tool Compatibility*: Added support for `.devin/rules/` config files.
+        *   *Observability/Tracing*: Enhanced telemetry schema to include trace correlation IDs (`tool_use_id`).
+
+    *   **Impact Level**:
+        *   *Medium*.
+        *   *Reasoning*: The MCP timeout behavior change is significant for users relying on short timeouts (behavior flips from 1s floor to 28h default). The OAuth limitation is a UX change but affects how specific popular connectors are used. The telemetry changes are additive (non-breaking) but valuable for debugging. The `.devin` support is additive.
+
+    *   **Action Items**:
+        *   *Check MCP Timeouts*: If you were relying on the previous &#34;floor to 1 second&#34; behavior for timeouts, be aware that values &lt; 1000ms now default to the global `MCP_TOOL_TIMEOUT` (~28 hours). Adjust your config if you need specific short timeouts.
+        *   *OAuth Migration*: If you use Claude Code with Microsoft 365, Gmail, or Google Calendar connectors, authenticate via the Claude.ai web UI (Settings → Connectors) instead of the CLI `/mcp`.
+        *   *Telemetry Updates*: If you parse OTel logs, update your schemas to include `tool_use_id` for better event correlation.
+        *   *Config File Support*: You can now place agent rules in `.devin/rules/` to be recognized by `/init`.
+
+4.  **Draft the Response (in Chinese)**:
+
+    *   *Summary*: 本次更新主要集中在 `v2.1.162` 版本的功能调整与增强，涵盖了 MCP 服务器的超时行为修正、特定连接器的 OAuth 认证限制、对 `.devin` 配置文件的支持，以及 OpenTelemetry 遥测数据中新增的关联 ID 字段。
+    *   *Key Themes*:
+        *   MCP 行为变更：超时值 &lt; 1000ms 时的处理逻辑改变；云端连接器（如 Google/微软）不再支持本地 OAuth。
+        *   兼容性增强：新增对 `.devin/rules/` 配置文件的读取支持。
+        *   可观测性提升：OTel schema 新增 `tool_use_id` 字段，便于追踪关联。
+    *   *Impact*: Medium (中等)。超时逻辑的变化可能影响现有配置（从 1s 下限变为 ~28h 默认），OAuth 限制影响特定连接器的使用方式，其他均为兼容性增强。
+    *   *Action Items*:
+        *   检查 MCP 超时配置：若您之前依赖 `&lt;1000ms` 被修正为 1s 的行为，需注意现在该值将回退到约 28 小时的默认超时。
+        *   调整连接器认证方式：使用 Microsoft 365、Gmail 或 Google Calendar 时，需前往 Claude.ai 网页端进行连接，而非 CLI 命令。
+        *   更新遥测解析逻辑：如果依赖 OTel 日志分析，请加入对 `tool_use_id` 和 `gen_ai.tool.call.id` 的处理以关联事件。
+        *   利用新配置支持：现在可以将规则定义在 `.devin/rules/` 目录中，`/init` 命令会自动读取。
+
+5.  **Review and Refine**:
+    *   Ensure tone is professional (&#34;world-class programmer&#34;).
+    *   Check markdown formatting.
+    *   Check Chinese fluency.
+    *   Verify accuracy against diffs.
+    *   *Self-Correction on Impact*: The timeout change is technically a breaking change in logic for anyone who specifically set it low expecting a short timeout. I should emphasize this.
+
+6.  **Final Output Generation**. (Proceed to generate output based on step 4).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/memory.html" class="page-link">memory.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+21</span>
+                            <span class="removed">-16</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">19:05 EST</div>
