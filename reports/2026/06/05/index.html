@@ -118,9 +118,308 @@
 
         <header>
             <h1>Changes on 2026-06-05</h1>
-            <p class="meta">19 total changes in 2 runs</p>
+            <p class="meta">36 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">17:21 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更分析
+
+## 1. 总体摘要
+本次更新主要集中在澄清云提供商的模型版本解析行为、增强插件管理功能、细化 Hook 过滤规则文档、新增监控遥测事件以及改进版本控制机制。
+
+## 2. 关键主题
+
+- **模型版本固定说明统一化**：Bedrock、Vertex AI、Foundry 及第三方集成文档统一更新，明确不固定版本时解析为&#34;Claude Code内置默认版本&#34;而非&#34;最新版本&#34;，强调该默认版本可能滞后于最新发布。
+- **插件命令增强**：新增 `/plugin list` 命令，支持直接在交互会话中列出插件，并可使用 `--enabled`/`--disabled` 过滤。
+- **Hook `if` 匹配行为澄清**：新增详细 Bash 匹配表格，说明模式如何匹配子命令、`$()` 和反引号，并明确&#34;失败开放&#34;（fail-open）行为，建议使用权限系统而非 Hook 进行硬性控制。
+- **监控遥测扩展**：新增 `api_refusal` 事件用于跟踪拒绝频率；`mcp_server_connection` 事件新增 `is_plugin`、`plugin_id_hash` 等字段以区分插件提供的服务器。
+- **版本控制强化**：引入 `requiredMinimumVersion` 和 `requiredMaximumVersion` 设置，允许强制指定版本范围以阻止启动，补充现有的 `minimumVersion`（仅限制更新）。
+- **交互体验改进**：交互模式新增快捷键 `c` 复制原始 Markdown；技能参数支持使用 `\$` 转义 `$` 符号；子代理 Fork 模式文档更清晰。
+
+## 3. 影响级别：**中**
+
+**理由**：大部分变更为文档澄清和新功能说明，主要影响开发者对现有功能的理解和使用。监控事件属性和 Hook 匹配行为的澄清可能需要开发者调整现有配置或监控逻辑。模型版本固定说明的统一化有助于避免误解，但不影响现有正确配置。
+
+## 4. 开发者行动项
+
+- **审查模型配置**：如果通过云提供商（Bedrock/Vertex AI/Foundry）部署，理解&#34;内置默认版本&#34;的滞后行为，并考虑固定具体模型版本。
+- **检查 Hook 规则**：使用 `if` 条件的 Hook 应参考新的 Bash 匹配表格，特别是涉及 `$()`、反引号或复杂命令的场景。
+- **更新监控逻辑**：如果依赖遥测数据，关注新增的 `api_refusal` 事件和 MCP 连接事件中的插件相关字段。
+- **严格版本控制**：如果需要强制组织使用特定版本范围，在托管设置中配置 `requiredMinimumVersion` 或 `requiredMaximumVersion`。
+- **技能参数转义**：如需在技能文本中输出如 `$1.00` 的字面量，确保使用 `\$1.00` 转义语法。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">用户需要我分析17个页面的文档变更，并用中文提供简明扼要的总结。让我先浏览所有变更，理解主要变化。
+
+主要变更内容：
+
+1. **amazon-bedrock.md**: 修订了模型版本固定的警告信息，从&#34;最新版本&#34;改为&#34;Claude Code内置默认版本&#34;。
+
+2. **discover-plugins.md**: 添加了 `/plugin list` 命令的说明，可以显示已安装插件列表，支持 `--enabled` 或 `--disabled` 过滤。
+
+3. **google-vertex-ai.md**: 与Bedrock类似的修订，模型别名的描述改为&#34;解析为Claude Code的内置默认版本&#34;。
+
+4. **headless.md**: 添加了关于退出时后台任务的说明，解释了v2.1.163版本后的行为变化。
+
+5. **hooks.md**: 更新了 `if` 字段的描述，增加了Bash匹配表的链接引用。
+
+6. **hooks-guide.md**: 详细的Bash匹配表格，说明 `if` 模式如何匹配Bash命令、子命令、`$()`和反引号。添加了&#34;失败开放&#34;行为的说明。
+
+7. **interactive-mode.md**: 添加了快捷键 `c` 用于复制答案为原始Markdown格式。
+
+8. **microsoft-foundry.md**: 与Bedrock类似的模型版本固定说明修订，强调Foundry没有启动模型检查功能。
+
+9. **model-config.md**: 关于第三方部署模型固定的统一说明更新。
+
+10. **monitoring-usage.md**: 
+    - 新增了 `api_refusal` 事件的文档
+    - `mcp_server_connection` 事件新增 `is_plugin`、`plugin_id_hash`、`plugin.name` 属性
+    - 更新了数据删除/隐私映射表
+
+11. **plugins-reference.md**: 添加了关于交互式会话中 `/plugin list` 命令的说明。
+
+12. **settings.md**: 
+    - `minimumVersion` 说明更新，提及新的 `requiredMinimumVersion`
+    - 添加了 `requiredMinimumVersion` 和 `requiredMaximumVersion` 的说明
+
+13. **setup.md**: 安装脚本中出现了重复的 `theme={null}` 属性（看起来像是文档构建问题），添加了关于 `requiredMinimumVersion/MaximumVersion` 的说明。
+
+14. **skills.md**: 添加了关于在参数替换中转义 `$` 符号的说明。
+
+15. **slash-commands.md**: 同上，添加了 `$` 转义说明。
+
+16. **sub-agents.md**: 
+    - 修正了 `CLAUDE_CODE_FORK_SUBAGENT` 的说明
+    - 添加了关于服务器端分阶段推出的说明
+    - 更新了限制部分
+
+17. **third-party-integrations.md**: 与其他页面类似的模型固定说明更新。
+
+总结主要主题：
+1. **模型版本固定的说明统一更新** - 多个页面（Bedrock、Vertex AI、Foundry、第三方集成）更新了关于不固定模型版本时会发生什么的描述。现在强调解析为&#34;Claude Code内置默认版本&#34;，而不是&#34;最新版本&#34;。
+2. **插件命令增强** - 添加了 `/plugin list` 命令及其过滤选项。
+3. **Hooks `if` 匹配行为澄清** - 详细的Bash匹配表格，包括 `$()` 和反引号的特殊处理。
+4. **监控和遥测增强** - 新增 API 拒绝事件和插件服务器连接属性。
+5. **版本控制改进** - 添加了 `requiredMinimumVersion` 和 `requiredMaximumVersion` 设置。
+6. **用户体验改进** - 交互模式中的复制快捷键、技能参数转义、子代理 Fork 行为澄清。
+7. **后台任务行为澄清** - 无头模式下的后台任务终止行为。
+
+影响级别：中到低。这些大多是澄清和新功能，没有重大的破坏性变更。
+
+开发者需要采取的行动：
+1. 审查模型配置文档，确保理解&#34;内置默认&#34;行为。
+2. 如果使用 Hooks，查看新的 Bash 匹配表格。
+3. 如果监控使用情况，检查新的 `api_refusal` 事件和插件属性。
+4. 如果需要严格版本控制，考虑使用 `requiredMinimumVersion`。
+5. 如果使用技能，注意新的 `$` 转义语法。</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/amazon-bedrock.html" class="page-link">amazon-bedrock.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/discover-plugins.html" class="page-link">discover-plugins.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/google-vertex-ai.html" class="page-link">google-vertex-ai.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/headless.html" class="page-link">headless.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+32</span>
+                            <span class="removed">-18</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+11</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/interactive-mode.html" class="page-link">interactive-mode.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/microsoft-foundry.html" class="page-link">microsoft-foundry.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/model-config.html" class="page-link">model-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+10</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/setup.html" class="page-link">setup.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/third-party-integrations.html" class="page-link">third-party-integrations.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">15:47 EST</div>
