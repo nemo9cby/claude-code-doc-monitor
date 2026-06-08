@@ -118,9 +118,155 @@
 
         <header>
             <h1>Changes on 2026-06-08</h1>
-            <p class="meta">15 total changes in 1 run</p>
+            <p class="meta">17 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">18:21 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">```markdown
+1. Overall Summary
+本次更新主要提升了 Claude Code 的稳定性、安全性和调试能力。重点包括新增用于故障排查的“安全模式”、修复多项企业级安全策略漏洞，以及明确了“零数据保留”（ZDR）并非标准企业版计划的默认功能。
+
+2. Key Themes
+- **调试与工作流增强**：新增 `--safe-mode` 用于隔离自定义配置排查故障，新增 `/cd` 命令在不中断提示词缓存的情况下切换工作目录。
+- **安全与合规加固**：修复了不受信任项目设置可绕过信任确认设置 OTEL 证书路径的漏洞，加强了企业 MCP 策略的强制执行，并明确了 ZDR 的启用资格限制。
+- **Windows 体验优化**：解决了 Windows 下 Git 凭据弹窗干扰、启动卡顿及 `claude -p` 响应缓慢的问题。
+- **Agent 与后台修复**：修复了后台 Agent 忽略项目级环境变量的问题，并增强了 `claude agents --json` 的输出字段。
+
+3. Impact level
+**Medium**
+**Reasoning**: 虽然没有破坏性 API 变更，但修复了涉及绕过信任确认的安全漏洞（CVE 风格）以及企业策略执行问题，这对安全敏感的企业用户至关重要。新增的调试工具和性能优化显著改善了开发体验。
+
+4. Action items for developers
+- 如果遇到由自定义配置（如 CLAUDE.md 或插件）引起的异常，使用 `claude --safe-mode` 进行排查。
+- 若您的企业依赖“零数据保留”（ZDR），请确认账户是否符合新的“合格账户”标准，它不再包含在标准企业版中。
+- 检查使用了 `claude agents --json` 的自动化脚本，适配新增的 `id` 和 `state` 字段。
+- 使用 Vertex/Foundry 的用户请注意，流式传输现在默认有 5 分钟空闲超时（可通过 `API_FORCE_IDLE_TIMEOUT=0` 关闭）。
+- 审核项目级设置，确保未意外设置敏感的证书路径，尽管相关漏洞已修复，但应遵循最小权限原则。
+```</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Input:** Documentation changes for two pages (`data-usage.md` and `CHANGELOG.md.md`).
+    *   **Goal:** Provide concise, insightful analysis in markdown format, focusing on what matters to developers.
+    *   **Output Language:** Chinese.
+    *   **Specific Structure:**
+        1.  Overall Summary (1-2 sentences).
+        2.  Key Themes (bullets).
+        3.  Impact Level (Low/Medium/High/Breaking) with reasoning.
+        4.  Action Items (max 5 bullets).
+
+2.  **Analyze Page 1: `data-usage.md`**
+    *   *Change:* Updated the description of &#34;Zero data retention&#34; (ZDR) for Claude Code on Enterprise.
+    *   *Old:* &#34;available for Claude Code... ZDR is enabled... each new org must have ZDR enabled separately.&#34;
+    *   *New:* &#34;available to qualified accounts... ZDR is not included in the standard Enterprise plan... enabled... after confirming eligibility.&#34;
+    *   *Implication:* ZDR is no longer automatic or standard; it&#39;s a specific add-on/qualification for Enterprise users. This clarifies entitlements for developers/companies.
+
+3.  **Analyze Page 2: `CHANGELOG.md.md` (Version 2.1.169)**
+    *   *New Features:*
+        *   `--safe-mode`: Disables customizations (CLAUDE.md, plugins, etc.) for troubleshooting. Very useful for debugging environments.
+        *   `/cd`: Move session to new working directory without breaking prompt cache. Quality of life improvement for project navigation.
+        *   `disableBundledSkills`: Hide built-in skills/commands. Allows for a cleaner, &#34;vanilla&#34; experience if desired.
+    *   *Fixes/Improvements:*
+        *   Up/Down arrow behavior (UI polish).
+        *   Enterprise MCP policies enforcement (Security/Compliance fix).
+        *   Performance fixes (Windows startup, UI stalls, CPU usage).
+        *   Git Credential Manager popup fix (Windows specific annoyance).
+        *   Remote Control OAuth bug fix.
+        *   Agent management (`claude agents --json`, `--all`, `id`, `state`).
+        *   Untrusted project settings security fix (OTEL paths).
+        *   Vertex/Foundry idle timeout (prevents hanging).
+    *   *Implication:* Focus on stability, security (untrusted settings, MCP policies), Windows usability, and debugging tools (`safe-mode`).
+
+4.  **Synthesize Key Themes:**
+    *   *Stability &amp; Performance:* Reducing stalls, CPU usage, fixing hangs.
+    *   *Security &amp; Compliance:* ZDR eligibility clarification, MCP policy enforcement, fixing untrusted settings paths.
+    *   *Debugging &amp; Usability:* New `--safe-mode`, `/cd` command, arrow key fixes.
+    *   *Windows Fixes:* Specific attention to Git popups and startup speed.
+
+5.  **Determine Impact Level:**
+    *   *Reasoning:*
+        *   `--safe-mode` is high utility for debugging.
+        *   `/cd` improves workflow.
+        *   Security fixes (untrusted settings, MCP policies) are important for Enterprise users.
+        *   ZDR policy change is a pricing/entitlement notice.
+    *   *Verdict:* **Medium**. While not a breaking change (APIs likely remain stable), the security fixes and new debugging flags are significant for operational stability and compliance.
+
+6.  **Draft Action Items (for developers):**
+    *   Review ZDR eligibility if relying on it (it&#39;s not standard anymore).
+    *   Use `--safe-mode` if experiencing weird behavior from custom configs.
+    *   Update local scripts if using `claude agents --json` (new fields added).
+    *   Check project settings if using `ANTHROPIC_MODEL` in background agents (fix confirmed).
+    *   Be aware of the 5-min idle timeout for Vertex/Foundry (configurable).
+
+7.  **Translate and Refine (Chinese):**
+
+    *   *Summary:* 本次更新侧重于提升稳定性和安全性。主要变化包括新增调试工具、修复企业级策略执行漏洞，以及明确“零数据保留”功能的资格要求。
+    *   *Themes:*
+        *   调试与故障排除: 新增 `--safe-mode` 和 `/cd`。
+        *   安全与合规: 澄清 ZDR 资格，修复 MCP 策略执行和不受信任项目设置漏洞。
+        *   Windows 体验: 修复 Git 弹窗和启动性能。
+        *   Agent 管理: 增强命令行参数和状态字段。
+    *   *Impact:* Medium.
+    *   *Action Items:*
+        *   如遇配置问题，尝试使用 `claude --safe-mode` 排查。
+        *   检查 ZDR 权限，确认是否符合新的“合格账户”要求。
+        *   若依赖 `claude agents --json`，请注意新增的 `id` 和 `state` 字段。
+        *   针对 Vertex/Foundry 用户，注意新增的 5 分钟空闲超时机制。
+
+8.  **Final Review:** Does it meet the &#34;concise, insightful, world-class programmer&#34; persona? Yes. It highlights the technical nuances (prompt cache preservation, untrusted settings漏洞) rather than just listing features.
+
+9.  **Construct Output.** (Proceeding to generate markdown response).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/data-usage.html" class="page-link">data-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+31</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">16:07 EST</div>
