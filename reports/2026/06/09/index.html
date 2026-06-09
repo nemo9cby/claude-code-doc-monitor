@@ -118,9 +118,340 @@
 
         <header>
             <h1>Changes on 2026-06-09</h1>
-            <p class="meta">59 total changes in 2 runs</p>
+            <p class="meta">75 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">16:01 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更分析摘要
+
+## 1. 总体概述
+本次文档更新主要围绕引入新模型 **Claude Fable 5** 展开，同时细化了沙盒权限机制、企业部署配置（MDM）以及云会话的功能行为。这些变更提升了工具的自动化能力和安全性透明度，但对部分配置项进行了重构。
+
+## 2. 关键主题
+*   **新模型发布**: 全局引入 &#34;Fable&#34; 模型系列，包括环境变量配置、别名支持和第三方提供商的模型锁定设置。
+*   **安全与沙盒优化**: 明确沙盒模式下默认可写入临时目录（`$TMPDIR`）；调整网络命令（如 `curl`/`wget`）的处理逻辑，从默认“阻断”改为“需批准”；更新了 macOS Keychain 的凭据存储说明。
+*   **企业级配置变更**: macOS MDM 策略的配置域名从 `com.anthropic.Claude` 更改为 `com.anthropic.claudefordesktop`（属于破坏性变更）。
+*   **云会话与本地差异**: 明确界定了云会话中哪些本地配置（如 `~/.claude/skills`）不可用，建议将必要的配置提交至仓库。
+*   **自动化增强**: 无头模式 (`-p`) 现已支持通过 prompt 字符串调用 skills 和自定义命令。
+
+## 3. 影响等级：高
+*   **理由**:
+    1.  **新功能**: Claude Fable 5 的引入是重大功能更新。
+    2.  **破坏性变更**: macOS MDM 配置域名的变更会直接导致现有的管理策略失效，需立即修正。
+    3.  **核心行为变更**: 安全权限逻辑的调整（网络命令不再硬性阻断）改变了用户与工具的交互习惯。
+    4.  **关键 Bug 修复**: 修复了 VS Code 集成终端中会话无法保存的问题，直接影响开发体验。
+
+## 4. 开发者行动项
+*   **IT 管理员**: 立即更新 macOS MDM 配置脚本，将 `com.anthropic.Claude` 替换为 `com.anthropic.claudefordesktop`。
+*   **安全配置**: 审查并调整针对 `curl` 和 `wget` 的权限规则，它们现在默认为“询问”而非“阻断”。
+*   **模型迁移**: 如需使用 Fable 5，请更新环境变量（如 `ANTHROPIC_DEFAULT_FABLE_MODEL`）并在部署时锁定版本。
+*   **自动化脚本**: 在无头模式 (`-p`) 脚本中尝试直接引用 `/skill-name` 以提升自动化能力。
+*   **云会话配置**: 检查项目仓库，确保将必要的 `skills`、`agents` 或 `commands` 提交到代码库中，以便在云会话中可用。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">用户希望我分析一批文档更改（16页），并提供一个简洁的、有深刻见解的总结，重点关注对开发者重要的事项。输出需要使用Markdown格式，并用中文回复。
+
+让我回顾一下每个页面的更改：
+
+1.  **claude-code-on-the-web.md**:
+    *   更新了云会话的表格，澄清了哪些配置是可用的。
+    *   添加了关于 `~/.claude/skills/`、`~/.claude/agents/`、`~/.claude/commands/` 不可用的行（本地与仓库作用域）。
+    *   更新了关于安全特性的文本（虽然被截断了）。
+    *   *重要性*：澄清了云环境与本地环境的配置管理，特别是关于 skills/agents/commands 的作用域。
+
+2.  **desktop.md**:
+    *   将 macOS MDM 配置域从 `com.anthropic.Claude` 更改为 `com.anthropic.claudefordesktop`。
+    *   *重要性*：使用 MDM（Jamf, Kandji）管理桌面应用的 IT 团队的重大变更。
+
+3.  **headless.md**:
+    *   更新了关于 `-p` 模式下 skills 和自定义命令的说明。它们*现在*可以工作了（通过在提示字符串中包含 `/skill-name`）。交互式命令（如 `/config`，`/login`）仍然被阻止。
+    *   *重要性*：提升了脚本/CI/CD（无头模式）的能力。
+
+4.  **hooks.md**:
+    *   阐明了哪些 Hook 事件可以重写内容，而不仅仅是允许/阻止。
+    *   强调了 `PreToolUse`、`PermissionRequest`、`PostToolUse` 的 `updatedInput`/`updatedToolOutput` 字段。
+    *   *重要性*：高级 Hook 用例（审计、编辑输入/输出）的更强功能。
+
+5.  **hooks-guide.md**:
+    *   更新了 `PreToolUse` 决策的优先级顺序：`deny`、`defer`、`ask`、`allow`。（添加了 `defer`）。
+    *   *重要性*：Hook 权限逻辑中的精度变更。
+
+6.  **model-config.md**:
+    *   添加了 &#34;Fable&#34; 到模型别名列表中。
+    *   更新了环境变量以包含 `ANTHROPIC_DEFAULT_FABLE_MODEL`。
+    *   添加了用于 Fable 的 `DISABLE_PROMPT_CACHING_FABLE`。
+    *   *重要性*：引入了一个新的模型系列 &#34;Fable&#34;。
+
+7.  **monitoring-usage.md**:
+    *   更新了 `user.id` 的描述，澄清其是随机的、匿名的，并且是持久化的（不是设备安装 ID？文本说是 &#34;首次运行时生成的随机匿名标识符&#34;）。
+    *   阐明了分段能力（修正了关于某些指标上 `model` 属性的细节）。
+    *   *重要性*：遥测/可观测性的澄清。
+
+8.  **overview.md**:
+    *   代码块中出现了一些看起来像垃圾文本的重复 `theme={null}`（可能是构建产物伪影？），但在 markdown 内容变更的语境下，看起来它们只是添加了更多的 `theme={null}` 字符串。除非这是一个可执行的更改，否则这可能是噪音。等等，仔细观察，这只是代码块语言的重复属性。这可能是一个文档生成器的伪影，我会忽略它，除非它看起来是有意为之的。
+    *   关于 `claude --teleport` 要求订阅的说明。
+    *   *重要性*：功能可用性澄清（Teleport 需要订阅）。
+
+9.  **plugins.md**:
+    *   澄清了迁移行为：项目/用户 `.claude/agents/` 会覆盖同名的插件 agents。
+    *   *重要性*：插件/本地 agent 之间的冲突解决逻辑。
+
+10. **sandboxing.md**:
+    *   澄清了默认的沙盒写入权限包含会话临时目录（`$TMPDIR`），而不仅仅是工作目录。
+    *   详细说明了 `$TMPDIR` 在沙盒与非沙盒命令中的行为。
+    *   *重要性*：修复了沙盒内使用临时文件的工具的行为。
+
+11. **security.md**:
+    *   重述了 Bash 执行策略（只读命令自动批准）。
+    *   阐明了网络命令（`curl`、`wget`）不再是默认阻止的（&#34;blocklist&#34; 变为 &#34;not auto-approved&#34;），而是像其他非只读命令一样提示。
+    *   更新了凭据存储详情（macOS Keychain 对比文件权限）。
+    *   *重要性*：安全行为变更（网络命令现在可允许但需提示，而不是硬性阻止）。
+
+12. **settings.md**:
+    *   澄清了 `.claude/settings.local.json` 的 git 忽略行为（自动 vs 手动）。
+    *   澄清了权限规则评估（第一个匹配决定结果，无论具体性如何）。
+    *   更新了设置错误的处理（启动时的设置问题通知 + `/doctor` 命令）。
+    *   *重要性*：配置管理的改进。
+
+13. **setup.md**:
+    *   同样的 `theme={null}` 重复伪影。
+    *   更新了 Linux 包管理器（apt/dnf/apk）的说明，区分了 `stable` 和 `latest` 通道。`stable` 现在大约滞后一周。
+    *   *重要性*：Linux 发行/升级策略的更新。
+
+14. **sub-agents.md**:
+    *   添加了关于在无头模式/Agent SDK 中禁用内置子代理的说明（`CLAUDE_AGENT_SDK_DISABLE_BUILTIN_AGENTS`）。
+    *   *重要性*：集成的配置控制。
+
+15. **third-party-integrations.md**:
+    *   添加了 `ANTHROPIC_DEFAULT_FABLE_MODEL` 到环境变量列表中。
+    *   *重要性*：与模型配置更改保持一致（引入 Fable）。
+
+16. **CHANGELOG.md.md**:
+    *   版本 2.1.170
+    *   **重大新闻**：引入 Claude Fable 5（一个 &#34;Mythos-class&#34; 模型）。
+    *   修复：当从集成终端启动时，会话无法保存转录内容。
+    *   *重要性*：高（新模型版本，关键的错误修复）。
+
+**总结分析：**
+
+1.  **新模型 (Fable 5)**：最显著的变化是引入了 &#34;Claude Fable 5&#34;。这影响了多个页面（model-config, third-party-integrations），增加了一个新的别名 `fable` 和相关的环境变量。
+2.  **沙盒与安全细化**：安全文档的变更很重要。网络命令（curl/wget）从“默认阻止”转变为“需要批准”（与标准 Bash 处理一致）。沙盒默认行为现在明确包含临时目录写入。
+3.  **云/桌面配置**：macOS MDM 领域的更改对企业用户来说是一个破坏性变更（如果他们已部署的话）。关于云会话中本地与仓库作用域 skills/agents 的澄清对开发者来说是实用知识。
+4.  **开发体验/稳定性**：VS Code 集成终端会话保存的修复是一个重要的稳定性改进。无头模式中的 skill 支持增强了自动化。
+
+**影响等级**：高。
+*   **理由**：新模型 (Fable) 是重大的功能更新。MDM 领域的更改是 IT 管理的破坏性变更。安全行为的转变（curl/wget）改变了核心交互流程。修复的 bug 影响工作流稳定性。
+
+**行动项**：
+1.  IT 管理员需要更新 MDM 配置脚本。
+2.  开发者如果有资格应该测试 Fable 5，并相应地更新环境变量。
+3.  用户需注意关于 `curl`/`wget` 的更改——它们不再被硬性阻止，但需要批准。
+4.  无头用户现在可以在脚本中使用 skills。
+5.  检查 `.claude/settings.local.json` 的 git 状态。</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/claude-code-on-the-web.html" class="page-link">claude-code-on-the-web.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+15</span>
+                            <span class="removed">-13</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/desktop.html" class="page-link">desktop.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/headless.html" class="page-link">headless.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/model-config.html" class="page-link">model-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+13</span>
+                            <span class="removed">-13</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/overview.html" class="page-link">overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins.html" class="page-link">plugins.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sandboxing.html" class="page-link">sandboxing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/security.html" class="page-link">security.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/setup.html" class="page-link">setup.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+15</span>
+                            <span class="removed">-7</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/third-party-integrations.html" class="page-link">third-party-integrations.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">13:22 EST</div>
