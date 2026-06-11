@@ -118,9 +118,138 @@
 
         <header>
             <h1>Changes on 2026-06-10</h1>
-            <p class="meta">29 total changes in 4 runs</p>
+            <p class="meta">30 total changes in 5 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">23:26 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 1. Overall Summary
+文档更新了图像 Token 的计算算法（从模糊的经验值改为基于 28x28 像素块的精确模型），并新增了关于处理坐标和边界框的详细最佳实践章节。
+
+### 2. Key Themes
+- **算法精确化**: Token 计算公式从 `width * height / 750` 更新为 `⌈width / 28⌉ × ⌈height / 28⌉`（即视觉 token 概念），使成本预估更准确。
+- **坐标系指南**: 新增指南明确指出 Claude 在处理坐标时使用“绝对像素坐标”效果最佳，建议开发者避免使用归一化坐标。
+- **预处理逻辑**: 详细说明了图像缩放和填充至 28 像素倍数的规则，帮助开发者理解坐标偏移的来源。
+
+### 3. Impact Level: Medium
+**Reasoning**: 虽然这可能主要是文档层面的修正而非 API 破坏性变更，但它直接影响开发者的成本计算准确性。此外，新增的“坐标与边界框”指南对任何构建视觉应用（如 OCR、UI 元素检测）的开发者至关重要，能显著提升模型输出结果的可用性。
+
+### 4. Action items for developers
+- **更新成本估算工具**: 将项目中的 Token 计算逻辑从旧公式 (`/750`) 修改为新公式 (`ceil(w/28) * ceil(h/28)`)。
+- **优化视觉 Prompt**: 在请求定位任务（如边界框）时，明确要求 Claude 返回“绝对像素坐标”，而非相对坐标或 0-1000 范围内的数值。
+- **处理坐标映射**: 如果无法控制上传图像的尺寸，需更新客户端代码逻辑，以正确处理因 API 端填充（padding to 28px multiples）导致的坐标偏移；或者按照文档建议，在上传前主动调整图像尺寸以简化流程。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Understand the Goal:** The user wants a concise, insightful analysis of specific documentation changes (single page: `build-with-claude/vision.md`) in Markdown format, focusing on what matters to developers, in Chinese.
+
+2.  **Analyze the Input:**
+    *   **Source:** `build-with-claude/vision.md`
+    *   **Changes:** +96 / -18 (Net addition).
+    *   **Diff Content:**
+        *   *Token Calculation Logic Change:* The formula for calculating tokens changed from `width * height / 750` to a patch-based approach: `⌈width / 28⌉ × ⌈height / 28⌉` (Visual Tokens).
+        *   *Clarification on Resizing/Padding:* Explicit mention that images are viewed in 28x28 patches. Clarification on how images are resized/padded (always padded to multiple of 28).
+        *   *Updated Token/Cost Examples:* The table of token costs and examples was updated to reflect the new calculation method. The numbers are generally slightly different (e.g., 200x200 goes from ~54 to 64 tokens).
+        *   *High-Resolution Support Section:* Updated table examples to match the new math. Added specific note that 4K images are downscaled.
+        *   *New Section:* Added &#34;Working with coordinates and bounding boxes&#34;.
+            *   *Key Advice:* Claude works best with *absolute pixel coordinates* relative to the resized image, not normalized coordinates (0-1000).
+            *   *Coordinate System:* Standard top-left origin (0,0).
+
+3.  **Synthesize Key Themes:**
+    *   **Technical Accuracy/Precision:** The move from a rough heuristic (`/ 750`) to a precise algorithm (`28x28 patches`) indicates a shift towards more predictable billing and behavior.
+    *   **Coordinate Handling:** A strong emphasis on how to ask for bounding boxes (absolute pixels vs. normalized). This is a &#34;Best Practice&#34; addition.
+    *   **Cost Predictability:** Updated tables help developers better estimate costs based on the new logic.
+
+4.  **Determine Impact Level:**
+    *   *Breaking?* No. The API behavior likely didn&#39;t change fundamentally, but the documentation is now more accurate. However, if developers were relying on the old `/750` math for cost estimation, their estimates were off.
+    *   *Impact:* Medium. The cost calculation logic change is significant for billing estimation. The new guidance on coordinates is significant for vision applications (OCR, object detection).
+
+5.  **Draft Action Items:**
+    *   Update cost estimation logic in code/tools to use the new `ceil(w/28) * ceil(h/28)` formula.
+    *   Adjust prompts to request absolute pixel coordinates instead of normalized ones for better accuracy.
+    *   Update client-side coordinate mapping logic to account for the specific resizing/padding rules mentioned (or use pre-resized images to avoid this complexity).
+
+6.  **Translate to Chinese and Format (Markdown):**
+
+    *   *Overall Summary:* 文档更新了图像 Token 计算逻辑（从除法改为 28x28 分块），并新增了关于坐标和边界框使用的最佳实践指南。
+    *   *Key Themes:*
+        *   精确的 Token 计算公式。
+        *   坐标系的明确化（绝对像素 vs 归一化）。
+        *   图像处理流程的细节（裁剪、填充）。
+    *   *Impact:* Medium. 影响成本估算和视觉任务的提示词工程。
+    *   *Action Items:*
+        *   更新 Token 估算器。
+        *   修改提示词以要求绝对像素坐标。
+        *   注意图像预处理建议。
+
+7.  **Refine the Output (Self-Correction during drafting):**
+    *   Make sure to emphasize the &#34;Visual Token&#34; concept.
+    *   Highlight the specific formula change `width * height / 750` -&gt; `ceil(w/28) * ceil(h/28)`.
+    *   The coordinate section is a *new* section, so that&#39;s a major addition for developers building vision features.
+
+8.  **Final Polish (Chinese):**
+    *   Summary: 更新了图像 Token 计算模型（从经验公式改为精确的 28x28 像素分块），并新增了关于使用坐标和边界框的最佳实践章节。
+    *   Themes: Token 计算精确化、坐标系统最佳实践、图像处理细节明确化。
+    *   Impact: Medium. 成本估算更准确，且对视觉应用的提示词工程有重要指导意义。
+    *   Actions: 更新成本计算代码、优化 Prompt 获取绝对像素坐标、关注图像预处理建议。
+
+9.  **Construct Final Markdown:** (Matches the requested structure).
+
+    *   Check constraints: &#34;concise&#34;, &#34;insightful&#34;, &#34;markdown format&#34;, &#34;Chinese&#34;.
+
+    *   *Drafting the response...*
+    *   Summary: 文档修正了视觉 Token 的计算逻辑，将其精确化为基于 28x28 像素块的模型，并新增了关于处理坐标和边界框的详细指南。
+    *   Themes: 精确的计费模型、视觉交互最佳实践、图像处理流程透明化。
+    *   Impact: Medium. 对开发者的成本预算和视觉应用（如 OCR/UI 分析）的实现有直接影响。
+    *   Actions: 更新内部 Token 估算工具，调整 Prompt 以要求绝对像素坐标，根据新规则验证图像预处理逻辑。
+
+    *   *Wait, the specific formula change is the most important technical detail.*
+    *   *The coordinate section is new content, not just an edit.*
+
+    Let&#39;s finalize the Chinese text.
+
+    1. Overall Summary: 文档更新了图像 Token 的计算算法（从模糊的经验值改为基于 28x28 分块的精确模型），并新增了关于坐标和边界框处理的最佳实践章节。
+    2. Key Themes:
+       - **算法精确化**: Token 计算从 `width * height / 750` 改为 `⌈width / 28⌉ × ⌈height / 28⌉`，使计费更透明。
+       - **坐标系指南**: 新增章节明确建议开发者要求 Claude 返回“绝对像素坐标”而非归一化坐标，以提高准确性。
+       - **预处理细节**: 阐明了图像填充至 28 的倍数及缩放规则，帮助开发者正确处理坐标映射。
+    3. Impact: **Medium**. 虽然底层 API 行为可能未变，但文档的修正改变了开发者估算成本的方式，且新增的坐标指南对构建视觉应用（如 UI 分析、OCR）至关重要。
+    4. Action items:
+       - 更新任何基于旧公式 (`/750`) 的本地 Token 成本估算器。
+       - 修改视觉任务的 Prompt，明确要求返回图像的绝对像素坐标。
+       - 如果需要坐标映射，确保客户端代码能正确处理 Claude 对图像的缩放和填充（或预缩放图片以避免复杂性）。
+
+    Looks good. Matches the prompt&#39;s request perfectly.</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/vision.html" class="page-link">build-with-claude/vision.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+96</span>
+                            <span class="removed">-18</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">19:22 EST</div>
