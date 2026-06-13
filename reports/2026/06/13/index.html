@@ -118,9 +118,160 @@
 
         <header>
             <h1>Changes on 2026-06-13</h1>
-            <p class="meta">2 total changes in 2 runs</p>
+            <p class="meta">4 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">18:59 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 总体摘要
+此次文档更新引入了新的 `enforceAvailableModels` 配置项，增强了模型限制的严格性，并改变了托管/策略设置中模型白名单的合并逻辑（从合并变为替换），以支持更严格的合规性控制，主要影响 v2.1.175 及以上版本。
+
+### 关键主题
+*   **默认选项的强制管控**：新增 `enforceAvailableModels` 标志，允许将模型白名单扩展至“默认”选项，防止用户绕过限制选择系统默认模型。
+*   **策略合并逻辑变更**：在托管或策略级别设置 `availableModels` 时，现在将完全替换用户级或项目级设置，而非合并，以确保严格的模型准入。
+*   **版本强制要求**：明确指出针对 `availableModels` 和 `enforceAvailableModels` 的严格安全行为需要 Claude Code v2.1.175 或更高版本。
+*   **计划模式合规性**：改进了 `opusplan` 等计划模式的逻辑，使其在被排除在白名单之外时能正确降级或遵守限制。
+*   **错误反馈优化**：调整了启动时模型被拦截的行为，现在会显示具体的替换警告而非静默忽略。
+
+### 影响级别
+**Medium/High (中/高)**
+**理由**：对于需要严格管控模型使用的企业或管理员，此次更改至关重要。策略合并逻辑的改变（替换而非合并）可能显著影响现有的配置管理方式，且新功能允许彻底封锁用户切换到白名单之外的“默认”模型的能力。
+
+### 开发者行动项
+*   **更新配置**：如果您希望彻底禁止用户使用非白名单模型，请在托管设置中添加 `&#34;enforceAvailableModels&#34;: true`。
+*   **审查合并逻辑**：检查现有的 `availableModels` 策略配置，确认在升级到 v2.1.175+ 后，新的“替换”逻辑不会意外导致用户可用的模型列表变窄。
+*   **升级版本**：确保 Claude Code 客户端更新至 v2.1.175 或更高版本以启用新的模型强制执行特性。
+*   **验证计划模式**：检查 `opusplan` 或 Haiku 模型的配置，确保在它们被排除在白名单外时，系统能按预期回退到 Sonnet 或其他允许的模型。
+*   **关注警告日志**：留意启动时关于模型替换的警告信息，以便调试配置不当导致的模型切换问题。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Input:** Documentation changes for `model-config.md` and `settings.md` (diffs provided).
+    *   **Output Format:** Markdown.
+    *   **Language:** Chinese (as requested: &#34;请用中文回复&#34;).
+    *   **Structure:**
+        1.  Overall Summary.
+        2.  Key Themes.
+        3.  Impact Level (with reasoning).
+        4.  Action Items (max 5 bullets).
+
+2.  **Analyze the Diff Content:**
+
+    *   **Page 1: `model-config.md`**
+        *   *Change 1:* Refinement on how blocked models are handled at startup. Specifically, a blocked `--model` or `ANTHROPIC_MODEL` is now *replaced* with a warning naming the requested and substituted models, rather than just being ignored silently.
+        *   *Change 2:* Introduction of the `enforceAvailableModels` setting.
+            *   Previously, `availableModels` didn&#39;t affect the &#34;Default&#34; option in the model picker. Users could always pick Default.
+            *   Now, setting `enforceAvailableModels: true` (requires v2.1.175+) extends the allowlist to the Default option. If the tier default isn&#39;t in the list, Default resolves to the first allowed entry.
+            *   Empty `availableModels` never engages enforcement.
+        *   *Change 3:* Updated the section on &#34;Control the model users run on&#34;.
+            *   Added `enforceAvailableModels` to the list of settings needed for full control.
+            *   Updated the code example to include `&#34;enforceAvailableModels&#34;: true`.
+            *   Clarified the difference between `enforceAvailableModels` (controls Default) and `env` blocks (pins aliases).
+        *   *Change 4:* Updated &#34;Merge behavior&#34;.
+            *   Clarified that managed/policy settings *replace* lower-precedence values for `availableModels` (and `enforceAvailableModels`), rather than merging. This is v2.1.175 specific behavior. This allows strict enforcement.
+        *   *Change 5:* Interaction with Plan Mode (`opusplan`).
+            *   If Opus is excluded from `availableModels`, `opusplan` stays on Sonnet instead of switching. Same for Haiku-to-Sonnet upgrade.
+
+    *   **Page 2: `settings.md`**
+        *   *Change 1:* Updated the &#34;Security-enforcement fields&#34; table.
+            *   Added `availableModels` and `enforceAvailableModels` to the list of fields that are handled strictly/securely when invalid.
+            *   Specified version requirement: v2.1.175.
+            *   Behavior: `availableModels` enforces an empty allowlist if invalid; `enforceAvailableModels` treated as `true`.
+        *   *Change 2:* Updated the description for `availableModels` in the settings table.
+            *   Removed &#34;Does not affect the Default option&#34; (because it *can* now with the new setting).
+
+3.  **Synthesize Findings (Mental Draft in Chinese):**
+
+    *   *Summary:* This update introduces stricter model enforcement capabilities, specifically targeting the &#34;Default&#34; model behavior and how managed/policy settings merge with user settings. It adds a new `enforceAvailableModels` flag.
+    *   *Key Themes:*
+        *   **Strict Model Control:** Introducing `enforceAvailableModels` to lock down the Default model option, which previously was a loophole.
+        *   **Policy/Managed Settings Priority:** Changing how `availableModels` merges in managed contexts (now replaces instead of merges) to ensure strict adherence to policy.
+        *   **Version Requirements:** Explicitly requiring v2.1.175 for these specific enforcement behaviors.
+        *   **Plan Mode Compliance:** Ensuring plan mode models (like Opus/Haiku) respect the allowlist.
+        *   **Error Messaging:** Improving visibility when blocked models are used at startup.
+
+4.  **Determine Impact Level:**
+    *   *Level:* **Medium to High**.
+    *   *Reasoning:* While not a &#34;breaking&#34; change in the API sense, it fundamentally changes how model restrictions work for administrators. If you relied on the fact that users could always select &#34;Default&#34; regardless of `availableModels`, this behavior changes with the new flag. Also, the merge behavior change for managed settings is significant for enterprise security policies.
+
+5.  **Draft Action Items:**
+    *   Review existing `availableModels` configurations if you use managed/policy settings (merge behavior changed).
+    *   Consider adding `&#34;enforceAvailableModels&#34;: true` if you need to strictly lock down models and prevent users from picking &#34;Default&#34;.
+    *   Update to Claude Code v2.1.175 or later to utilize these features.
+    *   Audit the interaction between `availableModels` and Plan Mode (`opusplan`) to ensure expected behavior.
+
+6.  **Final Polish (Markdown &amp; Language Check):**
+
+    *   *Overall Summary:* 此次更新引入了更严格的模型控制机制，新增 `enforceAvailableModels` 设置，并改进了托管/策略设置中模型白名单的合并逻辑，要求版本 v2.1.175。
+    *   *Key Themes:*
+        *   **新增 `enforceAvailableModels` 设置：** 允许管理员将模型白名单扩展至“默认”选项，彻底封堵用户绕过限制的途径。
+        *   **策略设置优先级变更：** 在托管/策略级别设置 `availableModels` 时，现在将直接替换而非合并低优先级设置，以实现严格的强制执行。
+        *   **版本依赖性：** 明确了部分安全强制行为需要 Claude Code v2.1.175 或更高版本。
+        *   **计划模式合规性：** 确保 `opusplan` 和 Haiku 升级行为遵守 `availableModels` 限制。
+        *   **启动时拦截反馈：** 提高了模型被拦截时的警告信息详细程度。
+
+    *   *Impact Level:* **Medium/High (中/高)**。
+        *   **Reasoning:** 对于依赖 `availableModels` 进行合规管理的企业用户，合并逻辑的改变以及新增的强制默认选项功能是重要的安全增强，可能会改变用户的现有工作流。
+
+    *   *Action Items:*
+        *   检查现有的托管或策略配置，确认 `availableModels` 的“替换”逻辑是否符合预期。
+        *   若需彻底禁止用户使用白名单之外的模型，请在配置中添加 `&#34;enforceAvailableModels&#34;: true`。
+        *   确保环境升级至 Claude Code v2.1.175+ 以启用新的模型强制执行行为。
+        *   评估 `opusplan` 与 `availableModels` 的交互，确保计划模式下的模型切换符合限制策略。
+        *   关注启动日志中关于被替换模型的警告信息，以便排查配置问题。
+
+7.  **Final Review against constraints:**
+    *   Concise? Yes.
+    *   Insightful? Yes.
+    *   Markdown? Yes.
+    *   Chinese? Yes.
+
+    *Self-Correction during drafting:* I initially thought &#34;Breaking&#34; because of the merge change, but looking closely, it says &#34;As of Claude Code v2.1.175, this is the only way to enforce a strict allowlist; earlier versions merge...&#34;. So it&#39;s a version-dependent feature update, not a breaking change for existing versions. However, for admins upgrading, it&#39;s a *High* impact behavior change. I will label it Medium/High.
+
+8.  **Construct Final Output.** (Proceed to generate output based on step 6).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/model-config.html" class="page-link">model-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+12</span>
+                            <span class="removed">-7</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+12</span>
+                            <span class="removed">-9</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">13:17 EST</div>
