@@ -118,9 +118,312 @@
 
         <header>
             <h1>Changes on 2026-06-16</h1>
-            <p class="meta">2 total changes in 1 run</p>
+            <p class="meta">14 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">18:52 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### Overall Summary
+本次文档更新主要强化了对 Monorepo 项目的支持，引入了嵌套目录下的配置发现机制，细化了模型访问权限的控制范围，并改进了 Amazon Bedrock 的凭证缓存逻辑。此外，Hooks API 中的 `team_name` 字段已被标记为弃用。
+
+### Key Themes across pages
+*   **Monorepo 与嵌套配置支持 (v2.1.178)**：Skills (`skills.md`)、Sub-agents (`sub-agents.md`) 和 Output-styles (`output-styles.md`) 现在支持从工作目录到仓库根目录之间的所有嵌套 `.claude/` 文件夹中加载配置。当存在同名定义时，系统遵循“就近优先”原则，即最靠近工作目录的定义生效。这允许 Monorepo 中的子包拥有专属的工具和配置。
+*   **模型访问控制细化 (v2.1.176)**：`availableModels` 白名单限制现在适用范围更广，不仅包括主会话和子代理，还扩展到了环境变量别名解析（如 `ANTHROPIC_DEFAULT_OPUS_MODEL`）以及 `/fast` 模式的隐式模型切换。
+*   **凭证缓存优化**：Amazon Bedrock 集成现在支持可选的 `Expiration` (ISO 8601) 字段。如果提供，Claude Code 将据此动态缓存凭证直到过期前 5 分钟，而非固定的 1 小时。
+*   **API 弃用与清理**：Hooks 事件（`TaskCreated`, `TaskCompleted`, `TeammateIdle`）中的 `team_name` 字段已标记为弃用，未来版本将移除。
+
+### Impact level
+**Medium**
+
+**Reasoning:**
+虽然大部分更改属于向后兼容的功能增强（如嵌套目录支持、凭证缓存），但它们改变了配置的发现和解析逻辑，特别是在大型或 Monorepo 项目中。`availableModels` 范围的扩大可能会影响受管理环境下的现有工作流（例如别名被拦截）。Hooks API 的字段弃用虽然尚未移除功能，但要求开发者开始规划代码迁移。
+
+### Action items for developers
+*   **更新 Hooks 代码**：检查并修改依赖 `team_name` 字段的 Hooks 集成代码，为该字段未来的移除做准备。
+*   **重构 Monorepo 配置**：利用新的嵌套发现机制，将特定的 Skills 或 Agents 从项目根目录下移至对应的子包目录（如 `apps/web/.claude/skills/`），以实现更精细的上下文管理。
+*   **审查模型权限设置**：如果使用了 `availableModels` 限制，升级到 v2.1.176 后需验证环境变量别名和 `/fast` 命令的行为是否符合预期。
+*   **优化 Bedrock 凭证脚本**：在自定义的 Bedrock 凭证提供脚本中添加可选的 `Expiration` 字段，以利用更智能的缓存策略。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer/developer tools expert.
+    *   **Task:** Analyze a batch of documentation changes (12 pages).
+    *   **Output:** Concise, insightful analysis in markdown format.
+    *   **Language:** Chinese (requested &#34;请用中文回复&#34;).
+    *   **Structure:**
+        1.  Overall Summary (1-2 sentences).
+        2.  Key Themes (bullets).
+        3.  Impact Level (Low/Medium/High/Breaking) + Reasoning.
+        4.  Action Items (bullets, max 5).
+
+2.  **Analyze the Diff Content (Page by Page):**
+
+    *   **`amazon-bedrock.md`**:
+        *   Added `Expiration` field to credentials JSON.
+        *   Added version note (`min-version: 2.1.176`).
+        *   Behavior: If `Expiration` is present (ISO 8601), Claude Code caches until 5 mins before expiry. Without it, caches for 1 hour.
+
+    *   **`costs.md`**:
+        *   Text change: &#34;Clean up teams&#34; -&gt; &#34;Shut down teammates&#34;.
+        *   Clarification: Active teammates consume tokens until they exit or session ends.
+
+    *   **`hooks.md`**:
+        *   `resolvedModel` explanation updated to mention `availableModels` overrides.
+        *   **Major change**: `team_name` field in `TaskCreated`, `TaskCompleted`, and `TeammateIdle` events is now **Deprecated**. It&#39;s marked as &#34;Session-derived team name; will be removed in a future release&#34;.
+
+    *   **`model-config.md`**:
+        *   `availableModels` allowlist update.
+        *   Version notes (`min-version: 2.1.176`).
+        *   New scope: Alias resolution (env vars like `ANTHROPIC_DEFAULT_OPUS_MODEL`) and Fast mode (`/fast` command) now respect the `availableModels` allowlist.
+        *   `opusplan` behavior clarification regarding Sonnet exclusion.
+
+    *   **`output-styles.md`**:
+        *   Version note (`min-version: 2.1.178`).
+        *   Project output styles now load from *nested* `.claude/output-styles/` directories.
+        *   Conflict resolution: Closest to working directory wins.
+
+    *   **`plugin-marketplaces.md`**:
+        *   Clarification on `skills` path behavior.
+        *   Exception: &#34;marketplace-root source&#34; (e.g., `source: &#34;./&#34;`).
+        *   If specific subdirs are listed, that&#39;s the complete set. If none exist, default scan runs.
+
+    *   **`plugins-reference.md`**:
+        *   Table update for Component path fields.
+        *   `skills` field description updated to reference &#34;Path behavior rules&#34; for the marketplace-root exception.
+
+    *   **`settings.md`**:
+        *   Table update (looks mostly formatting or minor tweaks, truncated in prompt but consistent with general settings maintenance).
+        *   Wait, the diff shows extensive table row changes but the text content seems largely similar, just reformatted or slightly adjusted descriptions (e.g., `advisorModel`). The snippet provided cuts off, so I&#39;ll focus on the visible changes which look like standard documentation refinement/updates to existing settings. It seems to be updating the settings table format or content details.
+
+    *   **`skills.md`**:
+        *   Big update on skill loading hierarchy.
+        *   Clarification: Custom skills override bundled skills.
+        *   **New Feature**: Skills load from *nested* `.claude/skills/` directories.
+        *   Monorepo support context: Subdirectory skills apply when working in that package.
+        *   Naming convention for conflicts: `directory:skill` (e.g., `apps/web:deploy`).
+
+    *   **`slash-commands.md`**:
+        *   Same changes as `skills.md` (likely duplicated content section in the docs).
+
+    *   **`statusline.md`**:
+        *   Added reference to `footer-link-badges`.
+        *   Clarification that footer links are independent of the status line script.
+
+    *   **`sub-agents.md`**:
+        *   Project subagent discovery updated: Nested `.claude/agents/` directories are scanned. Closest to working dir wins (v2.1.178).
+        *   `--add-dir` now scans for subagents inside the added dir.
+        *   Tool restriction (`tools`/`disallowedTools`) update: Now accepts MCP server-level patterns (`mcp__&lt;server&gt;`).
+        *   Fork behavior update: &#34;Making forks the model&#39;s *default* spawn behavior&#34; -&gt; &#34;Letting Claude itself spawn forks&#34;. Claude requests `fork` type explicitly. General-purpose subagent still used by default unless fork is requested.
+
+3.  **Synthesize Key Themes:**
+
+    *   **Hierarchy and Discovery (Nested Configs):** There&#39;s a strong theme of supporting nested project structures (monorepos). Skills (`skills.md`), Sub-agents (`sub-agents.md`), and Output Styles (`output-styles.md`) all now support scanning nested directories (e.g., `apps/web/.claude/`) and using the &#34;closest&#34; definition to the current file/context.
+    *   **Model Control and Cost (`model-config.md`, `costs.md`):** Tighter control over model usage. `availableModels` now applies to aliases and fast mode. Cost warnings sharpened regarding teammate lifecycle.
+    *   **Deprecation and API Stability (`hooks.md`):** `team_name` in hooks is deprecated. This is a &#34;heads up&#34; for developers integrating with hooks.
+    *   **Credential Caching (`amazon-bedrock.md`):** Improved token management for Bedrock via explicit expiration times.
+
+4.  **Determine Impact Level:**
+
+    *   **Medium/High.**
+    *   **Why?**
+        *   **High:** The nested directory loading (Skills/Sub-agents/Styles) significantly changes behavior in monorepos. It&#39;s additive but changes how configurations are discovered and resolved (closest wins).
+        *   **Medium:** The `availableModels` restriction expansion affects enterprise environments where admins are locking down models.
+        *   **Medium:** Deprecation of `team_name` in hooks is important for hook developers, though not &#34;breaking&#34; immediately.
+        *   **Low/Medium:** The Bedrock expiration change is an improvement but backward compatible (optional field).
+
+    *   *Decision:* Medium-High leaning towards Medium because much of it is additive, but the nested discovery logic is a behavioral shift for complex projects. Let&#39;s go with **Medium** to be safe, noting the Monorepo implications. Actually, &#34;Closest wins&#34; for configs is a *behavioral change* that could be surprising if not noticed, so I&#39;ll stick with **Medium**.
+
+5.  **Draft Action Items:**
+
+    *   Update hook implementations to remove reliance on `team_name`.
+    *   Leverage nested `.claude/skills/` and `.claude/agents/` for monorepo organization.
+    *   Review Bedrock credential scripts to optionally add `Expiration` for better caching.
+    *   Audit `availableModels` settings if running v2.1.176+ to ensure aliases and fast mode behave as expected.
+    *   Check `--add-dir` usage for subagent discovery if needed.
+
+6.  **Translate and Format (Chinese):**
+
+    *   *Summary:* 本次文档更新主要涉及对 Monorepo 项目的支持（嵌套配置发现）、模型权限控制的细化、以及 Bedrock 凭证缓存机制的增强。同时标记了 Hooks API 中 `team_name` 字段的弃用。
+    *   *Themes:*
+        *   Monorepo 支持：Skills、Sub-agents 和 Output-styles 现在支持从嵌套的 `.claude/` 目录加载，并遵循“就近优先”原则。
+        *   模型权限细化：`availableModels` 限制列表现在覆盖别名解析和 `/fast` 模式。
+        *   凭证管理：Bedrock 集成支持通过 `Expiration` 字段优化凭证缓存。
+        *   API 弃用：Hooks 事件中的 `team_name` 字段已标记为弃用。
+    *   *Impact:* Medium. 虽然多数改动是向后兼容的增强，但嵌套配置的加载逻辑改变了复杂项目中的配置解析优先级，Hooks 字段弃用也需要开发者注意。
+    *   *Action Items:*
+        *   更新 Hooks 代码以移除对已弃用 `team_name` 字段的依赖。
+        *   利用嵌套 `.claude/skills/` 和 `.claude/agents/` 重构 Monorepo 中的工具配置。
+        *   升级到 v2.1.176+ 后，检查 `availableModels` 设置是否符合预期（现在影响别名和快速模式）。
+        *   更新 Bedrock 凭证工具以可选地返回 `Expiration` 时间戳。
+
+7.  **Final Review against constraints:**
+    *   Concise? Yes.
+    *   Insightful? Yes, highlights the Monorepo shift.
+    *   Chinese? Yes.
+    *   Markdown format? Yes.
+
+8.  **Refining the &#34;Impact&#34; reasoning:**
+    The nested discovery is a big UX improvement for monorepos. The `availableModels` expansion is a big compliance feature. The deprecation is a warning. It&#39;s definitely not &#34;Breaking&#34; yet, but significant. &#34;Medium&#34; is appropriate.
+
+    Let&#39;s assemble the final output.
+
+    *Self-Correction during drafting:* Ensure I mention the specific version numbers (2.1.176, 2.1.178) as they indicate staged rollouts.
+
+    *Refining Action Items:* Keep them actionable for a developer. &#34;Review&#34; is good. &#34;Update&#34; is good.
+
+    (Proceed to generate output)</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/amazon-bedrock.html" class="page-link">amazon-bedrock.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/costs.html" class="page-link">costs.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+15</span>
+                            <span class="removed">-20</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/model-config.html" class="page-link">model-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/output-styles.html" class="page-link">output-styles.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugin-marketplaces.html" class="page-link">plugin-marketplaces.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+15</span>
+                            <span class="removed">-15</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+135</span>
+                            <span class="removed">-115</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/statusline.html" class="page-link">statusline.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">16:57 EST</div>
