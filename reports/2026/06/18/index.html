@@ -118,9 +118,296 @@
 
         <header>
             <h1>Changes on 2026-06-18</h1>
-            <p class="meta">4 total changes in 1 run</p>
+            <p class="meta">17 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">18:01 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 整体摘要
+本次更新主要围绕 **Claude Code v2.1.181** 版本展开，重点引入了 AWS 凭证解析的改进、无障碍 CLI 支持、以及可脚本化的配置管理。此外，官方推出了 `skill-creator` 插件以支持技能的自动化评估与迭代，并显著增强了 API 拒绝事件的日志记录详细程度。
+
+### 关键主题
+*   **v2.1.181 核心增强**：新增 `--ax-screen-reader` 标志以优化无障碍体验；支持在无头模式（`-p`）下通过 `/config key=value` 直接修改设置，无需打开交互界面。
+*   **AWS 集成改进**：现在支持 AWS CLI 的扁平化凭证输出格式（`aws configure export-credentials --format process`），并依据 ISO 8601 `Expiration` 字段优化了凭证缓存策略。
+*   **技能质量保证**：引入官方 `skill-creator` 插件，提供了一套完整的技能评估工作流，包括测试用例管理、隔离运行、自动评分和 A/B 版本对比。
+*   **监控与可观测性**：扩展了 `api_refusal` 事件模式，新增了 `server_fallback_hop`、`category`、`effort` 等多个属性，便于更细致地追踪 API 拒绝原因和模型降级行为。
+*   **macOS 沙箱兼容性**：新增 `allowAppleEvents` 设置，允许沙箱内的命令使用 `open` 或 `osascript`，但文档明确警告此举会降低代码执行隔离的安全性。
+
+### 影响等级
+**Medium (中等)**
+虽然本次更新不包含破坏性变更，但 `skill-creator` 插件的引入显著改变了技能开发和测试的流程。同时，`api_refusal` 事件日志结构的扩展会影响依赖该数据的监控系统或日志解析器。`allowAppleEvents` 的配置涉及安全边界，需要开发者特别注意。
+
+### 开发者行动项
+*   **更新 AWS 脚本**：如果您使用 AWS Bedrock，可更新脚本利用新的扁平化凭证格式支持（v2.1.181）以简化配置。
+*   **启用技能评估**：安装 `skill-creator` 插件（`/plugin install skill-creator@claude-plugins-official`），对关键技能进行基准测试和 A/B 测试，确保稳定性。
+*   **适配日志解析**：更新处理 `claude_code.api_refusal` 事件的日志管道，以利用新增的 `category`、`server_fallback_hop` 等上下文字段。
+*   **优化自动化脚本**：在 CI/CD 或自动化脚本中使用新的 `/config key=value` 语法，替代可能不稳定的交互式配置修改。
+*   **审查沙箱配置**：如果在 macOS 沙箱中遇到 Apple Events 错误，评估是否需要开启 `allowAppleEvents`，并确保理解其安全风险。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Understand the Goal**: The user wants a concise, insightful analysis of a batch of documentation changes for Claude Code. The output must be in markdown, in Chinese, focusing on what matters to developers. The structure is predefined: Overall Summary, Key Themes, Impact Level, and Action Items.
+
+2.  **Analyze the Input**: I have 13 pages of diffs. Let&#39;s go through them page by page to identify changes.
+
+    *   **`amazon-bedrock.md`**:
+        *   Change: Added note about v2.1.181 accepting flat output from `aws configure export-credentials --format process`.
+        *   Change: Added note about v2.1.176 caching credentials based on ISO 8601 `Expiration`.
+        *   *Theme*: AWS integration improvements, credential caching.
+
+    *   **`claude-code-on-the-web.md`**:
+        *   Change: v2.1.179 adds automatic `Claude-Session: &lt;url&gt;` git trailer to commits and session URL in PR bodies.
+        *   Change: Updated text on how to manually build links (preferring automation).
+        *   *Theme*: Web session traceability, automation.
+
+    *   **`cli-reference.md`**:
+        *   Change: Added `--ax-screen-reader` flag (v2.1.181) for accessible output (flat text, no borders).
+        *   *Theme*: Accessibility, CLI flags.
+
+    *   **`headless.md`**:
+        *   Change: Note that v2.1.181 allows changing settings via `/config key=value` in `-p` mode (e.g., `/config thinking=false`).
+        *   *Theme*: CLI automation, configuration management.
+
+    *   **`monitoring-usage.md`**:
+        *   Change: `api_refusal` event now includes more attributes: `query_source`, `speed`, `attempt`, `effort`, `server_fallback_hop`, `has_category`, `has_explanation`, `category`, and agent/skill/plugin attribution.
+        *   *Theme*: Observability, logging, telemetry.
+
+    *   **`plugin-marketplaces.md`**:
+        *   Change: Clarified how `skills` paths work with shared marketplace root sources. Added examples.
+        *   *Theme*: Plugin configuration, marketplace behavior.
+
+    *   **`plugins-reference.md`**:
+        *   Change: Minor clarification text regarding `skills` field merging behavior for marketplace root sources.
+        *   *Theme*: Plugin configuration clarification.
+
+    *   **`sandboxing.md`**:
+        *   Change: Troubleshooting section: Added note about `open`, `osascript`, browser auth failing with `-600` on macOS. Solution: `allowAppleEvents` setting.
+        *   Change: Security considerations: Warning about `allowAppleEvents` removing code-execution isolation.
+        *   *Theme*: macOS compatibility, sandbox security.
+
+    *   **`settings.md`**:
+        *   Change: v2.1.181 allows changing single options via `/config key=value` without opening the interface.
+        *   Change: Minor typo fix (&#34;constrain Default&#34; -&gt; &#34;constrain the default model&#34;).
+        *   *Theme*: Configuration workflow improvement.
+
+    *   **`skills.md`** &amp; `slash-commands.md`**:
+        *   *Note*: The diff for `slash-commands.md` is identical to `skills.md` in the provided text (likely a copy-paste error in the prompt or documentation, but I will treat it as updating the skills documentation). Wait, looking closely at the diff content, it talks about &#34;skills&#34;, &#34;skill-creator plugin&#34;, etc. It seems `slash-commands.md` might be an alias or the diff provided is just duplicated for these two files. I will focus on the content: Evaluating and iterating on skills using the `skill-creator` plugin.
+        *   Change: Added section &#34;Evaluate and iterate on a skill&#34;. Introduction of `skill-creator` plugin for running evaluations (test cases, isolated runs, grading, benchmarking, A/B testing).
+        *   Change: Removed &#34;subagents&#34; from the list of things not loaded from additional directories (updated the text to match new behavior).
+        *   *Theme*: Skill testing, QA, tooling.
+
+    *   **`statusline.md`**:
+        *   Change: Clarification that status line doesn&#39;t replace footer badges.
+        *   *Theme*: UI clarification.
+
+    *   **`sub-agents.md`**:
+        *   Change: Simplified text about depth limits. Removed specific distinction about foreground/background spawning limits at depth 5 (now just says depth 5 can&#39;t spawn further).
+        *   *Theme*: Subagent behavior clarification.
+
+3.  **Synthesize Key Themes**:
+    *   **Version 2.1.181 specific features**: New CLI flag (`--ax-screen-reader`), new config syntax (`/config key=value`), AWS credential format change.
+    *   **Observability &amp; Debugging**: Enhanced API refusal logging, new skill evaluation tools (`skill-creator`).
+    *   **Web Session Integration**: Better traceability (git trailers, PR links).
+    *   **Sandboxing/Security**: macOS Apple Events handling (`allowAppleEvents`).
+    *   **Plugin/Skill Refinement**: Better documentation on path loading and evaluation.
+
+4.  **Determine Impact Level**:
+    *   *Low*: Most changes are enhancements or clarifications.
+    *   *Medium*: The AWS credential change (flat output) is an &#34;acceptance&#34; change, which might affect how people write scripts, but it&#39;s additive (accepts *also* the flat format). The `skill-creator` introduction is a significant workflow improvement for power users. The `api_refusal` event schema change impacts telemetry parsers.
+    *   *High/Breaking*: No breaking changes found. The AWS change is additive. The `allowAppleEvents` is opt-in via settings.
+    *   *Verdict*: **Medium**. The new `skill-creator` workflow and the telemetry schema updates are substantial for devs building integrations or complex skills.
+
+5.  **Draft Action Items**:
+    *   Update AWS credential scripts if utilizing the new flat format support (v2.1.181).
+    *   Use `/config key=value` in scripts for faster config changes.
+    *   Install `skill-creator` plugin to evaluate skill quality.
+    *   Update telemetry parsers to handle new `api_refusal` attributes.
+    *   Enable `allowAppleEvents` if macOS sandbox tools need Apple Events (carefully).
+
+6.  **Translate and Format (Chinese)**:
+
+    *   *Summary*: 这批更新主要集中在 Claude Code v2.1.181 版本的增强功能，包括改进的 AWS 凭证支持、新的辅助功能 CLI 标志、可脚本化的配置更改，以及引入了用于技能评估的 `skill-creator` 插件。此外，还增强了 API 拒绝日志记录并解决了 macOS 沙箱的兼容性问题。
+    *   *Themes*:
+        *   **v2.1.181 新特性与 CLI 增强**: 新增 `--ax-screen-reader` 标志，支持通过 `/config key=value` 直接修改配置。
+        *   **AWS 集成与认证**: 支持 AWS 凭证的扁平化输出格式，并优化了凭证缓存机制。
+        *   **技能测试与质量保证**: 引入 `skill-creator` 插件，提供技能评估、基准测试和 A/B 测试能力。
+        *   **监控与可观测性**: 扩展了 `api_refusal` 事件的日志属性，增加了更多上下文信息（如 fallback 状态、分类等）。
+        *   **沙箱与兼容性**: 增加了 macOS 沙箱中对 Apple Events 的支持选项（`allowAppleEvents`），并明确了相关的安全风险。
+    *   *Impact*: **Medium**。虽然主要是功能增强，但引入的 `skill-creator` 工作流显著改变了技能开发的质量保证流程。API 拒绝日志的模式变更可能会影响现有的日志解析器。
+    *   *Action Items*:
+        *   如果使用 AWS，更新脚本以利用 v2.1.181 支持的扁平化凭证格式。
+        *   尝试使用 `skill-creator` 插件对现有技能进行评估和基准测试。
+        *   检查并更新处理 `api_refusal` 事件的日志解析器以适应新增字段。
+        *   在脚本中使用新的 `/config key=value` 语法以简化配置管理。
+        *   如需在 macOS 沙箱中运行需要 Apple Events 的工具，谨慎配置 `allowAppleEvents`。
+
+7.  **Refine**: Ensure tone is professional and concise. &#34;developer-focused&#34;.
+
+    *   *Self-Correction during drafting*: The `skills.md` and `slash-commands.md` diffs were identical in the prompt. I should mention the skill-creator plugin generally as it relates to skills.
+
+8.  **Final Output Generation**: (Proceed to generate markdown based on the above synthesis).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/amazon-bedrock.html" class="page-link">amazon-bedrock.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/claude-code-on-the-web.html" class="page-link">claude-code-on-the-web.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/cli-reference.html" class="page-link">cli-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/headless.html" class="page-link">headless.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugin-marketplaces.html" class="page-link">plugin-marketplaces.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sandboxing.html" class="page-link">sandboxing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+31</span>
+                            <span class="removed">-29</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+19</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+19</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/statusline.html" class="page-link">statusline.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">15:22 EST</div>
