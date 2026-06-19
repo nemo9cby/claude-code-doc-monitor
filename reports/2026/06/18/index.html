@@ -118,9 +118,239 @@
 
         <header>
             <h1>Changes on 2026-06-18</h1>
-            <p class="meta">17 total changes in 2 runs</p>
+            <p class="meta">25 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">20:22 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更分析摘要
+
+### 1. Overall Summary
+本次更新引入了 Web 搜索、Web 抓取和代码执行工具的新版本（`20260318` 和 `20260521`），主要聚焦于通过 `response_inclusion` 参数优化 Agent 工作流的 Token 成本，并明确了代码执行的 90 秒超时限制。同时，Computer Use 工具收紧了图像验证规则，Agent Teams 功能进行了架构简化，这两者均涉及破坏性变更。
+
+### 2. Key Themes
+*   **成本优化:** `web_search_20260318` 和 `web_fetch_20260318` 引入了 `response_inclusion` 参数，允许在 Agent 工作流中排除已被代码执行消耗的原始搜索结果，从而显著降低输出 Token 成本。
+*   **严格的图像验证:** Computer Use 工具不再自动缩小超尺寸截图，而是直接拒绝超过模型限制（如 Opus 4.8/4.7 的 2576px）的图像并返回 HTTP 400 错误。这要求开发者在发送前必须客户端预处理图像。
+*   **新工具版本与超时透明化:** 新增 `code_execution_20260521`，公开了单单元格 90 秒的执行时间限制，并更新了 Web 搜索/抓取与代码执行联用的免费策略说明（&#34;或更新版本&#34;）。
+*   **Agent Teams 架构重构:** 移除了 `TeamCreate` 和 `TeamDelete` 工具，改为每个会话隐式包含一个团队，简化了多 Agent 协作的创建流程。
+*   **缓存行为澄清:** 增加了对服务端工具（如 Web 搜索）自动生成 `ephemeral_5m_input_tokens` 缓存写入的说明。
+
+### 3. Impact Level
+**High**
+**理由:** 本次包含破坏性变更。Computer Use 工具从“静默缩放”变为“直接拒绝”会导致现有应用报错，必须修改客户端代码；Agent Teams 的 API 接口变动也需要相应的代码重构。此外，新工具版本带来的成本优化功能对构建高性能 Agent 至关重要。
+
+### 4. Action Items for Developers
+*   **更新 Computer Use 图像处理逻辑:** 修改客户端代码，在发送截图前根据模型限制（如 Opus 4.8/4.7 为 2576px）预先调整图像大小，避免触发 HTTP 400 错误，并确保 `display_width_px` 与实际发送的图像尺寸完全匹配。
+*   **迁移至新工具版本以降低成本:** 在 Web 搜索和 Web 抓取工具中升级到 `20260318` 版本，并设置 `&#34;response_inclusion&#34;: &#34;excluded&#34;`，以减少不必要回传给客户端的原始内容，优化 Token 消耗。
+*   **重构 Agent Teams 实现代码:** 移除对 `TeamCreate` 和 `TeamDelete` 工具的调用，改为直接使用 `Agent` 工具的 `name` 参数来生成队友。
+*   **适配代码执行超时限制:** 如果升级到 `code_execution_20260521`，请更新错误处理逻辑以应对 `detection_timeout`（90秒超时），并据此优化长时间运行任务的拆分策略。
+*   **检查 Prompt 缓存计费:** 如果在使用 Web Search 时看到未预期的 `ephemeral_5m_input_tokens` 写入，请查阅相关文档以理解服务端工具的自动缓存机制。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Output Format:** Markdown, concise, insightful, Chinese language.
+    *   **Input:** A batch of 8 documentation pages showing diffs.
+    *   **Required Sections:** Overall Summary, Key Themes, Impact Level, Action Items.
+
+2.  **Analyze the Diffs (Page by Page):**
+
+    *   **Page 1: `about-claude/pricing.md`**
+        *   *Change:* Clarifies that code execution is free when used with `web_search_20260209` (or later) or `web_fetch_20260209` (or later).
+        *   *Implication:* Future-proofing the pricing policy. If new versions come out, they are also covered.
+
+    *   **Page 2: `build-with-claude/prompt-caching.md`**
+        *   *Change:* Adds a note linking to a guide about `ephemeral_5m_input_tokens` when using server tools (like web search).
+        *   *Implication:* Clarifies unexpected cache writes caused by server-side tool caching.
+
+    *   **Page 3: `agents-and-tools/tool-use/computer-use-tool.md`**
+        *   *Change:* Significant update on image size handling.
+        *   *Details:*
+            *   Clarifies that Opus 4.8/4.7 support up to 2576px on the long edge.
+            *   The API *no longer* silently downscales images exceeding limits; it now rejects them with HTTP 400.
+            *   Troubleshooting table updated to remove mentions of &#34;silently downscaled&#34; causing offset clicks.
+        *   *Implication:* Breaking change/Behavioral change for developers relying on the API to auto-resize screenshots. Now must handle resizing client-side.
+
+    *   **Page 4: `agents-and-tools/tool-use/web-search-tool.md`**
+        *   *Change:* Introduction of `web_search_20260318`.
+        *   *Details:*
+            *   New version adds &#34;response inclusion&#34; control.
+            *   Allows dropping `server_tool_use` blocks from the response to save tokens in agentic workflows (`&#34;response_inclusion&#34;: &#34;excluded&#34;`).
+            *   References version `20260209` as the baseline for dynamic filtering.
+
+    *   **Page 5: `agents-and-tools/tool-use/web-fetch-tool.md`**
+        *   *Change:* Introduction of `web_fetch_20260318`.
+        *   *Details:*
+            *   Adds &#34;response inclusion&#34; control (similar to web search).
+            *   Adds &#34;cache bypass&#34; feature (`use_cache`: false) available in `20260309` or later.
+            *   Lists previous versions clearly.
+
+    *   **Page 6: `agents-and-tools/tool-use/code-execution-tool.md`**
+        *   *Change:* New version `code_execution_20260521`.
+        *   *Details:*
+            *   Adds `20260521` to compatibility list.
+            *   This version reveals a 90-second per-cell wall-clock time limit (previously hidden/undisclosed).
+            *   Pricing text updated to include &#34;or later&#34; for web search/fetch free usage.
+
+    *   **Page 7: `agents-and-tools/tool-use/programmatic-tool-calling.md`**
+        *   *Change:* Text update. Changed `code_execution_20260120` to `code_execution_20260120` or later.
+        *   *Implication:* Compatibility update related to the new code execution version.
+
+    *   **Page 8: `CHANGELOG.md.md`**
+        *   *Change:* &#34;Agent teams&#34; update.
+        *   *Details:* Removed `TeamCreate`/`TeamDelete` tools. Now implicit team. Spawn teammates via `Agent` tool&#39;s `name` parameter.
+        *   *Implication:* Breaking change for Agent Teams feature implementation.
+
+3.  **Synthesize Findings:**
+
+    *   **Theme 1: New Tool Versions &amp; Cost Optimization.** `web_search_20260318`, `web_fetch_20260318`, and `code_execution_20260521` are introduced. Key feature: `response_inclusion` to save output tokens by excluding consumed tool results in agentic workflows.
+    *   **Theme 2: Stricter Image Validation.** The Computer Use tool now *rejects* oversized images (HTTP 400) instead of silently downscaling them. This requires client-side resizing logic updates.
+    *   **Theme 3: Timeout Transparency.** New code execution version explicitly documents the 90-second cell timeout limit.
+    *   **Theme 4: Agent Teams Refactor.** Simplified agent team creation (removal of explicit team create/delete tools).
+
+4.  **Draft the Response (in Chinese):**
+
+    *   *Overall Summary:* The update introduces new versions for web search, web fetch, and code execution tools, focusing on cost optimization via `response_inclusion` and clearer timeout limits. It also tightens image validation in Computer Use and simplifies Agent Teams implementation.
+
+    *   *Key Themes:*
+        *   **成本优化:** `web_search` 和 `web_fetch` 的 `20260318` 版本新增 `response_inclusion` 参数，允许在 Agent 工作流中排除已消耗的工具结果，从而降低输出 Token 成本。
+        *   **严格的图像验证:** Computer Use 工具不再静默缩放超尺寸图像，而是直接拒绝（HTTP 400）。开发者必须在客户端预先调整图像大小。
+        *   **新工具版本与超时透明化:** 引入 `code_execution_20260521`，明确了 90 秒单单元格执行时间限制。
+        *   **Agent Teams 架构调整:** 移除了显式的 `TeamCreate` 和 `TeamDelete` 工具，改为基于会话的隐式团队模式，简化了多 Agent 协作流程。
+
+    *   *Impact Level:* High.
+    *   *Reasoning:* The Computer Use validation change is a breaking change (behavioral). The Agent Teams removal of tools is a breaking change for those workflows. The new tool versions offer significant cost savings but require code updates to adopt.
+
+    *   *Action Items:*
+        *   **Update Computer Use implementations:** Modify client code to validate and resize screenshots to model-specific limits (e.g., 2576px for Opus 4.8/4.7) before sending them to the API to avoid HTTP 400 errors.
+        *   **Adopt new tool versions for cost savings:** Update to `web_search_20260318` and `web_fetch_20260318` and utilize `response_inclusion: &#34;excluded&#34;` to reduce output token costs in agentic loops.
+        *   **Refactor Agent Teams logic:** Remove dependencies on `TeamCreate`/`TeamDelete` tools and update code to spawn teammates directly using the `Agent` tool&#39;s `name` parameter.
+        *   **Handle code execution timeouts:** Update error handling for `code_execution_20260521` to manage the newly disclosed 90-second per-cell timeout limit.
+        *   **Review prompt caching behavior:** Check `ephemeral_5m_input_tokens` logs if using server tools (web search) to understand automatic caching mechanics.
+
+5.  **Review and Refine (Self-Correction):**
+    *   *Check:* Did I mention the specific version numbers? Yes.
+    *   *Check:* Is the Computer Use change clear? Yes, it&#39;s a shift from &#34;silent downscale&#34; to &#34;reject&#34;.
+    *   *Check:* Is the language natural Chinese? Yes.
+
+6.  **Final Polish:** Structure the Markdown nicely.
+
+    (Drafting the final output based on the synthesis above.)</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/about-claude/pricing.html" class="page-link">about-claude/pricing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-caching.html" class="page-link">build-with-claude/prompt-caching.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/computer-use-tool.html" class="page-link">agents-and-tools/tool-use/computer-use-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-7</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/web-search-tool.html" class="page-link">agents-and-tools/tool-use/web-search-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+19</span>
+                            <span class="removed">-12</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/web-fetch-tool.html" class="page-link">agents-and-tools/tool-use/web-fetch-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+21</span>
+                            <span class="removed">-11</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/code-execution-tool.html" class="page-link">agents-and-tools/tool-use/code-execution-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+11</span>
+                            <span class="removed">-11</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/programmatic-tool-calling.html" class="page-link">agents-and-tools/tool-use/programmatic-tool-calling.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">18:01 EST</div>
