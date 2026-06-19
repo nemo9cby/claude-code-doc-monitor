@@ -118,9 +118,209 @@
 
         <header>
             <h1>Changes on 2026-06-19</h1>
-            <p class="meta">3 total changes in 2 runs</p>
+            <p class="meta">9 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">18:50 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">## 文档变更分析报告
+
+### 1. Overall Summary (总体摘要)
+此次文档更新主要集中在 **v2.1.182** 版本引入的新配置与行为变更，重点增强了对云 MCP 连接器的管理能力、优化了非交互模式下的可观测性，并改进了后台任务在 CLI 场景下的超时控制机制。
+
+### 2. Key Themes (关键主题)
+*   **v2.1.182 版本特性集中释放**：多处变更（连接器禁用、后台任务等待上限、非交互模型警告）均指向此版本，标志着工具在稳定性与可控性上的提升。
+*   **企业级与细粒度管控**：引入了 `disableClaudeAiConnectors` 设置，利用“any-source-true”语义，允许通过项目配置文件统一屏蔽云连接器，防止敏感数据流向第三方服务。
+*   **非交互模式与 CI/CD 优化**：
+    *   为 `claude -p` 模式下的后台子代理引入了 10 分钟的默认等待上限，防止进程无限挂起。
+    *   在非交互模式下新增 stderr 警告，当模型发生退役或自动重映射时提醒用户。
+*   **Git 历史与可追溯性控制**：新增允许隐藏 Git 提交和 PR 中自动生成的 Claude Session URL 的配置选项，便于维护更干净的代码库历史。
+
+### 3. Impact Level (影响程度)
+**Medium (中等)**
+虽然这些变更不包含破坏性更新（Breaking Changes），但对于依赖自动化脚本的企业用户和追求环境严格控制的开发者来说，新引入的环境变量和设置项提供了必要的运维抓手，解决了长久以来的挂起风险和隐私合规痛点。
+
+### 4. Action Items for Developers (开发者行动项)
+*   **审查自动化脚本中的超时设置**：如果你在 CI/CD (`claude -p`) 中使用了后台工作流或子代理，需确认默认的 10 分钟等待上限是否满足需求，必要时通过 `CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS` 环境变量进行调整。
+*   **实施连接器屏蔽策略**：若需在特定项目中禁用 Gmail/Slack 等 claude.ai 连接器，请在项目级的 `.claude/settings.json` 中添加 `disableClaudeAiConnectors: true`。
+*   **更新 CI 日志监控**：如果你的解析脚本依赖模型版本信息，请增加对 stderr 输出的监听，以捕获模型自动重映射或退役的警告。
+*   **优化 Git 提交信息**：如果在 Web 会话中不希望 Git 提交或 PR 自动包含 Session 追踪链接，请将 `attribution.sessionUrl` 设置为 `false`。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer, expert in dev tools/docs.
+    *   **Task:** Analyze documentation changes (6 pages), summarize what changed and why it matters.
+    *   **Output Format:** Markdown, Chinese response.
+    *   **Structure:** Overall Summary, Key Themes, Impact Level, Action Items.
+
+2.  **Analyze the Diffs:**
+
+    *   **`chrome.md`**:
+        *   Change: &#34;If Claude Code&#39;s setup-issues line lists `chrome`&#34; -&gt; &#34;If Claude Code can&#39;t detect the Chrome extension&#34;.
+        *   Meaning: A slight clarification/rewrite of troubleshooting text. More natural language. Low impact.
+
+    *   **`claude-code-on-the-web.md`**:
+        *   Change: Added info about v2.1.182 regarding `attribution.sessionUrl`.
+        *   Meaning: New capability to disable the automatic session URL addition to commits/PRs via settings.
+        *   Impact: Better control over git history/PR bodies for automation or strict policies.
+
+    *   **`headless.md`**:
+        *   Change 1: &#34;task is terminated&#34; -&gt; &#34;that *shell* is terminated&#34;. (Minor correction).
+        *   Change 2: New paragraph about background subagents/workflows and the `CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS` env var (capped at 10 mins from v2.1.182).
+        *   Meaning: Improves handling of long-running background tasks in headless mode (`claude -p`). Prevents indefinite hanging but gives more control than a hard 5-second cut-off for subagents.
+
+    *   **`mcp.md`**:
+        *   Change: Major expansion on disabling Claude.ai connectors.
+        *   Old: Just `ENABLE_CLAUDEAI_MCP_SERVERS` env var.
+        *   New: `disableClaudeAiConnectors` setting (any-source-true semantics), `deniedMcpServers` usage, specific note about web sessions vs local.
+        *   Meaning: Granular control over cloud connectors. Better enterprise/managed configuration capabilities. Clarifies behavior between local and web environments.
+
+    *   **`model-config.md`**:
+        *   Change: Added warning for model retirement/remapping in non-interactive mode (stderr) starting v2.1.182.
+        *   Meaning: Improves observability in CI/Headless scripts. Helps developers debug why a model might have changed silently.
+
+    *   **`settings.md`**:
+        *   Change: Added documentation for `disableClaudeAiConnectors`.
+        *   Meaning: Reference entry for the new setting seen in `mcp.md`.
+
+3.  **Synthesize Key Themes:**
+    *   **Version 2.1.182 Features:** Several changes reference v2.1.182 (attribution control, background task timeouts, connector disabling, non-interactive model warnings).
+    *   **Enterprise/Management Control:** New settings to disable connectors, control behavior via settings files (project/managed scope).
+    *   **Non-Interactive/Headless Improvements:** Better control over background tasks, clearer warnings for model changes.
+    *   **Clarity/Polish:** Minor text improvements (chrome.md).
+
+4.  **Determine Impact Level:**
+    *   Is it breaking? No.
+    *   Is it high? These are useful feature additions and improvements to observability/control, but they don&#39;t fundamentally change the API or core behavior in a disruptive way.
+    *   Verdict: **Medium**. The connector management and background task timeout changes are significant for enterprise and automation users.
+
+5.  **Draft Action Items:**
+    *   Update scripts/harnesses if using `claude -p` with long-running subagents (check timeout).
+    *   Review connector settings if strict control over cloud MCP servers is needed.
+    *   Update CI logging to check stderr for model warnings.
+    *   Configure `attribution.sessionUrl` if commit history hygiene is a concern.
+
+6.  **Translate to Chinese (Target Language):**
+
+    *   *Summary*: 文档更新主要集中在 v2.1.182 版本的特性，包括增强了对云连接器的控制、改进了非交互模式下的模型警告机制，以及优化了后台任务的超时处理。
+    *   *Themes*:
+        *   v2.1.182 版本特性。
+        *   企业级/托管配置。
+        *   非交互模式与 CI 集成优化。
+        *   文档措辞优化。
+    *   *Impact*: Medium (中等)。主要针对自动化和企业管理场景提供了更细粒度的控制。
+    *   *Action Items*:
+        *   检查长跑任务的超时设置。
+        *   配置连接器禁用策略。
+        *   更新 CI 日志解析。
+        *   控制 Git 提交的 Session URL。
+
+7.  **Refine the Output (Markdown format):**
+
+    *   *Overall Summary*: 此次文档更新主要集中在 v2.1.182 版本引入的新配置与行为变更，重点增强了对云连接器的管理能力、优化了非交互模式下的可观测性，并改进了后台任务的超时控制。
+    *   *Key Themes*:
+        *   **v2.1.182 新特性**：多处更新涉及该版本，包括连接器禁用、后台任务超时上限及非交互模式下的模型警告。
+        *   **企业级管控与安全**：引入了 `disableClaudeAiConnectors` 设置，允许在项目或策略级别禁用云连接器，并细化了权限语义。
+        *   **非交互模式/CI 优化**：增强了 `claude -p` 在处理后台子代理时的超时控制（默认 10 分钟上限），并增加了模型重映射时的 stderr 警告，便于调试。
+        *   **Git 可追溯性控制**：新增配置项允许在 Web 会话生成的提交和 PR 中隐藏 Session URL。
+    *   *Impact Level*: **Medium (中等)**。这些变更虽然不是破坏性更新，但对于需要精细控制环境（如企业合规）、运行长时间自动化任务或维护纯净 Git 历史的开发者来说，提供了重要的配置手段。
+    *   *Action Items*:
+        *   **审查后台任务超时**：如果你在 CI 脚本 (`claude -p`) 中使用后台子代理或工作流，请检查 10 分钟的默认等待上限是否满足需求，必要时通过 `CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS` 调整。
+        *   **管理云连接器**：若需在项目级别禁用 Gmail 或 Slack 等 claude.ai 连接器，请在 `.claude/settings.json` 中配置 `disableClaudeAiConnectors`。
+        *   **监控 CI 日志**：更新 CI 管道日志解析逻辑，以捕获 stderr 中关于模型退役或重映射的警告信息。
+        *   **配置提交归属**：如果不想在 Git 提交或 PR 中自动包含 Claude Session 链接，请将 `attribution.sessionUrl` 设置为 `false`。
+
+8.  **Final Review:** Does it sound like a world-class programmer? Yes, concise, focused on implications, uses technical terms correctly.
+
+    *   *Self-Correction during drafting*: Ensure I mention that `chrome.md` change was minor but clarify it represents improved documentation clarity. Make sure the distinction between `disableClaudeAiConnectors` and env vars is clear in the summary.
+
+9.  **Final Output Generation.** (Proceed to generate the Chinese response).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/chrome.html" class="page-link">chrome.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/claude-code-on-the-web.html" class="page-link">claude-code-on-the-web.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/headless.html" class="page-link">headless.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/model-config.html" class="page-link">model-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+9</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">15:41 EST</div>
