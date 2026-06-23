@@ -118,9 +118,259 @@
 
         <header>
             <h1>Changes on 2026-06-22</h1>
-            <p class="meta">8 total changes in 2 runs</p>
+            <p class="meta">17 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">22:44 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更分析
+
+### 总体概览
+本次更新主要集中在 **v2.1.186** 版本，重点引入了 MCP 服务器的命令行 OAuth 认证支持，并显著改变了 Shell 模式和后台子代理的默认交互行为（Shell 命令自动响应、后台任务支持权限提示）。
+
+### 关键主题
+*   **CLI 认证流程增强**：新增 `claude mcp login` 和 `logout` 命令，允许开发者直接在终端完成 OAuth 认证，特别优化了 SSH 无头环境（`--no-browser`）下的工作流。
+*   **交互模式行为变更**：
+    *   **Shell 模式**：以 `!` 开头的命令现在默认会触发 Claude 对输出结果的自动分析（消耗 Token），可通过设置恢复旧版行为。
+    *   **后台子代理**：v2.1.186 后，后台任务不再因权限不足而静默失败，而是会在主会话中弹窗请求用户批准。
+*   **开发体验 (DX) 优化**：增加了针对 Skill YAML 解析错误的 `--debug` 提示；阐明了 API 重试次数上限（15次）及 AWS CodeCommit 等非标准 Git 仓库的 SHA 引用限制。
+
+### 影响级别：**Medium**
+**理由**：
+1.  **行为变更**：Shell 模式自动响应改变了用户习惯的使用流程，且涉及 API 成本增加；后台子代理权限模型从“自动拒绝”变为“提示”，提升了自动化任务的成功率，但也引入了交互需求。
+2.  **功能增强**：CLI 认证解决了 SSH 场景下的痛点，但对仅在 GUI 环境工作的用户影响较小。
+3.  **文档修正**：关于重试机制和 Git 引用的修正是为了准确性，不涉及功能破坏。
+
+### 开发者行动项
+1.  **评估 Shell 模式成本**：如果不希望 `! 命令` 自动触发 AI 响应（节省 Token），请将设置中的 `respondToBashCommands` 设为 `false`。
+2.  **适配后台子代理逻辑**：检查您的自动化脚本或工作流，后台任务现在可能会弹出权限提示，需准备相应的交互或批准流程。
+3.  **利用 SSH 认证工具**：在远程服务器环境配置 MCP 服务时，使用 `claude mcp login &lt;name&gt; --no-browser` 并配合 `ssh -t` 进行认证。
+4.  **调试 Skill 问题**：如果自定义 Skill 无法触发或匹配异常，尝试运行 `--debug` 参数以检查 YAML Frontmatter 是否存在格式错误。
+5.  **检查插件市场兼容性**：若使用 AWS CodeCommit 托管插件市场，请注意 SHA 引用必须依附于有效的 `ref`（分支或标签），不能仅靠 SHA 安装。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Input:** 9 markdown pages showing diffs (mostly additions, some edits).
+    *   **Output Format:** Markdown, concise, insightful, developer-focused.
+    *   **Language:** Chinese (requested at the end).
+    *   **Structure:**
+        1.  Overall Summary (1-2 sentences).
+        2.  Key Themes (bullets).
+        3.  Impact Level (Low/Medium/High/Breaking) with reasoning.
+        4.  Action Items (max 5 bullets).
+
+2.  **Analyze the Changes (Page by Page):**
+
+    *   `cli-reference.md`:
+        *   Added `claude mcp login &lt;name&gt;` (OAuth flow from CLI, `--no-browser` support).
+        *   Added `claude mcp logout &lt;name&gt;` (Clear OAuth credentials).
+        *   Both require v2.1.186.
+        *   *Theme:* CLI auth for MCP.
+
+    *   `interactive-mode.md`:
+        *   Updated Shell mode (`!`) description: Claude now *responds* to the output automatically.
+        *   Added version check (v2.1.186).
+        *   Added note about `respondToBashCommands` setting to restore old behavior.
+        *   *Theme:* Shell mode behavior change, automation.
+
+    *   `mcp.md`:
+        *   Added section &#34;Authenticate from the command line&#34;.
+        *   Details on `claude mcp login`, `--no-browser` for SSH workflows.
+        *   *Theme:* CLI auth for MCP (matches CLI ref).
+
+    *   `monitoring-usage.md`:
+        *   Clarified `CLAUDE_CODE_MAX_RETRIES` default is capped at 15.
+        *   *Theme:* Internal mechanics clarification/accuracy fix.
+
+    *   `plugin-marketplaces.md`:
+        *   Added `relevance` field to plugin entries (v2.1.152) for org allowlisting.
+        *   Clarified git behavior: SHA pinning fails on AWS CodeCommit if ref is deleted (unlike GitHub/GitLab).
+        *   *Theme:* Plugin distribution/marketplace improvements and edge cases.
+
+    *   `settings.md`:
+        *   Added `respondToBashCommands` setting (v2.1.186) to control if Claude responds to shell commands.
+        *   *Theme:* Configurability of new shell behavior.
+
+    *   `skills.md`:
+        *   Added debugging tip: Malformed YAML frontmatter loads skill with empty metadata. Use `--debug`.
+        *   *Theme:* Debugging/Developer Experience.
+
+    *   `slash-commands.md`:
+        *   Same addition as `skills.md` (YAML frontmatter debug).
+        *   *Theme:* Debugging/Developer Experience.
+
+    *   `sub-agents.md`:
+        *   **Major Change:** Background subagents (v2.1.186) can now surface permission prompts in the main session instead of auto-denying them.
+        *   Updated table to reflect this permission behavior.
+        *   Clarified `SendMessage` availability (always available for resuming, structured messages require Agent Teams).
+        *   *Theme:* Concurrency/Permissions improvement.
+
+3.  **Synthesize Key Themes:**
+    *   **Version 2.1.186 focus:** Many changes relate to this specific version (MCP auth, Shell response, Subagent permissions).
+    *   **Command Line &amp; Authentication:** New CLI commands for MCP OAuth (SSH friendly).
+    *   **Interactive/Background Behavior:** Shell commands now trigger responses automatically; Background subagents can now ask for permissions.
+    *   **Developer Experience (DX):** Debugging tips for Skills, clarification on retries and git pinning.
+
+4.  **Determine Impact Level:**
+    *   *Shell behavior change:* Users used to `! npm test` just adding context might be surprised by an immediate response and extra cost. (Medium).
+    *   *Subagent permissions:* Previously auto-deny (blocking), now prompts. This makes background agents more capable but more interactive. (Medium/High).
+    *   *MCP CLI login:* Nice enhancement for SSH users, but additive. (Low/Medium).
+    *   *Verdict:* **Medium**. Significant behavioral changes in v2.1.186 regarding interaction flow and permissions, but mostly additive or improvements to previous limitations (auto-deny).
+
+5.  **Draft Action Items:**
+    *   Update docs/habits regarding `!` shell usage (awareness of cost/response).
+    *   Review background agent logic (they can ask for permissions now).
+    *   Try `claude mcp login` if managing OAuth servers.
+    *   Check plugin marketplace configs if using AWS CodeCommit.
+    *   Use `--debug` if skills aren&#39;t triggering (YAML check).
+
+6.  **Translate and Format (Chinese):**
+
+    *   *Summary:* 本次更新主要集中在 v2.1.186 版本，引入了 MCP 的 CLI 认证方式，并显著改变了 Shell 模式和后台子代理的交互行为（自动响应和权限提示）。
+    *   *Themes:*
+        *   CLI 体验增强：支持在命令行直接进行 MCP OAuth 认证（含 SSH 场景）。
+        *   交互模式升级：Shell 命令（`!`）现在会自动触发 AI 响应；后台子代理现在可以申请权限而非直接拒绝。
+        *   开发者体验优化：增加了针对 Skill YAML 解析错误的调试提示，以及重试机制和 Git 引用细节的澄清。
+    *   *Impact:* Medium.
+        *   Reasoning: Shell 命令的默认行为改变会增加成本/流程，后台子代理的权限模型从“静默拒绝”变为“提示”，这对自动化流程有实质影响。
+    *   *Action Items:*
+        *   如果不希望 Shell 命令自动消耗 Token 响应，请在设置中禁用 `respondToBashCommands`。
+        *   重新审视后台子代理的工作流，准备好处理可能弹出的权限提示。
+        *   在 SSH 环境下部署时，利用 `claude mcp login --no-browser` 进行 OAuth 认证。
+        *   若 Skill 触发异常，尝试使用 `--debug` 检查 YAML Frontmatter 格式。
+        *   若插件市场使用 AWS CodeCommit，注意 SHA 引用必须配合有效的 `ref`。
+
+7.  **Review against constraints:**
+    *   Single batch analysis? Yes.
+    *   Markdown format? Yes.
+    *   Focus on what matters? Yes.
+    *   Chinese? Yes.
+
+8.  **Final Polish:** Ensure technical terms are clear (e.g., &#34;OAuth flow&#34;, &#34;Subagent&#34;, &#34;Background mode&#34;).
+
+    *(Self-Correction during drafting)*: Make sure to emphasize that the subagent change is a *fix/enhancement* (previously they just failed silently or blocked), now they are more usable. The shell change is a double-edged sword (convenience vs cost).
+
+    Final Output Generation.</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/cli-reference.html" class="page-link">cli-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/interactive-mode.html" class="page-link">interactive-mode.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugin-marketplaces.html" class="page-link">plugin-marketplaces.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+10</span>
+                            <span class="removed">-11</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">17:58 EST</div>
