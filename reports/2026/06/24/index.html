@@ -118,9 +118,128 @@
 
         <header>
             <h1>Changes on 2026-06-24</h1>
-            <p class="meta">16 total changes in 2 runs</p>
+            <p class="meta">18 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">16:44 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更分析摘要
+
+### 1. 总体摘要
+本次更新主要涉及 Claude Code v2.1.187 版本的细节澄清。文档补充了在受组织策略限制时插件管理界面的显示规则，并阐明了后台子代理在恢复时其深度限制不会发生变化的逻辑行为。
+
+### 2. 关键主题
+*   **策略驱动的 UI 可见性**：明确了当组织通过 `strictKnownMarketplaces` 设置限制市场访问时，插件安装页面的“最近未使用”分组和“上次使用”时间行将被隐藏。
+*   **状态固化的执行逻辑**：阐明了后台子代理的“深度”是在首次生成时计算的，且该值是静态的。即使从更浅层的上下文（如主对话）中恢复子代理，其深度限制也不会重置或改变。
+
+### 3. 影响等级
+**低至中**
+*   **理由**：这些变更属于行为澄清和边缘情况的文档化，并未引入破坏性的 API 变更。但是，对于依赖复杂子代理层级编排的开发者，理解深度限制的“生成时锁定”特性对于避免设计预期偏差至关重要。
+
+### 4. 开发者行动项
+*   **排查插件界面**：如果在“已安装”标签页中未看到“最近未使用”分组，请检查组织是否启用了 `strictKnownMarketplaces` 设置。
+*   **设计子代理工作流**：在设计多层级子代理任务时，需认识到直接恢复深层子代理并不能绕过深度限制来生成更多子级。
+*   **关注版本行为**：留意 v2.1.187 版本引入的这些细微逻辑调整，确保调试和预期行为保持一致。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Input:** Two documentation diffs (`discover-plugins.md` and `sub-agents.md`).
+    *   **Language:** Chinese.
+    *   **Format:** Markdown with specific sections (Overall Summary, Key Themes, Impact Level, Action Items).
+
+2.  **Analyze `discover-plugins.md`:**
+    *   *Change:* Added a sentence at the end of a paragraph about the &#34;Not used recently&#34; feature.
+    *   *Content:* &#34;The group and the **Last used** line are both hidden when your organization restricts marketplaces with [`strictKnownMarketplaces`].&#34;
+    *   *Context:* This is related to the Installed tab and identifying unused plugins.
+    *   *Developer Impact:* Developers in organizations with strict marketplace settings won&#39;t see the &#34;Not used recently&#34; group or &#34;Last used&#34; line. This is important to know so they don&#39;t wonder why these features are missing.
+
+3.  **Analyze `sub-agents.md`:**
+    *   *Change:* Added a paragraph explaining depth behavior for background subagents when resuming.
+    *   *Content:* &#34;As of Claude Code v2.1.187, a background subagent&#39;s depth is fixed when it is first spawned, and resuming it later does not change that depth.&#34; It gives an example: Main -&gt; A -&gt; B (depth 2, background). Resuming B directly from Main keeps it at depth 2. It cannot spawn more levels just because it&#39;s being resumed from a shallower context.
+    *   *Context:* Subagent depth limits and resuming background subagents.
+    *   *Developer Impact:* Developers need to understand that the depth calculation is static upon creation. Resuming a deep subagent from a higher level doesn&#39;t &#34;reset&#34; or &#34;shallow&#34; its depth constraints. This prevents unexpected behavior where one might think they could bypass depth limits by resuming.
+
+4.  **Synthesize Key Themes:**
+    *   Both changes are clarifications or edge-case handling related to version `v2.1.187`.
+    *   Both deal with *hidden* or *fixed* behaviors that might not be obvious.
+    *   One is about UI visibility based on policy (`strictKnownMarketplaces`).
+    *   One is about logic persistence (depth calculation) based on initialization time.
+
+5.  **Drafting the Analysis (in Chinese):**
+
+    *   **Overall Summary:** Two pages received updates related to Claude Code v2.1.187, clarifying specific behaviors regarding plugin management visibility under restricted policies and the immutable nature of background subagent depth limits upon resumption.
+        *   *Chinese translation thought:* 这两个页面的更新均与 Claude Code v2.1.187 相关，主要阐明了在受限策略下插件管理的可见性规则，以及恢复后台子代理时其深度限制的不可变性。
+
+    *   **Key Themes:**
+        *   Feature Visibility Restrictions: Hiding specific UI elements (&#34;Not used recently&#34;, &#34;Last used&#34;) based on organization settings.
+        *   Static State Logic: Clarifying that subagent depth is determined at spawn time and does not change based on the context from which it is resumed.
+        *   *Chinese translation thought:*
+            *   特性可见性与权限限制：说明组织策略（`strictKnownMarketplaces`）如何影响插件管理 UI 的显示。
+            *   状态固化逻辑：阐明后台子代理的深度限制在生成时即已固定，恢复操作不会改变这一属性。
+
+    *   **Impact Level:** Low to Medium.
+        *   *Reasoning:* These are clarifications that fix potential misunderstandings or edge cases. They aren&#39;t breaking API changes, but understanding the subagent depth rule is crucial for designing complex multi-agent workflows.
+        *   *Chinese translation thought:* 低至中。虽然不是破坏性 API 变更，但对于设计复杂多代理工作流的开发者来说，理解深度固化规则至关重要，以免预期出现偏差。
+
+    *   **Action Items:**
+        *   Check organization settings if the &#34;Not used recently&#34; plugin group is missing.
+        *   Design subagent workflows knowing that depth limits are calculated at creation, not resumption.
+        *   Review v2.1.187 release notes if applicable for these behavioral changes.
+        *   *Chinese translation thought:*
+            *   如果在插件管理界面看不到“最近未使用”分组，请检查组织的 `strictKnownMarketplaces` 设置。
+            *   在设计深度嵌套的子代理工作流时，需记住深度在生成时锁定，直接恢复深层子代理不会赋予其创建新层级的能力。
+
+6.  **Review and Refine:**
+    *   The tone is professional and technical.
+    *   The formatting matches the requested markdown structure.
+    *   The language is natural Chinese.
+
+    *Refinement on &#34;Impact Level&#34;:* Actually, knowing that you can&#39;t bypass depth limits by resuming is a &#34;gotcha&#34; fix. I&#39;ll keep it &#34;Low to Medium&#34; but emphasize the logic fix aspect.
+
+7.  **Final Output Generation:** (Proceeding to generate the response based on the drafted points).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/discover-plugins.html" class="page-link">discover-plugins.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">14:47 EST</div>
