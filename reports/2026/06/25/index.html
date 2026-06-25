@@ -118,9 +118,193 @@
 
         <header>
             <h1>Changes on 2026-06-25</h1>
-            <p class="meta">9 total changes in 1 run</p>
+            <p class="meta">15 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">04:28 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 总体概要
+
+此次文档更新重点将 LLM Gateway 提升为核心功能，重构了相关架构文档，并显著扩展了 API 密钥认证的应用范围（从 CLI 扩展至 VS Code、SDK 和 Actions），同时修正了云服务商（特别是 Foundry 和 Vertex）的集成配置示例。
+
+### 关键主题
+
+*   **LLM Gateway 架构升级**：文档结构从单纯的“配置指南”转变为“架构与协议分离”，将技术细节移至专门的协议参考页，强调网关在企业级管理（认证、追踪、成本控制）中的核心地位。
+*   **认证机制扩展**：`apiKeyHelper`、`ANTHROPIC_API_KEY` 等认证方式不再局限于终端 CLI，现已支持 VS Code 扩展、Agent SDK 和 GitHub Actions 等封装层。
+*   **配置与集成修正**：移除了对特定第三方工具（如 LiteLLM）的硬性推荐；更新了 Foundry 的网关认证方式，从跳过认证改为明确指定网关密钥；补充了 Vertex 集成所需的必要环境变量。
+*   **文档去噪**：删除了旧文档中关于请求头的详细表格等技术细节，使其更适合开发者快速理解“为什么用”和“怎么用”，具体实现细节则分流到链接页面。
+
+### 影响等级：中等
+
+**理由**：虽然主要是文档更新，但 IAM 部分的变化揭示了实际功能的扩展（API 密钥支持更多 IDE/环境），这对开发者的日常使用有实质性影响。Foundry 和 Vertex 的配置变量变更也可能影响现有部署。
+
+### 开发者行动项
+
+*   **检查 Foundry 网关配置**：如果你在 Foundry 上使用网关，需将环境变量从 `CLAUDE_CODE_SKIP_FOUNDRY_AUTH=1` 更新为 `ANTHROPIC_FOUNDRY_API_KEY=your-gateway-key`。
+*   **利用扩展的认证范围**：现在可以在 VS Code 扩展、Agent SDK 或 GitHub Actions 中直接使用 `apiKeyHelper` 或 API 密钥环境变量，而不仅限于命令行。
+*   **查阅新的网关协议文档**：若正在开发或维护 LLM Gateway，请参考新重构的协议页面（如 `/en/llm-gateway-protocol`）以获取最新的 API 格式和头信息要求。
+*   **审查 Vertex 集成变量**：在 Vertex 配置中，确保根据新示例补充 `ANTHROPIC_VERTEX_PROJECT_ID` 和 `CLOUD_ML_REGION` 等缺失的环境变量。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Understand the Goal**: The user wants a concise, insightful analysis of a batch of documentation changes (6 pages) for Claude Code. The output must be in Markdown format, in Chinese, focusing on what matters to developers.
+
+2.  **Analyze Each Page&#39;s Diff**:
+
+    *   **Page: costs.md**
+        *   *Change*: Removed a specific mention of &#34;LiteLLM&#34; as a recommended tool for tracking spend on Bedrock/Vertex/Foundry. Added a general statement that organizations using an LLM gateway can track spend there.
+        *   *Significance*: De-emphasizes a specific third-party tool (LiteLLM) in favor of the broader LLM gateway concept which seems to be a first-class feature now.
+
+    *   **Page: iam.md**
+        *   *Change*: Updated the scope of `apiKeyHelper`, `ANTHROPIC_API_KEY`, and `ANTHROPIC_AUTH_TOKEN`. Previously &#34;terminal CLI sessions only&#34;. Now &#34;CLI and surfaces that wrap it, including VS Code extension, Agent SDK, and GitHub Actions&#34;. Clarified Claude Desktop uses OAuth unless using an organization-distributed third-party inference configuration.
+        *   *Significance*: Important auth expansion. API keys now work in more places (VS Code, Actions, SDK), not just raw CLI.
+
+    *   **Page: llm-gateway.md (Major Changes)**
+        *   *Change*: Significant restructuring and rewrite. Title changed from &#34;LLM gateway configuration&#34; to &#34;LLM gateways&#34;.
+            *   Moved specific technical requirements (API formats, request headers) to a separate protocol reference (implied by links like `/en/llm-gateway-protocol`).
+            *   Reframed the page as a high-level overview of *why* and *how* gateways work, rather than just a configuration guide.
+            *   Added clear navigation for different user roles (Developers vs. Admins vs. Gateway Configurers).
+            *   Simplified the explanation of the architecture (Claude Code -&gt; Gateway -&gt; Provider).
+        *   *Significance*: This is a structural update. The documentation is splitting into conceptual pages vs. technical reference pages. It makes the ecosystem easier to navigate but hides the deep technical specs behind links.
+
+    *   **Page: model-config.md**
+        *   *Change*: Updated link text/names. &#34;LLM gateway configuration&#34; -&gt; &#34;LLM gateways&#34;. Updated internal links to point to specific protocol sections (e.g., `#model-selection` -&gt; `/en/llm-gateway-protocol#model-discovery`).
+        *   *Significance*: Consistency update to match the `llm-gateway.md` restructuring.
+
+    *   **Page: settings.md**
+        *   *Change*: Clarified that `apiKeyHelper` is a custom command run through the system shell (`/bin/sh` or `cmd`).
+        *   *Significance*: Technical precision fix for Windows vs. Unix compatibility.
+
+    *   **Page: third-party-integrations.md**
+        *   *Change*: Updated link to &#34;LLM gateways&#34;. Updated example configs: Foundry now uses `ANTHROPIC_FOUNDRY_API_KEY` instead of `CLAUDE_CODE_SKIP_FOUNDRY_AUTH`. Vertex example added `ANTHROPIC_VERTEX_PROJECT_ID` and `CLOUD_ML_REGION`.
+        *   *Significance*: Config updates. The Foundry change suggests a shift in how authentication interacts with gateways (using a key explicitly rather than skipping auth entirely).
+
+3.  **Synthesize Key Themes**:
+    *   **LLM Gateway Promotion**: Gateway support is now a first-class, central feature. Documentation is restructured to separate high-level concepts from technical protocols.
+    *   **Authentication Expansion**: API keys (`apiKeyHelper`) are now supported beyond the terminal CLI (VS Code, SDK, GitHub Actions).
+    *   **Documentation Restructuring**: Moving detailed specs (like headers/formats) to reference pages to improve readability.
+    *   **Deprecation/Generalization**: Removing specific endorsements (LiteLLM) in favor of general capability descriptions.
+
+4.  **Determine Impact Level**:
+    *   *Level*: Medium.
+    *   *Reasoning*: While mostly docs, the IAM change regarding where API keys apply (VS Code, Actions) is a functional/feature expansion that matters to developers setting up their environments. The Gateway restructuring is significant for understanding the architecture but doesn&#39;t break existing setups. The Foundry config change might require action for some users.
+
+5.  **Draft Action Items**:
+    *   Check IAM/Auth settings if using API keys in VS Code, Actions, or SDK (now supported).
+    *   Review LLM Gateway setup if using Bedrock/Vertex/Foundry (docs moved).
+    *   Update Foundry environment variables if using a gateway (switch from `SKIP_FOUNDRY_AUTH` to specific API key).
+    *   Note that LiteLLM mention was removed (use generic gateway docs instead).
+
+6.  **Draft the Response (in Chinese)**:
+
+    *   *Overall Summary*: Documentation focused on elevating LLM Gateway support to a first-class feature, expanded API key authentication scope beyond CLI, and restructured technical specifications.
+    *   *Key Themes*:
+        *   LLM Gateway integration (Refined architecture, simplified setup).
+        *   Authentication expansion (VS Code, SDK, Actions).
+        *   Documentation restructuring (Concept vs Protocol).
+        *   Cloud provider config updates (Foundry/Vertex).
+    *   *Impact*: Medium. Functional scope expansion for auth and architectural clarifications.
+    *   *Action Items*:
+        *   Update auth logic for VS Code/Actions.
+        *   Adjust Foundry gateway env vars.
+        *   Consult new gateway docs.
+
+7.  **Refine the Output**: Ensure tone is professional and developer-focused. Use Markdown headers and lists as requested.
+
+    *   *Self-Correction during drafting*: Ensure the distinction between &#34;LLM Gateway configuration&#34; (old) and &#34;LLM gateways&#34; (new) is clear. Make sure to mention the specific environment variable change for Foundry as it&#39;s a concrete code change.
+
+8.  **Final Polish (Simulated Output)**:
+    *   Summary: Documentation overhaul highlighting LLM Gateway architecture, expanding API key usage scope, and updating cloud provider integration examples.
+    *   Themes: Gateway centrality, Auth broadening, Docs restructuring.
+    *   Impact: Medium.
+    *   Actions: Update env vars for Foundry, utilize API keys in new surfaces, review gateway protocol docs.
+
+9.  **Generate Output**. (Proceed to generate the response based on these points).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/costs.html" class="page-link">costs.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/iam.html" class="page-link">iam.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/llm-gateway.html" class="page-link">llm-gateway.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+53</span>
+                            <span class="removed">-118</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/model-config.html" class="page-link">model-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/third-party-integrations.html" class="page-link">third-party-integrations.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">01:00 EST</div>
