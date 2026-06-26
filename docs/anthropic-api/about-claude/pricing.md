@@ -402,21 +402,19 @@ When building agents with Claude:
 
 Rate limits vary by usage tier and affect how many requests you can make:
 
-- **Tier 1:** Entry-level usage with basic limits
-- **Tier 2:** Increased limits for growing applications
-- **Tier 3:** Higher limits for established applications
-- **Tier 4:** Maximum standard limits
-- **Enterprise:** Custom limits available
+- **Start tier:** Entry-level limits for getting started
+- **Build tier:** Increased limits for growing applications
+- **Scale tier:** Highest standard limits for production workloads
 
 For detailed rate limit information, see [Rate limits](/docs/en/api/rate-limits).
 
-For higher rate limits or custom pricing arrangements, [contact the sales team](https://claude.com/contact-sales).
+For limits beyond the Scale tier or custom pricing arrangements, [contact the sales team](https://claude.com/contact-sales).
 
 ### Volume discounts
 
 Volume discounts may be available for high-volume users. These are negotiated on a case-by-case basis.
 
-- Standard tiers use the pricing shown in [Model pricing](#model-pricing)
+- Standard usage tiers use the pricing shown in [Model pricing](#model-pricing)
 - Enterprise customers can [contact sales](mailto:sales@anthropic.com) for custom pricing
 - Academic and research discounts may be available
 
