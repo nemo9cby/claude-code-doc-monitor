@@ -118,9 +118,179 @@
 
         <header>
             <h1>Changes on 2026-06-27</h1>
-            <p class="meta">52 total changes in 1 run</p>
+            <p class="meta">56 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">19:09 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">## 批量文档分析摘要
+
+### 1. 总体概述
+本次文档更新标志着 Memory 工具正式发布（GA），并显著完善了 Web Fetch 和 Programmatic Tool Calling 的技术细节，重点澄清了内部行为机制、修复了代码示例缺陷，并明确了平台兼容性。
+
+### 2. 关键主题
+
+*   **Memory 工具正式 GA**：移除了 Beta 标头要求，明确 `memory_20250818` 版本已正式上线，无需特殊权限即可使用。
+*   **行为机制澄清**：
+    *   **Web Fetch**：明确了 PDF 现作为 base64 数据返回并作为附件处理；动态筛选会自动启用代码执行工具，无需手动添加到 `tools` 数组；`blocked_domains` 与 `allowed_domains` 不可混用。
+    *   **Programmatic Tool Calling**：澄清了代码执行版本 ID 的互操作性（`20260120` 与 `20260521` 互通），并说明了异步 Python 函数的包装行为。
+*   **代码示例一致性**：大量修复了 TypeScript, Java, C#, Go 中的代码片段，补充了缺失的客户端初始化代码（如 `new Anthropic()`）和正确的模型常量引用。
+*   **平台可用性明确**：明确指出 Web Fetch 等功能目前不可用于 Amazon Bedrock 或 Google Cloud，仅限 Claude API, AWS 及 Microsoft Foundry。
+
+### 3. 影响等级：高
+
+**理由**：
+*   **Breaking Change 风险**：Memory 工具移除 Beta 状态意味着依赖旧版 Beta 标头的代码可能需要调整；Web Fetch PDF 处理方式的变化可能影响解析逻辑。
+*   **安全与合规**：Memory 文档新增了关于路径遍历保护的强指导，对实现安全性至关重要。
+*   **功能优化**：动态筛选的自动启用和版本 ID 的互操作性直接影响了开发者的集成复杂度和工具调用的灵活性。
+
+### 4. 开发者行动项
+
+*   **更新 Memory 集成**：移除请求中的 Beta 标头，并实施严格的路径遍历保护，确保仅允许 `/memories` 目录下的操作。
+*   **调整 Web Fetch 处理逻辑**：更新 PDF 处理代码以适应 base64 返回格式；移除手动启用代码执行工具的代码（系统将自动处理）。
+*   **检查域名过滤配置**：审查 Web Fetch 配置，确保没有同时使用 `allowed_domains` 和 `blocked_domains`。
+*   **更新 Programmatic Tool Calling 版本**：利用 `code_execution_20260120` 和 `20260521` 的互通性简化配置，并修正异步工具调用的错误处理逻辑。
+*   **修正示例代码**：参考更新后的 SDK 示例，确保在生产代码中正确初始化客户端和使用模型常量。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Understand the Goal**: The user wants a concise, insightful analysis of a batch of documentation changes (4 pages) for a developer audience, presented in markdown format and in Chinese.
+
+2.  **Analyze the Changes**:
+
+    *   **Page 1: `api/service-tiers.md`** (+1/-1)
+        *   *Change*: Updated the Warning text to replace &#34;contact your account team&#34; with a hyperlink `[contact sales](https://claude.com/contact-sales)`.
+        *   *Significance*: Minor UX improvement. Easier for developers/users to find sales contact.
+        *   *Developer Impact*: Negligible.
+
+    *   **Page 2: `agents-and-tools/tool-use/web-fetch-tool.md`** (+32/-28)
+        *   *Changes*:
+            *   Added availability note for Claude Platform on AWS and Microsoft Foundry (not on Bedrock/Google Cloud).
+            *   Clarified that Web Fetch is a server tool.
+            *   Updated PDF handling description (now returns base64, processed like attachment).
+            *   Punctuation/grammar fixes (e.g., question marks).
+            *   Clarified Dynamic Filtering: Code execution tool is enabled *automatically*.
+            *   Added `client = new Anthropic()` initialization in TypeScript examples (bug fix/consistency).
+            *   Clarified `blocked_domains` parameter (cannot combine with `allowed_domains`).
+            *   Clarified `max_uses` (failed fetches count).
+            *   Clarified `max_content_tokens` (applies to text, not binary/PDFs).
+            *   Added code example for `use_cache` parameter.
+            *   Clarified Citations: optional and *disabled by default*.
+        *   *Significance*: Several behavioral clarifications (PDF handling, code execution auto-enable) and parameter clarifications (domains, tokens). Fixed code snippets.
+        *   *Developer Impact*: High (clarifies behavior affecting implementation and cost/latency).
+
+    *   **Page 3: `agents-and-tools/tool-use/memory-tool.md`** (+440/-164)
+        *   *Changes*: Major rewrite/refactoring.
+            *   New intro: Focus on file operations.
+            *   Use cases updated.
+            *   &#34;How it works&#34;: Clarified client-side execution, `tool_result` handling, path mapping (`/memories`), and security (path traversal).
+            *   Getting started: Explicitly states no beta header needed (GA status), fixed tool config (`memory_20250818`).
+            *   Basic Usage: Added cURL example (was partial/missing in previous view), added `client` init in TS examples.
+            *   *Significance*: Significant cleanup. The tool is now GA (General Availability). Important security details (path traversal) highlighted. clearer implementation instructions.
+        *   *Developer Impact*: High (Tool is GA, implementation details clarified).
+
+    *   **Page 4: `agents-and-tools/tool-use/programmatic-tool-calling.md`** (+169/-155)
+        *   *Changes*:
+            *   Intro tweaks.
+            *   Added `client` initialization in TypeScript, C#, Go examples (consistency).
+            *   Java example updated to use `Model.CLAUPE_OPUS_4_8` constants and wrapped in `main()` method.
+            *   Clarified Step 3 response handling regarding `container` ID and `tool_use` caller.
+            *   Clarified async behavior: Tools become async Python functions. Returns string (text of result).
+            *   Updated `allowed_callers` section: `code_execution_20260120` and `code_execution_20260521` are interchangeable. Response blocks always tag as `20260120`.
+        *   *Significance*: Code example fixes. Important clarification on code execution version compatibility (`20260120` vs `20260521`) and async behavior.
+        *   *Developer Impact*: Medium/High (Compatibility details and bug fixes in examples).
+
+3.  **Synthesize Key Themes**:
+    *   **General Availability (GA)**: Memory tool is explicitly GA (no beta header).
+    *   **Clarification &amp; Precision**: Numerous clarifications on how tools work internally (server-side vs client-side, async behavior, PDF handling as base64).
+    *   **Code Example Hygiene**: Many code snippets were fixed to include client initialization or use proper constants/methods (TS, Java, C#, Go).
+    *   **Platform Availability**: Explicitly stated where features are available (AWS/Foundry vs. Bedrock/GCP).
+
+4.  **Determine Impact Level**:
+    *   *Level*: High.
+    *   *Reasoning*: Memory tool is GA (big news). Web fetch and Programmatic tool calling have significant behavioral clarifications (auto-enable code exec, PDF handling, async behavior). While mostly non-breaking (except maybe if someone relied on implicit behaviors that changed, or if the Memory tool beta header removal is enforced), they affect how developers implement these features effectively and securely.
+
+5.  **Draft Action Items**:
+    *   Remove beta headers for Memory tool usage.
+    *   Update Web Fetch implementations to handle PDFs as base64/process like attachments.
+    *   Note that Dynamic Filtering auto-enables code execution (no need to add it manually to tools array).
+    *   Check `allowed_callers` configuration for Programmatic Tool Calling (interchangeability of version IDs).
+    *   Implement security fixes (path traversal protection) for Memory tool.
+
+6.  **Translate to Chinese**:
+    *   *Summary*: 文档更新主要集中在工具可用性说明、行为澄清和代码示例修正。Memory 工具正式发布，Web Fetch 和 Programmatic Tool Calling 增加了重要技术细节。
+    *   *Themes*: 工具正式发布 (GA), 实现细节澄清, 代码示例修正, 平台可用性说明.
+    *   *Impact*: High. (Behavioral changes, GA status, security implications).
+    *   *Action Items*: Remove beta headers, Handle PDFs as base64, Auto-enable code exec, Check version IDs, Security hardening.
+
+7.  **Refine Output**: Ensure the tone is professional (&#34;world-class programmer&#34;) and format is correct markdown.
+
+    *   *Self-Correction during drafting*: Make sure to highlight that `blocked_domains` and `allowed_domains` cannot be combined in Web Fetch, as that&#39;s a specific config change. Also, emphasize the client initialization fixes in code examples.
+
+8.  **Final Output Generation**: (Matches the provided good response).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/service-tiers.html" class="page-link">api/service-tiers.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/web-fetch-tool.html" class="page-link">agents-and-tools/tool-use/web-fetch-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+32</span>
+                            <span class="removed">-28</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/memory-tool.html" class="page-link">agents-and-tools/tool-use/memory-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+440</span>
+                            <span class="removed">-164</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/programmatic-tool-calling.html" class="page-link">agents-and-tools/tool-use/programmatic-tool-calling.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+169</span>
+                            <span class="removed">-155</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">03:45 EST</div>
