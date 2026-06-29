@@ -154,12 +154,14 @@ For more information, see [Data residency](/docs/en/manage-claude/data-residency
 
 ### Fast mode pricing
 
-[Fast mode](/docs/en/build-with-claude/fast-mode), in research preview, provides significantly faster output for Claude Opus 4.8, Claude Opus 4.7, and Claude Opus 4.6 at premium pricing. Fast mode pricing applies across the full context window, including requests over 200k input tokens. Fast mode is not available on Claude Platform on AWS.
+[Fast mode](/docs/en/build-with-claude/fast-mode), in research preview, provides significantly faster output for Claude Opus 4.8 and Claude Opus 4.7 at premium pricing. Fast mode pricing applies across the full context window, including requests over 200k input tokens. Fast mode is not available on Claude Platform on AWS.
 
-| Model                             | Input      | Output      |
-| --------------------------------- | ---------- | ----------- |
-| Claude Opus 4.6 / Claude Opus 4.7 | $30 / MTok | $150 / MTok |
-| Claude Opus 4.8                   | $10 / MTok | $50 / MTok  |
+| Model           | Input      | Output      |
+| --------------- | ---------- | ----------- |
+| Claude Opus 4.8 | $10 / MTok | $50 / MTok  |
+| Claude Opus 4.7 | $30 / MTok | $150 / MTok |
+
+Fast mode for Claude Opus 4.7 is deprecated and will be removed on July 24, 2026. As of June 29, 2026, fast mode is not available on Claude Opus 4.6: requests to `claude-opus-4-6` with `speed: "fast"` run at standard speed and are billed at standard rates. See [Fast mode](/docs/en/build-with-claude/fast-mode#supported-models).
 
 Fast mode pricing stacks with other pricing modifiers:
 

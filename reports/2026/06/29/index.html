@@ -118,9 +118,317 @@
 
         <header>
             <h1>Changes on 2026-06-29</h1>
-            <p class="meta">24 total changes in 3 runs</p>
+            <p class="meta">37 total changes in 4 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">18:51 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更分析
+
+### 总体概览
+此次文档更新核心在于明确了 Microsoft Foundry 平台上不同托管模式的功能差异，强制要求高级功能必须使用 &#34;Hosted on Anthropic&#34; 部署，同时正式废弃了旧版 Opus 模型的 Fast Mode 功能。
+
+### 关键变更主题
+
+*   **Microsoft Foundry 功能托管限制**：
+    *   文件 API、代码执行工具、Web 搜索/抓取工具、MCP 连接器、Agent Skills 以及结构化输出等高级功能，现在明确要求必须在 Microsoft Foundry 上使用 **&#34;Hosted on Anthropic&#34;** 部署方式。
+    *   这意味着 &#34;Hosted on Azure&#34; 模式的功能范围被显著缩小（甚至 Sonnet 系列模型在该模式下的可用性也被移除）。
+*   **Fast Mode 废弃与调整**：
+    *   **Claude Opus 4.6**：已停止支持 Fast Mode。即使请求中包含 `speed: &#34;fast&#34;`，也将以标准速度执行并按标准费率计费。
+    *   **Claude Opus 4.7**：Fast Mode 已被标记为废弃，将于 **2026 年 7 月 24 日** 移除。
+*   **上下文窗口与可用性升级**：
+    *   Microsoft Foundry 现已全面支持 Claude Opus (4.8, 4.7, 4.6) 和 Sonnet 4.6 的 **1M token 上下文窗口**（此前 Opus 4.8 仅支持 200k）。
+    *   结构化输出在 Microsoft Foundry 上从 Beta 版转为 **Generally Available (GA)**。
+
+### 影响等级：**Medium (中)**
+
+**理由**：虽然这些变更大多不会导致现有 API 代码立即崩溃，但对基础设施部署策略和成本控制有显著影响。特别是依赖 Microsoft Foundry &#34;Hosted on Azure&#34; 模式的开发者将发现许多高级功能不可用，且使用旧版 Opus 模型 Fast Mode 的用户需尽快调整逻辑以避免计费或性能不符合预期。
+
+### 开发者行动项
+
+*   **检查 Foundry 部署配置**：如果你在 Microsoft Foundry 上使用文件处理、代码执行、Web 工具或 MCP，必须确保部署设置选择了 **&#34;Hosted on Anthropic&#34;**，而非 &#34;Hosted on Azure&#34;。
+*   **移除 Opus 4.6 Fast Mode**：代码中若存在对 `claude-opus-4-6` 设置 `speed: &#34;fast&#34;` 的逻辑，请立即移除，因为该参数已被忽略且无加速效果。
+*   **规划 Opus 4.7 迁移**：针对 Claude Opus 4.7 的 Fast Mode 废弃（截止日期 2026-07-24），提前准备迁移方案，切换回标准模式或升级到新模型。
+*   **更新计费预估**：调整计费系统，不再对 Opus 4.6 和未来的 4.7 应用 Fast Mode 的溢价费率。
+*   **利用 1M 上下文**：如果在 Foundry 上使用 Opus/Sonnet 4.6，现在可以利用扩展的 1M 上下文窗口处理更大输入。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer, expert in dev tools/docs.
+    *   **Task:** Analyze a batch of 13 documentation changes.
+    *   **Output Format:** Markdown, concise, insightful, Chinese language.
+    *   **Specific Requirements:** Overall summary, Key themes, Impact level, Action items.
+
+2.  **Analyze the Input Data (Diff-by-Diff):**
+
+    *   *Page 1: `about-claude/models/overview.md`*
+        *   Diff shows a table comparison. The specific line changes are a bit cut off at the end (`+| [Extended thinking](/docs/en/build-with-claude/extended-thinking)** | No`), but the context implies table formatting/updates.
+        *   Wait, looking closer at the snippet provided for Page 1: The diff cuts off abruptly. However, usually, these diffs imply updates to feature flags or metadata. Let&#39;s look at the context provided. It shows &#34;Latest models comparison&#34;. The diff shows the table headers and rows.
+        *   *Correction*: The provided diff for page 1 is actually incomplete (ends mid-line). I need to be careful not to over-interpret. However, usually, updates in the overview table reflect deprecations or feature additions seen elsewhere. Let&#39;s look at the other pages to infer the big picture.
+
+    *   *Page 2: `about-claude/pricing.md`*
+        *   **Key Change:** &#34;Fast mode&#34; text updated.
+        *   **Detail:** Removed &#34;Claude Opus 4.6&#34; from the list of supported models in the intro sentence.
+        *   **Detail:** Table removed Opus 4.6, kept 4.7 and 4.8.
+        *   **Crucial Detail:** Added a note: &#34;Fast mode for Claude Opus 4.7 is deprecated and will be removed on July 24, 2026.&#34;
+        *   **Crucial Detail:** &#34;As of June 29, 2026, fast mode is not available on Claude Opus 4.6: requests... run at standard speed and are billed at standard rates.&#34;
+
+    *   *Page 3: `api/rate-limits.md`*
+        *   **Key Change:** Fast mode rate limits section.
+        *   **Detail:** Removed &#34;or Opus 4.6&#34; from the list of models with dedicated rate limits.
+        *   **Detail:** Added note stating Fast Mode is not available on Opus 4.6 (runs at standard speed).
+
+    *   *Page 4: `build-with-claude/context-windows.md`*
+        *   **Key Change:** Context window sizes.
+        *   **Detail:** Microsoft Foundry now supports 1M tokens for Opus 4.8, 4.7, 4.6, and Sonnet 4.6 (previously it only supported 200k for Opus 4.8).
+
+    *   *Page 5: `build-with-claude/structured-outputs.md`*
+        *   **Key Change:** Availability on Microsoft Foundry.
+        *   **Detail:** Changed &#34;Structured outputs are available in beta&#34; to &#34;generally available&#34; on Microsoft Foundry.
+        *   **Detail:** Added requirement: requires a &#34;Hosted on Anthropic deployment&#34;.
+
+    *   *Page 6: `build-with-claude/files.md`*
+        *   **Key Change:** Files API on Microsoft Foundry.
+        *   **Detail:** Added requirement: requires a &#34;Hosted on Anthropic deployment&#34;.
+
+    *   *Page 7: `build-with-claude/claude-in-microsoft-foundry.md`*
+        *   **Key Change:** &#34;Hosted on Azure&#34; vs &#34;Hosted on Anthropic&#34; comparison table.
+        *   **Detail:** &#34;Hosted on Azure&#34; model availability changed from &#34;Opus, Sonnet, and Haiku&#34; to just &#34;Opus and Haiku&#34;. (Sonnet seems removed from Hosted on Azure? Or implies Sonnet isn&#39;t the &#34;latest&#34; there? It says &#34;The latest models in the Opus and Haiku families&#34;).
+        *   **Detail:** Updated deployment instruction text regarding &#34;Default settings&#34; to be more specific about when it auto-configures to Azure.
+
+    *   *Page 8: `agents-and-tools/tool-use/web-search-tool.md`*
+        *   **Key Change:** Web search tool on Microsoft Foundry.
+        *   **Detail:** Added requirement: requires a &#34;Hosted on Anthropic deployment&#34;.
+
+    *   *Page 9: `agents-and-tools/tool-use/web-fetch-tool.md`*
+        *   **Key Change:** Web fetch tool on Microsoft Foundry.
+        *   **Detail:** Added requirement: requires a &#34;Hosted on Anthropic deployment&#34;.
+
+    *   *Page 10: `agents-and-tools/tool-use/code-execution-tool.md`*
+        *   **Key Change:** Code execution on Microsoft Foundry.
+        *   **Detail:** Added requirement: requires a &#34;Hosted on Anthropic deployment&#34;.
+
+    *   *Page 11: `agents-and-tools/tool-use/programmatic-tool-calling.md`*
+        *   **Key Change:** Programmatic tool calling on Microsoft Foundry.
+        *   **Detail:** Added requirement: requires a &#34;Hosted on Anthropic deployment&#34;.
+
+    *   *Page 12: `agents-and-tools/agent-skills/overview.md`*
+        *   **Key Change:** Agent Skills on Microsoft Foundry.
+        *   **Detail:** Added requirement: requires a &#34;Hosted on Anthropic deployment&#34;.
+
+    *   *Page 13: `agents-and-tools/mcp-connector.md`*
+        *   **Key Change:** MCP connector on Microsoft Foundry.
+        *   **Detail:** Added requirement: requires a &#34;Hosted on Anthropic deployment&#34;.
+
+3.  **Synthesize the Findings:**
+
+    *   **Theme 1: Fast Mode Deprecation/Restriction.** Fast Mode is being phased out for older models (4.7 deprecated, 4.6 removed/ignored).
+    *   **Theme 2: Microsoft Foundry Hosting Requirements.** This is the biggest theme. There is a strong push to differentiate between &#34;Hosted on Azure&#34; and &#34;Hosted on Anthropic&#34;. Almost every advanced feature (Files, Web Search, Web Fetch, Code Execution, Tool Calling, Agent Skills, MCP, Structured Outputs) now explicitly requires &#34;Hosted on Anthropic&#34; deployment, implying these features are *not* available or fully supported on the &#34;Hosted on Azure&#34; tier.
+    *   **Theme 3: Model Availability Shifts.** Sonnet family removed from &#34;Hosted on Azure&#34; list in the comparison table.
+    *   **Theme 4: Context Window Expansion.** Foundry now supports 1M tokens for more models (Opus/Sonnet).
+
+4.  **Draft the Analysis (Internal Monologue/Translation to Chinese):**
+
+    *   *Summary:* The updates primarily clarify Microsoft Foundry deployment requirements (pushing towards &#34;Hosted on Anthropic&#34;) and deprecate Fast Mode for older Opus models.
+    *   *Themes:*
+        *   Microsoft Foundry Feature Gating: Most advanced tools/features now require &#34;Hosted on Anthropic&#34; deployment, effectively restricting them from &#34;Hosted on Azure&#34;.
+        *   Fast Mode Sunset: Opus 4.6 support dropped; 4.7 deprecated.
+        *   Context Window Increase: 1M tokens support expanded on Foundry.
+        *   GA Status: Structured Outputs on Foundry is now Generally Available (GA).
+    *   *Impact Level:* Medium. It&#39;s not breaking existing code immediately, but it restricts feature availability based on hosting configurations and forces migration off deprecated features. It&#39;s significant for Foundry/Azure users.
+    *   *Action Items:*
+        *   Check Foundry hosting config if using advanced tools.
+        *   Stop using Fast Mode on Opus 4.6/4.7.
+        *   Update billing expectations (no more fast mode premium or standard rates).
+
+5.  **Refine the Output (Chinese):**
+
+    *   *Overall Summary:* 此次更新主要针对 Microsoft Foundry 的部署模型进行了重大功能限制澄清，明确区分了 &#34;Hosted on Azure&#34; 和 &#34;Hosted on Anthropic&#34; 的能力差异，并废弃了旧版 Opus 模型的 Fast Mode 功能。
+    *   *Key Themes:*
+        *   **Microsoft Foundry 功能门槛**：文件 API、代码执行、Web 搜索/抓取、MCP 连接器、Agent Skills 及结构化输出等高级功能，现在明确要求使用 &#34;Hosted on Anthropic&#34; 部署方式。
+        *   **Fast Mode 废弃**：停止支持 Claude Opus 4.6 的 Fast Mode，并宣布 Opus 4.7 的 Fast Mode 将于 2026 年 7 月 24 日废弃。
+        *   **上下文窗口扩展**：Microsoft Foundry 现在支持 Claude Opus 4.8/4.7/4.6 和 Sonnet 4.6 的 1M token 上下文窗口。
+        *   **可用性更新**：Sonnet 系列模型似乎已从 &#34;Hosted on Azure&#34; 的可用列表中移除；结构化输出在 Foundry 上转为正式发布 (GA)。
+    *   *Impact Level:* Medium。主要影响 Microsoft Foundry 和 Azure 用户。虽然代码层面不一定立即报错，但功能可用性受到严格限制，且 Fast Mode 用户需迁移。
+    *   *Action Items:*
+        *   如果你是 Microsoft Foundry 用户，且需要使用文件处理、代码执行、MCP 或 Web 工具，请务必检查并切换至 &#34;Hosted on Anthropic&#34; 部署模式。
+        *   立即停止在 `claude-opus-4-6` 上使用 `speed: &#34;fast&#34;` 参数（将被忽略并以标准速度/价格运行）。
+        *   为 Claude Opus 4.7 的 Fast Mode 废弃（2026-07-24）做准备，计划迁移至标准模式或更新后的模型。
+        *   更新计费逻辑，不再依赖 Fast Mode 的特定费率。
+
+6.  **Final Review:** Does this capture all the nuances?
+    *   The distinction between Hosted on Azure vs Anthropic is the most critical finding.
+    *   The deprecation of Fast Mode is the second most critical.
+    *   The context window update is a nice &#34;plus&#34; for Foundry users.
+
+    The prompt asks for concise, insightful analysis. The summary looks good.
+
+    *Self-Correction on Page 7:* The change &#34;The latest models in the Opus and Haiku families&#34; for Hosted on Azure vs previous &#34;Opus, Sonnet, and Haiku&#34; implies Sonnet is not available on the &#34;Hosted on Azure&#34; tier anymore or only Opus/Haiku are considered &#34;latest&#34; for that specific hosting path. This reinforces the &#34;Feature Gating&#34; theme.
+
+7.  **Final Output Generation** (matching the requested format).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/about-claude/models/overview.html" class="page-link">about-claude/models/overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+15</span>
+                            <span class="removed">-16</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/about-claude/pricing.html" class="page-link">about-claude/pricing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/rate-limits.html" class="page-link">api/rate-limits.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/context-windows.html" class="page-link">build-with-claude/context-windows.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/structured-outputs.html" class="page-link">build-with-claude/structured-outputs.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/files.html" class="page-link">build-with-claude/files.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-in-microsoft-foundry.html" class="page-link">build-with-claude/claude-in-microsoft-foundry.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/web-search-tool.html" class="page-link">agents-and-tools/tool-use/web-search-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/web-fetch-tool.html" class="page-link">agents-and-tools/tool-use/web-fetch-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/code-execution-tool.html" class="page-link">agents-and-tools/tool-use/code-execution-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/programmatic-tool-calling.html" class="page-link">agents-and-tools/tool-use/programmatic-tool-calling.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/agent-skills/overview.html" class="page-link">agents-and-tools/agent-skills/overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/mcp-connector.html" class="page-link">agents-and-tools/mcp-connector.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">17:20 EST</div>
