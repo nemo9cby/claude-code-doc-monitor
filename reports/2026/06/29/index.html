@@ -118,9 +118,226 @@
 
         <header>
             <h1>Changes on 2026-06-29</h1>
-            <p class="meta">14 total changes in 2 runs</p>
+            <p class="meta">24 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">17:20 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 1. Overall Summary
+本次文档更新主要引入了名为 **“Claude apps gateway”** 的全新自托管功能，旨在为企业管理员提供在 Claude Code 与云服务商之间部署 SSO（单点登录）和策略控制的能力，并显著增强了在 Bedrock、Vertex AI 和 Foundry 等平台上的使用追踪与成本管控。
+
+### 2. Key Themes
+*   **核心功能发布**：新增 `claude gateway` CLI 命令及相关文档，允许管理员通过配置文件（`gateway.yaml`）启动自托管网关服务。
+*   **认证流程重构**：网关提供了一种新的“Cloud gateway”认证方式，通过企业 IdP 进行 SSO 登录。**重要提示**：网关会话的优先级高于环境变量（如 `CLAUDE_CODE_USE_BEDROCK`），即一旦通过网关登录，CLI 将忽略针对特定云提供商的本地环境配置。
+*   **精细化可观测性**：网关解决了云提供商模式下缺乏指标的问题，自动提供基于 IdP 的用户身份归因（`user.email`, `user.groups`）、OTLP 指标（含 Token 计数）以及每用户消费限制。
+*   **数据隐私与合规**：在网关会话中，反馈数据默认被重定向到本地存档（`~/.claude/feedback-bundles/`）而非直接上传，且默认禁用了向 Anthropic 发送的使用分析和错误报告。
+*   **配置管理扩展**：托管设置现在支持通过网关远程下发，新增 `forceLoginMethod: &#34;gateway&#34;` 和 `forceLoginGatewayUrl` 配置项，强制开发者通过特定网关登录。
+
+### 3. Impact Level
+**High (for Enterprise Admins)** / **Medium (for Developers)**
+
+**Reasoning**:
+*   **架构变更**：引入网关是一个重要的架构补充，它改变了在企业环境中（特别是使用 AWS/GCP/Azure 时）流量路由、认证和监控的方式。
+*   **行为改变**：对于开发者的本地环境变量优先级逻辑产生了影响，网关认证将“覆盖”直接的云提供商凭证设置。
+*   **非破坏性**：虽然有新功能，但不破坏现有的直接 API Key 或云提供商环境变量的工作流，只有在配置了网关时才会生效。
+
+### 4. Action Items for Developers
+*   **检查登录方式**：如果您的组织部署了 Claude apps gateway，请在 `/login` 时选择 **Cloud gateway** 选项，使用企业 SSO 登录，而不是配置本地环境变量。
+*   **更新监控配置**：如果您在 Bedrock/Vertex 环境下手动配置了 `OTEL_RESOURCE_ATTRIBUTES` 来标记用户，切换到网关后可移除这些手动配置，因为网关会自动注入准确的 IdP 身份信息（`user.id`, `user.email` 等）。
+*   **利用本地归档**：在网关模式下，如需提供反馈或日志支持，请检查 `~/.claude/feedback-bundles/` 目录下的本地存档文件。
+*   **管理员参考**：若您负责工具部署，请参考新文档使用 `claude gateway --config gateway.yaml` 启动服务，并配置 `forceLoginGatewayUrl` 以标准化团队登录入口。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Understand the Goal**: The user wants a concise, insightful analysis of a batch of documentation changes (10 pages) related to a developer tool (Claude Code). I need to focus on what changed and why it matters to developers. The response must be in Chinese and Markdown format.
+
+2.  **Analyze the Input Data**:
+    *   **Total pages**: 10.
+    *   **Page 1 (cli-reference.md)**: Added `claude gateway` command to start a self-hosted server for administrators (SSO/policy on Bedrock/Vertex/Foundry).
+    *   **Page 2 (costs.md)**: Updated info on Bedrock/Vertex/Foundry. Previously said it doesn&#39;t send metrics. Now says &#34;Claude apps gateway&#34; provides per-user attribution, OTLP metrics, and spend limits.
+    *   **Page 3 (data-usage.md)**: Updated feedback upload behavior. On Bedrock/Vertex/Foundry + &#34;Claude apps gateway&#34;, feedback writes to a local archive (`~/.claude/feedback-bundles/`) instead of uploading. Also mentions gateway disables specific telemetry.
+    *   **Page 4 (iam.md)**: Added &#34;Cloud gateway&#34; auth option (SSO). Added &#34;Claude apps gateway&#34; to the list of authentication types. Added a note that gateway sessions outrank Bedrock/Vertex/Foundry env vars.
+    *   **Page 5 (llm-gateway.md)**: Renamed section from &#34;LLM gateways&#34; to &#34;Other LLM gateways&#34;. Differentiates between the new &#34;Claude apps gateway&#34; and third-party gateways.
+    *   **Page 6 (monitoring-usage.md)**: Updated OTLP metrics to include gateway-specific attributes (IdP subject, email, groups). Mentions `identity.source: gateway-oidc`.
+    *   **Page 7 (network-config.md)**: Minor updates. Added &#34;Claude apps gateway&#34; to the list of where traffic goes (replacing api.anthropic.com). Added a note about Node version requirements for OS cert store reading.
+    *   **Page 8 (quickstart.md)**: Added &#34;Claude apps gateway&#34; to login options.
+    *   **Page 9 (settings.md)**: Updated &#34;Server-managed settings&#34; to include delivery via the gateway. Added `forceLoginMethod` support for &#34;gateway&#34; and new `forceLoginGatewayUrl` setting.
+    *   **Page 10 (third-party-integrations.md)**: Added &#34;Claude apps gateway&#34; to the list of authentication options.
+
+3.  **Synthesize Findings**:
+    *   **Core Change**: Introduction of a new self-hosted feature called &#34;Claude apps gateway&#34;.
+    *   **Functionality**: It acts as a gateway for administrators to deploy SSO (Single Sign-On) and policies in front of Claude Code, specifically for cloud providers like Bedrock, Vertex AI, or Foundry.
+    *   **CLI Impact**: New command `claude gateway`.
+    *   **Auth Impact**: New login method (&#34;Cloud gateway&#34;) that can override other provider env vars.
+    *   **Telemetry/Metrics**: It provides better usage attribution (per-user), OTLP metrics, and spend limits. It also changes how data is handled (local archives for feedback).
+    *   **Admin/Settings**: New settings for managed settings delivery and forcing the gateway login method.
+
+4.  **Draft the Analysis (Internal Monologue/Translation)**:
+
+    *   *Summary*: The docs update focuses heavily on the introduction of the &#34;Claude apps gateway,&#34; a self-hosted solution for enterprise SSO and policy management.
+    *   *Key Themes*:
+        *   New &#34;Claude apps gateway&#34; feature introduction.
+        *   SSO integration for cloud providers (Bedrock, Vertex, Foundry).
+        *   Enhanced telemetry and cost tracking (OTLP, per-user limits).
+        *   Authentication hierarchy changes (Gateway &gt; Env vars).
+    *   *Impact Level*: High for enterprise administrators. Medium for general developers (if their org uses it). It&#39;s a new feature, so it&#39;s not &#34;breaking&#34; in the sense of destroying existing workflows, but it introduces a major new architectural component.
+    *   *Action Items*:
+        *   Check if your org is deploying this.
+        *   Use `claude gateway --config ...` if you are an admin.
+        *   Update auth flows if your org mandates gateway login.
+        *   Note the change in telemetry/metrics attribution if using the gateway.
+
+5.  **Refine the Output (Chinese)**:
+
+    *   *Overall Summary*: 本次文档更新主要引入了名为“Claude apps gateway”的新功能，这是一个面向企业管理的自托管网关，支持在 Claude Code 与云服务提供商之间实施 SSO 和策略控制。
+
+    *   *Key Themes*:
+        *   **引入 Claude apps gateway**：新增 `claude gateway` 命令和配套文档，允许管理员部署自托管网关。
+        *   **企业级认证集成**：网关支持通过企业 IdP 进行 SSO 登录，且优先级高于现有的 Bedrock/Vertex/Foundry 环境变量。
+        *   **增强的可观测性**：网关提供细粒度的使用归因（OTLP 指标、Token 计数、用户群组）以及每用户消费限制。
+        *   **数据隐私与本地化**：在网关会话下，反馈数据默认存档至本地而非上传，且特定的遥测数据会被禁用。
+        *   **配置管理**：支持通过网关远程下发托管设置，并新增 `forceLoginGatewayUrl` 等配置项。
+
+    *   *Impact Level*: **High (for Enterprise Admins)** / **Medium (for Developers)**
+        *   *Reasoning*: 这是一个重大的架构更新，引入了新的认证路径和管理能力。对于使用 Bedrock/Vertex/Foundry 的企业用户，这将显著改变认证、流量路由和成本追踪的方式。
+
+    *   *Action Items*:
+        *   **管理员**: 若需部署 SSO 或策略控制，请查阅 `claude-apps-gateway` 相关文档并使用 `claude gateway --config gateway.yaml` 启动服务。
+        *   **开发者**: 若组织启用了网关，请使用 `/login` 中的 **Cloud gateway** 选项通过企业 SSO 登录；注意网关会话下的流量不再直接发送至 `api.anthropic.com`。
+        *   **监控**: 利用网关提供的自动 OTLP 指标（如 `user.groups`, `user.email`）替代手动配置的 `OTEL_RESOURCE_ATTRIBUTES` 以进行用户归因。
+
+6.  **Final Review**: Does this meet all constraints? Yes. Concise, insightful, markdown, Chinese, developer-focused.
+
+7.  **Construct Final Output**: (Proceed to generate markdown).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/cli-reference.html" class="page-link">cli-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/costs.html" class="page-link">costs.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/data-usage.html" class="page-link">data-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/iam.html" class="page-link">iam.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/llm-gateway.html" class="page-link">llm-gateway.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+9</span>
+                            <span class="removed">-24</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/network-config.html" class="page-link">network-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/quickstart.html" class="page-link">quickstart.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/third-party-integrations.html" class="page-link">third-party-integrations.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">15:01 EST</div>
