@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026-06-30 - Documentation Changes</title>
+    <style>
+        :root {
+            --bg-color: #1a1a2e;
+            --card-bg: #16213e;
+            --text-color: #eee;
+            --accent: #0f3460;
+            --add-text: #4ade80;
+            --del-text: #f87171;
+            --time-color: #60a5fa;
+        }
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg-color: #f5f5f5;
+                --card-bg: #fff;
+                --text-color: #333;
+                --accent: #e0e0e0;
+                --add-text: #155724;
+                --del-text: #721c24;
+                --time-color: #2563eb;
+            }
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+        .container { max-width: 800px; margin: 0 auto; }
+        header { margin-bottom: 2rem; }
+        h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+        .meta { color: #888; }
+        .batch { margin-bottom: 2rem; }
+        .batch-header {
+            color: var(--time-color);
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--accent);
+        }
+        .page-list { list-style: none; }
+        .page-item {
+            background: var(--card-bg);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .page-item:hover { background: var(--accent); }
+        .page-link {
+            color: var(--text-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .page-summary { color: #888; font-size: 0.9rem; }
+        .added { color: var(--add-text); }
+        .removed { color: var(--del-text); }
+        a { color: #60a5fa; }
+        .back-link { margin-bottom: 1rem; display: inline-block; }
+        .page-item-content { flex: 1; }
+        .page-analysis {
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: 0.25rem;
+        }
+        .source-section {
+            margin-bottom: 1.5rem;
+        }
+        .source-header {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: #8b5cf6;
+        }
+        .batch-analysis {
+            background: var(--card-bg);
+            border-left: 3px solid #22c55e;
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            margin: 0.75rem 0 1rem 0;
+        }
+        .batch-analysis h4 {
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+        .batch-analysis-content {
+            white-space: pre-wrap;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        .reasoning-section {
+            margin-top: 1rem;
+            padding-top: 0.75rem;
+            border-top: 1px dashed var(--accent);
+            font-size: 0.85rem;
+            color: #888;
+        }
+        .reasoning-section summary {
+            cursor: pointer;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../../../index.html" class="back-link">&larr; All reports</a>
+
+        <header>
+            <h1>Changes on 2026-06-30</h1>
+            <p class="meta">16 total changes in 1 run</p>
+        </header>
+
+        
+        <div class="batch">
+            <div class="batch-header">03:55 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更分析摘要
+
+### 1. 总体摘要
+本次文档更新涵盖了 Claude Code v2.1.193 至 v2.1.196 版本的变更。重点强化了安全性与信任模型（特别是对 MCP 服务器和插件加载的限制），新增了 OpenTelemetry 可观测性功能（支持记录 AI 回复），并修复了多项配置逻辑问题，包括 Subagent 模型继承、插件名称解析及 Hooks 匹配器行为。
+
+### 2. 关键主题
+
+*   **安全与信任机制强化**
+    *   **MCP 服务器**：项目本地 `.mcp.json` 中的服务器在未受信任的工作区中不再自动加载，必须经过审批。
+    *   **OAuth Scope**：`oauth.scopes` 未设置时，不再请求授权服务器的完整 scope 目录，改为仅请求必要 scope，以避免 `invalid_scope` 错误。
+    *   **插件安装**：增强了对外部插件（如 GitHub 仓库）的安装控制，确保仅在信任后加载。
+
+*   **插件与市场生态**
+    *   **重命名支持**：`marketplace.json` 新增 `renames` 字段，允许插件重命名或移除时的平滑迁移（v2.1.193+）。
+    *   **名称解析**：明确了 `marketplace.json` 中的名称与 `plugin.json` 名称不一致时的处理逻辑，CLI 现在能正确识别和启用此类插件。
+
+*   **可观测性增强**
+    *   **新日志事件**：新增 `assistant_response` 事件及 `OTEL_LOG_ASSISTANT_RESPONSES` 环境变量，允许开发者记录 Claude 的文本回复内容（v2.1.193+）。
+
+*   **配置与行为修正**
+    *   **Subagent 模型**：修复了 `CLAUDE_CODE_SUBAGENT_MODEL=inherit` 的行为，现在它会正确遵循调用参数和前置设置，而非强制继承主会话模型。
+    *   **Hooks 匹配器**：精确匹配模式现在支持连字符（`-`），不再将其误判为正则表达式；改进了正则匹配的锚定说明。
+    *   **Shell 模式**：支持文件路径实时自动补全（v2.1.193+）。
+
+### 3. 影响级别
+**中**
+*   **理由**：虽然大部分是新增功能和文档澄清，但 MCP 服务器的信任加载机制变更、OAuth Scope 请求行为的收紧以及插件名称解析逻辑的修正，可能会导致现有配置（特别是在 CI/CD 或受限环境中）的行为发生改变，需要开发者注意适配。
+
+### 4. 开发者行动项
+
+*   **审查 MCP 服务器配置**：如果您依赖项目本地的 `.mcp.json` 自动连接服务器，请确保在新的信任模型下手动完成审批流程，或将其移至受信任的设置文件中。
+*   **更新插件市场清单**：如果您维护插件市场并计划重命名插件，请务必在 `marketplace.json` 中添加 `renames` 字段以防止用户安装失败。
+*   **检查模型环境变量**：若您使用了 `CLAUDE_CODE_SUBAGENT_MODEL=inherit`，请验证其行为是否符合预期（v2.1.196 修复了其逻辑）。
+*   **利用新遥测功能**：如需监控 AI 回复内容，请配置 `OTEL_LOG_ASSISTANT_RESPONSES=1`。
+*   **更新 Hook 规则**：检查您的 Hook 匹配器，特别是包含连字符的名称（如 `code-reviewer`），确保其在 v2.1.195+ 版本中按精确字符串匹配而非正则表达式工作。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Understand the Goal:** The user wants a concise, insightful analysis of documentation changes for Claude Code. I need to analyze 16 changed pages, provide an overall summary, identify key themes, assess the impact level, and list action items for developers, all in Chinese.
+
+2.  **Analyze the Source Data (Diff by Diff):**
+
+    *   **Page: `amazon-bedrock.md` (+3 / -0)**
+        *   *Change:* Added a note about zero token counts in `/context` on versions before v2.1.196 due to Bedrock&#39;s API rejecting schema fields. Fixed in v2.1.196.
+        *   *Theme:* Bug fix documentation for Bedrock integration.
+
+    *   **Page: `claude-code-on-the-web.md` (+2 / -0)**
+        *   *Change:* Added `browser-intake-us5-datadoghq.com` to allowlist. Added note about v2.1.195 showing live checklist during cloud session setup.
+        *   *Theme:* Networking allowlists, Cloud UX improvements.
+
+    *   **Page: `discover-plugins.md` (+7 / -2)**
+        *   *Change:* Require `https://` prefix for adding Git-based marketplaces (v2.1.196). Clarified install behavior (interactive vs CLI). Fixed plugin enable/disable behavior when names differ between `marketplace.json` and `plugin.json` (v2.1.195).
+        *   *Theme:* Plugin management UX, Syntax requirements, Name resolution.
+
+    *   **Page: `hooks.md` (+29 / -20)**
+        *   *Change:* Updated matcher table. Added support for hyphens `-` in exact match (v2.1.195). Clarified regex behavior (unanchored). Fixed documentation for `SubagentStart` event regarding plugin-scoped names.
+        *   *Theme:* Hooks system refinement, Matcher logic changes (hyphen support).
+
+    *   **Page: `interactive-mode.md` (+3 / -1)**
+        *   *Change:* Background tasks terminated on memory pressure (v2.1.193). Shell mode live file path autocomplete (v2.1.193).
+        *   *Theme:* Resource management, Shell UX enhancements.
+
+    *   **Page: `jetbrains.md` (+1 / -1)**
+        *   *Change:* Updated security note wording to link to specific permission mode documentation.
+        *   *Theme:* Documentation consistency/linking.
+
+    *   **Page: `mcp.md` (+20 / -5)**
+        *   *Change:* Trust requirements for `.mcp.json` approvals (v2.1.196). OAuth token refresh failure notices (v2.1.195). Startup notices for auth (v2.1.193). Non-interactive auth handling (v2.1.196). OAuth scope request behavior change (v2.1.196 - no longer requests full catalog if `oauth.scopes` unset). `headersHelper` retry on 401/403 (v2.1.193). Plugin `headersHelper` working directory fix (v2.1.195).
+        *   *Theme:* MCP security/trust model, Authentication flows, OAuth scopes.
+
+    *   **Page: `model-config.md` (+4 / -3)**
+        *   *Change:* `ANTHROPIC_DEFAULT_OPUS_MODEL` precedence fix (v2.1.195). &#34;Runtime default&#34; terminology update.
+        *   *Theme:* Model selection logic/precedence.
+
+    *   **Page: `monitoring-usage.md` (+9 / -0)**
+        *   *Change:* New env var `OTEL_LOG_ASSISTANT_RESPONSES` (v2.1.193). New `assistant_response` event schema.
+        *   *Theme:* Observability/Telemetry new features.
+
+    *   **Page: `plugin-marketplaces.md` (+35 / -12)**
+        *   *Change:* Added `renames` field for marketplace manifest to handle plugin renaming/removal (v2.1.193). Removed `disable-model-invocation` from example. Added `disableSideloadFlags` mention.
+        *   *Theme:* Plugin lifecycle management (renaming).
+
+    *   **Page: `plugins-reference.md` (+3 / -3)**
+        *   *Change:* Clarified that `name` in `plugin.json` might differ from `marketplace.json`, and the marketplace name is used for references.
+        *   *Theme:* Plugin identification/naming.
+
+    *   **Page: `settings.md` (+12 / -8)**
+        *   *Change:* Added `autoMode.classifyAllShell` setting (v2.1.193).
+        *   *Theme:* Auto-mode configuration enhancements.
+
+    *   **Page: `skills.md` (+14 / -11)**
+        *   *Change:* Updated string substitution table (truncated in prompt, but likely similar to slash-commands). Added `${CLAUDE_SKILL_DIR}`.
+        *   *Theme:* Skills functionality.
+
+    *   **Page: `slash-commands.md` (+14 / -11)**
+        *   *Change:* Updated `disable-model-invocation` for scheduled tasks (v2.1.196). Updated string substitution table (added `${CLAUDE_SKILL_DIR}`).
+        *   *Theme:* Skills/Commands behavior, Scheduling.
+
+    *   **Page: `statusline.md` (+39 / -36)**
+        *   *Change:* Massive reformatting of the JSON fields table. Added `context_window.current_usage`. Removed `git_worktree` entry (seems to have moved or been clarified).
+        *   *Theme:* Documentation formatting, Statusline data schema.
+
+    *   **Page: `sub-agents.md` (+9 / -4)**
+        *   *Change:* `/doctor` reports duplicate agent names (v2.1.196). `CLAUDE_CODE_SUBAGENT_MODEL=inherit` behavior change (v2.1.196). Improved visual tree in subagent panel (v2.1.193).
+        *   *Theme:* Subagent debugging, Model inheritance.
+
+3.  **Synthesize and Structure the Analysis:**
+
+    *   **Overall Summary:** These changes represent a significant release wave (versions 2.1.193 through 2.1.196), focusing on bug fixes, security hardening (trust models for MCP/plugins), UX enhancements (shell autocomplete, cloud setup), and observability features (OTel).
+
+    *   **Key Themes:**
+        *   **Security &amp; Trust Model:** Significant updates to how MCP servers and plugins are approved/loaded in untrusted repositories. OAuth scope handling is tightened.
+        *   **Plugin &amp; Marketplace Evolution:** Better handling of plugin names, renaming support via `renames` field, and syntax requirements (https prefix).
+        *   **Observability &amp; Telemetry:** New `assistant_response` event and environment variables for logging.
+        *   **Subagent &amp; Model Configuration:** Fixes to model inheritance logic and duplicate agent detection.
+        *   **UX Polish:** Shell autocomplete, background task handling, cloud session setup checklists.
+
+    *   **Impact Level:**
+        *   *Reasoning:* There are several behavior changes regarding model inheritance, OAuth scope requests (potential breaking for some auth flows), and strict trust requirements for project-local MCP servers. The renaming of plugins requires marketplace updates. Therefore, **Medium-High** is appropriate, leaning towards Medium because many are &#34;defaults&#34; or &#34;fixes&#34; but the MCP trust change is significant.
+
+    *   **Action Items:**
+        *   Update plugin marketplaces if you want to rename plugins (use `renames`).
+        *   Check MCP server configurations; project-specific servers now require explicit trust/interaction to load.
+        *   Review `OTEL_LOG_ASSISTANT_RESPONSES` if you need response text in logs.
+        *   Verify shell command matchers in hooks if using hyphens.
+        *   Update `CLAUDE_CODE_SUBAGENT_MODEL` usage if relying on specific behavior of `inherit`.
+
+4.  **Drafting the Response (in Chinese):**
+
+    *   *Summary:* 本次文档更新涵盖了 Claude Code v2.1.193 至 v2.1.196 版本的变更。重点增强了安全性与信任模型（特别是 MCP 和插件系统），新增了 OpenTelemetry 可观测性功能，并修复了模型继承、钩子匹配及插件命名逻辑。
+    *   *Themes:*
+        *   **安全与信任机制强化**：项目级别的 MCP 服务器和插件现在对未受信任的仓库有更严格的加载限制。
+        *   **插件与市场生态**：引入了插件重命名机制，并修正了插件名称解析逻辑。
+        *   **可观测性增强**：新增 `assistant_response` 事件及环境变量，支持记录 AI 回复内容。
+        *   **配置与行为修正**：修复了 Subagent 模型继承、Hooks 匹配器（支持连字符）以及 OAuth Scope 请求行为。
+        *   **用户体验优化**：包括 Shell 自动补全、云会话设置清单及后台任务内存管理。
+    *   *Impact:* **中**。虽然主要是新功能和修复，但 MCP 服务器的信任加载机制变更、OAuth Scope 请求行为的变化以及插件名称解析逻辑的调整，可能影响现有配置的预期行为。
+    *   *Action Items:*
+        *   **插件维护者**：若需重命名插件，请在 `marketplace.json` 中添加 `renames` 字段以支持自动迁移。
+        *   **MCP 配置审查**：注意项目本地的 `.mcp.json` 服务器在未受信任的工作区中现在需要手动审批才能加载。
+        *   **模型配置检查**：检查 `CLAUDE_CODE_SUBAGENT_MODEL` 环境变量的使用，特别是 `inherit` 值的行为变更。
+        *   **监控与日志**：利用新增的 `OTEL_LOG_ASSISTANT_RESPONSES` 环境变量来丰富遥测数据。
+        *   **Hook 规则更新**：如果您在 Hooks 中使用了带连字符的匹配器（如 `code-reviewer`），请确认其在当前版本下的精确匹配行为。
+
+5.  **Final Review against constraints:**
+    *   Markdown format? Yes.
+    *   Concise? Yes.
+    *   Chinese? Yes.
+    *   Focus on developer impact? Yes.
+
+6.  **Final Output Generation.** (Proceed to generate markdown).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/amazon-bedrock.html" class="page-link">amazon-bedrock.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/claude-code-on-the-web.html" class="page-link">claude-code-on-the-web.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/discover-plugins.html" class="page-link">discover-plugins.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+29</span>
+                            <span class="removed">-20</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/interactive-mode.html" class="page-link">interactive-mode.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/jetbrains.html" class="page-link">jetbrains.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+20</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/model-config.html" class="page-link">model-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+9</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugin-marketplaces.html" class="page-link">plugin-marketplaces.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+35</span>
+                            <span class="removed">-12</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+12</span>
+                            <span class="removed">-8</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+14</span>
+                            <span class="removed">-11</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+14</span>
+                            <span class="removed">-11</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/statusline.html" class="page-link">statusline.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+39</span>
+                            <span class="removed">-36</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+9</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
+        
+    </div>
+</body>
+</html>
