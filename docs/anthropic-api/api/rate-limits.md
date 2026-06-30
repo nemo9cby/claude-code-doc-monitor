@@ -15,8 +15,6 @@ There are two types of limits:
 
 The API enforces service-configured limits at the organization level, but you may also set user-configurable limits for your organization's workspaces.
 
-These limits apply to both Standard and Priority Tier usage. For more information about Priority Tier, see [Service Tiers](/docs/en/api/service-tiers).
-
 ## About rate limits
 
 * Limits are designed to prevent API abuse, while minimizing impact on common customer usage patterns.
