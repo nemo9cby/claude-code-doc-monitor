@@ -118,9 +118,193 @@
 
         <header>
             <h1>Changes on 2026-06-30</h1>
-            <p class="meta">64 total changes in 4 runs</p>
+            <p class="meta">68 total changes in 5 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">18:13 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### Overall Summary
+本次更新优化了 `enforceAvailableModels` 的默认模型选择逻辑，并大幅重构了代码示例，将 Shell 脚本中脆弱的文本解析替换为健壮的 `jq` JSON 处理，同时简化了批处理相关的示例代码。
+
+### Key Themes
+*   **代码示例现代化与健壮性**：在 `extended-thinking`、`streaming` 和 `batch-processing` 页面中，全面移除了依赖 `sed`、`grep` 及 Shell 字符串截取（如 `${event#*...}`）的旧式解析代码，统一改用 `jq` 进行标准 JSON 处理，显著降低了脚本因格式变化而失效的风险。
+*   **文档逻辑简化**：`batch-processing` 中的示例去掉了复杂的轮询 (`until`)、手动分页循环和繁重的 JSONL 结果处理逻辑，转而展示最核心的 API 调用，建议开发者依赖 SDK 处理复杂流程。
+*   **配置行为精细化**：`settings.md` 中的 `enforceAvailableModels` 逻辑得到修正，现在如果用户的默认模型已包含在允许列表中，系统将保留该模型，而不是强制降级到列表的第一项。
+
+### Impact Level
+**Medium (中)**
+*   **理由**：`settings.md` 中的变更涉及软件的实际运行行为（模型降级策略），对受管环境下的开发者具有直接影响。代码示例的变更虽然仅为文档层面，但指出了更佳实践，有助于提升开发者编写脚本的稳定性。
+
+### Action Items
+*   **审查模型配置**：如果您在受管设置中启用了 `enforceAvailableModels`，请验证新的逻辑（保留白名单中的默认模型）是否符合您的预期降级策略。
+*   **重构 Shell 脚本**：检查现有项目或 CI 流程中是否引用了文档中的旧版 Shell 解析逻辑，建议引入 `jq` 工具并参考新版文档重写，以提高解析 API 响应的可靠性。
+*   **更新批处理参考**：若您依赖文档中的 `batch-processing` 示例构建自动轮询或结果处理脚本，请注意新版文档已移除 `while/until` 循环模版，需自行补充或迁移至 SDK。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Format:** Markdown, concise, insightful.
+    *   **Language:** Chinese (requested: &#34;请用中文回复&#34;).
+    *   **Input:** 4 diff snippets from documentation pages (`settings.md`, `extended-thinking.md`, `streaming.md`, `batch-processing.md`).
+    *   **Output Requirements:**
+        1.  Overall Summary (1-2 sentences).
+        2.  Key Themes (bullets).
+        3.  Impact Level (Low/Medium/High/Breaking) with reasoning.
+        4.  Action Items (bullets, max 5).
+
+2.  **Analyze Page 1: `settings.md`**
+    *   *Diff:* Changed description for `enforceAvailableModels`.
+    *   *Change:* Added condition: &#34;but only when the default model for the user&#39;s account type is not in the allowlist; an allowlisted default is kept as-is.&#34;
+    *   *Meaning:* Previously, if `enforceAvailableModels` was true, the default model *always* fell back to the first allowlisted entry. Now, if the user&#39;s actual default model is *already* in the allowlist, it stays as that model. It only swaps if the default isn&#39;t allowed. This is a refinement in logic/behavior, likely a fix for an overly restrictive default behavior.
+
+3.  **Analyze Page 2: `build-with-claude/extended-thinking.md`**
+    *   *Diff:* Changed shell script parsing logic for `TOOL_USE_ID`.
+    *   *Old:* `grep -o &#39;toolu_[A-Za-z0-9]*&#39;`
+    *   *New:* `jq -r &#39;.[] | select(.type == &#34;tool_use&#34;) | .id&#39;`
+    *   *Meaning:* Moved from fragile regex parsing to robust `jq` JSON parsing. This improves reliability and correctness.
+
+4.  **Analyze Page 3: `build-with-claude/streaming.md`**
+    *   *Diff:* Simplified a shell script example for streaming text deltas.
+    *   *Old:* Manual `while` loop with `grep` and string manipulation (`text=${event#*&#39;&#34;text&#34;:&#34;&#39;&#34;}`).
+    *   *New:* `jq -rj &#39;select(.delta.type? == &#34;text_delta&#34;) | .delta.text&#39;`
+    *   *Meaning:* Major simplification and robustness improvement using `jq`.
+
+5.  **Analyze Page 4: `build-with-claude/batch-processing.md`**
+    *   *Diff:* Three major sections simplified using `jq` or removing complex bash logic.
+        *   *Section 1 (Status Check):* Removed the `until` loop polling logic, replaced with a single `curl` + `jq` command to show how to check status. (Refactoring for clarity/simplicity).
+        *   *Section 2 (Pagination):* Removed the complex bash loop handling `has_more` and `after_id`. Replaced with a simple curl showing the concept, noting SDKs handle it automatically.
+        *   *Section 3 (Results):* Simplified the complex `sed`/`grep` logic for parsing JSONL results into a simple `curl` -&gt; `jq` pipeline. Also simplified the CLI example.
+    *   *Meaning:* The docs are moving away from &#34;production-ready, complex bash scripts&#34; towards &#34;simple, illustrative snippets using `jq`&#34;, relying on the reader to understand the logic or use SDKs. This makes the examples much more readable and maintainable.
+
+6.  **Synthesize Analysis:**
+
+    *   *Overall Summary:* The changes focus on refining a model allowlist logic setting and significantly modernizing code examples by replacing fragile shell string parsing with robust JSON processing (`jq`).
+    *   *Key Themes:*
+        *   **Code Example Modernization:** Shift from fragile `sed`/`grep` parsing in shell scripts to robust `jq` usage across `extended-thinking`, `streaming`, and `batch-processing` pages.
+        *   **Simplification:** Complex logic (polling loops, pagination handling) in `batch-processing` examples was stripped down to focus on the core API interaction, moving implementation details (like loops) to the reader or SDKs.
+        *   **Logic Refinement:** `enforceAvailableModels` behavior update to preserve user defaults if they are compliant.
+
+    *   *Impact Level:*
+        *   **Medium** (Behavioral change) / **Low** (Documentation cleanup).
+        *   *Reasoning:* The `enforceAvailableModels` change affects actual software behavior (likely a bug fix or feature tweak), so developers using that setting need to be aware. The code examples are just documentation improvements, but they represent a significant drop in complexity for readers.
+        *   *Decision:* **Medium** (due to the setting change). If strictly doc changes, it&#39;s Low. But setting changes usually imply software changes. The prompt asks to analyze *documentation changes*, but one of them describes a logic change. I will categorize it as **Medium** because of the logic change in `settings.md`, but note the documentation improvements are Low.
+
+    *   *Action Items:*
+        *   Review `enforceAvailableModels` configuration if you rely on &#34;Default&#34; model behavior (it might not swap anymore if your default is already allowed).
+        *   Update internal shell scripts using `grep`/`sed` to parse API responses; consider adopting `jq` for better reliability.
+        *   Review batch processing scripts if they copy-pasted the old logic; the new examples are much simpler but less &#34;turnkey&#34; for loops.
+
+7.  **Drafting the Response (in Chinese):**
+
+    *   *Summary:* 本次更新优化了 `enforceAvailableModels` 的默认模型选择逻辑，并大幅简化了代码示例，将 Shell 脚本中脆弱的文本解析替换为更健壮的 `jq` JSON 处理。
+    *   *Themes:*
+        *   代码示例现代化：全面引入 `jq` 工具替代 `sed`、`grep` 等命令行字符串处理，提升示例代码的可读性和鲁棒性。
+        *   文档简化：移除了 `batch-processing` 中复杂的轮询和分页逻辑示例，聚焦于 API 核心调用，建议开发者使用 SDK 处理复杂流程。
+        *   配置逻辑修正：微调了 `enforceAvailableModels` 设置的行为，现在会优先保留已包含在白名单中的默认模型。
+    *   *Impact:* **Medium** (中)
+        *   *Reasoning:* `settings.md` 中的逻辑变更直接影响工具行为，可能改变现有的模型降级策略。代码示例的变更虽然仅为文档层面，但显著降低了脚本的维护复杂度。
+    *   *Action Items:*
+        *   检查依赖 `enforceAvailableModels` 设置的项目，确认新的默认模型保留策略符合预期。
+        *   参考新版文档重构现有的 Shell API 脚本，采用 `jq` 处理 JSON 响应，避免因字段顺序变化导致的解析错误。
+        *   如果使用了文档中的批处理或流式处理脚本模版，需根据新示例更新，旧版复杂的循环逻辑已不再推荐。
+
+8.  **Refinement:** Ensure tone is professional and concise.
+
+    *   *Refining the `settings.md` explanation:* It changes &#34;Default option falls back to the first allowlisted entry&#34; to &#34;falls back... only when the default model... is not in the allowlist&#34;. This is a crucial nuance.
+    *   *Refining the code examples:* It&#39;s about &#34;Robustness&#34; (using `jq`) and &#34;Clarity&#34; (removing boilerplate).
+
+9.  **Final Output Generation:** (Translating thoughts to the final markdown output).
+
+    *   *Summary:* 本次更新主要包含两方面的改进：一是优化了 `enforceAvailableModels` 的配置逻辑，二是全面重构了 Shell 脚本示例，使用 `jq` 替代脆弱的正则表达式和字符串截取。
+    *   *Themes:*
+        *   **脚本健壮性提升**：在 `extended-thinking`、`streaming` 和 `batch-processing` 页面中，移除了依赖 `sed`、`grep` 和字符串截取（`${var#*...}`）的旧式 Shell 代码，改用 `jq` 进行标准 JSON 解析。
+        *   **示例代码简化**：`batch-processing` 中的示例去掉了复杂的轮询、分页循环和 JSONL 解析逻辑，专注于展示单次 API 调用，将实现复杂流程的责任移交给了 SDK 或开发者自行处理。
+        *   **模型选择逻辑微调**：`enforceAvailableModels` 现在更加智能，若用户账户类型的默认模型已在白名单中，则不再强制降级到列表中的第一个模型。
+    *   *Impact:* **Medium (中)**
+        *   *Reasoning:* `settings.md` 的变更涉及软件的实际运行逻辑（模型降级策略），对受管设置下的用户有直接影响。代码示例的重构虽然不影响现有程序，但大幅提升了文档质量，并指明了更好的脚本编写实践。
+    *   *Action Items:*
+        *   **审查模型配置**：如果您的组织使用了 `enforceAvailableModels`，请测试新的默认模型保留逻辑，确保符合预期的模型降级行为。
+        *   **升级脚本工具**：如果现有脚本或 CI 流程中直接复制了文档中的旧版 Shell 代码，建议引入 `jq` 工具并参考新文档重构解析逻辑，以提高容错率。
+        *   **关注批处理示例**：若依赖文档中的 `batch-processing` 示例进行自动轮询，请注意新版文档仅展示状态检查逻辑，不再提供完整的 `until` 循环模版。
+
+10. **Final Polish:** Check against constraints. Chinese language? Yes. Markdown? Yes. Concise? Yes.
+
+    *   *Self-Correction during drafting:* Make sure to emphasize *why* the bash change matters (it was fragile). The `settings` change is a &#34;fix&#34; or &#34;refinement&#34; to avoid unnecessary model switching.
+
+    *   *Final check on `enforceAvailableModels`:* Old: Default falls back to first allowlisted entry. New: Default falls back *only if* default is NOT in allowlist. Yes, that is correct.
+
+    Ready to output.</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/extended-thinking.html" class="page-link">build-with-claude/extended-thinking.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/streaming.html" class="page-link">build-with-claude/streaming.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/batch-processing.html" class="page-link">build-with-claude/batch-processing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+22</span>
+                            <span class="removed">-80</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">16:54 EST</div>
