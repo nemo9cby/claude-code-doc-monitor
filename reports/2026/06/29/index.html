@@ -118,9 +118,148 @@
 
         <header>
             <h1>Changes on 2026-06-29</h1>
-            <p class="meta">37 total changes in 4 runs</p>
+            <p class="meta">38 total changes in 5 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">19:58 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 1. Overall Summary
+版本 2.1.196 侧重于后台任务的稳定性、数据安全性以及用户体验的优化。该版本修复了可能导致对话数据丢失的严重 Bug，收紧了 MCP 服务器的安全审查策略，并显著提升了远程会话和后台代理的恢复能力及终端渲染性能。
+
+### 2. Key Themes
+*   **关键稳定性修复**：解决了唤醒后台任务时因误读 Transcript 导致对话被永久删除的数据灾难性 Bug；修复了远程会话中断后的自动恢复机制。
+*   **安全策略变更**：`claude mcp list`/`get` 不再自动启动仓库通过 `.claude/settings.json` 自行批准的服务器，未信任的工作区将显示“⏸ Pending approval”。
+*   **后台任务增强**：大幅提升了后台会话和代理的可靠性，现在它们能存活于进程停止/重启/更新之后（包括 Windows），且代理在守护进程重启后会自动恢复。
+*   **开发者工具修复**：修复了 PowerShell 中 `git diff`/`grep` 等命令退出码处理（现对齐 Bash 行为）、GitLab 自托管 OAuth 范围请求失败、插件验证跳过源码等问题。
+*   **性能与体验**：优化了 `/code-review` 工作流（Token 使用减少约 25%）；流式看门狗默认开启（5分钟无响应自动重试）；优化了终端 UI 渲染开销。
+
+### 3. Impact Level
+**High (高)**
+*   **理由**：
+    1.  **数据安全**：修复了“唤醒后台任务永久删除对话”的严重 Bug，这对用户数据至关重要。
+    2.  **安全变更**：MCP 服务器启动逻辑的改变（不再信任仓库自批准设置）可能会破坏现有的自动化工作流，需要开发者介入确认。
+    3.  **可靠性提升**：后台任务的持久化和自动恢复能力是开发体验的重大改进。
+
+### 4. Action Items for Developers
+*   **审核 MCP 权限**：检查现有的 MCP 服务器配置，未被信任的工作区现在会显示为“Pending approval”，需在 Org console 或本地手动审批。
+*   **调整超时设置**：流式看门狗默认开启（5分钟超时），如果您的长运行任务因此中断，请设置环境变量 `CLAUDE_ENABLE_STREAM_WATCHDOG=0`。
+*   **更新操作习惯**：了解新的 UI 交互，例如从前台会话打开 Agents 现在只需按一次 `←`；停止后台代理建议使用 `Ctrl+C`。
+*   **验证 PowerShell 环境**：Windows 用户应验证 `git diff`、`egrep` 等包含 `|` 的命令是否不再被错误报告为失败。
+*   **检查远程控制**：如果使用了自定义 `ANTHROPIC_BASE_URL`，请注意 Remote Control 现在会被禁用。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer, expert in dev tools/docs.
+    *   **Input:** A changelog diff for version 2.1.196.
+    *   **Output Language:** Chinese.
+    *   **Format:** Markdown, concise, insightful.
+    *   **Structure:** Overall Summary, Key Themes, Impact Level, Action Items.
+
+2.  **Analyze the Input (CHANGELOG.md.md diff):**
+    *   *Version:* 2.1.196.
+    *   *New Features:* Organization default models, readable default session names, clickable file attachments.
+    *   *Security:* `claude mcp list`/`get` no longer spawns servers from untrusted/repo-approved `.claude/settings.json` (pending approval required).
+    *   *Bug Fixes:*
+        *   Waking background jobs deleting conversation (critical data loss bug fixed).
+        *   Rate limit warning flickering/telemetry over-counting.
+        *   Duplicate recap lines.
+        *   PowerShell git diff/grep exit code handling (exit 1 is not failure).
+        *   `claude agents` side panel issues (focus, subagent types, status).
+        *   `--dangerously-skip-permissions` falling back to auto mode.
+        *   Mid-turn crash recovery for Remote sessions.
+        *   Sessions moved with `/cd` reappearing incorrectly.
+        *   `claude plugin validate` skipping local plugins.
+        *   `Esc Esc` regression, Ctrl+C for background agents.
+        *   MCP OAuth scope issues (GitLab enterprise).
+        *   `/context` token count on Bedrock.
+        *   `/deep-research` verifier failure messages.
+        *   Plugin dependency version pins.
+        *   `claude agents` session status labels.
+        *   Voice dictation swallowing spaces.
+    *   *Improvements:*
+        *   Background session reliability (survive restart/kill, Windows support).
+        *   Background agents auto-resume after daemon restart.
+        *   `/code-review` workflow efficiency (25% token reduction).
+        *   TUI rendering performance (skipping no-op subtrees).
+        *   Streaming idle watchdog default enabled (5 min timeout).
+        *   Remote Control disabled for non-Anthropic hosts.
+        *   UI change: opening agents view requires one `←` press.
+
+3.  **Synthesize - Overall Summary:**
+    *   Version 2.1.196 focuses heavily on stability, reliability (especially for background tasks and Remote sessions), and security hardening regarding MCP servers. It also introduces user experience improvements like organization defaults and UI refinements.
+
+4.  **Synthesize - Key Themes:**
+    *   *Reliability &amp; Resilience:* Fixes for data loss (waking jobs), crash recovery, background job survival across restarts.
+    *   *Security:* Tightening MCP server spawning rules to prevent untrusted execution.
+    *   *Tooling &amp; Agents:* Fixes for `claude agents`, PowerShell compatibility, and plugin validation.
+    *   *UX &amp; Performance:* Better session naming, TUI performance, `/code-review` efficiency.
+    *   *Cloud Integration:* Bedrock token fixes, GitLab OAuth fixes, Remote Control behavior.
+
+5.  **Synthesize - Impact Level:**
+    *   *Level:* High.
+    *   *Reasoning:* It fixes a critical bug where waking a background job could permanently delete a conversation (data loss). It changes security defaults regarding MCP server spawning. It significantly improves the reliability of background processes.
+
+6.  **Synthesize - Action Items:**
+    *   Review `.claude/settings.json` if using MCP, as untrusted servers now require manual approval.
+    *   Note the new environment variable `CLAUDE_ENABLE_STREAM_WATCHDOG=0` if the 5-minute timeout causes issues.
+    *   Update user behavior regarding background agents (Ctrl+C to stop, auto-resume functionality).
+    *   Be aware of the UI change (single `←` to open agents view).
+
+7.  **Drafting the Response (in Chinese):**
+
+    *   *Summary:* 版本 2.1.196 侧重于后台任务的稳定性、数据安全性以及用户体验的优化。它修复了可能导致对话丢失的关键 Bug，加强了 MCP 服务器的安全审查，并提升了远程会话和代理 的恢复能力。
+
+    *   *Themes:*
+        *   **稳定性与可靠性**：修复了唤醒后台任务导致对话永久删除的严重 Bug；大幅改进了后台会话在进程终止或重启后的存活与自动恢复能力。
+        *   **安全性增强**：收紧了 MCP 服务器启动策略，现在不再自动执行仓库通过 `.claude/settings.json` 自批准的 `.mcp.json` 服务器，需手动审批。
+        *   **开发者工具修复**：修复了 PowerShell 中 git 命令退出码处理、插件验证跳过、OAuth 授权范围请求等多个开发者工具层面的兼容性问题。
+        *   **体验与性能优化**：改进了 `/code-review` 工作流的 Token 效率，默认开启流式看门狗超时机制，并优化了终端 UI 渲染。
+
+    *   *Impact:* High (高)。
+        *   *Reasoning:* 此版本包含了一个针对“唤醒后台任务导致对话永久删除”的关键修复，直接影响数据安全。同时，MCP 服务器启动逻辑的安全变更可能会影响现有的自动化工作流，需要开发者关注。
+
+    *   *Action Items:*
+        *   检查 MCP 配置：确认仓库中的 `.claude/settings.json` 不会被自动信任，如有需要请手动审批新出现的“Pending approval”服务器。
+        *   留意超时机制：流式看门狗默认开启（5分钟），如果您的长任务受此影响，请设置环境变量 `CLAUDE_ENABLE_STREAM_WATCHDOG=0`。
+        *   使用后台代理：了解后台代理现在会在守护进程重启后自动恢复，停止它们请使用 `Ctrl+C`。
+        *   测试 PowerShell 环境：如果在 Windows 上运行，验证 `git diff`/`grep` 等命令的行为是否符合预期（现已对齐 Bash 行为）。
+
+8.  **Final Review:** Does the output match the constraints? Yes. Concise, markdown, Chinese, insightful.
+
+    *   *Self-Correction during drafting:* Ensure the &#34;Esc Esc&#34; fix is mentioned as a regression fix. Ensure the significance of the &#34;waking a background job deleting conversation&#34; fix is highlighted as a major reason for the High impact. Mention the UI change for agents view.
+
+9.  **Final Polish:** (Proceed to generate output based on drafted points).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+28</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">18:51 EST</div>
