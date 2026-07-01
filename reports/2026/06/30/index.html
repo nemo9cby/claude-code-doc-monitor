@@ -118,9 +118,110 @@
 
         <header>
             <h1>Changes on 2026-06-30</h1>
-            <p class="meta">68 total changes in 5 runs</p>
+            <p class="meta">69 total changes in 6 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">20:02 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">1. **Overall Summary**
+本次文档更新主要澄清了 `PreToolUse` 钩子的触发边界（指出 `@` 引用不会触发工具调用），并修正了在 `settings.json` 中通过 PowerShell 访问项目根目录环境变量时的语法说明。
+
+2. **Key Themes**
+*   **钩子执行逻辑与限制：** 明确了通过 `@` 引用的文件是在构建 prompt 时直接插入内容，不会产生工具调用，因此不会触发 `PreToolUse` 钩子（包括匹配 `Read` 的钩子）。
+*   **PowerShell 作用域问题：** 解释了 PowerShell 在 shell 模式下将 `${CLAUDE_PROJECT_DIR}` 视为本地变量而非环境变量，导致 `settings.json` 中的钩子无法正确读取路径。
+
+3. **Impact Level**
+**Medium (中等)**
+虽然不是 API 的破坏性变更，但这修正了开发者容易产生的两个误解：一是以为可以通过 Hook 拦截 `@` 引用，二是 PowerShell 脚本因变量语法错误而失败。这对配置自动化流程和安全权限的开发者至关重要。
+
+4. **Action items**
+*   **审查权限控制：** 如果之前试图通过 `PreToolUse` Hook 来拦截通过 `@` 引用的敏感文件，请改为使用权限配置中的 [`Read` deny 规则](/en/permissions#read-and-edit)。
+*   **修复 PowerShell 脚本：** 检查定义在 `settings.json` 中的 PowerShell 钩子，将裸变量形式 `${CLAUDE_PROJECT_DIR}` 修改为环境变量形式 `$env:CLAUDE_PROJECT_DIR`。
+*   **考虑切换执行形式：** 或者，将钩子配置切换为 [exec form](/en/permissions#read-and-edit)，以便在 `args` 元素中使用变量替换功能。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Input:** A diff of a single file (`hooks.md`).
+    *   **Language:** Chinese (requested: &#34;请用中文回复&#34;).
+    *   **Format:** Concise markdown.
+    *   **Structure:**
+        1.  Overall Summary (1-2 sentences).
+        2.  Key Themes (bullets).
+        3.  Impact Level (Low/Medium/High/Breaking) with reasoning.
+        4.  Action Items (bullets, max 5).
+
+2.  **Analyze the Diff (`hooks.md`):**
+
+    *   *Change 1 (Line 1328-1333):* Added a `&lt;Warning&gt;` block regarding `PreToolUse`.
+        *   *Content:* `PreToolUse` only runs when a *tool call* occurs. Files referenced with `@` are inserted into the prompt directly without a tool call. Therefore, `PreToolUse` (even for `Read` hooks) does *not* fire for `@` references. To block paths from `@`, use a `Read` deny rule.
+        *   *Significance:* Corrects a potential misunderstanding about when hooks trigger versus how context injection works.
+
+    *   *Change 2 (Line 3034-3048):* Added a section about referencing the project root (`CLAUDE_PROJECT_DIR`) in PowerShell hooks.
+        *   *Content:* PowerShell treats `${CLAUDE_PROJECT_DIR}` as a local variable in shell form. To access the environment variable, use `$env:CLAUDE_PROJECT_DIR`. Note: `${...}` substitution in shell form only works for plugin hooks. For `settings.json` hooks, use `$env:` or switch to `exec` form.
+        *   *Significance:* Specific technical fix for PowerShell users writing hooks in `settings.json`. Explains the difference between shell form and exec form regarding variable substitution.
+
+3.  **Draft the Content (Internal Monologue/Translation):**
+
+    *   *Summary:* The documentation clarifies when `PreToolUse` hooks are triggered (specifically excluding `@` file references) and provides instructions for correctly accessing the project root directory in PowerShell hooks defined in `settings.json`.
+    *   *Themes:* Hook execution lifecycle (when they don&#39;t run), Platform-specific syntax (PowerShell variable scoping).
+    *   *Impact:* Medium/High for PowerShell users, Medium for logic correctness (security/permissions). Let&#39;s go with **Medium**. It&#39;s not a breaking change to the API, but it fixes logic bugs developers might write (expecting hooks to fire on `@`, or failing PowerShell scripts due to missing env vars).
+    *   *Action Items:*
+        *   Review `PreToolUse` logic if expecting to intercept `@` references.
+        *   Update PowerShell hooks to use `$env:CLAUDE_PROJECT_DIR` instead of `${CLAUDE_PROJECT_DIR}` in `settings.json`.
+        *   Consider using `exec` form if variable substitution is preferred.
+
+4.  **Refine and Translate to Chinese:**
+
+    *   *Summary:* 本次文档更新阐明了 `PreToolUse` 钩子的触发时机（明确排除了通过 `@` 引用的文件），并提供了在 `settings.json` 中定义 PowerShell 钩子时正确访问项目根目录（`CLAUDE_PROJECT_DIR`）的指导。
+    *   *Themes:*
+        *   **Hook 生命周期与边界：** 明确了 `@` 引用不会触发工具调用，因此 `PreToolUse` 无法拦截。
+        *   **PowerShell 环境变量处理：** 解决了在 `settings.json` 中使用 shell 形式运行 PowerShell 时访问 `CLAUDE_PROJECT_DIR` 的语法问题。
+    *   *Impact:* **中等**。虽然不是破坏性变更，但解决了常见的逻辑误区和环境变量配置错误，直接影响基于 hooks 的安全控制和脚本执行。
+    *   *Action Items:*
+        *   如果依赖 `PreToolUse` 来监控或拦截 `Read` 操作，请改用权限中的 `Read` deny 规则来处理 `@` 引用。
+        *   检查定义在 `settings.json` 中的 PowerShell 钩子，将 `${CLAUDE_PROJECT_DIR}` 替换为 `$env:CLAUDE_PROJECT_DIR`。
+        *   或考虑将 PowerShell 钩子切换为 `exec` 形式以利用变量替换功能。
+
+5.  **Final Review against Constraints:**
+    *   Concise? Yes.
+    *   Insightful? Yes, addresses the &#34;why&#34; (PowerShell local var vs env var, direct prompt injection).
+    *   Markdown format? Yes.
+    *   Chinese? Yes.
+    *   Max 5 action items? Yes (3 items).
+
+6.  **Generate Output.** (Proceed to generate the markdown response).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">18:13 EST</div>
