@@ -118,9 +118,120 @@
 
         <header>
             <h1>Changes on 2026-07-01</h1>
-            <p class="meta">20 total changes in 3 runs</p>
+            <p class="meta">21 total changes in 4 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">22:46 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 整体摘要
+文档阐明了组织模型限制的实施范围与方式，区分了企业版（服务端强制）与非企业版（客户端配置）的机制，并更正了此前关于控制台功能及凭证行为的描述。
+
+### 核心变更主题
+*   **机制分流**：明确仅 Claude Enterprise 计划可通过 `claude.ai admin console` 进行服务端限制；其他组织（包括通过 Anthropic API 认证者）必须通过 `managed settings` 文件中的 `availableModels` 进行客户端限制。
+*   **凭证作用域**：明确指出限制仅对用户登录或个人 API Key 生效；组织服务密钥由于不绑定用户，会**绕过**这些限制。
+*   **术语修正**：移除了关于“Claude Console”具有模型控制开关的错误描述，澄清该控制仅存在于 Enterprise 的 `claude.ai admin console` 中。
+
+### 影响等级
+**中等**
+**原因**：旧文档暗示所有组织（特别是通过 API 认证者）都可以使用控制台开关进行限制，这在事实上是不正确的。新文档纠正了这一误解，直接导致非 Enterprise 用户必须更改管理模型访问的方式（转而使用配置文件）。此外，关于服务密钥绕过限制的说明对安全审计至关重要。
+
+### 开发者行动项
+*   **非 Enterprise 组织**：请勿寻找控制台开关，转而在设置文件中使用 `availableModels` 和 `enforceAvailableModels` 来限制模型选择。
+*   **安全审查**：管理员应知晓，使用组织服务密钥的应用程序不会受到针对普通成员的模型限制策略的约束。
+*   **版本要求**：若使用 Enterprise 的服务端限制功能，请确保 Claude Code 客户端版本至少为 v2.1.187。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the User&#39;s Request:**
+    *   **Role:** World-class programmer with deep expertise in developer tools and documentation.
+    *   **Task:** Analyze documentation changes in a batch (single page provided) and summarize changes and significance.
+    *   **Language:** Chinese (requested by &#34;请用中文回复&#34;).
+    *   **Input:** A single diff of `model-config.md` regarding organization model restrictions.
+    *   **Output Format:** Markdown with specific sections: Overall Summary, Key Themes, Impact Level with reasoning, and Action Items.
+
+2.  **Analyze the Diff:**
+    *   **Context:** Section &#34;Organization model restrictions&#34; in `model-config.md`.
+    *   **Old Text:** &#34;Organization admins restrict which models members can run by disabling individual models in the Claude Console. Use this Console toggle instead of `availableModels` when your members authenticate through the Anthropic API and you want one org-wide switch without deploying settings files. This restriction is delivered with the account&#39;s entitlements when Claude Code authenticates, separate from any `availableModels` list in settings, and the server enforces the same restriction independently when a session is created. Requires Claude Code v2.1.187 or later.&#34;
+    *   **New Text:**
+        *   *Sentence 1:* Changed &#34;Claude Console&#34; to &#34;claude.ai admin console&#34;. Added requirement &#34;on Claude Enterprise plans&#34;. Removed the confusing sentence about using it for Anthropic API users to avoid settings files.
+        *   *Sentence 2 (New):* Clarifies that the restriction applies to user logins or personal API keys. Crucially, it states that **organization service keys (organization-scoped credentials) are NOT affected** by this restriction.
+        *   *Sentence 3 (New):* Explicitly states &#34;The Claude Console has no model restriction control&#34; (contradicting the old text which said otherwise).
+        *   *Sentence 4 (New):* Explains what non-Enterprise orgs or Anthropic API users should do: Use [`availableModels`](#restrict-model-selection) in [managed settings](/en/settings#settings-files) + [`enforceAvailableModels`](#enforce-the-allowlist-for-the-default-model). It notes this is enforced by Claude Code, not the server.
+    *   **Paragraph 2 (Unchanged):** Explains user behavior when a restricted model is selected.
+
+3.  **Synthesize the Analysis:**
+
+    *   **Overall Summary:** The documentation clarifies the distinction between server-side model restrictions for Enterprise users and client-side restrictions for others. It corrects previous misinformation about the Claude Console capabilities and clarifies scope regarding credentials.
+
+    *   **Key Themes:**
+        *   *Scope Clarification:* Enterprise plans get server-side enforcement via admin console; others get client-side enforcement via settings files.
+        *   *Credential Behavior:* User-based auth (login/API key) is restricted; Org service keys bypass these restrictions.
+        *   *Correction:* Removed reference to &#34;Claude Console&#34; having model restriction controls; corrected to &#34;claude.ai admin console&#34; specifically for Enterprise.
+
+    *   **Impact Level:** **Medium**.
+        *   *Reasoning:* The old text was misleading. It suggested a toggle existed in the Claude Console for API users, which the new text refutes. Developers relying on the old text might be confused why their restrictions aren&#39;t working as expected or might be using service keys thinking they are restricted. This changes the implementation logic for non-Enterprise orgs (need to use settings files).
+
+    *   **Action Items:**
+        *   Non-Enterprise organizations must use `availableModels` and `enforceAvailableModels` in settings files instead of looking for a console toggle.
+        *   Admins should note that organization service keys bypass user-level model restrictions.
+        *   Developers need to ensure they are on Claude Code v2.1.187 or later for the server-side restriction feature (if on Enterprise).
+
+4.  **Drafting the Response (in Chinese):**
+
+    *   *Summary:* 更新阐明了组织模型限制的范围和执行方式。明确了 Enterprise 用户的限制是在服务端通过 admin console 施加的，而其他用户需通过配置文件由客户端限制，并更正了服务密钥（Organization Service Keys）不受此限制的说明。
+    *   *Key Themes:*
+        *   明确 Enterprise 与非 Enterprise 用户的限制实施路径不同（服务端 vs 客户端配置）。
+        *   纠正了“Claude Console”具有模型控制功能的说法，指实为 claude.ai admin console。
+        *   区分了用户凭证（受限制）与组织服务密钥（不受限制）的行为差异。
+    *   *Impact:* Medium. 旧文档关于 API 用户可以使用 Console 开关的描述是不准确的，新文档纠正了这一点。这直接影响了非 Enterprise 组织如何实施模型限制策略。
+    *   *Action Items:*
+        *   非 Enterprise 组织应转而使用 `availableModels` 和 `enforceAvailableModels` 配置项来限制模型。
+        *   管理员需注意组织服务密钥（Organization Service Keys）会绕过用户级别的模型限制。
+        *   Enterprise 用户需确保 Claude Code 版本在 v2.1.187 或更高以支持服务端限制。
+
+5.  **Review against constraints:**
+    *   Concise? Yes.
+    *   Insightful? Yes, caught the credential nuance.
+    *   Markdown format? Yes.
+    *   Chinese language? Yes.
+    *   Max 5 action items? Yes (3 items).
+
+6.  **Final Polish:** Ensure terms like &#34;claude.ai admin console&#34; and &#34;managed settings&#34; are clear.
+
+    *   *Refined Summary:* 文档阐明了企业版与非企业版组织在模型限制机制上的区别，修正了关于控制台功能的描述，并明确指出组织服务密钥不受用户级限制的影响。
+    *   *Refined Impact:* Medium. 对非 Enterprise 用户影响较大，因为实现方式从“控制台开关”变成了“配置文件”。
+
+7.  **Final Output Generation.** (Proceeding to generate output based on the drafted points).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/model-config.html" class="page-link">model-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">17:22 EST</div>
