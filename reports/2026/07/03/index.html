@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026-07-03 - Documentation Changes</title>
+    <style>
+        :root {
+            --bg-color: #1a1a2e;
+            --card-bg: #16213e;
+            --text-color: #eee;
+            --accent: #0f3460;
+            --add-text: #4ade80;
+            --del-text: #f87171;
+            --time-color: #60a5fa;
+        }
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg-color: #f5f5f5;
+                --card-bg: #fff;
+                --text-color: #333;
+                --accent: #e0e0e0;
+                --add-text: #155724;
+                --del-text: #721c24;
+                --time-color: #2563eb;
+            }
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+        .container { max-width: 800px; margin: 0 auto; }
+        header { margin-bottom: 2rem; }
+        h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+        .meta { color: #888; }
+        .batch { margin-bottom: 2rem; }
+        .batch-header {
+            color: var(--time-color);
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--accent);
+        }
+        .page-list { list-style: none; }
+        .page-item {
+            background: var(--card-bg);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .page-item:hover { background: var(--accent); }
+        .page-link {
+            color: var(--text-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .page-summary { color: #888; font-size: 0.9rem; }
+        .added { color: var(--add-text); }
+        .removed { color: var(--del-text); }
+        a { color: #60a5fa; }
+        .back-link { margin-bottom: 1rem; display: inline-block; }
+        .page-item-content { flex: 1; }
+        .page-analysis {
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: 0.25rem;
+        }
+        .source-section {
+            margin-bottom: 1.5rem;
+        }
+        .source-header {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: #8b5cf6;
+        }
+        .batch-analysis {
+            background: var(--card-bg);
+            border-left: 3px solid #22c55e;
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            margin: 0.75rem 0 1rem 0;
+        }
+        .batch-analysis h4 {
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+        .batch-analysis-content {
+            white-space: pre-wrap;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        .reasoning-section {
+            margin-top: 1rem;
+            padding-top: 0.75rem;
+            border-top: 1px dashed var(--accent);
+            font-size: 0.85rem;
+            color: #888;
+        }
+        .reasoning-section summary {
+            cursor: pointer;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../../../index.html" class="back-link">&larr; All reports</a>
+
+        <header>
+            <h1>Changes on 2026-07-03</h1>
+            <p class="meta">20 total changes in 1 run</p>
+        </header>
+
+        
+        <div class="batch">
+            <div class="batch-header">00:37 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 总体摘要
+本次文档更新主要涵盖 **v2.1.198** 和 **v2.1.199** 版本的重要变更。核心亮点包括：大幅增强了沙箱环境下的凭证安全防护（支持凭证掩码）、移除了 `/agents` 交互式创建向导并改变 Agent 发现方式、新增了 MCP 工具的强制人工批准机制，以及 Skills 的堆叠调用支持。
+
+### 关键主题
+*   **安全与隔离增强**: 引入沙箱 `sandbox.credentials` 的 `mask` 模式，允许在代理时注入凭证但隐藏真实值，且配合 `tlsTerminate` 防止泄露。同时 MCP 工具现在支持通过 `_meta` 标记强制要求用户批准。
+*   **Agent 工作流重构**: `/agents` 命令不再打开交互式向导，改为直接让 Claude 生成或手动编辑文件。Agent 的发现位置从 `/agents` 转移至 `/context` 菜单或通过 `@` 提及。Explore Agent 现在继承主会话模型（上限为 Opus），而非强制使用 Haiku。
+*   **开发者体验 (DX) 改进**: Chrome 集成移除 Beta 标签，正式发布。Skills 支持在单条指令中堆叠调用（如 `/s1 /s2 args`）。内存匹配现在支持符号链接。Teleport 对 SSH 别名和 Git 重写格式的支持更完善。
+*   **模型与配置优化**: 组织默认模型设置权重增加。MCP 工具的 `anyOf`/`oneOf` 根级组合子现在会被自动扁平化以兼容 API。
+
+### 影响级别：**Medium**
+*   **理由**: 尽管大部分是新增功能，但移除 `/agents` 向导改变了用户习惯的文档操作流程；Explore Agent 的模型变更会影响成本和延迟；NPM 安装对 Node.js 版本的要求提升至 v22+ 属于依赖性变更；MCP 的模式变更可能影响现有工具的兼容性（虽已做向后兼容处理）。
+
+### 开发者行动项
+1.  **升级 Node.js**: 如果通过 NPM 安装 Claude Code，请将 Node.js 升级至 **v22 或更高版本**。
+2.  **更新 Agent 创建流程**: 停止依赖 `/agents` 向导，改用对话指令生成或直接编辑 Markdown 文件。
+3.  **启用凭证掩码**: 检查沙箱配置，尝试使用新的 `mask` 模式保护敏感环境变量，并配置 `tlsTerminate`。
+4.  **审查 MCP 权限**: 对于涉及高敏感操作的工具，添加 `_meta[&#34;anthropic/requiresUserInteraction&#34;]` 注解以强制人工确认。
+5.  **利用新特性**: 测试 Skills 堆叠调用（`/skill1 /skill2 args`）以简化多步骤任务，并验证 Chrome 集成的稳定性。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer/analyst.
+    *   **Task:** Analyze a batch of 20 documentation changes (diffs provided).
+    *   **Output:** Concise, insightful analysis in Markdown.
+    *   **Language:** Chinese.
+    *   **Structure:**
+        1.  Overall Summary.
+        2.  Key Themes.
+        3.  Impact Level (Low/Medium/High/Breaking) with reasoning.
+        4.  Action Items (max 5).
+
+2.  **Initial Scan &amp; Page-by-Page Analysis:**
+
+    *   `amazon-bedrock.md`: Minor text change (&#34;Bedrock&#34; -&gt; &#34;API&#34;). Low impact.
+    *   `chrome.md`: Removed &#34;(beta)&#34; tag. Added &#34;Browser tools in plan mode&#34; section (read-only vs state-changing). Added v2.1.199 specific behavior about extension installation prompts. *Actionable: Browser integration is stable now, new permission behaviors.*
+    *   `claude-code-on-the-web.md`: Updated Teleport requirements table. Added min-version note 2.1.199 for SSH host aliases/rewritten forms. *Actionable: Teleport works better with git aliases.*
+    *   `cli-reference.md`: Added note about `--dangerously-skip-permissions daemon` behavior in 2.1.199. Added note about `--bg`/`--print` incompatibility in 2.1.198.
+    *   `desktop.md`: Removed `/agents` from the list of unavailable terminal-dialog commands (implied removal of support for that specific command in desktop context? Or just listing what *is* available? Actually, it removed `/agents` from the list of &#34;commands that open an interactive panel... are not available&#34;. Wait, let&#39;s look closer. Original: &#34;/permissions, /config, /agents, and /doctor&#34;. New: &#34;/permissions, /config, and /doctor&#34;. So `/agents` *was* removed from the list of *unavailable* commands? Or removed from the list of examples? The context is &#34;built-in commands that open an interactive panel... are not available&#34;. If `/agents` is removed, does that mean `/agents` *is* now available? Or just removed from the list? Let&#39;s check `sub-agents.md`. Ah, `sub-agents.md` says &#34;As of v2.1.198, the /agents command no longer opens the interactive creation wizard&#34;. So in Desktop, `/agents` command might still not be useful, or maybe they just cleaned up the list because the wizard is gone. Actually, `desktop.md` says commands *are not available*. It removed `/agents`. This implies `/agents` might be available or at least not relevant as an example anymore. Given `sub-agents.md` says the wizard is removed, the desktop removal likely aligns with deprecating the wizard usage, or it&#39;s just a documentation cleanup. *Impact: Low/Medium clarification.*
+    *   `hooks.md`: Updated lifecycle description format. Added `agent_needs_input`, `agent_completed` to `Notification` event matchers. Added v2.1.199 note about `CLAUDE_CODE_BRIDGE_SESSION_ID` env var. *Actionable: New hooks available for agent state.*
+    *   `hooks-guide.md`: Updated `Notification` matchers table with `agent_needs_input`, `agent_completed`. Added min-version note 2.1.198. Minor text rephrasing. *Actionable: New hooks for agent view.*
+    *   `mcp.md`: Added section &#34;Tool input schemas with a root-level combinator&#34; (anyOf/oneOf/allOf flattening in v2.1.195). Added section &#34;Require approval for a specific tool&#34; (`anthropic/requiresUserInteraction` in v2.1.199). *Actionable: Better MCP schema support, new permissions feature for MCP tools.*
+    *   `memory.md`: Added v2.1.198 note about symlink support for memory matching. *Actionable: Memory works with symlinks.*
+    *   `model-config.md`: Updated `default` alias description. Added notes about organization default model overrides. Added v2.1.199 note about custom model IDs appearing in picker. *Actionable: Model selection refinements for admins and users.*
+    *   `monitoring-usage.md`: Updated retry logic description regarding `CLAUDE_CODE_RETRY_WATCHDOG` in v2.1.199.
+    *   `plugins.md`: Changed `/agents` references to `/context` or `@-mention`. The wizard is gone, so discovery is now via context menu. *Actionable: Workflow change for finding agents.*
+    *   `plugins-reference.md`: Updated agent integration point description (removed `/agents` reference, added typeahead).
+    *   `sandboxing.md`: Added `mask` mode for `sandbox.credentials` (v2.1.199). This allows hiding credentials while injecting them for specific hosts via the proxy. Requires `tlsTerminate`. *Actionable: New security feature for sandbox.*
+    *   `settings.md`: Updated `enforceAvailableModels` description regarding org defaults. (Diff cuts off, but context is clear).
+    *   `setup.md`: Removed redundant `theme={null}` attributes in code blocks (cleanup). Updated Node.js requirement to v22+ for npm package (v2.1.198). *Actionable: Node.js version requirement bump.*
+    *   `skills.md`: Added ability to stack skills (e.g., `/skill1 /skill2 args`) in v2.1.199. `off` mode now hides from Remote Control/SDK. *Actionable: UX improvement for skills.*
+    *   `slash-commands.md`: (Same content as skills.md regarding stacking).
+    *   `sub-agents.md`: Major restructure. Removed `/agents` wizard instructions (replaced with &#34;Ask Claude&#34;). Updated &#34;Explore&#34; agent description (now inherits model, capped at Opus). Added v2.1.198 note. *Actionable: Significant workflow change for creating agents.*
+    *   `third-party-integrations.md`: Updated list of services supported by apps gateway (added Claude Platform on AWS).
+
+3.  **Synthesize Themes:**
+
+    *   **Version 2.1.198/2.1.199 Features:** A lot of specific version callouts. Key features include MCP schema flattening, credential masking in sandboxes, skill stacking, new agent hooks, and Explore agent model changes.
+    *   **Workflow Changes:** The `/agents` wizard is removed/replaced by asking Claude directly or editing files. Agents are now discovered via `/context` or `@-mention`.
+    *   **Security &amp; Permissions:** New MCP tool approval flag (`requiresUserInteraction`), credential masking in sandboxes (`mask` mode), and TLS termination support.
+    *   **Git/Workflow Improvements:** Teleport handles git aliases better (SSH). Memory works with symlinks. Node.js v22 requirement.
+    *   **Model Configuration:** Organization defaults have more weight, and specific model IDs show in pickers.
+
+4.  **Determine Impact Level:**
+
+    *   **Medium/High:** Removal of the `/agents` wizard is a breaking change to the documented workflow, even if the underlying mechanism (files) remains. The MCP schema flattening fixes potential breakage for tools. The sandbox credential masking is a significant new security feature.
+    *   *Verdict:* **Medium**. There are significant new features and a shift in the documented &#34;happy path&#34; for creating agents, but existing configurations (agent files) still work.
+
+5.  **Draft Action Items:**
+
+    *   Update Node.js to v22+ if using npm installation.
+    *   Update agent creation workflows (stop using the removed `/agents` wizard).
+    *   Review new MCP `requiresUserInteraction` annotation for sensitive tools.
+    *   Explore the new credential `mask` mode in sandboxing for better security.
+    *   Test skill stacking (`/s1 /s2 args`) for improved workflows.
+
+6.  **Translate and Refine (Chinese):**
+
+    *   *Summary:* 此次更新主要集中在 v2.1.198 和 v2.1.199 版本的新特性上。主要变化包括移除了 `/agents` 交互式向导、增强了沙箱安全凭证屏蔽功能、改进了 MCP 工具的模式处理，以及引入了 Agent 和 Skills 的新交互方式。
+    *   *Themes:* Agent 创建方式变革，沙箱与安全增强，MCP 与模型配置优化，开发者体验改进.
+    *   *Impact:* Medium. The removal of the wizard and Node.js version bump require attention.
+    *   *Action Items:* (Refine the list).
+
+7.  **Final Review of specific diffs:**
+    *   *Chrome:* Beta tag removed. Plan mode logic detailed.
+    *   *Sub-agents:* Explore agent now inherits model (capped at Opus). This is a behavior change (was Haiku). Important for cost/latency.
+    *   *Sandboxing:* `mask` mode is huge for security. Allows running authenticated commands without exposing secrets to the LLM/logs if configured right.
+
+8.  **Constructing the Markdown (Mental Draft -&gt; Final Output):**
+
+    *   *Overall Summary:* This batch highlights version 2.1.198 and 2.1.199, introducing significant security enhancements (sandbox credential masking), workflow shifts (removing the `/agents` wizard), and new productivity features (skill stacking, MCP schema flattening).
+    *   *Key Themes:*
+        *   **Security Isolation:** New `mask` mode for sandbox credentials allows tools to authenticate without exposing secrets to the agent.
+        *   **Workflow Changes:** The `/agents` terminal wizard is deprecated; creation is now done via conversation prompts or manual file editing. Discovery moved to `/context` or `@-mention`.
+        *   **Agent &amp; Skill Enhancements:** Explore agent now inherits the session model (capped at Opus). Skills can now be stacked in a single command.
+        *   **MCP &amp; Integrations:** MCP tools with root-level schema combinators (`anyOf`/`oneOf`) are now supported via flattening. New `_meta` flag to force user approval.
+        *   **Environment Updates:** NPM install now requires Node.js 22+. Chrome integration is now stable (beta tag removed).
+    *   *Impact Level:* **Medium**. Reasoning: While mostly additive, the removal of the `/agents` wizard changes the documented UX, and the Explore agent&#39;s model switch affects cost/latency. The Node.js requirement is a hard dependency change.
+    *   *Action Items:*
+        1.  Update Node.js to v22 or later if installing via npm.
+        2.  Update documentation/internal guides to reflect the removal of the `/agents` wizard.
+        3.  Review the new `sandbox.credentials` `mask` mode for securing tokens in sensitive environments.
+        4.  Test the `anthropic/requiresUserInteraction` MCP annotation for critical tools requiring explicit human approval.
+        5.  Leverage the new skill stacking syntax (`/skill1 /skill2 args`) to streamline multi-step workflows.
+
+9.  **Formatting output in Chinese.** (Self-correction: Ensure technical terms like &#34;Plan mode&#34;, &#34;MCP&#34;, &#34;Sandboxing&#34; are handled well, usually keeping English terms or standard translations).
+
+    *   *Refining the &#34;Explore agent&#34; point:* It inherits the main session model. This means if you use Sonnet, Explore uses Sonnet (not Haiku anymore). This could increase costs but improve quality.
+    *   *Refining &#34;Chrome&#34;:* Beta tag removed implies it&#39;s production ready.
+
+    (Proceeding to generate output based on these points).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/amazon-bedrock.html" class="page-link">amazon-bedrock.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/chrome.html" class="page-link">chrome.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/claude-code-on-the-web.html" class="page-link">claude-code-on-the-web.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/cli-reference.html" class="page-link">cli-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/desktop.html" class="page-link">desktop.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+172</span>
+                            <span class="removed">-145</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+54</span>
+                            <span class="removed">-54</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+18</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/memory.html" class="page-link">memory.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/model-config.html" class="page-link">model-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+35</span>
+                            <span class="removed">-7</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins.html" class="page-link">plugins.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sandboxing.html" class="page-link">sandboxing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+19</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+43</span>
+                            <span class="removed">-30</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/setup.html" class="page-link">setup.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+68</span>
+                            <span class="removed">-57</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/third-party-integrations.html" class="page-link">third-party-integrations.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
+        
+    </div>
+</body>
+</html>
