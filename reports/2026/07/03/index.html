@@ -118,9 +118,277 @@
 
         <header>
             <h1>Changes on 2026-07-03</h1>
-            <p class="meta">21 total changes in 2 runs</p>
+            <p class="meta">33 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">20:00 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更分析
+
+## 1. 总体摘要
+本次文档更新主要围绕 **v2.1.200** 版本发布，核心变更包括将 `--remote` CLI 标志重命名为 `--cloud`，扩展了 `modelOverrides` 的适用范围（现支持 CLI 标志和环境变量），并统一了权限模式中 &#34;Manual&#34; 与 &#34;default&#34; 的术语对应关系。
+
+## 2. 关键主题
+*   **CLI 标志重命名**: 将启动云会话的参数从 `--remote` 更名为 `--cloud`，旧参数作为已弃用的别名保留。
+*   **模型配置与覆盖逻辑 (v2.1.200)**:
+    *   `modelOverrides` 现在不仅应用于 `/model` 选择器，还应用于通过 `--model`、`ANTHROPIC_MODEL` 或相关环境变量传递的 ID。
+    *   在 Amazon Bedrock 等第三方提供商上，未覆盖的 Anthropic 模型 ID 现在会尝试解析为提供商特定的 ID。
+    *   在托管设置受控模式下，仅托管源的覆盖规则生效。
+*   **权限模式术语统一**: 明确 UI 标签 &#34;Manual&#34; 对应的内部值始终为 `&#34;default&#34;`，而非 `&#34;manual&#34;`。这在 Hooks、快捷键、VS Code 设置及 Sub-agent 配置中均有体现。
+*   **新增配置项**: 引入 `askUserQuestionTimeout` 设置，允许在用户无响应时自动继续执行。
+*   **Sub-agent 错误处理优化**: 明确了 v2.1.200 中当 API 错误中断 Sub-agent 时的具体返回行为（区分了纯文本输出与仅工具调用的处理差异）。
+
+## 3. 影响等级
+**中**
+
+**理由**: 虽然标志重命名保留了向后兼容性，但 `modelOverrides` 逻辑的扩展（v2.1.200）改变了模型 ID 在 Bedrock 等平台上的解析路径。对于使用自定义模型映射或非标准提供商 ID 的开发者，这可能改变现有的运行时行为。
+
+## 4. 开发者行动项
+*   **更新脚本/文档**: 将 `--remote` 参数替换为 `--cloud`，尽管旧参数仍可用，但建议采用新标准。
+*   **审查 Bedrock/Provider 配置**: 如果您依赖 `--model` 或环境变量直接传递 ID，请检查 v2.1.200 中新的覆盖映射逻辑是否符合预期（特别是在未显式配置 `modelOverrides` 时）。
+*   **检查权限模式代码**: 任何硬编码检查 `&#34;manual&#34;` 字符串的 Hook 或脚本应更新为匹配 `&#34;default&#34;`。
+*   **利用新超时设置**: 在自动化或无头（Headless）场景中，配置 `askUserQuestionTimeout` 以防止挂起。
+*   **注意 Sub-agent 错误处理**: 如果您依赖 Sub-agent 的错误报告机制，需留意 v2.1.200 对中断时返回内容的细微调整。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Understand the Goal**: The user wants a concise analysis of documentation changes for a developer audience. The output must be in Chinese and Markdown format.
+
+2.  **Analyze the Input**: I have 12 pages with diffs.
+
+    *   **amazon-bedrock.md**: Updated text regarding model ID overrides (v2.1.200). Now, passing an Anthropic model ID via `--model` or `ANTHROPIC_MODEL` goes through the override map. Previously, it was passed as-is.
+    *   **claude-code-on-the-web.md**: Renamed `--remote` flag to `--cloud`. The old one still works as a deprecated alias. Updated table text regarding setting defaults.
+    *   **cli-reference.md**: Added `--cloud` flag definition.
+    *   **common-workflows.md**: Minor syntax update in an example command (`claude --from-pr &lt;number&gt;` -&gt; `claude --from-pr 123`).
+    *   **hooks.md**: Clarified that the permission mode labeled &#34;Manual&#34; arrives as `&#34;default&#34;` in hook JSON, not `&#34;manual&#34;`. Updated table formatting/spacing.
+    *   **interactive-mode.md**: Clarified shortcut `Shift+Tab` cycles through `default` (labeled Manual in UI).
+    *   **model-config.md**:
+        *   Added validation logic for `setModel()` / App requests (v2.1.200). Rejects unrecognized strings.
+        *   Updated `modelOverrides` behavior: Overrides now apply to `--model` / env vars (v2.1.200).
+        *   Managed settings restriction: When `availableModels` is managed, only managed overrides apply to direct ID passes.
+    *   **settings.md**:
+        *   Added `askUserQuestionTimeout` setting (v2.1.200).
+        *   Clarified workspace trust for `settings.local.json`.
+    *   **setup.md**: Minor formatting changes (extra `theme={null}`). Clarified manifest verification path.
+    *   **sub-agents.md**:
+        *   Added `manual` as alias for `default` in permissionMode frontmatter (v2.1.200).
+        *   Clarified subagent error reporting behavior for API errors (v2.1.200).
+    *   **vs-code.md**: Updated permission mode descriptions (Manual -&gt; Default). Updated `initialPermissionMode` setting description.
+    *   **CHANGELOG.md.md**: Added entry for v2.1.201 (Sonnet 5 system role change) and v2.1.200 (presumably context for the changes).
+
+3.  **Synthesize and Identify Themes**:
+
+    *   **Theme 1: Renaming/Deprecation**: `--remote` -&gt; `--cloud`.
+    *   **Theme 2: Model Configuration &amp; Overrides (v2.1.200)**: Significant changes to how model IDs are handled, specifically regarding overrides mapping now covering CLI flags/env vars, and validation of model strings.
+    *   **Theme 3: Terminology Alignment**: The UI label &#34;Manual&#34; corresponds to the internal value `default`. This is reflected in shortcuts, hooks, VS Code, and sub-agents.
+    *   **Theme 4: New Settings**: Timeout for user questions (`askUserQuestionTimeout`).
+
+4.  **Determine Impact Level**:
+    *   The renaming `--remote` to `--cloud` is low impact (deprecated alias exists).
+    *   The model override changes are potentially high/medium impact for users relying on specific ID passing behavior in v2.1.200, but mostly additive/safer.
+    *   The &#34;Manual&#34; vs &#34;default&#34; terminology alignment is low impact (mostly clarifications).
+    *   *Overall*: **Medium**. The changes to model override logic and validation in v2.1.200 are substantial under-the-hood shifts that developers using custom configurations or Bedrock need to know about.
+
+5.  **Draft Action Items**:
+    *   Update scripts/documentation using `--remote` to use `--cloud`.
+    *   Review Bedrock/Provider configurations if using `modelOverrides` with `--model` flags (behavior changed in v2.1.200).
+    *   Be aware of the new `manual` alias for `default` permission mode.
+    *   Note the new `askUserQuestionTimeout` config for non-interactive flows.
+
+6.  **Drafting the Response (in Chinese)**:
+
+    *   *Summary*: Documentation update covering the v2.1.200/v2.1.201 releases, focusing on renaming `--remote` to `--cloud`, refining model ID override logic for better provider compatibility, and clarifying permission mode terminology.
+    *   *Themes*:
+        *   Flag Renaming: `--remote` -&gt; `--cloud` (deprecated alias retained).
+        *   Model Management (v2.1.200): Expanded scope of `modelOverrides` (now applies to CLI/env vars), new validation for model IDs, and restrictions in managed settings.
+        *   Terminology Alignment: UI label &#34;Manual&#34; strictly maps to internal value `&#34;default&#34;`.
+        *   New Configuration: Added `askUserQuestionTimeout` for auto-continuing dialogs.
+    *   *Impact*: Medium. The model override logic changes affect how custom model IDs and provider configurations interact.
+    *   *Actions*:
+        *   Adopt `--cloud` instead of `--remote`.
+        *   Review Bedrock/Provider configurations if using `modelOverrides` with CLI flags (behavior changed in v2.1.200).
+        *   Check for hardcoded `manual` permission mode logic (now maps to `default`).
+        *   Note the `askUserQuestionTimeout` setting for headless/automation scenarios.
+
+7.  **Refining the Output**: Ensure markdown formatting is clean and tone is professional.
+
+    *   *Self-Correction during drafting*: The diff in `model-config.md` mentions that `--model` values now go through overrides on Bedrock. This is a specific behavior change for v2.1.200. I need to highlight this.
+    *   *Changelog check*: v2.1.201 is mentioned (Sonnet 5 system role), but the bulk of diffs relate to v2.1.200 features.
+
+8.  **Final Polish**: (Translating thoughts to the final Chinese output).
+
+    *   Summary: 本次文档更新主要围绕 v2.1.200 版本发布，涵盖了 CLI 标志重命名（`--remote` 改为 `--cloud`）、模型 ID 覆盖逻辑的重大改进，以及权限模式术语的统一规范。
+    *   Themes:
+        *   CLI 标志重命名: `--remote` 变更为 `--cloud`。
+        *   模型配置与覆盖 (v2.1.200): `modelOverrides` 现在应用于 CLI 标志和环境变量，增加了模型 ID 验证。
+        *   权限模式术语: 统一 UI 显示的 &#34;Manual&#34; 与内部值 `&#34;default&#34;` 的对应关系。
+        *   新增配置选项: `askUserQuestionTimeout`。
+    *   Impact: Medium.
+    *   Actions:
+        *   替换 `--remote` 为 `--cloud`。
+        *   关注 Bedrock/Provider 的 `modelOverrides` 行为变更。
+        *   注意 `manual` 现在是 `default` 的别名。
+        *   了解新的超时配置。
+
+9.  **Final Output Generation**. (Matches the provided good response).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/amazon-bedrock.html" class="page-link">amazon-bedrock.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/claude-code-on-the-web.html" class="page-link">claude-code-on-the-web.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+20</span>
+                            <span class="removed">-20</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/cli-reference.html" class="page-link">cli-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/common-workflows.html" class="page-link">common-workflows.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+9</span>
+                            <span class="removed">-9</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/interactive-mode.html" class="page-link">interactive-mode.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/model-config.html" class="page-link">model-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+10</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+11</span>
+                            <span class="removed">-9</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/setup.html" class="page-link">setup.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/vs-code.html" class="page-link">vs-code.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+20</span>
+                            <span class="removed">-17</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">13:19 EST</div>
