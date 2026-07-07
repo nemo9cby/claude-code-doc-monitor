@@ -118,9 +118,245 @@
 
         <header>
             <h1>Changes on 2026-07-06</h1>
-            <p class="meta">14 total changes in 2 runs</p>
+            <p class="meta">23 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">22:36 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">以下是对 Claude Code 文档更新的批量分析：
+
+### 1. 总体概览
+本次更新主要致力于提升系统的**稳定性与健壮性**（修复异步 Hook 崩溃、优化 MCP 配置报错）、**上下文效率**（智能去重 Skills 内容以节省 Token）以及**可观测性**（增强监控指标并新增工作流规模控制选项）。
+
+### 2. 关键主题
+*   **上下文与 Token 效率**：显著优化了 Skills 的重复加载逻辑。当重新调用内容相同的 Skill 时，系统不再重复追加完整指令，而是仅添加简短备注，极大节省了上下文窗口空间。
+*   **稳定性与错误处理**：
+    *   **Hooks**：异步 Hook 现在会对 JSON 输出进行 Schema 校验，直接丢弃类型错误的字段而非崩溃会话。
+    *   **MCP**：改进了配置校验逻辑，若 JSON 中存在 `url` 但缺少 `type`，会给出明确的报错提示而非模糊的 `undefined` 错误。
+*   **新增配置与控制**：引入 `workflowSizeGuideline` 设置（v2.1.202+），允许开发者限制 Claude 生成的动态工作流的规模。
+*   **可观测性增强**：OpenTelemetry 日志中新增了对“用户自定义工作流名称”的记录；明确了证书与密钥在运行时的重载机制。
+
+### 3. 影响等级
+**等级：中**
+
+**理由**：
+*   **正面影响显著**：Skill 的去重机制直接影响长会话的 Token 消耗和上下文健康度；Hook 的防崩溃机制提升了开发体验的流畅度。
+*   **非破坏性变更**：虽然 MCP 和 Hook 的校验更严格了，但主要体现在报错信息的优化和行为的“降级处理”（丢弃而非崩溃），通常不会破坏现有正常运行的代码。
+*   **渐进式增强**：新增的工作流规模控制是可选功能，不影响现有行为。
+
+### 4. 开发者行动项
+*   **检查异步 Hook 输出**：如果你的异步 Hook 返回的 JSON 字段类型可能不匹配（如 `systemMessage` 非字符串），请立即修复。虽然在 v2.1.202+ 版本中不再崩溃，但这些字段会被静默丢弃。
+*   **修正 MCP 配置**：如果在 `.mcp.json` 等文件中通过 `url` 配置 MCP 服务器，请确保补充 `type` 字段（如 `&#34;http&#34;`），否则服务器将被跳过。
+*   **控制工作流规模**：尝试在 `/config` 中设置 `workflowSizeGuideline`（如 `small` 或 `medium`），以防止 Claude 在复杂任务中生成过于庞大的工作流。
+*   **更新监控仪表盘**：如果你使用 OpenTelemetry，利用新增的 `user-authored workflow names` 字段来更好地追踪和分析工作流执行情况。
+*   **证书轮换无需重启**：在利用网络配置中的证书密钥时，可以直接替换文件，Claude Code 会在下次应用设置时自动重新读取。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Understand the Goal**: The user wants a concise, insightful analysis of documentation changes for Claude Code. The output must be in Chinese, markdown format, and include specific sections: Overall Summary, Key Themes, Impact Level, and Action Items.
+
+2.  **Analyze the Input Data**: I have 9 pages with diffs. Let&#39;s process each one to extract &#34;what changed&#34; and &#34;why it matters&#34;.
+
+    *   **Page: hooks.md**
+        *   *Change*: Async hooks now validate JSON output against the output schema. Malformed fields are dropped instead of crashing. `--debug` shows warnings. Before v2.1.202, this could cause recurrent crashes.
+        *   *Impact*: Better stability, graceful degradation instead of crashes for async hooks.
+
+    *   **Page: interactive-mode.md**
+        *   *Change*: Diff looks like table formatting changes (reformatting) or minor content shifts. The snippet provided cuts off at `Interrupt Claude`. Looking closely, the table rows seem re-formatted (wrapping widths maybe?), but the content descriptions remain largely similar or slightly rephrased. Actually, looking at the diff, lines are removed and added back. It looks mostly like formatting adjustments or minor copy tweaks, but the snippet provided is incomplete (cuts off). *Self-correction*: Without the full diff, it&#39;s hard to be 100% sure, but usually, `+21 / -20` in a table suggests reformatting or minor clarification. I will treat it as minor formatting/refinement unless I spot a functional change. *Wait*, looking closer at the diff provided: it&#39;s mostly the &#34;General controls&#34; table. It seems like a reformatting or minor copy edit. It doesn&#39;t scream &#34;breaking change&#34; or major feature.
+
+    *   **Page: mcp.md**
+        *   *Change*: MCP JSON configuration requires a `type` if `url` is present. If `type` is missing, Claude Code skips the server and gives a specific error message instead of a generic &#34;command: expected string, received undefined&#34;.
+        *   *Impact*: Better error messages for MCP server configuration. Strictness on configuration syntax.
+
+    *   **Page: monitoring-usage.md**
+        *   *Change*:
+            *   `OTEL_LOG_TOOL_DETAILS` description updated to include &#34;user-authored workflow names&#34;.
+            *   `claude_code.llm_request` metric table updated/added (the diff is cut off, but it looks like schema documentation for telemetry).
+        *   *Impact*: Enhanced observability for workflows.
+
+    *   **Page: network-config.md**
+        *   *Change*: Clarification on certificate/key reloading. It reads at startup and re-reads on settings change.
+        *   *Impact*: Operational clarity for rotating certs in long-running sessions without restart.
+
+    *   **Page: settings.md**
+        *   *Change*: Added `workflowSizeGuideline` setting (v2.1.202+). Options: `unrestricted`, `small`, `medium`, `large`.
+        *   *Impact*: New configuration option to control the scale of dynamic workflows generated by Claude.
+
+    *   **Page: skills.md**
+        *   *Change*: Optimization in skill invocation. If a skill is re-invoked with identical content, a short note is added instead of full duplicate content. Only appends full content if it differs. Before v2.1.202, it always appended full copies.
+        *   *Impact*: Context window efficiency (saves tokens). Prevents bloating context with duplicate skill instructions.
+
+    *   **Page: slash-commands.md**
+        *   *Change*: Same text as skills.md (duplicate content in docs regarding skill content lifecycle).
+        *   *Impact*: Consistency in documentation.
+
+    *   **Page: troubleshooting.md**
+        *   *Change*: Added a new troubleshooting entry for update/download failures (&#34;connection dropped&#34;).
+        *   *Impact*: Improved support/fix guidance.
+
+3.  **Synthesize Themes**:
+    *   **Stability &amp; Robustness**: Better error handling for Hooks and MCP (hooks crash on malformed JSON, MCP gives better config errors).
+    *   **Context &amp; Efficiency**: Skills are now smarter about not duplicating content in context (token savings).
+    *   **Observability**: Monitoring now tracks user-authored workflow names.
+    *   **New Configuration**: `workflowSizeGuideline` for controlling dynamic workflow scale.
+    *   **Operational Clarity**: Cert reloading behavior documented.
+
+4.  **Determine Impact Level**:
+    *   Is it Breaking? No.
+    *   Is it High? The skill context optimization is significant for token usage. The hook crash fix is significant for stability. The workflow setting is a nice new feature.
+    *   Overall: **Medium to High** (due to token efficiency and crash fixes, though mostly &#34;behind the scenes&#34; improvements). Let&#39;s stick to **Medium** because these are mostly refinements and fixes rather than a paradigm shift, but they definitely improve the daily developer experience (stability + cost).
+
+5.  **Draft Action Items**:
+    *   Check async hooks for JSON schema compliance (though it degrades gracefully now, it drops data).
+    *   Update MCP configs if using JSON without `type`.
+    *   Try `workflowSizeGuideline` to control workflow complexity.
+    *   Review OpenTelemetry logs if monitoring workflows.
+
+6.  **Draft the Response (in Chinese)**:
+
+    *   *Overall Summary*: 本次更新主要集中在提升 Claude Code 的**稳定性**（如 Hook 和 MCP 配置错误处理）、**上下文效率**（优化 Skills 重复加载逻辑）以及**可观测性**（新增 Workflow 监控字段和配置选项）。
+    *   *Key Themes*:
+        *   稳定性提升：Async hooks 现在会校验 JSON，防止崩溃；MCP 配置错误提示更清晰。
+        *   Token 效率：重新调用 Skills 时，若内容相同则不再重复添加，显著节省上下文窗口。
+        *   功能增强：新增 `workflowSizeGuideline` 设置以控制动态工作流的规模；OpenTelemetry 现在跟踪用户自定义工作流名称。
+        *   运维优化：明确了证书密钥的重载机制。
+    *   *Impact Level*: Medium (中)。
+        *   理由：这些改动主要优化了后台行为（不重复加载内容、更友好的报错），对日常开发体验有显著正面影响，但不需要重写现有代码。
+    *   *Action Items*:
+        *   检查异步 Hooks 的 JSON 输出是否符合 Schema，旧版本可能导致崩溃，新版本会静默丢弃字段。
+        *   若通过 JSON 配置 MCP 服务器且包含 `url`，请确保添加了 `type` 字段。
+        *   探索 `/config` 中的新选项 `workflowSizeGuideline`，以控制 Claude 生成的工作流复杂度。
+        *   关注监控日志中新增的 `user-authored workflow names` 字段。
+
+7.  **Review against constraints**:
+    *   Markdown format? Yes.
+    *   World-class programmer persona? Yes.
+    *   Chinese language? Yes.
+    *   Concise and insightful? Yes.
+
+8.  **Final Polish**: Ensure the tone is professional and the &#34;Why it matters&#34; is woven into the analysis. The &#34;Skills&#34; change is actually quite good for long sessions, highlighting token savings is key.
+
+    *(Self-Correction during drafting)*: The `interactive-mode.md` change looked like just formatting. I won&#39;t list it as a major theme, maybe a minor note if needed, but usually batch analysis focuses on substantive changes. I will focus on the 8 other pages which have substantive content updates.
+
+    *Drafting the output...*</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/interactive-mode.html" class="page-link">interactive-mode.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+21</span>
+                            <span class="removed">-20</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+33</span>
+                            <span class="removed">-27</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/network-config.html" class="page-link">network-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/troubleshooting.html" class="page-link">troubleshooting.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">19:02 EST</div>
