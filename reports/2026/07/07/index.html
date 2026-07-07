@@ -118,9 +118,228 @@
 
         <header>
             <h1>Changes on 2026-07-07</h1>
-            <p class="meta">5 total changes in 1 run</p>
+            <p class="meta">11 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">18:07 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更分析
+
+## 总体概述
+本次更新主要涉及代码执行工具版本号的更新，大幅扩展了 Beta 功能文档的多语言 SDK 覆盖范围，明确了结构化输出中关于枚举值大小写不一致的行为，并发布了包含大量稳定性修复的 CLI 新版本。
+
+## 关键主题
+
+*   **工具版本迭代**：迁移指南中的代码执行工具版本号从 `code_execution_20250825` 全面更新至 `code_execution_20260521`。
+*   **文档扩展与多语言支持**：`beta-headers` 文档大幅扩充，新增了 C#、Go、Java、PHP 和 Ruby 的完整调用示例。
+*   **结构化输出行为修正**：明确指出结构化输出不保证字符串 `enum` 和 `const` 值的大小写一致性，这是一个重要的行为变更说明。
+*   **Azure/Foundry 集成增强**：更新了 Microsoft Foundry 指南，新增了对 Entra ID 认证（Azure Identity 库）的安装说明，并提及 Opus 4.8 和 Sonnet 5 等新模型。
+*   **CLI 稳定性修复**：CLI v2.1.203 版本解决了 macOS 上的内存误检导致的卡顿、后台会话僵死、环境变量继承丢失等关键问题。
+
+## 影响等级
+**Medium (中等)**
+
+**理由**：
+尽管大部分变更属于文档优化，但关于**结构化输出枚举大小写**的行为说明属于潜在的逻辑破坏点（Breaking Behavior），可能导致现有严格匹配代码失效。同时，`code_execution` 工具版本的更新要求开发者关注配置同步。CLI 的修复对重度用户有显著的正面影响。
+
+## 开发者行动项
+
+1.  **更新工具版本号**：如果您正在进行模型迁移或配置工具，请将 `code_execution` 工具版本更新至 `code_execution_20260521`。
+2.  **调整枚举校验逻辑**：在使用结构化输出（Structured Outputs）时，必须对字符串枚举值进行**不区分大小写**的比较，或接受 Claude 返回的大小写变体。
+3.  **升级 CLI 版本**：建议升级 CLI 至 v2.1.203，以解决 macOS 上的性能卡顿、后台代理 会话无响应以及 Windows PATH 环境变量继承失败等问题。
+4.  **配置 Azure 认证依赖**：如果在 Microsoft Foundry 中使用 Entra ID 认证，请确保已安装相应的 Azure Identity 库（如 Python 的 `azure-identity` 或 JS 的 `@azure/identity`）。
+5.  **查阅新版 Beta 文档**：如果您使用 C#、Java、Go 或 Ruby SDK，请参考更新后的 `beta-headers.md` 文档，确保正确使用 `betas` 参数和头部信息。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Input:** 6 pages of diffs (markdown format).
+    *   **Output Format:** Markdown, concise, insightful, focused on developers, Chinese language.
+    *   **Structure:** Overall Summary, Key Themes, Impact Level, Action Items.
+
+2.  **Analyze the Diffs:**
+
+    *   **Page 1: `about-claude/models/migration-guide.md`**
+        *   *Change:* Multiple occurrences of `code_execution_20250825` updated to `code_execution_20260521`.
+        *   *Context:* Migration guides for Claude 3.x to 4.x, Sonnet 4.6, Sonnet 4.5.
+        *   *Meaning:* The version number for the code execution tool has been bumped (likely to the latest version). Developers need to update their tool usage configurations if they are following migration paths.
+
+    *   **Page 2: `api/beta-headers.md`**
+        *   *Change:* Significant rewrite. Expanded introduction, added code examples for C#, Go, Java, PHP, Ruby. Improved error handling documentation. Added &#34;Next steps&#34; cards.
+        *   *Meaning:* Documentation is becoming more comprehensive and polyglot-friendly. It clarifies how to use beta headers across different SDKs, not just Python/TS. It explicitly names new beta features like `files-api-2025-04-14`.
+
+    *   **Page 3: `build-with-claude/structured-outputs.md`**
+        *   *Change:* Added a warning section about &#34;Enum value casing&#34;.
+        *   *Meaning:* Structured outputs might return enum values with different capitalization (specifically first letter after a space) than defined in the schema. Developers must handle case-insensitive comparison or accept variation. This is a subtle but potentially breaking bug source.
+
+    *   **Page 4: `build-with-claude/claude-in-microsoft-foundry.md`**
+        *   *Change:* Updates to Foundry integration guide. Added mentions of Claude Opus 4.8 and Sonnet 5. Added Azure Identity library installation steps for Entra ID auth. Updated SDK versions (Java). Added installation tabs for Go and Ruby (though noting native support limitations).
+        *   *Meaning:* Better support for Azure/Foundry users, specifically regarding authentication (Entra ID) and newer models.
+
+    *   **Page 5: `agents-and-tools/agent-skills/overview.md`**
+        *   *Change:* Updated prerequisites. Changed requirement from specific beta headers (including `code-execution-2025-08-25`) to just using the &#34;code execution tool&#34; + two specific beta headers.
+        *   *Meaning:* Simplifies the dependency. Aligns with Page 1 where the code execution tool version seems to be handled differently (perhaps the version is implied or automatic now, or just distinct from the beta header name). *Correction*: Page 1 updated the *tool version string* in the config, Page 5 updated the *header name*. The header `code-execution-2025-08-25` was removed from the required list here, implying the functionality might be standard or handled by the tool definition itself now.
+
+    *   **Page 6: `CHANGELOG.md.md` (CLI Changelog)**
+        *   *Change:* Version 2.1.203 changelog.
+        *   *Meaning:* Massive bug fix release for the CLI (Claude Code). Fixes for background sessions, macOS performance, memory leaks, Windows PATH issues, auto-upgrades, etc. Feature: Warning before login expiry. VSCode toggle for remote control.
+
+3.  **Synthesize and Structure the Analysis:**
+
+    *   **Overall Summary:** The update primarily focuses on tool version updates (Code Execution), expanding SDK documentation support, critical behavior clarifications for Structured Outputs (enum casing), and a significant CLI maintenance release fixing stability and performance issues.
+
+    *   **Key Themes:**
+        *   *Tool Versioning:* `code_execution` tool version updated to `20260521` in migration guides.
+        *   *Documentation Expansion:* `beta-headers.md` now includes examples for C#, Go, Java, PHP, Ruby.
+        *   *Behavior Clarification:* Structured Outputs do not guarantee case-sensitivity for enums.
+        *   *Azure/Foundry:* Added support for Entra ID authentication details and newer models.
+        *   *CLI Stability:* Massive bugfix release (v2.1.203) addressing background session reliability and macOS performance.
+
+    *   **Impact Level:**
+        *   *Medium.*
+        *   *Reasoning:* While mostly documentation, the `code_execution` version update and the `enum` casing behavior are significant for developers relying on strict tool definitions and schema validation. The CLI fixes are high-impact for users of the CLI tool.
+
+    *   **Action Items:**
+        *   Update `code_execution` tool version to `20260521` in your migration configs if applicable.
+        *   Implement case-insensitive comparison for string enums in Structured Outputs.
+        *   Review the new CLI version 2.1.203 to resolve background agent and performance issues.
+        *   If using Azure Foundry, install the Azure Identity library for Entra ID auth.
+        *   Check `beta-headers.md` for SDK-specific examples if you are using non-Python/TS languages.
+
+4.  **Drafting the Response (in Chinese):**
+
+    *   *Drafting Summary:* 本次更新主要涉及代码执行工具版本更新、SDK 文档覆盖范围的扩展（新增多语言示例）、结构化输出中枚举大小写行为的明确说明，以及 CLI 工具的重要稳定性修复。
+    *   *Drafting Themes:* 工具版本更新、文档扩展、结构化输出行为修正、Azure/Foundry 增强、CLI 稳定性。
+    *   *Drafting Impact:* Medium (中等). 理由：虽然主要是文档更新，但结构化输出的枚举大小写问题和工具版本变更直接影响代码逻辑和兼容性。CLI 的修复对活跃用户很重要。
+    *   *Drafting Actions:*
+        1.  将 `code_execution` 工具版本更新至 `20260521`。
+        2.  修改代码以不区分大小写的方式比较结构化输出中的字符串枚举值。
+        3.  升级 CLI 至 v2.1.203 以解决后台会话和性能问题。
+        4.  如果使用 Azure Foundry，请安装 Azure Identity 库以支持 Entra ID 认证。
+        5.  参考 `beta-headers.md` 查看新语言（如 Go, Java 等）的使用示例。
+
+5.  **Refining the Output:** Ensure tone is professional (&#34;world-class programmer&#34;). Make the markdown clean.
+
+    *   *Self-Correction during drafting:* Page 5 (`agent-skills`) removed `code-execution-2025-08-25` from the required beta headers list, but kept `skills` and `files` headers. This suggests the code execution tool capability is now managed via the tool definition/version string rather than a beta header for Skills. This aligns with Page 1 emphasizing the tool version string. I should mention the tool version update as the primary action.
+
+6.  **Final Polish (Chinese):** (Translating thoughts to final output)
+
+    *   **Summary:** 本次更新集成了代码执行工具 (`code_execution`) 的最新版本标识，大幅扩展了 Beta 功能文档的多语言支持，明确了结构化输出中枚举值大小写不保证一致的行为，并发布了包含大量稳定性修复的 CLI 新版本。
+    *   **Themes:**
+        *   **工具版本迁移**：迁移指南中的代码执行工具版本号从 `20250825` 更新至 `20260521`。
+        *   **文档扩展**：`beta-headers` 新增 C#, Go, Java, PHP, Ruby 的 SDK 示例代码。
+        *   **行为明确**：结构化输出不再保证字符串 `enum` 和 `const` 值的大小写一致性。
+        *   **Azure 集成增强**：更新了 Microsoft Foundry 指南，增加了 Entra ID 认证所需的依赖库说明。
+        *   **CLI 重大修复**：CLI v2.1.203 版本修复了 macOS 内存误检、后台会话僵死、PATH 继承等关键问题。
+    *   **Impact:** **Medium (中等)**。
+        *   **理由**：虽然多为文档调整，但结构化输出的枚举大小写变更属于潜在的破坏性行为（Breaking behavior），需要开发者修改校验逻辑；工具版本的更新也意味着 API 调用规范的调整。CLI 的修复对重度用户影响显著。
+    *   **Action Items:**
+        1.  **更新工具版本**：若正在进行模型迁移，请将 `code_execution` 工具版本更新至 `20260521`。
+        2.  **调整枚举校验逻辑**：在使用结构化输出时，对字符串枚举值的校验应采用不区分大小写的方式，避免因首字母大小写差异导致逻辑错误。
+        3.  **升级 CLI**：建议升级 CLI 至 v2.1.203 以解决 macOS 和后台任务相关的性能与稳定性问题。
+        4.  **检查 Azure 认证**：如果在 Foundry 中使用 Entra ID，请确保安装了 `azure-identity` 依赖库。
+        5.  **查阅 Beta 文档**：使用 C#、Java 等 SDK 的开发者应参考更新后的 `beta-headers` 文档以获取正确的调用方式。
+
+7.  **Final Review against constraints:** Concise? Yes. Insightful? Yes. Markdown? Yes. Chinese? Yes. Focus on what matters? Yes.
+
+    *   *One detail:* The CHANGELOG mentions &#34;Added a warning when your login is about to expire&#34;. This is a good UX detail but maybe not a critical &#34;action item&#34; compared to enum casing. I&#39;ll stick to the top 5 high-impact actions.
+
+    *   *Refining Action 1:* Make sure to reference the specific version `20260521`.
+
+8.  **Generate Output.** (Proceeds to generate the markdown response).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/about-claude/models/migration-guide.html" class="page-link">about-claude/models/migration-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/beta-headers.html" class="page-link">api/beta-headers.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+76</span>
+                            <span class="removed">-18</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/structured-outputs.html" class="page-link">build-with-claude/structured-outputs.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-in-microsoft-foundry.html" class="page-link">build-with-claude/claude-in-microsoft-foundry.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+269</span>
+                            <span class="removed">-170</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/agent-skills/overview.html" class="page-link">agents-and-tools/agent-skills/overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+38</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">12:24 EST</div>
