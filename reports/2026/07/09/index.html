@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026-07-09 - Documentation Changes</title>
+    <style>
+        :root {
+            --bg-color: #1a1a2e;
+            --card-bg: #16213e;
+            --text-color: #eee;
+            --accent: #0f3460;
+            --add-text: #4ade80;
+            --del-text: #f87171;
+            --time-color: #60a5fa;
+        }
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg-color: #f5f5f5;
+                --card-bg: #fff;
+                --text-color: #333;
+                --accent: #e0e0e0;
+                --add-text: #155724;
+                --del-text: #721c24;
+                --time-color: #2563eb;
+            }
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+        .container { max-width: 800px; margin: 0 auto; }
+        header { margin-bottom: 2rem; }
+        h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+        .meta { color: #888; }
+        .batch { margin-bottom: 2rem; }
+        .batch-header {
+            color: var(--time-color);
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--accent);
+        }
+        .page-list { list-style: none; }
+        .page-item {
+            background: var(--card-bg);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .page-item:hover { background: var(--accent); }
+        .page-link {
+            color: var(--text-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .page-summary { color: #888; font-size: 0.9rem; }
+        .added { color: var(--add-text); }
+        .removed { color: var(--del-text); }
+        a { color: #60a5fa; }
+        .back-link { margin-bottom: 1rem; display: inline-block; }
+        .page-item-content { flex: 1; }
+        .page-analysis {
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: 0.25rem;
+        }
+        .source-section {
+            margin-bottom: 1.5rem;
+        }
+        .source-header {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: #8b5cf6;
+        }
+        .batch-analysis {
+            background: var(--card-bg);
+            border-left: 3px solid #22c55e;
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            margin: 0.75rem 0 1rem 0;
+        }
+        .batch-analysis h4 {
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+        .batch-analysis-content {
+            white-space: pre-wrap;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        .reasoning-section {
+            margin-top: 1rem;
+            padding-top: 0.75rem;
+            border-top: 1px dashed var(--accent);
+            font-size: 0.85rem;
+            color: #888;
+        }
+        .reasoning-section summary {
+            cursor: pointer;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../../../index.html" class="back-link">&larr; All reports</a>
+
+        <header>
+            <h1>Changes on 2026-07-09</h1>
+            <p class="meta">18 total changes in 1 run</p>
+        </header>
+
+        
+        <div class="batch">
+            <div class="batch-header">15:36 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 整体摘要
+本次文档更新主要围绕 **Claude Code v2.1.205** 版本发布展开，重点涵盖了权限模式的术语重命名、模型选择逻辑（特别是受限环境下的别名解析）、非交互式命令能力的增强、以及 MCP/插件/LSP 集成在稳定性和错误处理方面的显著改进。
+
+### 关键变更主题
+
+*   **UI/UX 术语统一**：在桌面端、Web 端和 VS Code 中，权限模式名称进行了标准化重命名（例如 &#34;Ask permissions&#34; 改为 &#34;Manual&#34;，&#34;Plan mode&#34; 改为 &#34;Plan&#34;），以简化用户理解。
+*   **非交互模式增强**：增强了 `-p` 模式和 Cloud Session 对内置命令的支持，现在 `/model`、`/effort` 等命令支持直接传参（如 `/model sonnet`）而非仅限于交互式选择器。新增了 CLI 命令 `claude doctor` 用于无会话诊断。
+*   **模型选择逻辑优化**：在受限模型列表（`availableModels`）场景下，模型族别名（如 `opus`）现在能智能解析为允许的最新版本，而非直接报错或替换。
+*   **系统健壮性与错误处理**：
+    *   **Hooks**：修复了 Worktree 路径解析的崩溃问题（v2.1.205 前相对路径会导致崩溃），并废弃了 `ExitPlanMode` 中的 `allowedPrompts` 字段。
+    *   **JSON Schema**：在 Headless 模式下，无效的 JSON Schema 现在会明确报错而非静默忽略。
+    *   **MCP/LSP**：改进了 MCP 服务器的错误报告机制，扩展了保留名称列表（如 `claude-in-chrome`），并为 LSP 服务器新增了 `shutdownTimeout` 和 `restartOnCrash` 配置。
+*   **诊断功能 (`/doctor`)**：`/doctor` 现在作为一个内置 Skill，且在禁用内置技能时默认仍然可用；新增了 `system/init` 事件中的 `capabilities` 字段用于特性检测。
+
+### 影响等级
+**中高**
+
+*   **理由**：虽然大部分是新增功能或逻辑优化（如模型解析、错误恢复），但权限模式的重命名涉及用户界面和文档的显性变化。对于 Hooks 开发者和插件开发者而言，部分字段废弃和新增配置项（如 LSP 的 `shutdownTimeout`）需要适配。
+
+### 开发者行动项
+
+*   **更新文档/教程**：立即更新涉及用户界面的文档，将旧权限模式名称（Ask permissions, Plan mode）替换为新名称。
+*   **检查 MCP 配置**：审查 MCP 服务器配置，确保未使用新增的保留名称（如 `computer-use`, `Claude Browser` 等），并更新导入逻辑以符合新的命名规范（仅含字母、数字、连字符和下划线）。
+*   **适配 Hooks 变更**：如果你实现了 `WorktreeCreate` hook，请确认返回路径逻辑；如果你依赖 `ExitPlanMode` 的 `allowedPrompts`，请知晓该字段在 v2.1.205+ 已被废弃。
+*   **利用特性检测**：在集成代码中检查 `system/init` 事件的 `capabilities` 字段（而非硬编码版本号）来判断是否支持如 `interrupt_receipt_v1` 等特性。
+*   **测试受限环境**：如果你的企业环境使用了 `availableModels` 限制，测试 `/model opus` 等别名命令是否能正确解析为允许的旧版本模型。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Understand the Goal**: The user wants a concise, insightful analysis of 18 documentation changes for Claude Code. The analysis needs to be in Chinese, in Markdown format, and focus on what matters to developers.
+
+2.  **Analyze the Input Data**:
+    *   **Source**: 18 pages of documentation diffs for `claude-code`.
+    *   **Scope**: Changes across various features (CLI, Desktop, MCP, Plugins, Settings, Skills, etc.).
+    *   **Common Pattern**: Most changes seem related to version `v2.1.205` (noted in comments like `{/* min-version: 2.1.205 */}`).
+
+3.  **Detailed Page-by-Page Analysis**:
+    *   *claude-code-on-the-web.md*: Cloud sessions now support specific commands with arguments (e.g., `/model sonnet`) instead of just interactive pickers. Clarified unavailability of terminal-only commands.
+    *   *cli-reference.md*: Added `claude doctor` command for diagnostics. Added `--allow-dangerously-skip-permissions` flag.
+    *   *desktop.md*: Renamed permission modes: &#34;Ask permissions&#34; -&gt; &#34;Manual&#34;, &#34;Auto accept edits&#34; -&gt; &#34;Accept edits&#34;, &#34;Plan mode&#34; -&gt; &#34;Plan&#34;. Updated best practices text. Cloud sessions now support these renamed modes.
+    *   *headless.md*: Improved JSON schema validation error handling. Added `capabilities` field to `system/init` event for feature detection. Clarified non-interactive mode behavior for commands (accepting arguments).
+    *   *hooks.md*: `ExitPlanMode` hook input changed (usually empty now). `allowedPrompts` deprecated in v2.1.205. WorktreeCreate hook output now supports relative paths (previously crashed/stalled).
+    *   *mcp.md*: Expanded list of reserved server names (including built-in browser/preview). Improved reconnection and error reporting for failed MCP servers. Importing servers from Desktop now validates names (alphanumeric only).
+    *   *model-config.md*: Model family aliases (like `opus`) now resolve to the *newest permitted* version instead of failing if the newest is blocked. Clarified behavior of blocked models in different contexts (CLI flag vs `/model` vs subagents). Plan mode upgrades now handle allowlists better.
+    *   *monitoring-usage.md*: Minor change: `/doctor` -&gt; `/status` in error reporting context (likely specific to helper script failures).
+    *   *plugin-marketplaces.md*: More reserved names added (`first-party-plugins`, `healthcare`). Re-checking reserved names on load; previously registered names are now blocked.
+    *   *plugins-reference.md*: Added `shutdownTimeout` and `restartOnCrash` LSP settings. Fixed LSP server initialization logic (previously a failed server blocked others with same extensions).
+    *   *sandboxing.md*: Minor terminology change: &#34;TLS terminate&#34; instead of &#34;TLS terminate&#34; (wait, the diff says `tlsTerminate` -&gt; &#34;TLS terminates&#34;, actually it just clarifies the behavior and removes `/doctor` mention).
+    *   *settings.md*: Clarified that `/doctor` is exempt from `disableBundledSkills` and stays typable.
+    *   *skills.md* &amp; *slash-commands.md*: Same content changes. `/doctor` is now a bundled skill (but exempt from disabling). Updated explanation of skill listing budget and context usage.
+    *   *statusline.md*: Added `model` and `contextWindowSize` fields to custom statusline hook input for subagent tasks.
+    *   *sub-agents.md*: Improved `/doctor` reporting for duplicate agent names. Added `--append-subagent-system-prompt` flag. Fixed status display for resumed subagents (shows &#34;running&#34; instead of old status).
+    *   *troubleshooting.md*: Updated `/doctor` description to mention &#34;extensions&#34; and &#34;proposes fixes&#34;. Distinguished between interactive `/doctor` and CLI `claude doctor`.
+    *   *vs-code.md*: Renamed &#34;Plan mode&#34; to &#34;Plan&#34; to match other UIs.
+
+4.  **Synthesize Key Themes**:
+    *   **Version 2.1.205 Features**: The primary driver is the release of v2.1.205.
+    *   **Terminology/UX Consistency**: Renaming permission modes (&#34;Manual&#34;, &#34;Accept edits&#34;, &#34;Plan&#34;) across Desktop, Web, and VS Code.
+    *   **Feature Detection &amp; Robustness**: Adding `capabilities` fields, better error handling for JSON schemas, MCP connections, and Worktree hooks.
+    *   **Model Selection Logic**: Smart handling of model aliases when allowlists exist (picking the newest permitted).
+    *   **Diagnostics (`/doctor`)**: Enhancements to `/doctor`, making it a bundled skill (with exceptions), and adding a CLI `claude doctor` command.
+    *   **Plugin/LSP Improvements**: Better crash handling and initialization logic.
+
+5.  **Draft the Summary (Chinese)**:
+
+    *   *Overall Summary*: Claude Code v2.1.205 重大更新，包含权限模式重命名、模型别名智能解析、诊断功能增强以及 MCP/插件/LSP 的稳定性改进。
+    *   *Key Themes*:
+        *   UI 术语统一（权限模式重命名）。
+        *   非交互模式与 CLI 增强（`/doctor`, 命令参数化）。
+        *   稳定性与错误处理（MCP 重连, JSON Schema, Worktree 路径解析）。
+        *   模型选择逻辑优化（受限环境下的别名解析）。
+    *   *Impact*: Medium/High (Breaking changes in terminology, but mostly additive behavior).
+    *   *Action Items*:
+        *   更新用户文档/教程以反映新的权限模式名称。
+        *   检查 MCP 服务器配置是否使用了保留名称。
+        *   利用新的 `system/init` capabilities 进行特性检测。
+        *   测试受限模型列表下的别名解析行为。
+
+6.  **Refine Content for &#34;World-class programmer&#34; persona**:
+    *   Use technical terms precisely.
+    *   Focus on practical implications (e.g., &#34;doesn&#39;t crash anymore&#34;, &#34;resolves correctly&#34;).
+    *   Structure clearly.
+
+7.  **Final Polish (Self-Correction during drafting)**:
+    *   *Correction*: Ensure I mention the specific version v2.1.205 as the common thread.
+    *   *Detail*: Don&#39;t miss the `shutdownTimeout` in plugins—that&#39;s a common pain point for LSPs.
+    *   *Detail*: The permission mode renaming is visible to end-users, so it&#39;s high impact for documentation/communication.
+
+8.  **Construct Output**: (Proceed to generate Markdown in Chinese).
+
+    *   *Summary*: Focus on v2.1.205 release impact.
+    *   *Themes*: Rename permissions, robust error handling (hooks/MCP), model resolution, diagnostics.
+    *   *Impact*: Medium-High due to UX changes and behavioral fixes.
+    *   *Actions*: Update docs/configs, use feature detection, check reserved names.
+
+**(Self-Correction on Impact Level)**: While mostly improvements, the UI renaming (&#34;Ask permissions&#34; -&gt; &#34;Manual&#34;) affects user-facing text. The Worktree crash fix is significant for CI. I&#39;ll label it &#34;Medium&#34; because it&#39;s not a code API breaking change, but &#34;High&#34; in terms of user experience. Let&#39;s settle on &#34;Medium-High&#34; or just &#34;High&#34; if the prompt requires strict selection. I&#39;ll stick to &#34;Medium-High&#34; reasoning in the text, or just pick &#34;Medium&#34; as a safe default for documentation updates unless there are API breaks. Actually, `ExitPlanMode` hook input change *is* a potential breaking change for hook implementers. So &#34;Medium/High&#34; is appropriate.
+
+9.  **Final Output Generation**: (Matches the provided good response).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/claude-code-on-the-web.html" class="page-link">claude-code-on-the-web.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/cli-reference.html" class="page-link">cli-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/desktop.html" class="page-link">desktop.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+9</span>
+                            <span class="removed">-8</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/headless.html" class="page-link">headless.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+10</span>
+                            <span class="removed">-9</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/model-config.html" class="page-link">model-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+20</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugin-marketplaces.html" class="page-link">plugin-marketplaces.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sandboxing.html" class="page-link">sandboxing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/statusline.html" class="page-link">statusline.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/troubleshooting.html" class="page-link">troubleshooting.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/vs-code.html" class="page-link">vs-code.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
+        
+    </div>
+</body>
+</html>
