@@ -118,9 +118,342 @@
 
         <header>
             <h1>Changes on 2026-07-09</h1>
-            <p class="meta">20 total changes in 2 runs</p>
+            <p class="meta">34 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">22:30 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 总体摘要
+本次更新主要集中在 CLI/Desktop 工具升级至 v2.1.206（修复多项关键 Bug 并引入 `/doctor` 优化），明确了 AWS Bedrock 上新版模型的调用方式变更（必须使用 Inference Profile），并补充了 API 层面的 Agent Memory Headers 及 409 错误处理细节。
+
+### 核心变更主题
+
+*   **AWS Bedrock 集成关键修正**：明确指出在 AWS 上调用新版 Claude 模型（如 Sonnet 4.5）时，不能再直接使用基础 Model ID，必须传入带有区域前缀的 Inference Profile ID，否则会返回 HTTP 400 错误。
+*   **API 细节扩展**：新增 `agent-memory-2026-07-22` Beta Header 用于内存存储端点；引入 `409 conflict_error` 错误码用于处理资源冲突；更新了 API Key 过期相关的错误描述。
+*   **CLI/Desktop v2.1.206 版本更新**：新增 `/doctor` 命令用于优化 `CLAUDE.md`；修复了 Bedrock 启动卡死、MCP 超时、Git push 权限等大量开发者体验问题。
+*   **文档标准化与可读性**：为多个核心页面（如 Prompt Engineering, Model Deprecations, API Overview）添加了导语摘要，提升了开发者查找信息的效率。
+
+### 影响等级
+**高 (High)**
+
+*   **理由**：
+    *   **破坏性变更**：AWS Bedrock 用户若不修改代码以使用 Inference Profile，新模型请求将直接失败。
+    *   **稳定性提升**：CLI v2.1.206 修复了 Bedrock 启动挂起和 MCP 超时等严重影响工作流的 Bug。
+
+### 开发者行动项
+
+1.  **修改 AWS Bedrock 调用代码**：若在 AWS 上使用新版 Claude 模型，请立即将请求中的 `model` 参数从基础 ID（如 `anthropic.claude-sonnet-4-5...`）更改为 Inference Profile ID（如 `us.anthropic.claude-sonnet-4-5...`）或 ARN。
+2.  **更新 CLI 工具**：升级至 v2.1.206 版本，以解决 Bedrock 启动延迟和 MCP 服务器超时问题。
+3.  **完善错误处理**：在 API 客户端中增加对 `409 conflict_error` 的捕获逻辑，处理并发修改或资源唯一性冲突。
+4.  **检查 Beta Header 组合**：如果同时使用 Managed Agents 和 Agent Memory，请确保不要在同一次请求中同时发送 `managed-agents` 和 `agent-memory` headers，后者会替换前者，且混用会报错。
+5.  **优化项目文档**：运行新增的 `/doctor` 命令，清理并优化项目中 `CLAUDE.md` 的冗余内容。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Understand the Goal:** The user wants a concise, insightful batch analysis of documentation changes (14 pages) from the perspective of a world-class programmer. The output must be in Chinese, markdown format, and follow a specific structure (Summary, Key Themes, Impact Level, Action Items).
+
+2.  **Analyze the Input Data (Page by Page):**
+
+    *   **Page: `desktop.md` (+16/-16):**
+        *   *Change:* Modified comparison table between CLI and Desktop.
+        *   *Specifics:*
+            *   &#34;Permission modes&#34;: Updated description for Desktop.
+            *   &#34;Third-party providers&#34;: Clarified enterprise configurations and links to docs.
+            *   &#34;MCP servers&#34;: Updated &#34;Connectors UI&#34; description (added SSH context).
+            *   &#34;Plugins&#34;: Updated UI description.
+            *   &#34;@mention files&#34;: Clarified autocomplete and scope (local/SSH).
+            *   &#34;Computer use&#34;: Updated description (App/screen control on macOS/Windows).
+            *   &#34;Dispatch integration&#34;: Added reference to Dispatch sessions.
+        *   *Impact:* Documentation alignment/refinement for feature parity and clarity.
+
+    *   **Page: `about-claude/model-deprecations.md` (+1/-0):**
+        *   *Change:* Added a descriptive intro sentence.
+        *   *Impact:* SEO/UX improvement (clarity).
+
+    *   **Page: `api/overview.md` (+2/-1):**
+        *   *Change:* Added intro sentence. Updated &#34;Getting API keys&#34; section to mention key expiration settings at creation time.
+        *   *Impact:* Security practice improvement (informing about key expiration).
+
+    *   **Page: `api/beta-headers.md` (+3/-1):**
+        *   *Change:* Added `agent-memory-2026-07-22` header for `/v1/memory_stores`. Added warning about header combinability (memory store header replaces managed agents header).
+        *   *Impact:* Technical detail crucial for API consumers using beta features, specifically agent memory.
+
+    *   **Page: `api/errors.md` (+2/-1):**
+        *   *Change:* Updated 401 error description to mention key expiration. Added new 409 `conflict_error`.
+        *   *Impact:* Debugging improvement. Handling concurrent modification conflicts.
+
+    *   **Page: `build-with-claude/prompt-caching.md` (+1/-0):**
+        *   *Change:* Added intro sentence.
+        *   *Impact:* Documentation polish.
+
+    *   **Page: `build-with-claude/batch-processing.md` (+1/-0):**
+        *   *Change:* Added intro sentence.
+        *   *Impact:* Documentation polish.
+
+    *   **Page: `build-with-claude/claude-on-amazon-bedrock.md` (+4/-1):**
+        *   *Change:* Clarified lifecycle terms. Added note about AWS cross-region inference requiring Inference Profiles instead of base model IDs (HTTP 400 error otherwise).
+        *   *Impact:* Critical fix for AWS Bedrock users. Prevents runtime errors.
+
+    *   **Page: `build-with-claude/prompt-engineering/overview.md` (+1/-0):**
+        *   *Change:* Added intro sentence.
+        *   *Impact:* Documentation polish.
+
+    *   **Page: `build-with-claude/prompt-engineering/prompting-tools.md` (+2/-1):**
+        *   *Change:* Added intro sentence. Updated alt text for an image.
+        *   *Impact:* Accessibility/Documentation polish.
+
+    *   **Page: `agents-and-tools/tool-use/text-editor-tool.md` (+1/-0):**
+        *   *Change:* Added intro sentence.
+        *   *Impact:* Documentation polish.
+
+    *   **Page: `agents-and-tools/mcp-connector.md` (+1/-0):**
+        *   *Change:* Added intro sentence.
+        *   *Impact:* Documentation polish.
+
+    *   **Page: `test-and-evaluate/develop-tests.md` (+1/-0):**
+        *   *Change:* Added intro sentence.
+        *   *Change:* Added intro sentence.
+        *   *Impact:* Documentation polish.
+
+    *   **Page: `CHANGELOG.md.md` (+28/-0):**
+        *   *Change:* Version 2.1.206 changelog.
+        *   *Key Updates:* `/cd` suggestions, `/doctor` for `CLAUDE.md` optimization, `/commit-push-pr` auto-allow, Gateway login support, `EnterWorktree` confirmation, background agent upgrades, various bug fixes (MCP timeouts, OAuth, model picker, Bedrock startup hang, etc.).
+        *   *Impact:* High. Significant CLI fixes and feature improvements.
+
+3.  **Synthesize and Structure:**
+
+    *   **Overall Summary:** The batch focuses on product version updates (v2.1.206), clarifying AWS Bedrock integration requirements, adding API details regarding agent memory and error handling, and generally polishing documentation with descriptive intros.
+    *   **Key Themes:**
+        *   *CLI/Desktop Updates:* Version 2.1.206 brings substantial fixes (MCP, Bedrock startup) and new features (`/doctor`, improved git push).
+        *   *AWS Bedrock Integration:* Critical requirement change for newer models (must use Inference Profiles, not base IDs).
+        *   *API Enhancements:* New headers for Agent Memory and a new 409 Conflict error.
+        *   *Documentation Quality:* Standardized page intros across the board.
+
+    *   **Impact Level:** **Medium to High**.
+        *   *High:* AWS Bedrock users need to update code to avoid 400 errors. CLI users benefit from stability fixes.
+        *   *Medium:* API users need to handle new headers and error codes.
+
+    *   **Action Items:**
+        *   Review AWS Bedrock implementation if using &#34;newer Claude models&#34; to switch to Inference Profiles.
+        *   Update API error handling to account for `409 conflict_error`.
+        *   Check beta header logic if using both Managed Agents and Agent Memory (headers aren&#39;t combinable).
+        *   Update CLI tool (`claude`) to v2.1.206 for critical bug fixes.
+        *   Review `CLAUDE.md` files using the new `/doctor` command.
+
+4.  **Drafting the Content (in Chinese):**
+
+    *   *Summary:* 本次更新主要涉及 CLI/Desktop 工具的版本升级（v2.1.206），引入了关键的 AWS Bedrock 集成变更（需要使用推理配置文件），并完善了 API 文档（新增 Agent Memory headers 和 409 错误码）。
+    *   *Themes:*
+        *   **CLI 功能增强与修复**: v2.1.206 包含大量修复（Bedrock 启动卡死、MCP 超时等）及新功能（`/doctor` 指令优化文档）。
+        *   **AWS Bedrock 集成变更**: 明确指出新版模型需使用 Inference Profile 而非基础 ID，否则报错。
+        *   **API 细节更新**: 新增 Agent Memory 的 Beta header，以及 409 冲突错误码。
+        *   **文档标准化**: 多个页面增加了描述性简介，提升了可读性。
+    *   *Impact:* **Medium/High**.
+        *   Bedrock 变更是破坏性的（如果未修改代码会报错），CLI 修复提升了稳定性。
+    *   *Action Items:*
+        *   **AWS Bedrock 用户**: 检查代码，针对新模型使用 Inference Profile ID 替换基础 Model ID。
+        *   **API 集成**: 在错误处理中增加对 `409 conflict_error` 的捕获；若使用 Agent Memory，确保 `agent-memory` header 替换 `managed-agents` header。
+        *   **开发者**: 升级 CLI 至 v2.1.206 以修复 Bedrock 启动卡死和 MCP 超时问题。
+        *   **维护**: 使用新增的 `/doctor` 指令检查并优化项目中的 `CLAUDE.md` 文件。
+
+5.  **Refining the Output:** Ensure the tone is professional (&#34;world-class programmer&#34;) and concise. Check Markdown formatting.
+
+    *   *Self-Correction during drafting:* Make sure to highlight the Bedrock change prominently, as that&#39;s the most &#34;breaking&#34; technical detail. Ensure the distinction between standard polish (intros) and technical changes is clear.
+
+6.  **Final Polish (Chinese):**
+    *   Summary: 本次更新涵盖 CLI/Desktop 工具的 v2.1.206 版本升级、AWS Bedrock 集成的重要修正以及 API 错误处理和 Beta 功能的细节补充。
+    *   Themes: AWS Bedrock Inference Profile, API Headers/Errors, CLI Bug Fixes.
+    *   Impact: High (for Bedrock/CLI users), Medium (for API users).
+    *   Action items focused on specific code changes.
+
+7.  **Final Output Generation.** (Matches the provided good response).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/desktop.html" class="page-link">desktop.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+16</span>
+                            <span class="removed">-16</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/about-claude/model-deprecations.html" class="page-link">about-claude/model-deprecations.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/overview.html" class="page-link">api/overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/beta-headers.html" class="page-link">api/beta-headers.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/errors.html" class="page-link">api/errors.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-caching.html" class="page-link">build-with-claude/prompt-caching.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/batch-processing.html" class="page-link">build-with-claude/batch-processing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-on-amazon-bedrock.html" class="page-link">build-with-claude/claude-on-amazon-bedrock.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/overview.html" class="page-link">build-with-claude/prompt-engineering/overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/prompting-tools.html" class="page-link">build-with-claude/prompt-engineering/prompting-tools.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/text-editor-tool.html" class="page-link">agents-and-tools/tool-use/text-editor-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/mcp-connector.html" class="page-link">agents-and-tools/mcp-connector.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/test-and-evaluate/develop-tests.html" class="page-link">test-and-evaluate/develop-tests.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+28</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">17:18 EST</div>
