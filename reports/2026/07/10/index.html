@@ -118,9 +118,192 @@
 
         <header>
             <h1>Changes on 2026-07-10</h1>
-            <p class="meta">10 total changes in 2 runs</p>
+            <p class="meta">15 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">22:36 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更分析
+
+### 1. 总体摘要
+本次更新（版本 2.1.207）主要涉及模型默认策略的重大调整，将 Amazon Bedrock、Google Cloud&#39;s Agent Platform 及 Claude Platform on AWS 的默认模型全线升级至 **Claude Opus 4.8**。同时，Auto Mode（自动模式）正式走出预览阶段并在特定平台默认开启，此外还修复了多项关键 Bug 和安全漏洞（包括 Shell 注入风险）。
+
+### 2. 关键主题
+*   **模型默认值升级**：
+    *   **Amazon Bedrock &amp; Google Cloud&#39;s Agent Platform**：默认模型从 `Sonnet 4.5` 提升至 `Opus 4.8`。
+    *   **Claude Platform on AWS**：默认模型从 `Opus 4.7` 提升至 `Opus 4.8`。
+    *   **Microsoft Foundry**：未变更，仍默认为 `Opus 4.6`/`Sonnet 4.5`。
+*   **Auto Mode 正式发布**：移除了“研究预览”标签，在 Bedrock、Vertex AI 和 Foundry 上默认可用，无需手动设置 `CLAUDE_CODE_ENABLE_AUTO_MODE`。
+*   **安全性增强**：修复了插件钩子中的 Shell 注入漏洞，拒绝在 shell 格式命令中使用 `${user_config.*}`。
+*   **稳定性修复**：解决了终端在流式长响应时卡顿、自动更新覆盖自定义启动脚本、以及 AWS 凭证请求死循环等问题。
+
+### 3. 影响等级
+**Medium (中等)**
+
+*   **理由**：虽然默认模型升级通常意味着性能提升，但 Opus 4.8 的成本显著高于 Sonnet 4.5。对于依赖默认配置的 Bedrock 和 Vertex AI 用户，这会导致未经预期的成本增加。此外，Auto Mode 的默认开启可能改变现有的交互流程，插件相关的安全修复也需要开发者审查代码。
+
+### 4. 开发者行动项
+*   **审查 API 成本**：如果您使用 Amazon Bedrock 或 Google Cloud&#39;s Agent Platform 并依赖默认模型，请注意账单可能会增加，因为默认值已切换至更昂贵的 Opus 4.8。
+*   **检查 Foundry 配置**：如果您是 Microsoft Foundry 用户，且希望使用 Opus 4.8，您需要显式设置环境变量，因为该平台默认版本未更新。
+*   **更新插件代码**：检查您的插件钩子或配置，移除 shell 命令中对 `${user_config.*}` 的引用，改用 `args` 数组或环境变量形式。
+*   **验证启动脚本**：如果您使用位于 `~/.local/bin/claude` 的自定义启动脚本，请运行 `/doctor` 确认其状态，防止被自动更新程序覆盖。
+*   **评估 Auto Mode**：无需再手动开启 Auto Mode 即可在上述平台使用，请评估这是否符合您的团队安全策略，如需禁用请使用 `disableAutoMode` 设置。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer/developer tools expert.
+    *   **Task:** Analyze documentation changes (batch of 5 pages).
+    *   **Output Format:** Markdown, Chinese language.
+    *   **Structure:** 1. Overall Summary, 2. Key Themes, 3. Impact Level, 4. Action Items.
+
+2.  **Analyze the Input (Diff Comparison):**
+
+    *   **Page 1: `amazon-bedrock.md`**
+        *   *Change:* Documentation about default model resolution. Previously said alias resolves to Opus 4.6 without env var, now says Opus 4.8. Previously said Primary default is Sonnet 4.5, now says Opus 4.8.
+        *   *Implication:* Bedrock users now get Opus 4.8 by default instead of Sonnet 4.5.
+
+    *   **Page 2: `desktop.md`**
+        *   *Change:* &#34;Auto mode is a research preview...&#34; changed to &#34;Auto mode is available to all users...&#34;. Removed the &#34;research preview&#34; phrasing.
+        *   *Implication:* Auto mode is now generally available/stable, not just a preview.
+
+    *   **Page 3: `google-vertex-ai.md`**
+        *   *Change:* Similar to Bedrock. `opus` alias now defaults to 4.8. Primary model default changed from Sonnet 4.5 to Opus 4.8.
+        *   *Implication:* Vertex AI users also get Opus 4.8 by default now.
+
+    *   **Page 4: `model-config.md`**
+        *   *Change:*
+            *   Updated resolution table. AWS Platform now defaults Opus to 4.8 (was 4.7).
+            *   Bedrock and Vertex defaults updated to Opus 4.8 (was 4.6).
+            *   &#34;Default&#34; model behavior updated. AWS (Platform) defaults to Opus 4.8. Bedrock/Vertex defaults to Opus 4.8.
+            *   Fable 5 fallback logic simplified to mention Opus 4.8 generally.
+        *   *Implication:* Standardizing on Opus 4.8 across major providers (except Foundry).
+
+    *   **Page 5: `CHANGELOG.md.md`**
+        *   *Version:* 2.1.207.
+        *   *Key Changes:*
+            *   &#34;Auto mode is now available without ... opt-in on Bedrock, Vertex AI, and Foundry&#34;. Matches the desktop.md change regarding availability.
+            *   &#34;Changed Bedrock, Vertex, and Claude Platform on AWS to default to Claude Opus 4.8&#34;. Confirms the specific model default upgrades seen in other docs.
+            *   Bug fixes (terminal freezing, auto-updater, remote settings, git worktree, etc.).
+            *   Security fix (shell injection prevention in plugin hooks).
+
+3.  **Synthesize Findings:**
+
+    *   **Theme 1: Model Default Upgrades.** The big news is the shift to Opus 4.8 as the default primary model for AWS (Platform), Bedrock, and Vertex AI. Previously, Bedrock and Vertex defaulted to Sonnet 4.5, and AWS Platform was on Opus 4.7.
+    *   **Theme 2: Auto Mode General Availability.** Auto mode is no longer a &#34;research preview&#34; and is enabled by default on specific platforms without manual opt-in flags.
+    *   **Theme 3: Security &amp; Stability.** The changelog highlights significant bug fixes and a shell-injection fix for plugins.
+
+4.  **Drafting the Output (in Chinese):**
+
+    *   *Overall Summary:* Version 2.1.207 主要是将多个云平台（AWS、Bedrock、Vertex AI）的默认模型升级到了 Opus 4.8，并正式发布了 Auto Mode（自动模式），同时包含多项安全加固和 Bug 修复。
+    *   *Key Themes:*
+        *   模型默认值重大调整：Bedrock、Vertex AI 和 Claude Platform on AWS 的默认模型均从之前的 Sonnet 或旧版 Opus 升级至 Opus 4.8。
+        *   Auto Mode 正式发布：不再标注为 &#34;research preview&#34;，且在特定平台默认启用。
+        *   安全性增强：修复了插件钩子中的 Shell 注入漏洞。
+        *   用户体验优化：修复了终端卡顿、自动更新覆盖等问题。
+    *   *Impact Level:* **Medium**. 虽然默认模型的改变可能影响 API 调用的成本和速度（Opus 比 Sonnet 贵），但这通常是正向的性能提升，且是透明切换。安全漏洞修复至关重要。
+    *   *Action Items:*
+        *   监控 AWS/Bedrock/Vertex AI 的账单，因为默认模型更改为更强的 Opus 4.8，成本可能会增加。
+        *   检查插件代码，确保没有依赖被移除的 shell 格式配置（因为 `user_config` 被拒绝）。
+        *   如果使用了自定义启动脚本，请检查 `/doctor` 输出，确认未被自动更新覆盖。
+        *   无需手动配置 Auto Mode 即可在 Bedrock/Vertex/Foundry 上使用。
+
+5.  **Refining the Chinese translation for &#34;World-class programmer&#34; tone:**
+    *   Use precise terms like &#34;alias resolution&#34; (别名解析), &#34;default model&#34; (默认模型), &#34;shell injection&#34; (Shell 注入).
+    *   Keep it concise.
+
+6.  **Final Review against Constraints:**
+    *   Single batch analysis? Yes.
+    *   Markdown format? Yes.
+    *   Chinese response? Yes.
+    *   Action items max 5? Yes.
+
+    *(Self-Correction during drafting)*: Make sure to note that Microsoft Foundry *did not* get the Opus 4.8 upgrade according to `model-config.md` (it stays on Opus 4.6/Sonnet 4.5). This is a crucial distinction for developers using Foundry.
+
+    *Revised Action Item:* Explicitly mention Foundry users need to pin models manually if they want Opus 4.8.
+
+7.  **Final Output Generation.** (Proceeding to generate response based on step 6).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/amazon-bedrock.html" class="page-link">amazon-bedrock.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/desktop.html" class="page-link">desktop.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/google-vertex-ai.html" class="page-link">google-vertex-ai.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/model-config.html" class="page-link">model-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+10</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+25</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">14:19 EST</div>
