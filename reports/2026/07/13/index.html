@@ -118,9 +118,282 @@
 
         <header>
             <h1>Changes on 2026-07-13</h1>
-            <p class="meta">28 total changes in 3 runs</p>
+            <p class="meta">45 total changes in 4 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">17:51 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># Claude Code 文档变更分析
+
+## 总体摘要
+本次更新主要集中在 **v2.1.206 和 v2.1.207** 版本，涉及云提供商的模型默认值变更（Bedrock/Google Cloud 默认模型从 Sonnet 4.5 变为 Opus 4.8）、AWS 凭据缓存机制优化、插件配置安全加固（防止 shell 命令注入），以及多个用户体验和错误处理的改进。
+
+## 核心变更主题
+
+- **🔴 模型默认值重大变更**：Amazon Bedrock、Google Cloud Agent Platform 和 Claude Platform on AWS 的默认主模型从 Sonnet 4.5 更改为 Opus 4.8，背景任务模型统一为 Sonnet 4.5
+- **🔒 安全性增强**：禁止在 shell 执行的命令（如 `headersHelper`、monitor、shell-form hooks）中替换 `${user_config.*}` 变量，防止命令注入风险
+- **⚙️ AWS 凭据优化**：引入凭据缓存机制（默认 60 秒超时，缓存至过期前 5 分钟），解决 SSO 频繁请求导致的限流问题
+- **🛠️ 认证与错误处理**：改进 OAuth token 刷新逻辑（失败时自动重试一次）、登录过期提示、以及启动时的凭据解析
+- **📦 用户体验**：桌面版 `/usage-credits` 新增 CLI 内联对话框，支持自动充值和限额设置；自动更新机制支持自定义启动器
+
+## 影响等级：**High**（高）
+
+**原因**：
+1. **成本影响**：未固定模型版本的部署将自动升级到价格更高的 Opus 模型
+2. **破坏性变更**：依赖 `${user_config.*}` 的 shell 命令配置将失效并报错
+3. **行为变更**：AWS SSO 凭据获取频率改变，可能影响特定的身份验证流程
+
+## 开发者行动项
+
+1. **固定模型版本**：在生产部署中设置 `ANTHROPIC_DEFAULT_OPUS_MODEL` 和 `ANTHROPIC_DEFAULT_SONNET_MODEL` 环境变量，以锁定特定版本并控制成本
+2. **检查插件配置**：审查 MCP 服务器的 `headersHelper`、插件 monitor 和 hook 命令，将 `${user_config.KEY}` 替换为环境变量 `$CLAUDE_PLUGIN_OPTION_&lt;KEY&gt;` 或改用 exec 形式
+3. **更新信任设置**：确认 `.claude/settings.local.json` 的 MCP 审批配置在信任对话框中生效
+4. **审查 glob 模式**：检查内存规则中的 glob 模式，确保正确转义 `[` 字符以避免匹配失败
+5. **测试凭据流程**：验证使用 AWS SSO 或 `aws-vault` 的部署在新凭据缓存机制下的行为，必要时调整 `CLAUDE_CODE_AWS_CHAIN_RESOLVE_TIMEOUT_MS`</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">用户希望我分析Claude Code文档的17页变更，并提供简洁的中文总结。
+
+让我先梳理一下这些变更的主要内容：
+
+1. **amazon-bedrock.md** - AWS凭据缓存机制更新，模型版本pinning警告更新
+2. **cli-reference.md** - `--include-hook-events` 标志描述更新
+3. **costs.md** - `/usage-credits` 命令功能增强
+4. **desktop.md** - 桌面应用权限模式更新
+5. **discover-plugins.md** - LSP插件使用计数更新
+6. **google-vertex-ai.md** - Google Cloud模型版本pinning更新
+7. **headless.md** - 系统init事件流更新
+8. **hooks.md** - 插件hook中的`${user_config.*}`替换更新
+9. **iam.md** - 登录过期错误处理更新
+10. **mcp.md** - MCP服务器配置和安全更新
+11. **memory.md** - Glob语法和doctor检查更新
+12. **model-config.md** - 模型别名解析更新
+13. **plugins-reference.md** - 插件监控和user_config更新
+14. **sandboxing.md** - 沙盒模式文档更新
+15. **settings.md** - `autoMode`设置范围更新
+16. **setup.md** - 安装脚本和自动更新更新
+17. **sub-agents.md** - 子代理同辈列表更新
+
+关键主题：
+- AWS和Google Cloud的模型版本默认值变更（从Sonnet 4.5变为Opus 4.8）
+- 插件和MCP服务器中`${user_config.*}`的安全替换处理
+
+
+- 凭据管理和认证机制得到显著优化
+- 凭证缓存机制增强，提高了认证流程的效率和安全性
+
+凭证缓存和认证流程进一步完善，通过超时设置和错误处理机制，提升了系统的稳定性和用户体验。这些改进涉及OAuth token刷新、启动凭证导出和登录过期处理等多个方面。
+
+模型版本和环境配置更新带来了显著影响，特别是默认模型变更和插件配置范围调整，可能需要开发者重新审视现有的部署策略和设置细节。
+
+版本2.1.207和2.1.206引入了多项变更，包括默认模型版本更新、凭据缓存、用户配置替换范围以及登录过期处理，这些调整要求开发团队密切关注和相应的代码适配。</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/amazon-bedrock.html" class="page-link">amazon-bedrock.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+18</span>
+                            <span class="removed">-8</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/cli-reference.html" class="page-link">cli-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/costs.html" class="page-link">costs.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+9</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/desktop.html" class="page-link">desktop.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+28</span>
+                            <span class="removed">-23</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/discover-plugins.html" class="page-link">discover-plugins.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/google-vertex-ai.html" class="page-link">google-vertex-ai.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+12</span>
+                            <span class="removed">-8</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/headless.html" class="page-link">headless.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/iam.html" class="page-link">iam.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/memory.html" class="page-link">memory.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/model-config.html" class="page-link">model-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+13</span>
+                            <span class="removed">-9</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sandboxing.html" class="page-link">sandboxing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+27</span>
+                            <span class="removed">-18</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/setup.html" class="page-link">setup.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">16:09 EST</div>
