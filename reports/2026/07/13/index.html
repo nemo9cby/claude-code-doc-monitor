@@ -118,9 +118,173 @@
 
         <header>
             <h1>Changes on 2026-07-13</h1>
-            <p class="meta">45 total changes in 4 runs</p>
+            <p class="meta">47 total changes in 5 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">18:51 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 1. Overall Summary
+文档更新主要完善了 Claude Desktop 的企业级网络配置指南，明确列出了应用加载和内容分发所需的域名，提供了“低通配符”列表以减少防火墙攻击面，并新增了关于 MCP 连接器流量代理的说明。
+
+### 2. Key Themes
+*   **企业级安全合规**：在 `desktop.md` 中新增“网络访问要求”章节，提供了两份域名列表（一份使用通配符，一份使用具体域名），允许企业在严格的网络策略下实现“低通配符”配置。
+*   **MCP 流量透明化**：在 `network-config.md` 中明确指出源自 `claude.ai` 的 MCP 连接器流量会经过 `mcp-proxy.anthropic.com`，并提供了禁用该功能的配置方法。
+*   **故障排查优化**：将网络连通性检查（特别是 CDN 域名）纳入应用加载失败的官方排查步骤中。
+
+### 3. Impact Level
+*   **Medium** (High for Enterprise/DevOps teams)
+*   **Reasoning**：虽然不影响核心 API 调用，但对于在企业受限网络环境中部署 Claude Desktop 的开发人员和运维人员至关重要。未更新防火墙规则可能导致应用无法加载代码、无法更新或 MCP 功能异常。
+
+### 4. Action Items
+*   **更新防火墙规则**：参考 `desktop.md` 中的新列表，将宽泛的通配符（如 `*.claude.ai`）替换为更精确的具体域名（如 `a-cdn.claude.ai`），以收紧安全策略。
+*   **处理 MCP 代理域名**：如果组织使用云端的 MCP 连接器，必须在防火墙中放行 `mcp-proxy.anthropic.com`；若网络受限，请设置 `ENABLE_CLAUDEAI_MCP_SERVERS=false`。
+*   **排查加载失败问题**：在遇到应用启动或更新失败时，检查防火墙是否拦截了文档中列出的 CDN 主机（如 `a-cdn.anthropic.com`）。
+*   **审查 Google Storage 访问**：确认 `storage.googleapis.com` 的访问权限，该域名目前用于插件元数据获取和工件上传。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer/developer tools expert.
+    *   **Task:** Analyze documentation changes in a single batch.
+    *   **Input:** Two pages (`desktop.md`, `network-config.md`) with diffs.
+    *   **Output Format:** Concise markdown, Chinese language.
+    *   **Sections:** Overall Summary, Key Themes, Impact Level, Action Items.
+
+2.  **Analyze the Diff - `desktop.md`:**
+    *   **Addition:** A new section &#34;Network access requirements&#34;.
+    *   **Content:** Lists domains/hosts (wildcards and specific) used by the Desktop app to load code and content. Mentions HTTPS 443, OTLP, LLM gateways.
+    *   **Specifics:** Provides two lists. One with broad wildcards (simpler but more open), and one with specific hosts (safer, fewer wildcards but lists specific subdomains like `a-api`, `a-cdn`, `s-cdn`, `assets-proxy`).
+    *   **Change in existing text:** Updated the deployment section to reference the new &#34;network access requirements&#34; section specifically for firewall allowlisting, rather than just pointing to the generic &#34;network configuration&#34; page.
+    *   **Troubleshooting update:** Added a step about checking firewall allowlists for CDN hosts when the app fails to load/update.
+    *   **Interpretation:** This is a move to clarify networking needs for enterprise users, specifically distinguishing between what needs to be accessed for the *app to run/load* versus proxies/gateways. It provides a &#34;low wildcard&#34; list for stricter security policies.
+
+3.  **Analyze the Diff - `network-config.md`:**
+    *   **Update to URL table:**
+        *   Added `mcp-proxy.anthropic.com`: Described as the route for MCP connectors from `claude.ai`, specifically org-admin configured ones. Includes details on how to disable it (`ENABLE_CLAUDEAI_MCP_SERVERS=false` or `disableClaudeAiConnectors`).
+        *   Updated description for `storage.googleapis.com`: Now mentions &#34;Install counts and plugin metadata&#34; and signed artifact upload fallback.
+    *   **Text update:** Minor clarification about npm/binary distribution users not needing `downloads` or `storage` URLs (end of diff cut off, but visible in previous table).
+    *   **Interpretation:** Fine-tuning the network requirements list. Adding the MCP proxy is significant for security/compliance visibility.
+
+4.  **Synthesize - Overall Summary:**
+    *   The docs now explicitly list network domains required for Claude Desktop to function, offering a &#34;low wildcard&#34; option for stricter enterprise security. It also clarifies the routing for MCP connectors via a specific proxy domain.
+
+5.  **Synthesize - Key Themes:**
+    *   **Enterprise Security/Compliance:** Providing specific domain lists to minimize firewall exceptions (reducing wildcard usage).
+    *   **Network Visibility:** Clarifying where traffic goes (CDN for app code, new proxy for MCP connectors).
+    *   **Troubleshooting:** Adding network checks to the standard troubleshooting flow.
+
+6.  **Synthesize - Impact Level:**
+    *   **Level:** Medium (or potentially High for strict enterprise environments).
+    *   **Reasoning:** For developers/IT admins managing deployments, this is critical info. If they previously blocked wide open wildcards or missed the new MCP proxy, functionality might break. It&#39;s not a code-breaking change, but a deployment-critical update.
+
+7.  **Synthesize - Action Items:**
+    *   Review firewall rules against the new &#34;low wildcard&#34; list.
+    *   Allow `mcp-proxy.anthropic.com` if using claude.ai connectors (or disable them if not allowed).
+    *   Update internal deployment documentation to reflect the specific domains.
+    *   Check &#34;Failed to load session&#34; issues against the new CDN host list.
+
+8.  **Drafting the Response (Internal Monologue -&gt; Chinese Translation):**
+
+    *   *Summary:* 文档更新明确了 Claude Desktop 的网络访问要求，提供了更精确的域名列表以减少企业防火墙中的通配符使用，同时增加了 MCP 代理域名的说明。
+    *   *Themes:*
+        *   企业级网络配置：提供“低通配符”域名列表，帮助企业严格管控网络。
+        *   MCP 流量路由：新增 `mcp-proxy.anthropic.com` 用于云端 MCP 连接器。
+        *   故障排查：将网络检查纳入应用加载失败的排查步骤。
+    *   *Impact:* High for Enterprise/DevOps, Low for casual dev. Let&#39;s go with **Medium** generally, but emphasize Enterprise.
+    *   *Action Items:*
+        *   更新防火墙白名单，使用新的具体域名列表替代宽泛通配符。
+        *   确认是否需要放行 `mcp-proxy.anthropic.com`，或设置环境变量禁用云端 MCP 连接器。
+        *   审查 CDN 域名访问权限以排查应用加载或更新失败的问题。
+
+9.  **Refining the Output (Markdown &amp; Formatting):**
+    *   Ensure the tone is &#34;world-class programmer&#34; (professional, concise, insightful).
+    *   Check against the specific diffs:
+        *   Did I mention the `mcp-proxy`? Yes.
+        *   Did I mention the distinction between wildcard lists? Yes.
+        *   Did I mention the troubleshooting update? Yes.
+
+10. **Final Polish (Chinese):**
+    *   &#34;Network access requirements&#34; -&gt; 网络访问要求
+    *   &#34;Low wildcard&#34; -&gt; 低通配符/具体域名
+    *   &#34;MCP connectors&#34; -&gt; MCP 连接器
+    *   &#34;Firewall allowlisting&#34; -&gt; 防火墙白名单
+
+    (Self-Correction during drafting): Make sure to highlight the specific list vs wildcard list distinction, as that&#39;s the biggest value add in `desktop.md`.
+
+    *Action items details:*
+    1. Review firewall rules for specific domains.
+    2. Handle `mcp-proxy.anthropic.com`.
+    3. Troubleshoot loading issues with new CDN info.
+    4. Update deployment docs.
+
+    Let&#39;s stick to the requested format strictly.
+
+    *Section 1: Summary*
+    文档更新了 Claude Desktop 的网络配置指南，明确列出了应用加载和内容分发所需的域名，提供了“低通配符”选项以增强企业网络安全性，并阐明了 MCP 连接器的流量路由规则。
+
+    *Section 2: Key Themes*
+    *   **企业级网络合规**：提供了更细粒度的域名列表，允许企业在防火墙配置中使用更少的通配符（减少攻击面）。
+    *   **流量路由透明化**：新增 `mcp-proxy.anthropic.com` 域名说明，明确源自 `claude.ai` 的 MCP 连接器流量通过此代理传输。
+    *   **故障排查增强**：在应用启动和更新故障排查流程中，增加了对 CDN 域名网络连通性的检查步骤。
+
+    *Section 3: Impact Level*
+    *   **Medium** (High for Enterprise/DevOps teams)
+    *   **Reasoning**: 虽然不影响核心 API 调用，但对于企业部署和受限网络环境至关重要。如果防火墙规则未同步更新（特别是新增的 MCP 代理或具体的 CDN 域名），可能导致应用无法加载、更新或 MCP 功能异常。
+
+    *Section 4: Action Items*
+    *   更新企业防火墙白名单，优先使用文档中提供的具体域名列表（如 `a-cdn.anthropic.com`）替代宽泛通配符。
+    *   如果组织使用云端 MCP 连接器，请确保放行 `mcp-proxy.anthropic.com`，或通过 `ENABLE_CLAUDEAI_MCP_SERVERS=false` 禁用该功能。
+    *   在排查应用启动失败或更新问题时，检查是否已允许文档中列出的所有 CDN 主机。
+    *   验证 `storage.googleapis.com` 的用途，确认是否需要放行以支持插件元数据获取。
+
+11. Final Review against user prompt constraints:
+    *   Single batch analysis? Yes.
+    *   Concise? Yes.
+    *   Chinese? Yes.
+    *   Markdown? Yes.
+
+    (Proceed to output).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/desktop.html" class="page-link">desktop.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+31</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/network-config.html" class="page-link">network-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+15</span>
+                            <span class="removed">-11</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">17:51 EST</div>
