@@ -118,9 +118,266 @@
 
         <header>
             <h1>Changes on 2026-07-13</h1>
-            <p class="meta">47 total changes in 5 runs</p>
+            <p class="meta">55 total changes in 6 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">19:49 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 总体摘要
+
+本次更新深入解析了 IDE 插件（VS Code 和 JetBrains）的内部 MCP 服务器架构与安全机制，澄清了身份认证流程（特别是 Microsoft Foundry/Azure）的命名与配置逻辑，明确了 AWS 平台在账单和限额管理上的特殊性，并为 Tool Use 提供了完整的端到端代码参考示例。
+
+### 关键主题
+
+*   **IDE 集成与 MCP 服务器机制**：新增了关于 VS Code 和 JetBrains 内置 `ide` MCP 服务器的详细文档。阐明了其使用非加密 `ws://` 传输、基于锁文件的 Token 认证、以及在 WSL2 或远程环境下的网络接口绑定安全风险。
+*   **身份认证与配置标准化**：将“Azure Auth”统一重命名为“Microsoft Foundry Auth”，并完善了凭证优先级、`ANTHROPIC_API_KEY` 的交互行为以及 `/logout` 重置状态的说明。
+*   **AWS 平台特定流程**：针对“Claude Platform on AWS”用户，明确指出了其账单和限额管理需在特定入口（Settings &gt; Billing）进行，且不支持常规的“请求限额提升”自助流程。
+*   **Hooks 逻辑细化**：修正了 `PostToolUseFailure` 的定义，明确区分了“执行失败”与“执行前的验证拒绝”，并指出了权限拒绝不会触发该事件。
+*   **开发者体验增强**：在 Tool Use 概览中新增了大量的 cURL、CLI 和 Python 代码示例，完整演示了从请求工具调用到返回结果的闭环。
+
+### 影响等级：中等
+
+**理由**：虽然本次更新不包含破坏性变更，但引入了关于 IDE 插件网络安全（非加密本地通信）的重要安全说明，这对开发环境配置有实际指导意义。同时，AWS 用户和 Foundry 用户需要留意流程上的差异。
+
+### 开发者行动项
+
+*   **审查 Hooks 逻辑**：如果你使用了 `PostToolUseFailure` 钩子，请检查其实现逻辑，因为它不会在权限拒绝或输入验证失败时触发，需结合 `PermissionDenied` 事件使用。
+*   **关注 IDE 网络安全**：如果你在 WSL2 或远程开发环境中使用 JetBrains/VS Code 插件，请务必查看关于“监听所有网络接口”的警告，了解明文传输 Token 的风险，优先考虑镜像网络配置。
+*   **更新 AWS 运维流程**：针对 AWS 平台用户，请更新内部文档，指引团队通过 `Settings &gt; Billing` 管理消费限额，并明确需通过支持渠道提升速率限制。
+*   **参考新代码示例**：如果你正在开发基于 Tool Use 的 Agent，建议参考新增的完整代码示例（特别是包含 `tool_choice` 和消息历史处理的部分），以优化你的实现。
+*   **检查 Foundry 配置**：若你的组织使用 Microsoft Foundry，请更新环境变量文档以匹配新的命名（如 `ANTHROPIC_FOUNDRY_BASE_URL`），并利用 `/status` 命令验证连接状态。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer/doc expert.
+    *   **Task:** Analyze documentation changes (8 pages), summarize what changed and why it matters.
+    *   **Format:** Markdown, concise, insightful, Chinese language.
+    *   **Structure:**
+        1.  Overall Summary (1-2 sentences).
+        2.  Key Themes (bullets).
+        3.  Impact Level (Low/Medium/High/Breaking) + reasoning.
+        4.  Action Items (max 5 bullets).
+
+2.  **Analyze the Diffs (Page by Page):**
+
+    *   **Page: `hooks.md`** (+2 / -1)
+        *   *Change:* Updated definition of `PostToolUseFailure`. It now clarifies that this event fires *after* a tool starts executing (e.g., error or MCP failure). Added a Note explaining when it *doesn&#39;t* fire (validation errors, permission denials) and linking to `PermissionDenied`.
+        *   *Why it matters:* Prevents confusion in hook implementations regarding error handling flow. Clarifies the distinction between &#34;validation failure&#34; (pre-execution) and &#34;execution failure&#34; (post-execution).
+
+    *   **Page: `iam.md`** (+5 / -4)
+        *   *Change:*
+            *   Login: Added confirmation message details (`Login successful`).
+            *   Logout: Clarified that logout resets first-launch setup.
+            *   Auth types: Changed &#34;Azure Auth&#34; to &#34;Microsoft Foundry Auth&#34;.
+            *   Env vars: Added detail about `apiKeyHelper` and `ANTHROPIC_API_KEY` (toggle visibility).
+            *   Precedence list: Clarified that `Login method` vs `API key` rows in `/status` show what is active.
+        *   *Why it matters:* Improves clarity on authentication state and troubleshooting. Renaming &#34;Azure&#34; to &#34;Microsoft Foundry&#34; aligns with current branding.
+
+    *   **Page: `jetbrains.md`** (+12 / -0)
+        *   *Change:* New section &#34;The built-in IDE MCP server&#34;.
+        *   *Details:* Explains the `ide` server mechanism (auto-connection, hidden from config). Covers selection context, transport/auth (local unencrypted `ws://`, lock file token), tools exposed (`getDiagnostics`), and network interface binding (loopback vs. all interfaces).
+        *   *Why it matters:* Critical for security understanding (unencrypted local traffic), debugging connection issues (WSL2), and hook configuration (need to allowlist `ide` tools).
+
+    *   **Page: `microsoft-foundry.md`** (+5 / -2)
+        *   *Change:*
+            *   Setup: Emphasized noting deployment names.
+            *   API Key: Added placeholder text replacement instruction.
+            *   Verification: Added tip to use `/status` to verify setup.
+            *   Troubleshooting: Added specific check for `ANTHROPIC_FOUNDRY_RESOURCE` being a placeholder vs real name.
+        *   *Why it matters:* Helps users avoid copy-paste errors during Azure setup and provides clear verification steps.
+
+    *   **Page: `third-party-integrations.md`** (+9 / -3)
+        *   *Change:*
+            *   LLM Gateway: Added `ANTHROPIC_FOUNDRY_BASE_URL` to the list of proxy/gateway variables.
+            *   `/status` tip: Expanded with example output for verification.
+            *   Best practices: Expanded list of system-level config directories (added Linux/WSL and Windows paths).
+        *   *Why it matters:* Ensures parity for Foundry in proxy configurations and clarifies system-wide deployment paths across OSs.
+
+    *   **Page: `vs-code.md`** (+5 / -5)
+        *   *Change:*
+            *   Transport/Auth: Refined text to match JetBrains (unencrypted `ws://`, lock file logic). Changed &#34;random high port&#34; to &#34;random port in range 10000–65535&#34;. Added note about `CLAUDE_CONFIG_DIR`.
+            *   Tools table: Changed &#34;Writes?&#34; column to &#34;Read-only&#34;. Changed `executeCode` to &#34;No&#34; (Read-only?). Wait, looking at the diff: `executeCode` changed to &#34;No&#34; under &#34;Read-only&#34;. Actually, the description says it runs code, but perhaps strictly speaking it&#39;s an *execution* tool rather than a direct file-write tool? Or maybe the classification changed. Let&#39;s look closely. Old table had &#34;Writes?&#34; column. New table has &#34;Read-only&#34; column. `getDiagnostics` = Yes. `executeCode` = No. This implies `executeCode` is NOT read-only (it executes code).
+            *   *Self-correction:* Wait, let me re-read the diff.
+            *   Old: `getDiagnostics` -&gt; No (Writes?). New: `getDiagnostics` -&gt; Yes (Read-only). Correct.
+            *   Old: `executeCode` -&gt; Yes (Writes?). New: `executeCode` -&gt; No (Read-only). Correct.
+            *   Why? `getDiagnostics` only reads state. `executeCode` performs actions (execution), so it is *not* read-only.
+        *   *Why it matters:* Aligns VS Code docs with JetBrains docs regarding security/transport. Clarifies tool capabilities in permissions/hooks context.
+
+    *   **Page: `api/rate-limits.md`** (+3 / -1)
+        *   *Change:* Updated notes regarding &#34;Claude Platform on AWS&#34;.
+        *   *Details:* Billing/limit management differs (Settings &gt; Billing vs Settings &gt; Limits). &#34;Request rate limit increase&#34; flow is unavailable for AWS users; must contact support.
+        *   *Why it matters:* Crucial for AWS customers managing limits/billing, preventing confusion with standard Anthropic platform flows.
+
+    *   **Page: `agents-and-tools/tool-use/overview.md`** (+340 / -1)
+        *   *Change:* Added massive code examples in the &#34;How tool use works&#34; section.
+        *   *Details:* Full examples in cURL, CLI, and Python showing the round-trip: Request -&gt; Tool Use -&gt; Execution -&gt; Tool Result -&gt; Final Response.
+        *   *Why it matters:* Developers now have copy-pasteable reference implementations for tool use, significantly lowering the barrier to entry for implementing complex tool interactions.
+
+3.  **Synthesize and Structure:**
+
+    *   **Summary:** The update focuses on clarifying authentication flows (especially Microsoft Foundry/Azure), expanding documentation for IDE integrations (VS Code, JetBrains) regarding their internal MCP servers and security, and providing comprehensive code examples for tool use.
+    *   **Themes:**
+        *   *IDE Integration Deep Dive:* Detailed explanation of the local MCP server, authentication (tokens, unencrypted transport), and tool exposure for VS Code and JetBrains.
+        *   *Authentication &amp; Config Refinement:* Renaming Azure to Microsoft Foundry, clarifying credential precedence, and troubleshooting setup.
+        *   *AWS Specifics:* Specific handling of billing and limits for &#34;Claude Platform on AWS&#34;.
+        *   *Developer Experience (DX):* Added extensive code examples for the tool use workflow.
+    *   **Impact:** Medium. No breaking changes, but significant clarity improvements and new security details for IDEs that developers *should* know.
+    *   **Action Items:**
+        *   Check `PostToolUseFailure` logic if you rely on hooks.
+        *   Review IDE MCP server docs if security/networking (WSL2) is a concern.
+        *   Update AWS limit management procedures.
+        *   Use the new tool use examples if building agents.
+
+4.  **Drafting the Response (in Chinese):**
+
+    *   *Summary:* 本次更新主要围绕 IDE 集成机制（特别是 JetBrains 和 VS Code 的内部 MCP 服务器）、身份认证流程的重命名与澄清（Microsoft Foundry/Azure）、以及为工具使用提供了详尽的代码示例。
+    *   *Themes:*
+        *   IDE 集成与 MCP 服务器：详细说明了 IDE 插件如何通过本地 MCP 服务器与 CLI 通信，包括非加密传输、Token 认证机制及网络安全注意事项（如 WSL2 配置）。
+        *   身份认证与配置：将 &#34;Azure Auth&#34; 重命名为 &#34;Microsoft Foundry Auth&#34;，并修正了相关的环境变量配置、凭证优先级及状态检查说明。
+        *   平台特定限制：针对 &#34;Claude Platform on AWS&#34; 的账单和限额管理流程进行了专门的说明更新。
+        *   开发者体验：新增了大量的 cURL、CLI 和 Python 代码示例，完整演示了 Tool Use 的请求-执行-返回闭环。
+    *   *Impact:* Medium（中等）。虽然没有破坏性变更，但对于 IDE 插件的安全理解和 AWS 用户的运维流程有重要影响，同时极大降低了工具使用的开发门槛。
+    *   *Action Items:*
+        *   **Hooks 调整**：如果你依赖 Hooks 处理错误，请检查 `PostToolUseFailure` 的触发条件说明，确保逻辑覆盖了验证拒绝等场景。
+        *   **IDE 安全审查**：如果你在 WSL2 或远程环境中使用 VS Code/JetBrains 插件，请阅读关于 MCP 服务器网络接口的配置，以避免明文传输 Token 的风险。
+        *   **AWS 运维更新**：如果是 AWS 平台用户，请注意账单和限额需要在 &#34;Settings &gt; Billing&#34; 中管理，而非标准的 &#34;Settings &gt; Limits&#34;。
+        *   **配置更新**：若使用了 Microsoft Foundry 集成，请更新文档中的环境变量命名（`ANTHROPIC_FOUNDRY_BASE_URL` 等）及 `/status` 检查步骤。
+
+5.  **Refinement:** Ensure the tone is professional and concise. The cURL/Python examples in the diff are long, but the summary just needs to mention *that* they exist and are helpful. The unencrypted transport note in IDE docs is a &#34;warning&#34; type info, worth highlighting in Action Items.
+
+    *   *Self-Correction on Action Items:* Keep it max 5.
+    *   1. Review hooks logic (PostToolUseFailure).
+    *   2. Review IDE MCP server security (unencrypted transport).
+    *   3. Update AWS limit procedures.
+    *   4. Use new code examples for Tool Use.
+    *   5. Update Foundry integration config.
+
+6.  **Final Polish (Chinese):**
+    *   Translate &#34;Medium&#34; to &#34;中等&#34;.
+    *   Ensure &#34;Microsoft Foundry&#34; usage is consistent.
+
+    (Drafting content...)
+    *   Summary: 本次更新深入解析了 IDE 插件的内部 MCP 服务器机制，澄清了身份认证（特别是 Microsoft Foundry）和 AWS 平台的特定流程，并为 Tool Use 提供了完整的代码参考示例。
+    *   Themes: IDE MCP 架构与安全, 认证流与配置清理, AWS 平台差异说明, 增强的代码示例.
+    *   Impact: Medium. Mainly clarifications and DX improvements, but contains important security/networking details for IDE usage.
+    *   Actions: Check hooks, Review IDE security, Update AWS workflow, Ref code examples.
+
+7.  **Final Output Generation** (matches the drafted structure).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/iam.html" class="page-link">iam.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/jetbrains.html" class="page-link">jetbrains.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+12</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/microsoft-foundry.html" class="page-link">microsoft-foundry.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/third-party-integrations.html" class="page-link">third-party-integrations.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+9</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/vs-code.html" class="page-link">vs-code.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/rate-limits.html" class="page-link">api/rate-limits.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/overview.html" class="page-link">agents-and-tools/tool-use/overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+340</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">18:51 EST</div>
