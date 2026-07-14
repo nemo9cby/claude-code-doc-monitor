@@ -118,9 +118,337 @@
 
         <header>
             <h1>Changes on 2026-07-14</h1>
-            <p class="meta">20 total changes in 2 runs</p>
+            <p class="meta">36 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">15:10 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 1. Overall Summary
+本次文档更新主要对应 **v2.1.208** 版本，重点提升了错误诊断能力（Bedrock 认证、API Key 脚本、子代理配置）、优化了性能（限制大表格渲染、快照清理）并改善了开发者体验（Vim 模式增强、购买流程确认、流式输出修复）。
+
+### 2. Key Themes
+*   **错误诊断与反馈增强**：针对 Bedrock SSO 认证、`apiKeyHelper` 脚本失败以及子代理工具配置错误，提供了更明确的错误信息，替代了之前的静默失败或通用报错。
+*   **性能与稳定性优化**：终端中渲染的大型 Markdown 表格现在限制为 200 行，防止会话恢复时卡顿；文件快照清理逻辑更加高效。
+*   **开发者体验 (UX) 改进**：Vim 模式新增 INSERT 模式键位映射（如 `jj` 退出）；购买和自动充值流程现在无论金额大小均需手动输入 `yes` 确认；`/usage` 命令在 API 限速时会显示最近 60 分钟的缓存数据。
+*   **集成与流式传输修复**：修复了代理后 Bedrock 流式响应因 `Content-Type` 变更导致失败的问题；修复了无头模式下大响应 JSON 流截断的问题。
+*   **子代理与工作流增强**：`CLAUDE_CODE_SUBAGENT_MODEL` 现在也适用于工作流；后台子代理完成后会在任务列表中保留，方便查看结果。
+
+### 3. Impact Level
+**Medium** (中等)
+*   **Reasoning**: 主要是功能增强和 Bug 修复，没有破坏性变更。部分错误处理逻辑的变化（如 Hook 超时行为、无效子代理工具的报错）会改变现有程序的运行表现，但主要是为了提高系统的健壮性和可调试性。
+
+### 4. Action Items for Developers
+*   **Bedrock 用户**：如果使用网关代理，请确保其透传 `Content-Type: application/vnd.amazon.eventstream`，或设置环境变量 `CLAUDE_CODE_DISABLE_BEDROCK_CONTENT_TYPE_GUARD=1`。
+*   **脚本维护者**：检查 `apiKeyHelper` 脚本，确保其失败时能被新的错误检测机制捕获，避免静默重试。
+*   **子代理配置**：审查子代理定义中的 `tools` 字段，确保所有工具名有效，v2.1.208+ 会因无效工具名拒绝启动而非无工具运行。
+*   **Vim 用户**：可更新设置文件，利用 `vimInsertModeRemaps` 配置 INSERT 模式快捷键。
+*   **计费管理员**：注意新的计费确认流程，所有购买操作现在均需 `yes` 确认。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">用户希望我分析一批 Claude Code 文档的变更（16 个页面）。
+
+**变更分析：**
+
+1.  **amazon-bedrock.md (+5 / -0):**
+    *   关于 `sso_region` vs Bedrock region 的澄清（修复了 v2.1.208 中的 Bug，此前 Bedrock region 会覆盖 `sso_region`）。
+    *   新增错误处理/文档，说明网关/代理如何通过改变 Content-Type 导致流式响应失败。
+    *   引入了环境变量 `CLAUDE_CODE_DISABLE_BEDROCK_CONTENT_TYPE_GUARD=1`。
+    *   修复了 `/context` 命令中由于旧版本中的 schema 问题导致的“零 token 计数”。
+
+2.  **checkpointing.md (+1 / -0):**
+    *   明确了保留行为：保留最近 100 个检查点的文件快照。
+    *   优化：不再保留未引用的快照文件（保留 VS Code 扩展所需的基线）。这是 v2.1.208 的变更。
+
+3.  **cli-reference.md (+1 / -1):**
+    *   `claude auto-mode defaults`：新增了 `--label &lt;prefix&gt;` 标志，用于过滤规则（v2.1.208）。
+
+4.  **costs.md (+3 / -1):**
+    *   `/usage` 改进：如果请求被限速，显示过去 60 分钟内加载的最后已知使用情况（v2.1.208）。
+    *   购买/自动重载 UI：现在*无论金额大小*都需要输入 &#34;yes&#34; 进行确认，并且会显示税后总额（v2.1.208 变更）。此前仅适用于 &gt;$1000 的情况。
+    *   UI 调整：字段预填充，取消按钮默认选中，防止意外确认。
+
+5.  **headless.md (+1 / -0):**
+    *   `--output-format stream-json`：修复了在管道传输大量响应时最后一行（`result` 消息）被截断的 Bug（v2.1.208）。
+
+6.  **hooks.md (+2 / -1):**
+    *   `UserPromptSubmit` 超时：明确了 Agent SDK 回调超时行为。以前会导致执行错误；现在它会阻止提示但允许会话继续（v2.1.208）。
+
+7.  **iam.md (+1 / -0):**
+    *   `apiKeyHelper` 失败：现在在 3 次尝试后会报告明确的错误消息，而不是在 10 次静默重试后显示通用的 401 错误（v2.1.208）。
+
+8.  **interactive-mode.md (+11 / -0):**
+    *   Vim 模式：新增了通过 `vimInsertModeRemaps` 映射 INSERT 模式双键序列（例如 `jj` -&gt; `&lt;Esc&gt;`）的功能（v2.1.208）。
+    *   安全：映射仅在用户设置/管理设置中有效，而非项目设置。
+
+9.  **mcp.md (+1 / -0):**
+    *   空的 URL 处理：配置中带有空 `url` 的远程服务器现在显示为“未配置”，而不是报错（v2.1.208）。
+
+10. **model-config.md (+8 / -7):**
+    *   添加了关于选择模型和精力级别的博客链接。
+    *   `CLAUDE_CODE_SUBAGENT_MODEL`：现在也覆盖工作流中运行的代理（v2.1.208）。
+
+11. **overview.md (+1 / -0):**
+    *   添加了指向关于动态工作流的博客文章的链接。
+
+12. **settings.md (+3 / -1):**
+    *   新增了 `fastMode` 设置，用于持久化开启状态。
+
+13. **sub-agents.md (+3 / -1):**
+    *   子代理工具验证：如果 `tools` 列表中的条目均未解析为工具，则显示明确的错误（v2.1.208）。此前会无工具启动。
+    *   后台任务：完成的子代理现在会保留在任务列表中，直到清理为止（v2.1.208）。
+
+14. **terminal-config.md (+2 / -1):**
+    *   Vim 模式：交叉引用了 `vimInsertModeRemaps` 设置。
+
+15. **troubleshooting.md (+2 / -0):**
+    *   大型表格：Markdown 表表现在在终端中渲染时限制为 200 行，以防止性能下降/会话恢复时的卡顿（v2.1.208）。完整数据保留在 `/copy` 中。
+
+16. **CHANGELOG.md.md (+1 / -1):**
+    *   更新了 npm 安装弃用通知中的 URL（指向 code.claude.com）。
+
+**综合：**
+
+*   **版本重点：** 主要与版本 v2.1.208 相关。
+*   **关键主题：**
+    1.  **错误处理/反馈改进：** Bedrock SSO region，apiKeyHelper 失败，子代理工具验证，流式网关错误。
+    2.  **性能/稳定性：** 大型表格渲染限制，检查点清理，JSON 流修复。
+    3.  **用户体验/UI：** Vim INSERT 模式映射，购买流程确认，使用统计回退。
+    4.  **工作流/代理：** 工作流上的子代理模型覆盖，完成的任务持久化，Agent SDK 回调超时行为。
+
+**影响等级：**
+中高。许多是修复（错误/超时截断）或小的用户体验增强（Vim 映射，购买确认）。除了可能与流式响应修复相关的内容（因为它改变了一个 guard）之外，似乎没有重大的破坏性变更。
+
+**可执行项目：**
+1.  检查 `apiKeyHelper` 脚本是否正在优雅地失败。
+2.  如果遇到“content-type”错误，则更新 Bedrock 网关配置。
+3.  更新设置以利用新的 Vim 模式映射或 Fast mode 持久化。
+4.  检查子代理配置是否存在未解析的工具。
+5.  审查购买确认流程变更（如果管理计费）。
+
+**起草回复（按要求使用中文）：**
+
+1.  **Summary:** 本次更新主要集中在 v2.1.208 版本，增强了错误处理机制、性能优化（特别是大型表格渲染和快照清理）以及开发者体验（Vim 模式增强、购买流程确认）。同时也修复了 Bedrock 集成和 API 密钥脚本中的几个关键问题。
+
+2.  **Key Themes:**
+    *   **错误反馈增强**: Bedrock SSO 认证、apiKeyHelper 失败、子代理工具配置错误现在提供更明确的报错信息。
+    *   **性能与稳定性**: 限制终端中大型 Markdown 表格的渲染行数（防止会话恢复卡顿），优化了文件快照的清理逻辑。
+    *   **开发者体验 (UX)**: 引入 Vim 模式下的 INSERT 模式按键映射（如 `jj` 退出），购买/自动充值现在无论金额均需手动确认，`/usage` 命令在限速时显示缓存数据。
+    *   **流式传输与集成**: 修复了代理后的 Bedrock 流式响应 Content-Type 错误，以及无头模式下的 JSON 流截断问题。
+    *   **子代理与工作流**: `CLAUDE_CODE_SUBAGENT_MODEL` 现在支持工作流，后台完成的子代理会在任务列表中保留。
+
+3.  **Impact Level:** **Medium (中等)**. 主要是功能改进和 Bug 修复，无破坏性变更。部分错误处理逻辑的改变（如 hooks 超时）可能会影响现有行为的预期，但主要是为了更健壮的运行。
+
+4.  **Action Items:**
+    *   如果使用 Amazon Bedrock 及 IAM Identity Center，请检查 `sso_region` 配置，并关注网关代理对流式响应 `Content-Type` 的处理。
+    *   检查 `apiKeyHelper` 脚本，确保其错误输出能被新的错误检测机制正确捕获。
+    *   审查子代理配置中的 `tools` 字段，确保所有工具名称拼写正确，否则现在会报错而非静默失败。
+    *   (可选) 更新用户设置文件以启用新的 Vim INSERT 模式映射或持久化 Fast mode。
+    *   关注计费相关操作流程的变更，所有购买操作现在都需要输入 `yes` 确认。
+
+根据限制条件进行优化：简洁、深刻的分析。</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/amazon-bedrock.html" class="page-link">amazon-bedrock.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/checkpointing.html" class="page-link">checkpointing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/cli-reference.html" class="page-link">cli-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/costs.html" class="page-link">costs.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/headless.html" class="page-link">headless.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/iam.html" class="page-link">iam.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/interactive-mode.html" class="page-link">interactive-mode.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+11</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/model-config.html" class="page-link">model-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-7</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/overview.html" class="page-link">overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/terminal-config.html" class="page-link">terminal-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/troubleshooting.html" class="page-link">troubleshooting.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">13:08 EST</div>
