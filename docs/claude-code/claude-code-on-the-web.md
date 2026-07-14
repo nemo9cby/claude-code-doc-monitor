@@ -308,6 +308,8 @@ registry.example.com
 
 Use `*.` for wildcard subdomain matching. Check **Also include default list of common package managers** to keep the [Trusted domains](#default-allowed-domains) alongside your custom entries, or leave it unchecked to allow only what you list.
 
+Allowed domains are configured per environment. There's no organization-level allowlist that Owners can push to all users' environments; [server-managed settings](/en/server-managed-settings) can restrict cloud sessions but can't add allowed domains.
+
 ### GitHub proxy
 
 For security, all GitHub operations go through a dedicated proxy service that transparently handles all git interactions. Inside the sandbox, the git client authenticates using a custom-built scoped credential. This proxy:
@@ -315,6 +317,7 @@ For security, all GitHub operations go through a dedicated proxy service that tr
 * Manages GitHub authentication securely: the git client uses a scoped credential inside the sandbox, which the proxy verifies and translates to your actual GitHub authentication token
 * Restricts git push operations to the current working branch for safety
 * Enables cloning, fetching, and PR operations while maintaining security boundaries
+* Limits GitHub API and release-asset requests to repositories attached to the session, regardless of the environment's [network access level](#access-levels). Setup scripts that download release assets from unattached repositories return a 403. Committed files from public repositories are fetched through `raw.githubusercontent.com`, which the [security proxy](#security-proxy) handles instead. That domain is in the default [Trusted list](#default-allowed-domains), so the files stay reachable unless the environment's [access level](#access-levels) excludes it
 
 ### Security proxy
 

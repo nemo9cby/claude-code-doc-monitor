@@ -118,9 +118,201 @@
 
         <header>
             <h1>Changes on 2026-07-14</h1>
-            <p class="meta">45 total changes in 5 runs</p>
+            <p class="meta">52 total changes in 6 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">19:48 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更分析
+
+## 整体总结
+本次更新主要聚焦于安全边界明确化（GitHub 代理限制、域名隔离）、插件开发体验规范化（路径占位符和用户配置替换规则），以及大量错误修复和用户体验细节改进。
+
+## 关键主题
+- **安全隔离增强**：GitHub 代理现在限制 API 和资源请求仅限于会话附加的仓库，未附加仓库的下载操作将返回 403
+- **插件配置规范化**：明确了 `${CLAUDE_PLUGIN_ROOT}` 等路径占位符的替换范围，细化了 `${user_config.*}` 在不同字段中的使用规则
+- **用户体验微调**：插件自动更新增加随机延迟避免启动时冲突，转录查看器新增时间戳和模型信息显示
+- **安全加固**：禁止在 shell 命令中直接替换用户配置值，防止命令注入风险
+
+## 影响级别
+**Medium** - 理由：插件配置规则的变更（尤其是 v2.1.207 版本后 `${user_config.*}` 替换行为的改变）和 GitHub 代理的请求限制可能影响现有插件的正常运行。
+
+## 开发者行动事项
+- **更新插件配置**：检查并更新使用 `${user_config.*}` 的 shell-form hooks、monitor 命令和 MCP `headersHelper`，改用环境变量或配置文件读取
+- **验证脚本路径**：确保 MCP dynamic headers 命令使用绝对路径或 PATH 上的可执行命令
+- **审查资源下载**：setup 脚本若从未附加仓库下载 release assets，需调整为通过 `raw.githubusercontent.com` 获取或附加相应仓库
+- **适配更新机制**：插件自动更新后需要用户执行 `/reload-plugins` 或重启才能生效，需在文档中说明
+- **测试子代理隔离**：使用 `isolation: &#39;worktree&#39;` 的子代理需验证 git 操作仅作用于独立工作树而非主仓库</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">用户想要一个关于文档更改的简洁、有见地的分析，需以 Markdown 格式提供，重点关注对开发者重要的事项。用户特别要求使用中文回复。
+
+我需要：
+1. 分析 7 个页面的更改
+2. 提供一个整体总结（1-2 句话）
+3. 提供关键主题（要点）
+4. 提供影响级别及理由
+5. 为开发者提供可执行事项（最多 5 点）
+
+让我先理解每个页面的更改内容：
+
+1. **claude-code-on-the-web.md**:
+   - 新增说明：允许的域名是按环境配置的，没有组织级别的允许列表
+   - GitHub 代理限制：将 GitHub API 和 release-asset 请求限制附加到会话的仓库，setup 脚本从未附加的仓库下载 release assets 会返回 403。来自公共仓库的已提交文件通过 `raw.githubusercontent.com` 获取
+
+2. **discover-plugins.md**:
+   - 插件自动更新在启动后检查更新，随机延迟最多 10 分钟
+   - 更新的插件只有在下次启动时才会加载，除非手动运行 `/reload-plugins`
+
+3. **interactive-mode.md**:
+   - `Ctrl+O` 切换的记录查看器现在会显示每个助手消息的时间戳和使用的模型
+
+4. **mcp.md**:
+   - 路径占位符（`${CLAUDE_PLUGIN_ROOT}` 等）的详细说明，包括哪些字段会进行替换
+   - `headersHelper` 在 v2.1.195 之前会将占位符作为字面字符串传递
+   - Dynamic headers 的命令现在从会话的当前工作目录运行，需要使用绝对路径或 PATH 上的命令
+
+5. **plugin-marketplaces.md**:
+   - 更新了 `${CLAUDE_PLUGIN_ROOT}` 的说明，添加了替换表的引用
+   - 明确说明哪些配置字段会根据服务器类型进行替换
+
+6. **plugins-reference.md**:
+   - 更新了用户配置替换规则，明确哪些字段拒绝 `${user_config.*}` 替换
+   - 提供了一个表格，说明如何为每个拒绝的字段传递值
+   - 更新了环境变量部分，开始但被截断了
+
+7. **CHANGELOG.md.md**:
+   - 版本 2.1.210 的更新日志
+   - 包含多个修复和改进
+   - 重要的修复包括：隔离工作树的子代理、ultracode 关键字优化、attach 失败修复等
+   - 改进包括：超时消息改进、自动模式改进、屏幕阅读器模式改进等
+
+现在我需要总结这些更改：
+
+**整体总结**:
+这次更新主要关注安全性增强（特别是 GitHub 代理和域名配置）、插件开发体验改进（路径占位符、用户配置替换规则）、以及大量的错误修复和用户体验改进（如更新延迟、时间戳显示等）。
+
+**关键主题**:
+1. 安全性增强：GitHub 代理限制、域名配置说明
+2. 插件开发体验：路径占位符的详细说明、用户配置替换规则的明确化
+3. 用户体验改进：插件更新延迟、时间戳显示
+4. 大量错误修复：特别是与代理、工作树、attach 相关的问题
+
+**影响级别**:
+中等 - 主要是因为插件配置规则的变更（特别是 `${user_config.*}` 替换）和 GitHub 代理的限制，这些可能会影响现有插件和脚本的运行。
+
+**可执行事项**:
+1. 插件开发者需要更新使用 `${user_config.*}` 的代码，特别是 shell-form hooks、monitor commands 和 MCP headersHelper
+2. 检查 setup 脚本是否从未附加的仓库下载 release assets，这可能现在会返回 403
+3. 考虑插件自动更新的新行为：更新后的插件在下次启动时才会加载
+4. 如果使用 v2.1.195 之前的版本，注意 `headersHelper` 的行为变更
+5. 对于 dynamic headers 命令，确保使用绝对路径或 PATH 上的命令
+
+让我用中文组织这些内容。</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/claude-code-on-the-web.html" class="page-link">claude-code-on-the-web.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/discover-plugins.html" class="page-link">discover-plugins.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/interactive-mode.html" class="page-link">interactive-mode.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugin-marketplaces.html" class="page-link">plugin-marketplaces.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+26</span>
+                            <span class="removed">-9</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+34</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">18:53 EST</div>
