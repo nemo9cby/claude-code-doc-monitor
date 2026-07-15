@@ -118,9 +118,137 @@
 
         <header>
             <h1>Changes on 2026-07-15</h1>
-            <p class="meta">57 total changes in 2 runs</p>
+            <p class="meta">59 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">16:54 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 总体摘要
+本次文档更新主要澄清了云端会话中 GitHub 代理的认证机制，特别是 `GH_TOKEN` 的处理逻辑与 `gh` CLI 的安装指南；同时修正了 Hooks 配置中关于 `UserPromptSubmit` 上下文注入的 JSON 结构要求，修复了可能导致静默失效的用法错误。
+
+### 关键主题
+*   **GitHub 代理认证透明化**：明确解释了代理通过将环境变量设为 `proxy-injected` 占位符来接管 GitHub API 请求和 `gh` CLI 的认证，从而将真实凭证隔离在沙箱之外。
+*   **防止配置静默失效**：重点指出了 Hooks 中 `UserPromptSubmit` 的 JSON 结构陷阱——如果 `additionalContext` 未嵌套在 `hookSpecificOutput` 内，将被静默忽略，导致功能失效。
+*   **CLI 工具集成优化**：更新了 `gh` CLI 的安装步骤，增加了基于当前代理状态（检查 `GH_TOKEN` 值）的条件判断，简化了配置流程。
+
+### 影响级别
+**Medium (中等)**
+
+**理由**：虽然不是破坏性 API 变更，但修正了关键的文档误导。Hooks 部分的修正解决了开发者可能遇到难以排查的“配置无效”问题；GitHub 代理部分的澄清帮助开发者理解为何直接读取环境变量的脚本可能会获取到占位符而非真实 Token。
+
+### 开发者行动项
+*   **修正 Hooks JSON 结构**：检查现有的 `UserPromptSubmit` Hooks 代码，确保 `additionalContext` 位于 `hookSpecificOutput` 对象内部，而非 JSON 顶层。
+*   **验证 GitHub 认证模式**：在云端会话中运行 `echo $GH_TOKEN`。如果输出为 `proxy-injected`，则无需为 `gh` CLI 手动配置 Token，代理会自动处理。
+*   **审查安装脚本**：如果您的 setup scripts 直接读取 `GITHUB_TOKEN` 环境变量以进行认证，请注意在代理模式下该变量仅为占位符，需改用代理机制或显式设置真实的 Token。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request**:
+    *   Role: World-class programmer, deep expertise in developer tools and documentation.
+    *   Task: Analyze documentation changes in a batch (2 pages).
+    *   Output: Concise, insightful analysis in markdown.
+    *   Language: Chinese.
+    *   Specific sections required: Overall Summary, Key Themes, Impact Level, Action Items.
+
+2.  **Analyze the Input Data**:
+
+    *   **Page 1: `claude-code-on-the-web.md` (+11 / -7)**
+        *   *Context*: Claude Code on the Web documentation, specifically regarding GitHub integration and the GitHub proxy.
+        *   *Change 1*: Added a section explaining how `GH_TOKEN`/`GITHUB_TOKEN` interacts with the GitHub proxy.
+            *   You can set the token yourself.
+            *   Or leave it unset, and the proxy handles it by setting the env vars to `proxy-injected`.
+            *   Important nuance: Scripts reading `GITHUB_TOKEN` directly will get the placeholder string `proxy-injected`, not the real token.
+        *   *Change 2*: Updated the instructions for installing `gh` CLI.
+            *   Condition: If `echo $GH_TOKEN` prints `proxy-injected`, authentication is handled by proxy; no manual token needed.
+            *   Otherwise, you must set `GH_TOKEN`.
+        *   *Change 3*: Updated the &#34;GitHub proxy&#34; section description.
+            *   Clarified that it handles *both* Git interactions and *GitHub API requests*.
+            *   Specifically mentioned `gh` using the `proxy-injected` placeholder mechanism.
+            *   Rephrased security benefits to be clearer (keeping credentials out of sandbox).
+
+    *   **Page 2: `hooks-guide.md` (+4 / -1)**
+        *   *Context*: Hooks guide documentation.
+        *   *Change*: Clarified how to use `additionalContext` for `UserPromptSubmit` hooks.
+            *   Crucial fix: Must be nested inside `hookSpecificOutput`, not at the top level.
+            *   If placed at the top level, it is silently ignored.
+            *   Provided a JSON example.
+            *   Added a cross-reference to the detailed decision control section.
+
+3.  **Synthesize and Translate to Chinese**:
+
+    *   **Overall Summary**: Documentation updates clarify authentication mechanisms in Cloud sessions (GitHub proxy behavior) and fix a potential silent failure bug in Hook configurations (JSON structure for `additionalContext`).
+        *   *Draft (CN)*: 本次文档更新主要明确了云端会话中 GitHub 代理的认证机制，并修复了 Hooks 配置中关于 JSON 结构的潜在错误（即 `additionalContext` 的正确嵌套位置）。
+
+    *   **Key Themes**:
+        *   Theme 1: Authentication/Proxy behavior. The docs now explicitly explain the &#34;proxy-injected&#34; placeholder for tokens.
+        *   Theme 2: Silent failure prevention. `hooks-guide.md` explicitly warns about ignoring top-level properties. `claude-code` warns scripts reading `GITHUB_TOKEN` directly.
+        *   Theme 3: Developer experience/Simplification. `gh` CLI setup is easier if the proxy is handling auth.
+        *   *Draft (CN)*:
+            *   **代理与认证透明化**：明确了 GitHub 代理如何通过 `proxy-injected` 占位符来处理 `gh` CLI 和 API 请求的认证，将真实凭证隔离在沙箱之外。
+            *   **防止静默失败**：强调了 Hooks 中 `UserPromptSubmit` 必须将 `additionalContext` 嵌套在 `hookSpecificOutput` 内，否则会被静默忽略。
+            *   **CLI 安装优化**：更新了 `gh` CLI 的安装步骤，增加了基于当前代理状态的条件判断。
+
+    *   **Impact Level**:
+        *   `hooks-guide.md`: Medium. If developers were putting `additionalContext` at the top level, their code wasn&#39;t working, but they might not have known why. This is a &#34;fix&#34; for confusion.
+        *   `claude-code-on-the-web.md`: Medium. It clarifies behavior. Scripts trying to read the token directly might break if they expect the real token (they get a string instead), but this is more of a behavioral clarification/fix.
+        *   *Overall*: Medium. It&#39;s clarifying existing behavior and correcting usage patterns.
+        *   *Draft (CN)*: Medium (中等)。虽然不是破坏性更改，但解决了可能导致配置失效的隐患（Hooks 结构）以及开发环境认证机制的误解。
+
+    *   **Action Items**:
+        *   Item 1: Check Hook configurations for `UserPromptSubmit`. Ensure JSON structure is correct.
+        *   Item 2: When using `gh` CLI in cloud sessions, check `echo $GH_TOKEN` to see if proxy is handling auth.
+        *   Item 3: Be careful if scripts need to read `GITHUB_TOKEN` directly in cloud sessions (they get `proxy-injected`).
+        *   *Draft (CN)*:
+            *   **检查 Hooks 配置**：如果您正在使用 `UserPromptSubmit` hooks，请检查 JSON 输出，确保 `additionalContext` 位于 `hookSpecificOutput` 对象内部，而非顶层。
+            *   **验证 GitHub 代理状态**：在云端会话中使用 `gh` CLI 前，运行 `echo $GH_TOKEN`。如果输出为 `proxy-injected`，则无需手动设置 Token。
+            *   **调整脚本逻辑**：如果您的安装脚本直接读取 `GITHUB_TOKEN` 环境变量，请意识到它可能包含占位符字符串而非真实凭证。
+
+4.  **Final Review**: Ensure the tone is professional, concise, and strictly follows the requested markdown format.
+
+    *   *Self-Correction during drafting*: Make sure to emphasize the &#34;silent ignore&#34; part of the hooks change, as that&#39;s the biggest &#34;gotcha&#34;. For the GitHub proxy part, the distinction between the git client using a scoped credential vs the API proxy injecting credentials is interesting but the main actionable takeaway is the `gh` CLI setup and the `proxy-injected` variable.
+
+5.  **Final Output Generation** (Proceed to generate output in Chinese).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/claude-code-on-the-web.html" class="page-link">claude-code-on-the-web.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+11</span>
+                            <span class="removed">-7</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">15:02 EST</div>
