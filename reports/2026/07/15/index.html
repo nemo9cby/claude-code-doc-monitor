@@ -118,9 +118,286 @@
 
         <header>
             <h1>Changes on 2026-07-15</h1>
-            <p class="meta">59 total changes in 3 runs</p>
+            <p class="meta">68 total changes in 4 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">17:53 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 总体摘要
+本次文档更新核心在于引入了**组织级连接器管控**机制，并确立了“强制用户交互”类工具的**最高优先级权限**。这意味着企业策略现在可以强制覆盖本地的 `bypassPermissions`、Hooks 逻辑或 `dontAsk` 模式，确保敏感工具操作无法被绕过或静默执行。
+
+### 关键变更主题
+*   **不可绕过的组织策略**：新增针对 Claude Connectors 的组织控制（`ask` 和 `blocked`）。无论本地设置如何，被组织设为 `ask` 的工具会在每次调用时强制弹窗，设为 `blocked` 的工具则直接被过滤。
+*   **交互类工具的硬性约束**：明确列出 `AskUserQuestion`、标记为 `requiresUserInteraction` 的 MCP 工具以及组织设为 `ask` 的连接器，其权限检查高于所有配置。即使在 `bypassPermissions`、`auto` 模式下，或 Hooks 返回 `allow` 时，这些工具仍会强制提示（或在 `dontAsk` 模式下被拒绝）。
+*   **沙箱规则优先级修正**：明确了 `sandbox.filesystem` 中读写规则的冲突处理逻辑：精确的 `deny` 路径（如 `~/.env`）优先于宽泛的 `allow` 路径（如 `~/`），防止因配置宽泛规则意外泄露敏感文件。
+*   **模型兼容性更新**：更新了 Tool Search 功能支持的模型列表，确认 Claude Sonnet/Haiku/Opus 4.5 及更新版本的支持情况。
+
+### 影响等级：高（企业用户）/ 中（普通用户）
+**理由**：此次变更显著改变了权限系统的顶层逻辑。对于团队和企业用户，管理员在 claude.ai 配置的策略现在拥有“一票否决权”，能够打破开发者本地的自动化配置（如 CI 脚本或自定义 Hooks）。这意味着现有的自动化工作流若涉及连接器或需交互的工具，可能会遇到意料之外的阻断或提示。
+
+### 开发者行动项
+1.  **审查自动化脚本**：检查 CI/CD 流程中使用的 `dontAsk` 模式，确认是否依赖某些需交互的连接器工具，否则这些调用现在将被直接拒绝。
+2.  **更新 Hooks 逻辑**：修改自定义 `PreToolUse` Hooks，移除试图通过返回 `&#34;allow&#34;` 来绕过 `AskUserQuestion` 或组织管控工具的预期，因为这已不再生效。
+3.  **检查组织策略**：登录 claude.ai 管理后台，查看当前的 Connector 设置，确认哪些工具被设为 `ask` 或 `blocked`，以便调试新的权限提示。
+4.  **验证沙箱配置**：审计 `.claude/settings.json` 中的 `filesystem.denyRead` 和 `allowRead` 规则，确保没有宽泛的 `allow` 规则意外覆盖了针对密钥文件的精确 `deny` 规则。
+5.  **调整 Bypass 预期**：意识到 `bypassPermissions` 模式不再是“完全静默”，对于强制交互的工具，它仍会触发提示。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request**:
+    *   **Role**: World-class programmer with expertise in developer tools/documentation.
+    *   **Task**: Analyze documentation changes as a single batch (9 pages).
+    *   **Format**: Markdown, concise, insightful, Chinese language response.
+    *   **Specifics**: Summary, Key Themes, Impact Level, Action Items.
+
+2.  **Analyze the Diff Data**:
+
+    *   **Page: desktop.md**: Minor formatting changes (whitespace) in the table. No functional content change detected in the snippet provided. *Correction*: Looking closely, the snippet starts with the table but cuts off or just shows the beginning. The diff shows `+7 / -7` but the visible change is mostly whitespace/alignment in the markdown source. Actually, looking at the provided diff text, it shows `| Mode | ...`. It looks like a slight reformatting of the table rows, perhaps adding whitespace or changing line breaks, but the *content* of the descriptions seems identical. Let&#39;s re-read carefully.
+        *   `diff` shows `--- a/desktop.md` and `+++ b/desktop.md`.
+        *   Lines 72-83 are shown.
+        *   Changes seem to be whitespace or wrapping.
+        *   Wait, the snippet ends abruptly at `Plan`. It doesn&#39;t show the full table diff. However, the `+7/-7` suggests a very small change, likely formatting.
+        *   *Self-correction*: I shouldn&#39;t over-interpret the cutoff text, but the visible diff is purely whitespace/formatting.
+
+    *   **Page: headless.md**:
+        *   **Context**: `--allowedTools` and `--permission-mode`.
+        *   **Change**: Added a sentence describing behavior for `dontAsk` mode regarding `AskUserQuestion`, connector tools set to `ask`, and MCP tools marked `requiresUserInteraction`.
+        *   **Implication**: Even in `dontAsk` mode (which usually implies silence/denial unless explicitly allowed), specific interaction-required tools are *denied* (not prompted, but denied) if they require user interaction. This clarifies the &#34;locked-down CI&#34; behavior.
+
+    *   **Page: hooks.md**:
+        *   **Context**: `PreToolUse` hooks and `permissionDecision`.
+        *   **Change**: Added exclusion clause to `&#34;allow&#34;` decision. If a hook returns `&#34;allow&#34;`, it skips the prompt *except* for connector tools set to `ask` and MCP tools marked `requiresUserInteraction`.
+        *   **Additional Change**: Added a paragraph: `AskUserQuestion`, `ExitPlanMode`, and specific connector tools prompt even when a hook returns `&#34;allow&#34;`.
+        *   **Implication**: Hooks cannot bypass the mandatory user interaction requirements enforced by the organization or tool definition. Security tightening.
+
+    *   **Page: hooks-guide.md**:
+        *   **Context**: `PreToolUse` hook `&#34;allow&#34;` decision explanation.
+        *   **Change**: Added the same exclusion clause: `as do prompts for connector tools... and MCP tools marked requiresUserInteraction`.
+        *   **Change**: Updated the paragraph about `&#34;allow&#34;` not overriding rules. It explicitly mentions these interaction-required tools still prompt.
+        *   **Change**: Updated the paragraph about hooks tightening restrictions. It reiterates that hooks can&#39;t suppress prompts for these specific tools.
+        *   **Implication**: Consistent enforcement across docs regarding hooks and interaction-required tools.
+
+    *   **Page: mcp.md**:
+        *   **Context**: Tool search compatibility and failure reporting.
+        *   **Change**: Updated the list of models supporting tool search (added Haiku 4.5, Opus 4.5, etc., and referenced API docs). Changed phrasing from &#34;Haiku models don&#39;t support it&#34; to &#34;Claude Sonnet 4.5, Claude Haiku 4.5, Claude Opus 4.5...&#34;.
+        *   **Change**: New section &#34;Organization controls on connector tools&#34;.
+        *   **Content**: Introduces the concept that organizations can set per-tool controls on connectors.
+            *   `ask`: Prompts on *every* call, even in `acceptEdits`, `auto`, `bypassPermissions`. Allow rules don&#39;t skip it. In `dontAsk`, it denies.
+            *   `blocked`: Filters out the tool completely.
+            *   Requires v2.1.129+.
+        *   **Implication**: This is a major new feature for enterprise governance. It overrides local permission modes and hooks.
+
+    *   **Page: sandboxing.md**:
+        *   **Context**: Filesystem deny/allow rules.
+        *   **Change**: Added a table explaining overlap behavior for `denyRead` vs `allowRead`. Specifics: Narrower allow re-opens a denied region. Exact deny holds inside a wider allow (to prevent silent re-exposure of secrets).
+        *   **Change**: Updated the comparison table between `/sandbox` and permission modes. Added the same exclusion clause to the `--dangerously-skip-permissions` row: connector tools set to `ask` and MCP tools with `requiresUserInteraction` still prompt.
+        *   **Implication**: Clarifies sandbox rule precedence. Reinforces that &#34;dangerous&#34; permission modes can&#39;t bypass org-level interaction requirements.
+
+    *   **Page: settings.md**:
+        *   **Context**: `filesystem.allowRead` description.
+        *   **Change**: Updated description to match the new overlap logic explained in `sandboxing.md`. &#34;An allowRead path re-opens reading inside a broader denyRead region, and an exact path in denyRead stays blocked inside a broader allowRead&#34;.
+        *   **Implication**: Consistency with sandboxing doc updates.
+
+    *   **Page: slack.md**:
+        *   **Context**: Deprecation notice URL.
+        *   **Change**: URL change from `/docs/claude-tag/overview` to `/product/tag`.
+        *   **Implication**: Marketing URL update. Irrelevant to devs functionally.
+
+    *   **Page: sub-agents.md**:
+        *   **Context**: `permissionMode` behavior table.
+        *   **Change**: Updated `dontAsk` description: Explicitly denies interaction-required tools (`AskUserQuestion`, connector tools `ask`, MCP tools `requiresUserInteraction`) even if allowed otherwise.
+        *   **Change**: Updated `bypassPermissions` warning: Added the exclusion clause for interaction-required tools still prompting.
+        *   **Implication**: Ensures sub-agents respect the strict interaction requirements set by the organization or tool definition.
+
+3.  **Synthesize and Structure the Analysis**:
+
+    *   **Core Insight**: The documentation updates revolve around a significant tightening of **Organization Governance** and **User Interaction Enforcement**. The new &#34;Organization controls on connector tools&#34; feature is the centerpiece, ensuring that enterprise policies (specifically `ask` and `blocked` states) cannot be bypassed by local permission modes, hooks, or sandbox settings. Additionally, there are clarifications on sandbox rule precedence (`deny` vs `allow`).
+
+    *   **Key Themes**:
+        *   **Enterprise Control (Connectors)**: Introduction of org-level controls that force prompts or block tools, overriding almost all local configurations.
+        *   **Unbypassable Interactions**: Tools marked `requiresUserInteraction` (MCP) or set to `ask` by the org (Connectors) will *always* prompt (or be denied in strict modes), regardless of `bypassPermissions`, `auto` mode, or hook `allow` decisions.
+        *   **Sandbox Rule Precedence**: Clarification that specific `deny` rules beat broad `allow` rules (especially for secrets).
+        *   **Model Support**: Update to tool search model compatibility.
+
+    *   **Impact Level**:
+        *   **High** for Enterprise/Team users (new org controls change behavior).
+        *   **Medium** for Developers using Hooks or specific permission modes (they might see unexpected prompts if their org sets controls or if they use `requiresUserInteraction` tools).
+        *   **Reasoning**: It fundamentally changes how permissions work for connectors in enterprise environments, making org policy the supreme authority over user settings. This breaks workflows that relied on `bypassPermissions` to silence everything.
+
+    *   **Action Items**:
+        *   Update documentation/scripts relying on `bypassPermissions` to silence all prompts.
+        *   Review Organization Connector settings in claude.ai to understand if tools will now force prompts.
+        *   Refine Hook logic: stop expecting hooks to bypass `requiresUserInteraction` tools.
+        *   Audit `dontAsk` mode usage in CI, as it will now *deny* interaction-required tools instead of potentially handling them (though usually `dontAsk` implies deny anyway, the behavior is now explicit).
+
+4.  **Drafting the Response (in Chinese)**:
+
+    *   *Overall Summary*: 本次文档更新核心在于强化组织级别对连接器工具的管控，并明确了“用户交互强制”场景下的权限优先级。主要变更包括引入连接器的组织控制策略，并规定在任何权限模式下，被组织标记为 `ask` 或 `blocked` 的工具，以及标记为 `requiresUserInteraction` 的 MCP 工具，都无法被本地配置或 Hooks 绕过。
+    *   *Key Themes*:
+        *   **Enterprise Governance (企业管控)**: 新增针对 Connector 的组织级控制（`ask`/`blocked`），优先级高于本地设置。
+        *   **Immutable Interaction Requirements (不可绕过的交互)**: 无论是 `bypassPermissions`、Hooks 的 `allow` 决策还是 `dontAsk` 模式，都无法跳过某些强制交互工具的确认（或拒绝）。
+        *   **Sandbox Rule Logic (沙箱规则逻辑)**: 明确了沙箱文件读写规则的优先级，具体的 `deny` 规则（如保护密钥）优先于宽泛的 `allow` 规则。
+        *   **Model Compatibility**: 更新了 Tool Search 对模型的支持列表。
+    *   *Impact Level*: **High** (for Enterprise) / **Medium** (General).
+    *   *Action Items*:
+        *   Audit CI pipelines using `dontAsk` mode.
+        *   Check org connector settings.
+        *   Update hooks logic.
+
+5.  **Refining the Output**:
+    Make it &#34;concise&#34; and &#34;insightful&#34; as requested. Ensure the markdown formatting is clean.
+
+    *   *Refined Summary*: 引入了组织级的连接器工具管控机制，并确立了“强制用户交互”类工具的最高优先级权限。这意味着企业策略现在可以覆盖本地的 `bypassPermissions` 和 Hooks 配置，确保敏感操作无法被绕过。
+    *   *Refined Themes*:
+        *   **强制性组织策略**: 新增 `ask` 和 `blocked` 两种组织级连接器状态，它们无法通过本地 `settings`、Hooks 或 `bypassPermissions` 模式绕过。
+        *   **交互类工具的硬性约束**: `AskUserQuestion`、标记为 `requiresUserInteraction` 的 MCP 工具以及组织设为 `ask` 的连接器，在任何模式下（包括 `auto` 和 `bypass`）都会强制提示或在 `dontAsk` 中被拒绝。
+        *   **沙箱权限优先级修正**: 明确 `denyRead` 的精确路径优于 `allowRead` 的宽泛路径，防止通过宽泛允许规则意外泄露密钥。
+    *   *Action Items*:
+        *   Review and update automation scripts.
+        *   Configure connectors in claude.ai.
+        *   Update custom hooks.
+        *   Verify sandbox rules.
+
+6.  **Final Polish**: Check against the &#34;Total changed pages: 9&#34;.
+    *   desktop.md (formatting, ignored in summary impact as it&#39;s likely whitespace).
+    *   headless.md (impactful).
+    *   hooks.md (impactful).
+    *   hooks-guide.md (impactful).
+    *   mcp.md (impactful).
+    *   sandboxing.md (impactful).
+    *   settings.md (impactful).
+    *   slack.md (URL change, ignored).
+    *   sub-agents.md (impactful).
+
+    The core narrative is the &#34;Organization controls on connector tools&#34; and the &#34;Non-bypassable interaction requirements&#34;. This connects `headless`, `hooks`, `hooks-guide`, `mcp`, `sandboxing`, and `sub-agents`.
+
+    *Self-Correction on `desktop.md`*: The diff shows changes in the table content, but they look like line wrapping changes (`+7/-7` is small). The prompt asks to focus on &#34;what matters to developers&#34;. I will focus on the functional changes.
+
+    *Structure*:
+    1. Overall Summary
+    2. Key Themes
+    3. Impact Level
+    4. Action Items
+
+    Ready to translate to final output.</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/desktop.html" class="page-link">desktop.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            <span class="removed">-7</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/headless.html" class="page-link">headless.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+10</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sandboxing.html" class="page-link">sandboxing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+10</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slack.html" class="page-link">slack.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+10</span>
+                            <span class="removed">-9</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">16:54 EST</div>
