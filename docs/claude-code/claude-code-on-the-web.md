@@ -178,6 +178,19 @@ LOG_LEVEL=debug
 DATABASE_URL=postgres://localhost:5432/myapp
 ```
 
+### Organization-shared environments
+
+Owners and admins on Team and Enterprise plans can create cloud environments that are shared with every member of the organization. Shared environments appear in each member's environment selector alongside their personal ones, so a team can standardize on one configuration instead of each member recreating it.
+
+Manage shared environments from the **Cloud environments** page in [admin settings](https://claude.ai/admin-settings). From there you can:
+
+* Create, edit, and archive shared environments. Each one has the same fields as a personal environment: a name, a [network access level](#access-levels), [environment variables](#configure-your-environment) in `.env` format, and a [setup script](#setup-scripts).
+* Set the default environment for the organization.
+
+Values in a shared environment reach every member's sessions in that environment. Like personal environments, shared environments have no dedicated secrets store, so don't include secrets.
+
+Organizations in the self-hosted runners program also manage their runner pools from the same page.
+
 ## Setup scripts
 
 A setup script is a Bash script that runs when a new cloud session starts, before Claude Code launches. Use setup scripts to install dependencies, configure tools, or fetch anything the session needs that isn't pre-installed.
