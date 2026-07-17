@@ -223,7 +223,7 @@ The `--agents` flag accepts JSON with the same [frontmatter](#supported-frontmat
 
 **Managed subagents** are deployed by organization administrators. Place markdown files in `.claude/agents/` inside the [managed settings directory](/en/settings#settings-files), using the same frontmatter format as project and user subagents. Managed definitions take precedence over project and user subagents with the same name.
 
-**Plugin subagents** come from [plugins](/en/plugins) you've installed. They load alongside your custom subagents and appear in the @-mention typeahead under their scoped name. See the [plugin components reference](/en/plugins-reference#agents) for details on creating plugin subagents.
+**Plugin subagents** come from [plugins](/en/plugins) you've installed. They load automatically alongside your custom subagents and appear in the @-mention typeahead under their scoped name. See the [plugin components reference](/en/plugins-reference#agents) for details on creating plugin subagents.
 
 <Note>
   For security reasons, plugin subagents don't support the `hooks`, `mcpServers`, or `permissionMode` frontmatter fields. These fields are ignored when loading agents from a plugin. If you need them, copy the agent file into `.claude/agents/` or `~/.claude/agents/`. You can also add rules to [`permissions.allow`](/en/settings#permission-settings) in `settings.json` or `settings.local.json`, but these rules apply to the entire session, not only the plugin subagent.
@@ -698,7 +698,7 @@ Your full message still goes to Claude, which writes the subagent's task prompt 
 
 Subagents provided by an enabled [plugin](/en/plugins) appear in the typeahead under their scoped name, such as `my-plugin:code-reviewer` or `my-plugin:review:security` when the plugin [organizes agents into subfolders](#choose-the-subagent-scope). Named background subagents currently running in the session also appear in the typeahead, showing their status next to the name.
 
-You can also type the mention manually without using the picker: `@agent-<name>` for local subagents, or `@agent-` followed by the scoped name for plugin subagents, for example `@agent-my-plugin:code-reviewer`.
+You can also type the mention manually without using the picker: `@agent-<name>` for local subagents, or `@agent-` followed by the scoped name for plugin subagents, for example `@agent-my-plugin:code-reviewer`. While you type this form the typeahead shows file matches rather than agents. The agent mention still resolves when you submit.
 
 **Run the whole session as a subagent.** Pass [`--agent <name>`](/en/cli-reference) to start a session where the main thread itself takes on that subagent's system prompt, tool restrictions, and model:
 

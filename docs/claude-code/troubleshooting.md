@@ -105,7 +105,7 @@ If the Search tool, `@file` mentions, custom agents, or custom skills aren't fin
   </Tab>
 </Tabs>
 
-Then set `USE_BUILTIN_RIPGREP=0` in your [environment](/en/env-vars).
+Then set `USE_BUILTIN_RIPGREP=0` in your [environment](/en/env-vars). To confirm the switch took effect, run `claude doctor` in your terminal and check that the Search line shows the path of your system ripgrep instead of `OK (bundled)`.
 
 ### Slow or incomplete search results on WSL
 
