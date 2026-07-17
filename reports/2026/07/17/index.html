@@ -118,9 +118,127 @@
 
         <header>
             <h1>Changes on 2026-07-17</h1>
-            <p class="meta">27 total changes in 2 runs</p>
+            <p class="meta">29 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">13:59 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 文档变更分析
+
+#### 1. Overall Summary (总体摘要)
+本次更新主要针对第三方集成（如 LLM 网关）和隐私控制机制进行了澄清。文档新增了对官方插件市场自动安装行为的控制选项，并详细说明了在使用 LLM 网关时“快速模式”的连接检查机制，帮助开发者在复杂网络环境下进行故障排查。
+
+#### 2. Key Themes (关键主题)
+*   **细粒度的非必要流量控制**: 澄清了 `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` 环境变量无法禁用官方插件市场的自动安装，并引入了新的独立配置项以覆盖这一行为。
+*   **网关环境下的网络透明度**: 明确指出即使配置了 `ANTHROPIC_BASE_URL` 路由至 LLM 网关，“快速模式”的可用性检查仍会直接调用 `api.anthropic.com`，而非经过网关，这解释了为何在受限网络中可能会出现连接错误。
+*   **连接错误的诊断与区分**: 文档区分了“网络阻断”与“凭证认证失败”这两种导致快速模式检查失败的原因，指出了代理白名单仅能解决前者。
+
+#### 3. Impact level (影响程度)
+**中等**
+虽然主要是文档层面的澄清，并未涉及破坏性 API 变更，但对于在使用 LLM 网关或严格代理（Proxy）环境中工作的开发者来说，这些信息对于正确配置网络策略和排查连接问题至关重要。
+
+#### 4. Action items for developers (开发者行动项)
+*   若需禁止官方插件市场的自动安装行为，请设置新的环境变量：`CLAUDE_CODE_DISABLE_OFFICIAL_MARKETPLACE_AUTOINSTALL`。
+*   在通过 `ANTHROPIC_BASE_URL` 使用 LLM 网关时，若希望“快速模式”正常工作，请确保您的 HTTP 代理配置中允许访问 `api.anthropic.com`。
+*   排查快速模式连接错误时，注意区分网络问题和认证问题：如果网络未阻断但仍报错，请检查传递给网关的凭证是否被 Anthropic 拒绝。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request**:
+    *   **Role**: World-class programmer analyzing documentation changes.
+    *   **Input**: Two diff files (`data-usage.md`, `network-config.md`).
+    *   **Output Format**: Markdown, concise, insightful, focused on developers, in *Chinese*.
+    *   **Structure**:
+        1.  Overall Summary.
+        2.  Key Themes.
+        3.  Impact Level.
+        4.  Action Items.
+
+2.  **Analyze the Diffs**:
+
+    *   **Diff 1: `data-usage.md`**
+        *   *Change*: Updated a paragraph describing how non-essential traffic (like telemetry) is handled.
+        *   *Specifics*: Added details about &#34;official plugin marketplace auto-install&#34; to the list of exceptions for the `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` variable.
+        *   *Detail*: It mentions that `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` doesn&#39;t affect this auto-install feature, and points to a new environment variable: `CLAUDE_CODE_DISABLE_OFFICIAL_MARKETPLACE_AUTOINSTALL`.
+
+    *   **Diff 2: `network-config.md`**
+        *   *Change*: Added a new paragraph explaining network behavior when using an LLM gateway.
+        *   *Specifics*: When using an LLM gateway via `ANTHROPIC_BASE_URL`, the &#34;fast mode availability check&#34; still calls `api.anthropic.com` directly, not the gateway.
+        *   *Implication*: If the network blocks this direct call, the check fails. It honors HTTP proxies. If the gateway credential is invalid, it looks like a connectivity error (allowlisting won&#39;t fix auth errors).
+        *   *Reference*: Points to documentation on using fast mode behind proxies/gateways.
+
+3.  **Synthesize the Analysis**:
+
+    *   **Overall Summary**: These changes refine documentation regarding third-party integrations and privacy/network controls. They clarify specific behaviors of the &#34;Official Plugin Marketplace&#34; installation and network connectivity checks when behind an LLM gateway or proxy.
+    *   **Key Themes**:
+        *   *Granular Control over Non-Essential Features*: Adding specific opt-out options for the plugin marketplace.
+        *   *Network Transparency/Debugging*: Explaining exactly where &#34;Fast Mode&#34; checks go when a gateway is configured, and distinguishing between network blocks and auth errors.
+    *   **Impact Level**:
+        *   *Medium* (or Low-Medium). It clarifies behavior and provides new variables, but doesn&#39;t change existing core API functionality in a breaking way. However, for developers in strict environments (proxies/gateways), this is crucial debugging info. Let&#39;s stick to &#34;Low&#34; to &#34;Medium&#34;. Given the new env var and specific network failure diagnosis, &#34;Medium&#34; is fair, but functionally, the tool likely hasn&#39;t changed, just the docs. Let&#39;s go with **Medium** because it affects how developers configure their environments to avoid connectivity issues.
+    *   **Action Items**:
+        *   Use `CLAUDE_CODE_DISABLE_OFFICIAL_MARKETPLACE_AUTOINSTALL` if you want to block auto-install behavior.
+        *   Allow `api.anthropic.com` in your proxy if you are using an LLM gateway and want &#34;Fast Mode&#34; to work.
+        *   Check for auth errors vs network errors if Fast Mode fails behind a gateway.
+
+4.  **Drafting the Response (in Chinese)**:
+
+    *   *Overall Summary*: 这次更新主要针对第三方集成（如 LLM 网关）和隐私控制机制进行了澄清。文档新增了对官方插件市场自动安装行为的控制选项，并详细说明了在使用 LLM 网关时“快速模式”的连接检查机制。
+    *   *Key Themes*:
+        *   **细粒度的流量控制**: 明确了 `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` 不会禁用插件市场自动安装，并提供了新的环境变量。
+        *   **网关环境下的网络行为**: 揭示了即使配置了 LLM 网关，快速模式检查仍会直接调用 Anthropic API，这解释了为何在严格网络环境下可能出现连接错误。
+    *   *Impact Level*: **中等**. 虽然主要是文档澄清，但对于在严格网络环境（如 LLM 网关或代理）中工作的开发者来说，理解这些连接细节至关重要，否则可能误判连接错误原因。
+    *   *Action Items*:
+        *   若需禁止插件市场的自动安装，请设置新的环境变量 `CLAUDE_CODE_DISABLE_OFFICIAL_MARKETPLACE_AUTOINSTALL`。
+        *   在使用 `ANTHROPIC_BASE_URL` 配置 LLM 网关时，若需启用快速模式，请确保代理允许访问 `api.anthropic.com`。
+        *   排查快速模式连接错误时，注意区分“网络阻断”与“凭证认证失败”，前者需要加白名单，后者需检查网关凭证。
+
+5.  **Review and Refine**:
+    *   The user asked for &#34;concise, insightful analysis&#34;.
+    *   The Chinese translation looks natural.
+    *   The structure matches the requirements.
+
+6.  **Final Output Generation**. (Proceed to generate output based on the drafted points).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/data-usage.html" class="page-link">data-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/network-config.html" class="page-link">network-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">12:10 EST</div>
