@@ -131,3 +131,5 @@ If you're experiencing issues not covered here:
 2. Use the `/feedback` command within Claude Code to report problems directly to Anthropic
 3. Check the [GitHub repository](https://github.com/anthropics/claude-code) for known issues
 4. Ask Claude directly about its capabilities and features. Claude has built-in access to its documentation.
+
+For account, billing, or subscription problems, contact Anthropic support instead: sign in at [claude.ai](https://claude.ai) (Console users: [platform.claude.com](https://platform.claude.com)), click your initials in the lower left, and select **Get help**. See [How to get support](https://support.claude.com/en/articles/9015913-how-to-get-support) for the full flow, including who can reach a human agent on each plan.
