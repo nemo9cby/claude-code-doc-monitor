@@ -118,9 +118,357 @@
 
         <header>
             <h1>Changes on 2026-07-17</h1>
-            <p class="meta">49 total changes in 8 runs</p>
+            <p class="meta">66 total changes in 9 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">21:58 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 总体摘要
+此次更新主要围绕增强安全性（修复了 PowerShell 5.1 和 Bash 的权限检查绕过漏洞）、演进 Agent 工作流（将 `/fork` 重构为 `/subtask` 并引入 MCP 长时间调用的自动后台化）、改进可观测性（修复 OTLP 导出器以兼容 Azure Monitor）以及修复大量后台任务管理和 Hooks 的边缘情况。
+
+### 关键主题
+
+*   **安全与权限强化**：
+    *   修复了 Windows PowerShell 5.1 会话中的权限检查绕过漏洞。
+    *   加强了 Bash 权限检查，超长命令（&gt;10k 字符）和特定修饰符现在强制提示，不再自动批准 `docker` 的守护进程重定向标志。
+    *   在 **Plan Mode** 下，沙箱行为发生变更：只有只读命令会自动批准，其他 Bash 命令（包括原本会被跳过的 `Bash(*)` 规则）现在都会提示。
+*   **Agent 与 MCP 机制演进**：
+    *   **命令变更**：v2.1.212+ 中，用于在会话内创建分叉子 Agent 的命令从 `/fork` 改为 `/subtask`。旧的 `/fork` 现在行为变为将整个会话复制到新的后台会话。
+    *   **MCP 自动后台化**：主对话中超过 2 分钟的 MCP 工具调用会自动移至后台任务，避免阻塞会话。
+*   **可观测性与监控修复**：
+    *   修复了 OTLP 导出器（`http/protobuf` 和 `http/json`）缺少 `Content-Length` 头的问题，解决了 Azure Monitor 等端点报 `411` 错误的问题。
+    *   增强了 Trace Context 在事件日志中的关联性。
+*   **进程管理与 Hooks 细节**：
+    *   明确了 `headless` 模式下 `SIGTERM` 的处理行为（退出码 143，运行 `SessionEnd` hooks）。
+    *   修复了后台会话闲置时导致守护进程无限存活的内存泄漏问题。
+
+### 影响等级
+**高**
+
+**理由**：
+1.  **破坏性变更**：核心命令 `/fork` 的行为发生改变，且被 `/subtask` 取代（在子 Agent 上下文中），这直接影响现有的脚本和用户习惯。
+2.  **安全性**：修复了权限检查绕过漏洞，建议立即升级。
+3.  **行为变更**：Plan Mode 下的沙箱和自动批准逻辑变得更为严格，可能会增加用户在特定模式下的交互频率。
+
+### 开发者行动项
+
+1.  **命令迁移**：检查并更新任何调用 `/fork` 以启动侧边任务的脚本或文档。在 v2.1.212+ 中，应使用 `/subtask` 来创建继承上下文的子 Agent，而 `/fork` 现在用于创建独立的后台会话副本。
+2.  **立即更新**：升级至 v2.1.214 版本，以修复 Windows PowerShell 5.1 中的关键权限绕过漏洞。
+3.  **审查 Plan Mode 配置**：如果你使用 Plan Mode，请注意现在的沙箱行为更为严格（非只读 Bash 命令不再自动批准），可能需要调整你的 `ask` 或 `allow` 规则以适应新的提示逻辑。
+4.  **检查监控配置**：如果你使用 Azure Monitor 或严格要求 `Content-Length` 的 OTLP 后端，请验证此次更新后（v2.1.212+）导出错误是否已解决。
+5.  **云端会话配置**：在使用 Cloud Sessions 时，请注意某些网络 TLS 和 OAuth 环境变量（如 `CLAUDE_CODE_CLIENT_CERT`）将被忽略，因为由托管环境管理连接。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Understand the Goal:** The user wants a concise, insightful analysis of a batch of 17 documentation changes for &#34;Claude Code&#34;. I need to summarize what changed, why it matters, identify key themes, assess the impact level, and list action items for developers. The response must be in Chinese.
+
+2.  **Analyze the Input (Diff by Diff):**
+
+    *   `checkpointing.md`: Changed the recommendation to use `/branch` instead of just &#34;fork&#34; or `--continue --fork-session`. It links to the same place but changes the terminology/command.
+    *   `claude-code-on-the-web.md`: Table structure change. Adds a column for &#34;Why&#34;. The first few rows (Repo files) seem unchanged, but the diff snippet cuts off early. The addition of the &#34;Why&#34; column suggests better explanation of availability.
+    *   `cli-reference.md`: Added `claude auto-mode reset`. New command to restore default auto-mode config.
+    *   `data-usage.md`: Updated `/feedback` command descriptions to clarify that `/bug` and `/share` also report via the same path and retention policy.
+    *   `headless.md`: New behavior for `claude -p` when stopped with SIGTERM (exit code 143, terminates process tree, runs `SessionEnd` hooks).
+    *   `hooks.md`: Clarified that `stop` action in `PreToolUse`/`PostToolUse` applies even on failure or while streaming.
+    *   `iam.md`: Detailed enforcement of `forceLoginMethod` and `forceLoginOrgUUID` across different login paths (Terminal, VS Code, Agent SDK, setup-token, etc.) starting from v2.1.212. Distinguishes which paths enforce which keys.
+    *   `interactive-mode.md`: `/btw` without a question now reopens the overlay instead of printing a usage message (v2.1.212+). Added navigation key (`Left`) info.
+    *   `mcp.md`: Major update on MCP tool behavior. Long tool calls (&gt;2 mins) move to background tasks automatically in v2.1.212. Added config `CLAUDE_CODE_MCP_AUTO_BACKGROUND_MS`. Exceptions for subagents, IDE servers, non-interactive mode.
+    *   `monitoring-usage.md`:
+        *   OTLP exporters (`http/protobuf`, `http/json`) now send `Content-Length` header (fix for Azure Monitor/411 errors). v2.1.212+.
+        *   Inbound trace context (`TRACEPARENT`) now applies to events (`trace_id`, `span_id`) even outside active spans in v2.1.212+.
+    *   `network-config.md`: Cloud sessions ignore specific network TLS/OAuth env vars (listed) because the hosting environment manages the connection.
+    *   `plugins-reference.md`: Uninstall command `plugin-name@marketplace-name` now correctly targets the specific marketplace (fix for v2.1.212+).
+    *   `sandboxing.md`:
+        *   Plan mode behavior changes: Bare `Bash` ask rules are *not* skipped in plan mode (v2.1.212+). Before, they were skipped.
+        *   Auto-allow mode in plan mode: Only read-only commands auto-allow; others prompt (v2.1.212+).
+    *   `settings.md`: `forceLoginMethod` update text referring to v2.1.212 enforcement across all first-party paths.
+    *   `statusline.md`: Added instruction to approve prompts during setup. Updated table formatting. Added `modified` timestamp to memory frontmatter (likely in data passed to script? No, the diff shows the table structure changes or JSON fields updates, but the snippet is truncated). Wait, looking closer at `statusline.md` diff: It looks like table formatting changes. The snippet is messy but suggests structural updates to how data is presented or documented.
+    *   `sub-agents.md`:
+        *   Limit of 200 subagents mentioned (v2.1.212).
+        *   **Command Change**: `/fork` is now `/subtask` (for forked subagents) in v2.1.212. `/fork` now copies the whole session into a new background session (agent view context).
+        *   Documentation clarification on limits and counts.
+    *   `CHANGELOG.md.md`:
+        *   **Version 2.1.214**: A *lot* of fixes and small features.
+            *   Security/Permissions: Fixed bypass in PowerShell 5.1, fixed auto-approval logic for certain commands (help, man), fixed `docker` daemon-redirect flags.
+            *   Tools: Added `EndConversation` tool.
+            *   Observability: Added `CLAUDE_CODE_OTEL_CONTENT_MAX_LENGTH`, fixed telemetry.
+            *   Background/Agents: Fixed session restoration, fixed &#34;remote control&#34; notifications, fixed idle sessions keeping daemons alive.
+            *   Hooks: Fixed blocking behavior on exit code 2.
+            *   Misc: Unicode fixes in PowerShell, memory file truncation fix.
+
+3.  **Synthesize and Categorize:**
+
+    *   **Theme 1: Version 2.1.212 / 2.1.214 Feature &amp; Behavior Shifts.**
+        *   `/fork` command changes to `/subtask` (agent context).
+        *   MCP tools auto-background after 2 mins.
+        *   Login enforcement (`forceLoginMethod`) consistency.
+    *   **Theme 2: Security, Permissions, and Sandboxing Improvements.**
+        *   `power-shell 5.1` bypass fix.
+        *   Stricter Bash permission checks (long commands, zsh modifiers).
+        *   Sandboxing behavior in &#34;plan mode&#34; (stricter, prompts for non-read-only).
+        *   Docker daemon flags now prompt.
+    *   **Theme 3: Observability &amp; Debugging.**
+        *   OTLP fixes (Content-Length header for Azure).
+        *   Trace context on events.
+        *   New `auto-mode reset` command.
+    *   **Theme 4: Background Tasks &amp; Process Management.**
+        *   SIGTERM handling (exit 143, hooks).
+        *   Idle session handling fixes.
+    *   **Theme 5: Minor Refinements/Clarifications.**
+        *   `/feedback` includes `/bug` and `/share`.
+        *   Uninstall plugins logic fix.
+        *   `headless` behavior clarifications.
+
+4.  **Draft the Response (Iterative translation to Chinese):**
+
+    *   *Overall Summary*: The update focuses on enhancing security (permission fixes), refining agent/subagent workflows (command changes like `/subtask`), improving observability (OTLP), and fixing numerous edge cases in background processing and hooks in versions 2.1.212 and 2.1.214.
+    *   *Key Themes*:
+        *   **Security &amp; Permissions**: Fixed bypasses (PowerShell), stricter checks (long commands, Docker flags), and clarified sandboxing behavior in plan mode.
+        *   **Agent &amp; MCP Evolution**: Introduced `/subtask` command (replacing `/fork` for subagents), automatic backgrounding of long MCP calls.
+        *   **Observability**: Fixed OTLP export headers for Azure, added trace context to events.
+        *   **Process Management**: Better SIGTERM handling, fixed idle background sessions.
+    *   *Impact Level*: **High**. There are breaking behavior changes (commands renamed, permission check tightening) and critical security fixes.
+    *   *Action Items*:
+        *   Update scripts/docs using `/fork` to use `/subtask`.
+        *   Review permission rules for &#34;plan mode&#34; compatibility.
+        *   Update to v2.1.214 for PowerShell security fixes.
+        *   Check OTLP configuration if using Azure Monitor.
+
+5.  **Refine the Output (Formatting and Tone):**
+
+    *   Ensure the tone is professional and authoritative (&#34;world-class programmer&#34;).
+    *   Use clear headings and bullet points.
+    *   Check against the user&#39;s prompt: &#34;Focus on what matters to developers.&#34;
+
+    *   *Self-Correction during drafting*: The diff for `statusline.md` is cut off, but I can infer it&#39;s about data presentation. The `CHANGELOG` for 2.1.214 is huge, so highlighting the security fixes is crucial.
+
+    *   *Drafting Action Items*:
+        1.  **Command Migration**: If using `/fork` for subagents, switch to `/subtask`. If using `/fork` to copy a session, ensure that&#39;s still the intent (docs say `/fork` now copies whole session).
+        2.  **Security Audit**: Update to v2.1.214 immediately due to PowerShell bypass fix.
+        3.  **Permission Review**: Check &#34;plan mode&#34; behavior. Read-only commands auto-allow, others prompt.
+        4.  **Monitoring**: If using Azure Monitor or similar, verify the `Content-Length` fix resolves past issues.
+        5.  **Environment Config**: Note that cloud sessions ignore certain TLS env vars.
+
+6.  **Final Polish (Chinese):**
+    *   Summary: 此次更新主要集中在增强安全性（修复权限绕过漏洞）、改进 Agent 工作流（引入 `/subtask` 命令）、提升可观测性（OTLP 修复）以及修复后台任务和 Hooks 中的边界情况。
+    *   Themes: 安全与权限强化, Agent 与 MCP 机制演进, 可观测性与监控修复, 进程与后台管理优化.
+    *   Impact: High.
+    *   Actions: 迁移 `/fork` 命令, 更新至 v2.1.214, 审查 Plan Mode 权限, 检查监控配置, 留意云端会话配置.
+
+7.  **Final Output Generation.** (Proceed to generate markdown).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/checkpointing.html" class="page-link">checkpointing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/claude-code-on-the-web.html" class="page-link">claude-code-on-the-web.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+16</span>
+                            <span class="removed">-15</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/cli-reference.html" class="page-link">cli-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/data-usage.html" class="page-link">data-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/headless.html" class="page-link">headless.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/iam.html" class="page-link">iam.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/interactive-mode.html" class="page-link">interactive-mode.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+10</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/network-config.html" class="page-link">network-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sandboxing.html" class="page-link">sandboxing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/statusline.html" class="page-link">statusline.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+51</span>
+                            <span class="removed">-41</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+48</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">19:47 EST</div>
