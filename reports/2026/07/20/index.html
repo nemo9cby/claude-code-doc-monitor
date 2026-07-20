@@ -118,9 +118,233 @@
 
         <header>
             <h1>Changes on 2026-07-20</h1>
-            <p class="meta">2 total changes in 1 run</p>
+            <p class="meta">8 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">18:54 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 整体总结
+本次文档更新重点增强了子代理的可观测性（新增模型追踪字段），优化了技能开发中的权限控制机制，并修复了长会话性能回退及符号链接安全等关键问题，同时调整了插件缓存策略。
+
+### 关键主题
+*   **子代理与监控**：新增 `modelsUsed` 字段以追踪运行中模型的变更顺序；细化了 Hook 调试日志的输出格式。
+*   **技能开发体验**：明确了环境变量（如 `${CLAUDE_SKILL_DIR}`）在 `allowed-tools` 中的替换逻辑，通过示例展示了如何利用变量消除运行时的权限弹窗。
+*   **配置与内存管理**：调整了 `autoMemoryEnabled` 的默认保存位置（现为用户级设置），并为 `/init` 的新行为（如读取 `.cursorrules`）引入了 `CLAUDE_CODE_NEW_INIT` 开关。
+*   **系统稳定性与安全**：Changelog 显示修复了严重的性能退化（解决长会话中消息归一化的二次方增长卡顿）、OAuth 中断、符号链接越界写入及 Bash 权限校验等缺陷。
+*   **维护策略**：插件旧版本缓存保留时间从 7 天延长至 14 天。
+
+### 影响级别
+**High**（高）
+
+**理由**：Changelog 中提到的长会话性能修复（解决多秒卡顿）和符号链接安全漏洞修复对生产环境影响较大；技能开发体验的改进显著降低了配置摩擦；子代理模型追踪的增强对于复杂调试场景至关重要。
+
+### 开发者行动项
+*   **优化技能权限**：更新技能配置，在 `allowed-tools` 中使用 `${CLAUDE_SKILL_DIR}` 变量，以消除运行时的权限确认提示。
+*   **验证配置变更**：检查 `autoMemoryEnabled` 设置是否已按预期变更；若依赖 `/init` 自动导入外部规则文件，需启用 `CLAUDE_CODE_NEW_INIT` 环境变量。
+*   **利用新字段监控**：解析子代理响应中的 `modelsUsed` 字段，以便在模型发生切换时进行审计或调试。
+*   **审查符号链接使用**：确保工作流和计划任务不会通过 `.claude` 目录的符号链接将数据写入项目外部路径。
+*   **关注性能回退**：更新后留意长会话的响应速度改善，特别是在包含大量历史记录的情况下。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer/doc expert.
+    *   **Task:** Analyze documentation changes (6 pages) as a single batch.
+    *   **Output:** Concise, insightful analysis in Markdown.
+    *   **Format:**
+        1.  Overall Summary (1-2 sentences)
+        2.  Key Themes
+        3.  Impact Level (Low/Medium/High/Breaking) + Reasoning
+        4.  Action Items (max 5 bullets)
+    *   **Language:** Chinese.
+
+2.  **Analyze the Changes (Page by Page):**
+
+    *   **Page 1: `hooks.md`**
+        *   *Change 1:* Updated `resolvedModel` description. Added `modelsUsed` field (array of models used, collapses consecutive repeats, set only if swapped mid-run).
+        *   *Change 2:* Clarified background subagent behavior regarding `tool_response` and `resolvedModel`.
+        *   *Change 3:* Added debug logging example for hooks. Changed `Hook command completed with status 0` format.
+        *   *Relevance:* Subagents, monitoring, debugging hooks.
+
+    *   **Page 2: `memory.md`**
+        *   *Change 1:* Added instruction to verify CLAUDE.md loaded via `/context`.
+        *   *Change 2:* Updated `CLAUDE.local.md` generation to require `CLAUDE_CODE_NEW_INIT=1`.
+        *   *Change 3:* Clarified &#34;external imports&#34; and trust model (user-scope vs. project-level).
+        *   *Change 4:* Updated symlink instruction (`ln -s`).
+        *   *Change 5:* Updated `/init` behavior regarding reading `AGENTS.md`, `.cursorrules`, etc., now behind `CLAUDE_CODE_NEW_INIT=1`.
+        *   *Change 6:* Updated `autoMemoryEnabled` toggle behavior (saves to user settings, vs project settings).
+        *   *Change 7:* Updated &#34;writing memory&#34; message examples (&#34;Saved 2 memories&#34;).
+        *   *Change 8:* Updated `/memory` command description (lists non-existent files, creates on select).
+        *   *Relevance:* Memory configuration, settings, imports, debugging context.
+
+    *   **Page 3: `plugins-reference.md`**
+        *   *Change:* Updated plugin cache cleanup time from &#34;7 days&#34; to &#34;two weeks&#34; (14 days).
+        *   *Relevance:* Plugin lifecycle, disk usage.
+
+    *   **Page 4: `skills.md`**
+        *   *Change:* Added detailed explanation of `${CLAUDE_SKILL_DIR}` and `${CLAUDE_PROJECT_DIR}` substitution in `allowed-tools` vs. skill body. Includes example code showing how to avoid permission prompts.
+        *   *Relevance:* Skills development, Bash permissions, environment variables.
+
+    *   **Page 5: `slash-commands.md`**
+        *   *Change:* Identical to `skills.md` (likely a duplicate file or shared content section in the source).
+        *   *Relevance:* Same as above.
+
+    *   **Page 6: `CHANGELOG.md.md`**
+        *   *Change:* Added v2.1.216 changelog entries.
+        *   *Key Fixes:* Quadratic slowdown fix, OAuth fixes, subagent fixes, filesystem isolation toggle, symlink security fixes, Bash parsing improvements, `/fork` improvements, etc.
+        *   *Relevance:* Stability, performance, security, new features.
+
+3.  **Synthesize and Structure (in Chinese):**
+
+    *   **Overall Summary:**
+        *   此次更新引入了针对子代理模型追踪的改进，增强了技能开发中的环境变量替换逻辑，并大幅提升了系统稳定性与安全性。文档还更新了内存管理的配置细节及插件缓存的生命周期策略。
+
+    *   **Key Themes:**
+        *   *Subagent Monitoring:* New `modelsUsed` field, better debug logging for hooks.
+        *   *Skills &amp; Permissions:* Improved variable substitution (`${CLAUDE_SKILL_DIR}`) in `allowed-tools` to streamline permissions.
+        *   *Configuration &amp; Memory:* Refined behavior of auto-memory settings, init commands (flagged by `CLAUDE_CODE_NEW_INIT`), and external imports trust model.
+        *   *Stability &amp; Performance (Changelog):* Fixed major performance bottleneck (quadratic slowdown), security issues (symlinks), and numerous edge cases in background sessions.
+        *   *Maintenance:* Plugin cache retention extended to 2 weeks.
+
+    *   **Impact Level:**
+        *   *High* (Reasoning: Changelog shows critical performance fixes—quadratic slowdown—and security fixes for symlinks. Subagent changes improve observability. Skills changes reduce friction for permission prompts.)
+
+    *   **Action Items:**
+        *   Review and update Skills to utilize `${CLAUDE_SKILL_DIR}` in `allowed-tools` to eliminate permission prompts.
+        *   Check `autoMemoryEnabled` settings as the toggle behavior now saves to user settings by default.
+        *   Utilize the new `modelsUsed` field in subagent responses to debug model swapping behavior.
+        *   Set `CLAUDE_CODE_NEW_INIT=1` if you rely on `/init` importing AGENTS.md or generating `.gitignore` entries automatically.
+        *   Be aware of the performance improvements in long-running sessions.
+
+4.  **Refine Output (Translation to Chinese &amp; Formatting):**
+
+    *   *Summary:* 此次文档更新涵盖了子代理模型追踪的新字段、技能开发中权限处理的优化，以及关键的系统稳定性和安全性修复。特别是新增了 `sandbox.filesystem.disabled` 设置和扩大的插件缓存保留期。
+    *   *Themes:*
+        *   **子代理可见性**: 新增 `modelsUsed` 字段追踪模型切换，改进了 Hook 调试日志输出。
+        *   **技能与权限**: 明确了环境变量（如 `${CLAUDE_SKILL_DIR}`）在 `allowed-tools` 中的替换逻辑，帮助消除弹窗提示。
+        *   **配置与内存**: 调整了 `/init` 和 `autoMemoryEnabled` 的行为，引入了 `CLAUDE_CODE_NEW_INIT` 标志来控制新特性。
+        *   **系统稳定性与修复**: 修复了长会话中的性能瓶颈（二次方增长）、OAuth 过期问题、符号链接安全漏洞以及大量后台任务边缘情况。
+        *   **维护变更**: 插件缓存清理周期从 7 天延长至 14 天。
+    *   *Impact:* High (包含性能修复、安全修复及开发者体验改进)。
+    *   *Action Items:*
+        *   更新技能配置，在 `allowed-tools` 中使用变量替换以减少权限提示。
+        *   检查并适应 `/init` 和 `autoMemoryEnabled` 的新行为，必要时设置环境变量。
+        *   利用新的子代理响应字段进行调试。
+        *   审查符号链接相关的安全修复影响。
+        *   关注长会话性能的提升。
+
+5.  **Final Review:** Does it meet the constraints? Yes. Concise, insightful, Chinese language, specific format.
+
+    *Self-Correction during drafting:* Make sure to mention the version numbers (v2.1.216) in the changelog context implicitly or explicitly. Ensure the connection between the Changelog and the specific doc pages (like hooks/skills) is clear. The &#34;High&#34; impact is justified by the performance fix for long sessions mentioned in the changelog.
+
+    *Drafting the response...*
+
+    1.  **Overall Summary**: 本次更新重点增强了子代理的可观测性（新增模型追踪字段），优化了技能开发中的权限控制机制，并修复了长会话性能回退及符号链接安全等关键问题。
+    2.  **Key Themes**:
+        *   **子代理与监控**: 新增 `modelsUsed` 字段追踪运行中模型的变更；细化了 Hook 调试日志格式。
+        *   **技能开发体验**: 明确了 `${CLAUDE_SKILL_DIR}` 在 `allowed-tools` 中的变量替换机制，通过示例展示了如何避免权限弹窗。
+        *   **配置与内存管理**: 调整了 `autoMemoryEnabled` 的保存位置（用户级设置），并为 `/init` 的新功能引入了 `CLAUDE_CODE_NEW_INIT` 开关。
+        *   **系统稳定性与安全**: Changelog 显示修复了严重的性能退化（二次方复杂度）、OAuth 中断、符号链接越界写入及 Bash 权限校验等缺陷。
+        *   **维护策略**: 插件旧版本缓存保留时间延长至 14 天。
+    3.  **Impact Level**: High。理由：Changelog 中提到的长会话性能修复（解决卡顿）和符号链接安全漏洞对生产环境影响较大；技能开发体验的改进显著降低了配置摩擦。
+    4.  **Action Items**:
+        *   **优化技能权限**: 在技能的 `allowed-tools` 配置中使用 `${CLAUDE_SKILL_DIR}` 变量，以消除运行时的权限确认提示。
+        *   **验证配置变更**: 检查 `autoMemoryEnabled` 的设置是否已自动迁移至用户级设置；若依赖 `/init` 自动导入外部规则，需启用 `CLAUDE_CODE_NEW_INIT`。
+        *   **利用新字段监控**: 解析子代理响应中的 `modelsUsed` 字段，以便在模型发生切换时进行审计或调试。
+        *   **审查符号链接使用**: 确保工作流和计划任务不会通过 `.claude` 的符号链接写入项目外部路径。
+        *   **关注性能回退**: 更新后注意长会话的响应速度改善，特别是在大量历史记录的情况下。</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-7</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/memory.html" class="page-link">memory.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+10</span>
+                            <span class="removed">-8</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+41</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">15:37 EST</div>
