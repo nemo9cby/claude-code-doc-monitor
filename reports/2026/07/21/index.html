@@ -118,9 +118,266 @@
 
         <header>
             <h1>Changes on 2026-07-21</h1>
-            <p class="meta">9 total changes in 2 runs</p>
+            <p class="meta">17 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">15:11 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">## 总体摘要
+本次文档更新重点在于提升开发者体验（DX）和系统可观测性，主要变化包括：明确了 Search Results API 中引用默认为关闭的关键行为，修复了 Prometheus 指标抓取的兼容性问题，优化了插件安装与 IDE 集成的自动化流程，并针对新组织的速率限制设定了预期管理。
+
+## 关键主题
+
+*   **API 行为澄清与修正**：
+    *   **Search Results**：明确指出 `citations`（引用）功能默认为 **禁用** 状态，需显式配置 `&#34;enabled&#34;: true` 才能启用，同时简化了模型支持列表。
+    *   **Rate Limits**：阐明新组织或历史记录不足的组织初始限制可能低于标准值，以防止欺诈。
+*   **可观测性与监控增强**：
+    *   **Prometheus 兼容性**：v2.1.216 版本修复了 Prometheus 抓取问题，当 `prometheus` 为唯一导出器时，移除了 OpenMetrics 特有的 `# UNIT` 行以兼容标准抓取器。
+    *   **指标单位与日志**：修正了指标单位列（如将 `count` 改为 `none`），并在事件日志中新增了 `cost_usd_micros` 字段以提高成本追踪精度。
+    *   **配置优化**：将监控配置示例拆分为独立代码块，增加了验证步骤。
+*   **CLI 与插件工作流优化**：
+    *   **插件安装**：在 CLI 安装插件后，明确要求运行 `/reload-plugins` 以在当前会话中激活插件。
+    *   **IDE 集成**：改进了 JetBrains 远程开发安装说明和 WSL 子网计算指南；增强了 `/ide` 命令的自动检测与反馈机制。
+*   **内存管理更新**：
+    *   引入了 `modified` 时间戳字段记录内存文件更新时间。
+    *   `/memory` 命令现在支持异步打开 GUI 编辑器（如 VS Code），不再阻塞会话。
+
+## 影响级别
+**Medium** (中等)
+*   **理由**：虽然大多数是文档澄清和体验优化，但 **Search Results 默认关闭引用** 是一个可能导致现有 RAG 应用行为不符预期的“陷阱”；**Prometheus 导出格式变更** 可能导致依赖特定单位行的监控抓取器中断。
+
+## 开发者行动项
+
+1.  **检查 Search Results 引用配置**：如果您使用 API 的 Search Results 功能并期望出现引用，请立即在代码中添加 `citations: {&#34;enabled&#34;: true}`，因为新文档确认默认行为是关闭的。
+2.  **更新 Prometheus 抓取配置**：如果您使用 v2.1.216+ 版本的 Claude Code 并通过 Prometheus 抓取指标，请验证您的抓取器是否能兼容没有 `# UNIT` 行的文本格式。
+3.  **采用新的插件安装流程**：在通过 CLI 安装插件后，将 `/reload-plugins` 加入到您的标准操作流程中，以确保插件立即生效。
+4.  **审查新组织速率限制**：如果您是为新客户或新项目配置 API 密钥，请预先告知其初始请求限制可能较低，随着使用历史建立会自动提升。
+5.  **利用新的内存与监控功能**：利用 `/memory` 的非阻塞编辑功能提升效率，并检查 `cost_usd_micros` 字段以进行更精细的成本分析。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Format:** Markdown, concise, insightful.
+    *   **Language:** Chinese.
+    *   **Input:** A diff of 8 pages (cli-reference, discover-plugins, jetbrains, memory, monitoring-usage, plugin-marketplaces, api/rate-limits, build-with-claude/search-results).
+    *   **Goal:** Summarize what changed and why it matters.
+
+2.  **Analyze Each Page:**
+
+    *   **`cli-reference.md`**:
+        *   Change: Updated description for `--channels`. Changed &#34;Requires Claude.ai authentication&#34; to &#34;Requires Anthropic authentication through claude.ai or a Console API key&#34;.
+        *   Impact: Clarifies authentication requirements, broadens supported auth methods.
+
+    *   **`discover-plugins.md`**:
+        *   Change 1: Text tweak &#34;You can also install...&#34; to &#34;start the install&#34;. Minor wording.
+        *   Change 2: &#34;User scope (default)&#34; -&gt; &#34;User scope&#34;.
+        *   Change 3: Added instruction to run `/reload-plugins` after installing to activate.
+        *   Change 4: Warning text update (truncated in diff but implies safety context).
+        *   Impact: Critical usability fix. Developers often forget to reload plugins after CLI install.
+
+    *   **`jetbrains.md`**:
+        *   Change 1: Added note on automatic plugin installation/detection logic when `/ide` is run.
+        *   Change 2: Clarified Remote Development requirement (install on *remote* host, not local).
+        *   Change 3: Improved subnet calculation instructions.
+        *   Change 4: Troubleshooting update: clarified `/ide` command specific context.
+        *   Impact: Better DX for IDE integration, specifically remote dev and troubleshooting connectivity.
+
+    *   **`memory.md`**:
+        *   Change 1: New feature (v2.1.214): Adds `modified` frontmatter to memory files with ISO timestamp.
+        *   Change 2: UX improvement (v2.1.216): `/memory` command now opens GUI editors (like VS Code) asynchronously (doesn&#39;t block).
+        *   Impact: Enhanced memory tracking and non-blocking workflow for editors.
+
+    *   **`monitoring-usage.md`**:
+        *   Change 1: Added verification step for setups (`claude_code.session.count` or `claude_code.user_prompt`).
+        *   Change 2: Updated example paths (`/bin/...` -&gt; `/path/to/...`).
+        *   Change 3: Restructured example configurations into distinct code blocks instead of one giant block.
+        *   Change 4: Metric table updates: Changed &#34;count&#34; unit to &#34;none&#34; for specific metrics.
+        *   Change 5: Prometheus compatibility fix (v2.1.216): Omits OpenMetrics `# UNIT` lines to be compatible with standard Prometheus scrapers.
+        *   Change 6: Added `cost_usd_micros` to events.
+        *   Change 7: Clarified `WorkspaceBash` tool parameters vs `Bash` tool.
+        *   Impact: Significant for observability. Fixes Prometheus scraping issues, improves config readability, adds precision to cost tracking.
+
+    *   **`plugin-marketplaces.md`**:
+        *   Change 1: Added `author` field to manifest JSON.
+        *   Change 2: Updated install instructions to include `/reload-plugins`.
+        *   Change 3: Updated validation instructions.
+        *   Change 4: `/plugin marketplace list` output now includes `installLocation`.
+        *   Change 5: Improved auth troubleshooting steps (credential helper, `git ls-remote`).
+        *   Impact: Better plugin metadata, consistent install workflow, improved debugging for marketplace auth.
+
+    *   **`api/rate-limits.md`**:
+        *   Change: Clarified that new orgs/startups might have lower initial limits based on history to prevent fraud.
+        *   Impact: Managing expectations for new API users/organizations.
+
+    *   **`build-with-claude/search-results.md`**:
+        *   Change 1: Removed long list of specific supported models (now &#34;All active models... except Haiku 3&#34;).
+        *   Change 2: Simplified intro. No beta header needed.
+        *   Change 3: Updated schema description. Clarified `source` accepts internal IDs.
+        *   Change 4: Clarified citations default to *disabled* (`citations` object needed). **Crucial change.**
+        *   Change 5: Added cURL placeholder comments.
+        *   Change 6: Improved formatting of tables and descriptions.
+        *   Impact: Major functional clarification. Previous docs implied standard behavior, but explicitly stating citations are *disabled by default* is a &#34;catch&#34;. Simplified model compatibility is good.
+
+3.  **Synthesize and Structure (Chinese):**
+
+    *   **Overall Summary**: This update focuses on enhancing developer experience (DX) through clearer authentication requirements, improved plugin/workflow automation (reloading), better observability metrics (Prometheus compatibility), and critical API clarifications regarding default citation behavior and rate limits for new organizations.
+
+    *   **Key Themes**:
+        *   *Plugin &amp; Workspace Workflow*: Mandatory `/reload-plugins` steps and automatic IDE detection.
+        *   *Observability &amp; Monitoring*: Prometheus scraping fixes, metric unit corrections, and config examples splitting.
+        *   *API Behavior Clarifications*: Search result citations default to *disabled* and new org rate limit expectations.
+        *   *Auth &amp; Connectivity*: Expanded auth options for channels and clearer remote dev setup.
+
+    *   **Impact Level**: **Medium** (Borderline High for API users relying on Search Results citations or Prometheus metrics). Why? The Search Results citation default is a potential &#34;gotcha&#34; if developers assumed it was on. The Prometheus fix resolves breaking issues for some scrapers.
+
+    *   **Action Items**:
+        *   Check Search Results API: Ensure `citations: {&#34;enabled&#34;: true}` is set if you need them (default is off).
+        *   Update Prometheus Scrapers: Note the change in unit formatting in v2.1.216 if you are scraping Claude Code metrics.
+        *   Adopt New Plugin Workflow: Run `/reload-plugins` after CLI installs.
+        *   Review Rate Limits: Be aware new orgs might start with lower limits.
+        *   Update SDK/Tools: If using WorkspaceBash, check parameter logging details in OTEL.
+
+4.  **Drafting the Response (Iterative refinement):**
+
+    *   *Intro*: Keep it tight.
+    *   *Themes*: Group the disparate changes logically.
+        *   Group 1: CLI/Plugins (discover-plugins, jetbrains, plugin-marketplaces, cli-reference).
+        *   Group 2: Observability (monitoring-usage).
+        *   Group 3: API (rate-limits, search-results).
+        *   Group 4: Memory (memory).
+    *   *Action Items*: Focus on the &#34;Search Results&#34; citation default change and the &#34;Prometheus&#34; fix as they are the most technically significant.
+
+5.  **Final Polish (translating to professional Chinese):**
+    *   &#34;World-class programmer&#34; tone: precise, confident, developer-centric.
+    *   Terminology: &#34;Prometheus scraper&#34;, &#34;RAG&#34;, &#34;Citations&#34;, &#34;Scope&#34;.
+
+    *(Self-Correction during drafting)*: The search results change regarding citations is subtle but dangerous. The old docs implied usage; the new docs say &#34;Citations are disabled by default&#34;. I must highlight this. The monitoring change regarding Prometheus removing `# UNIT` lines is also a breaking change for strict parsers.
+
+    *Action Item 1*: Explicitly mention the citation toggle.
+    *Action Item 2*: Mention the Prometheus unit format change.
+    *Action Item 3*: Mention `/reload-plugins` for workflow.
+
+6.  **Final Output Generation** (matches the structure requested).
+
+    *   Summary: 涵盖了 CLI 工作流优化、可观测性增强以及 API 行为澄清。
+    *   Themes: 工作流自动化, 可观测性修正, API 关键细节, IDE 与插件体验.
+    *   Impact: Medium.
+    *   Actions: Check citation config, Fix prometheus, use reload-plugins, note new org limits.</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/cli-reference.html" class="page-link">cli-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/discover-plugins.html" class="page-link">discover-plugins.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/jetbrains.html" class="page-link">jetbrains.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/memory.html" class="page-link">memory.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+21</span>
+                            <span class="removed">-20</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugin-marketplaces.html" class="page-link">plugin-marketplaces.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/rate-limits.html" class="page-link">api/rate-limits.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/search-results.html" class="page-link">build-with-claude/search-results.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+488</span>
+                            <span class="removed">-270</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">13:11 EST</div>
