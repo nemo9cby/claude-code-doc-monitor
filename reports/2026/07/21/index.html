@@ -118,9 +118,241 @@
 
         <header>
             <h1>Changes on 2026-07-21</h1>
-            <p class="meta">1 total change in 1 run</p>
+            <p class="meta">9 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">13:11 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 总体摘要
+本次更新主要集中在增强安全隔离、修正自动化工具的行为逻辑以及提升稳定性。主要变更包括：新增了沙箱文件系统隔离的独立配置选项、调整了 Hooks 的默认阻断行为（属于破坏性变更）、修复了 Headless 模式下的输出截断问题，并明确了检查点对符号链接/硬链接文件的限制。
+
+### 关键主题
+
+*   **沙箱安全隔离细化**：新增 `sandbox.filesystem.disabled` 设置，允许用户关闭文件系统隔离但保留网络隔离，提供了更灵活的安全控制策略，同时强调了设置层级的安全约束。
+*   **Hooks 行为重大变更**：修改了 `PreToolUse` 和 `PostToolUse` 的默认行为。现在，工具被阻断 (`ok: false`) 默认会终止当前会话轮次，而非将错误返回给 AI 进行自我修正。若需旧有行为，必须显式设置 `continueOnBlock: true`。
+*   **集成与可观测性增强**：Headless 模式改进了流输出处理，增加了最长 30 秒的缓冲等待时间以防止大响应截断；监控方面新增了 OTLP 认证头支持和更细粒度的日志内容控制变量。
+*   **数据恢复与限制**：明确了 Checkpointing（检查点）机制不支持恢复符号链接或硬链接文件（如 pnpm 管理的文件或 dotfile 管理器链接的配置），并提供了调试方法。
+
+### 影响等级：**High (高)**
+
+**理由**：Hooks 行为的默认变更属于破坏性变更。任何依赖 `PreToolUse` 返回 `ok: false` 来让 AI 捕获错误并重试的现有自动化脚本或插件，现在将直接导致会话停止，除非开发者主动更新配置添加 `continueOnBlock` 标志。这直接影响开发者的自动化工作流稳定性。
+
+### 开发者行动项
+
+1.  **更新 Hooks 配置**：立即检查现有的 `PreToolUse` 和 `PostToolUse` 逻辑。如果希望工具被拒绝后 AI 能根据错误继续调整，必须在返回对象中添加 `&#34;continueOnBlock&#34;: true`。
+2.  **审查沙箱配置**：如果您需要限制网络访问但允许文件系统访问，可尝试新设置 `sandbox.filesystem.disabled: true`，但务必阅读相关安全警告，防止权限提升风险。
+3.  **注意 Checkpoint 恢复限制**：在使用 `/rewind` 功能时，需意识到通过 pnpm 或符号链接管理的文件将不会被恢复，需手动处理或寻求 AI 帮助回滚。
+4.  **更新监控脚本**：如果使用 OTLP 导出遥测数据，建议利用新增的 `OTEL_EXPORTER_OTLP_HEADERS` 环境变量来配置认证信息。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Output Format:** Markdown, concise, insightful.
+    *   **Language:** Chinese (as requested: &#34;请用中文回复&#34;).
+    *   **Input:** A batch of 8 documentation page diffs.
+    *   **Required Sections:**
+        1.  Overall Summary (1-2 sentences).
+        2.  Key Themes.
+        3.  Impact Level.
+        4.  Action Items (max 5).
+
+2.  **Analyze the Diffs (Page by Page):**
+
+    *   **Page 1: `checkpointing.md` (+4/-0)**
+        *   *Change:* Added section &#34;Symlinked and hard-linked paths not restored&#34;. Explains that `/rewind` skips symlinks/hardlinks. Added debug tip.
+        *   *Why it matters:* Developers using tools like `pnpm` (hardlinks) or dotfile managers (symlinks) need to know they can&#39;t restore these files via checkpointing.
+        *   *Impact:* Specific edge case behavior change clarification.
+
+    *   **Page 2: `headless.md` (+2/-1)**
+        *   *Change:* Updated info on stream output. Exit behavior changed: waits up to 30 seconds for queued output to drain (previously ~2s) to prevent truncation. Clarified version history (v2.1.208 vs v2.1.214).
+        *   *Why it matters:* Developers building integrations/scripts using headless mode won&#39;t get truncated outputs anymore if they process slowly.
+
+    *   **Page 3: `hooks.md` (+3/-2)**
+        *   *Change:* Updated `PreToolUse` and `PostToolUse` behavior. Introduces `continueOnBlock` flag. Default behavior changed: `PreToolUse` now *ends the turn* by default on `ok: false`, instead of returning a tool error and continuing. `continueOnBlock: true` restores the old behavior. `TaskCompleted` behavior clarified.
+        *   *Why it matters:* **Breaking change potential** for hook logic. Previously, blocking a tool use fed the error back to Claude so it could retry. Now it just warns and stops unless `continueOnBlock` is set.
+        *   *Impact:* High. Logic changes in hooks.
+
+    *   **Page 4: `hooks-guide.md` (+3/-2)**
+        *   *Change:* Same content as `hooks.md` regarding `PreToolUse`, `PostToolUse` and the new `continueOnBlock` flag.
+        *   *Why it matters:* Reinforces the breaking change in hook behavior.
+
+    *   **Page 5: `interactive-mode.md` (+42/-42)**
+        *   *Change:* Table format update (switched to using pipe table syntax or slight reformatting). Reordered/updated shortcuts list (e.g., Cmd+V for iTerm2, Alt+V for Windows/WSL, Tmux notes). Added &#34;Tmux users press twice&#34; to `Ctrl+B`. Removed `Ctrl+X Ctrl+E` note duplication?
+        *   *Why it matters:* Mostly documentation cleanup/refactoring. The specific keybindings for pasting images (WSL support) are notable. The table itself looks reformatted (switched from a list structure or different table style? The diff looks like a table restructure).
+        *   *Impact:* Low. User experience improvement.
+
+    *   **Page 6: `monitoring-usage.md` (+58/-38)**
+        *   *Change:* Updated table of env variables. Added `CLAUDE_CODE_ENABLE_TELEMETRY` (required). Added `OTEL_EXPORTER_OTLP_HEADERS` (auth). Added `OTEL_LOG_USER_PROMPTS` and `OTEL_LOG_ASSISTANT_RESPONSES`. Moved `min-version` comments.
+        *   *Why it matters:* Better observability support, specifically authentication for OTLP and control over logging content.
+        *   *Impact:* Medium for DevOps/Monitoring users.
+
+    *   **Page 7: `sandboxing.md` (+34/-15)**
+        *   *Change:* Added `sandbox.filesystem.disabled` setting to disable filesystem isolation while keeping network isolation. Detailed security warnings and hierarchy of settings (managed vs project). Clarified `$TMPDIR` behavior when filesystem isolation is off.
+        *   *Why it matters:* Granular control over sandboxing. Allows filesystem access but restricts network. Security implications (risk of privilege escalation if disabled).
+        *   *Impact:* Medium. New feature with security caveats.
+
+    *   **Page 8: `CHANGELOG.md.md` (+1/-0)**
+        *   *Change:* Mentioned change to Fable 5 consent prompt (decline option focused). Note: This looks like a changelog entry, but the code provided is just the diff. The user asked to analyze the *documentation changes*. This page is part of the documentation.
+        *   *Why it matters:* Minor UI tweak.
+        *   *Impact:* Low.
+
+3.  **Synthesize Key Themes:**
+    *   **Security &amp; Safety:** Sandboxing isolation config (filesystem vs network), Hooks security behavior (blocking tools now stops execution by default).
+    *   **Integration &amp; Observability:** Headless mode stability (drain time), OTLP auth, logging configuration.
+    *   **Reliability:** Checkpointing limitations (links), Headless truncation fix.
+    *   **UX/UI:** Keybindings, Changelog entry.
+
+4.  **Determine Impact Level:**
+    *   The change to `hooks.md` (PreToolUse default behavior) is a **Breaking Change** for existing hook configurations that relied on blocking a tool to feed an error back to Claude. This forces users to opt-in to the old behavior using `continueOnBlock`.
+    *   Therefore, Impact is at least **Medium**, leaning towards **High** for hook users.
+
+5.  **Draft Action Items:**
+    *   Review hooks logic if using `PreToolUse` or `PostToolUse` with `ok: false`. Add `continueOnBlock: true` if the old behavior (return error to Claude) is desired.
+    *   Update sandboxing config if you need network-only isolation.
+    *   Be aware of checkpointing limits with hardlinks/symlinks (pnpm, dotfiles).
+    *   Update monitoring scripts/OTLP config to use new auth header env var.
+
+6.  **Drafting the Response (in Chinese):**
+
+    *   *Overall Summary:* 本次更新主要增强了安全控制与稳定性。重点包括引入了独立的沙箱文件系统隔离层、修正了 Hooks 的默认阻断行为（这可能影响现有自动化工作流）、修复了 Headless 模式下的输出截断问题，并澄清了检查点对链接文件的处理限制。
+
+    *   *Key Themes:*
+        *   **安全与隔离性:** 新增 `sandbox.filesystem.disabled` 配置，允许禁用文件系统隔离但保留网络隔离；加强了沙箱设置层级的管理规则。
+        *   **自动化逻辑变更:** Hooks（特别是 `PreToolUse`）的默认行为发生重大变化：阻断操作现在默认结束会话轮次，而非将错误反馈给模型。需显式设置 `continueOnBlock: true` 以保持原有行为。
+        *   **可观测性与集成:** Headless 模式增加了输出耗尽等待时间（最长 30 秒），修复了大响应截断问题；新增 OTLP 认证头及日志内容控制的环境变量。
+        *   **数据恢复:** 明确了检查点功能不恢复符号链接和硬链接（如 pnpm 或 dotfile 管理器创建的文件）。
+
+    *   *Impact Level:* High (高)
+        *   *Reasoning:* Hooks 行为的默认变更属于 Breaking Change，任何依赖 `ok: false` 将错误返回给模型的现有 Hook 配置都将面临功能失效（会话直接停止），必须人工介入修改。
+
+    *   *Action Items:*
+        *   检查并更新现有的 Hooks 配置（特别是 `PreToolUse`），如果希望 Claude 在工具被拒后继续尝试，需添加 `&#34;continueOnBlock&#34;: true`。
+        *   评估沙箱配置：若只需限制网络访问，可考虑启用 `sandbox.filesystem.disabled`，但需注意潜在的安全风险。
+        *   在涉及 `pnpm` 或符号链接的项目中，留意 `/rewind` 功能无法恢复此类文件的限制。
+        *   若使用 OTLP 集成监控，更新环境变量以支持 `OTEL_EXPORTER_OTLP_HEADERS` 认证。
+
+7.  **Review and Refine:**
+    *   Check tone: Professional, technical.
+    *   Check language: Chinese.
+    *   Check constraints: Max 5 action items.
+    *   Refinement on Impact: &#34;High&#34; is appropriate because hook logic changing is critical for automated workflows.
+
+8.  **Final Output Generation.** (Proceeding to generate markdown).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/checkpointing.html" class="page-link">checkpointing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/headless.html" class="page-link">headless.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/interactive-mode.html" class="page-link">interactive-mode.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+42</span>
+                            <span class="removed">-42</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+58</span>
+                            <span class="removed">-38</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sandboxing.html" class="page-link">sandboxing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+34</span>
+                            <span class="removed">-15</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">11:39 EST</div>
