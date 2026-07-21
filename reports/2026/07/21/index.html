@@ -118,9 +118,206 @@
 
         <header>
             <h1>Changes on 2026-07-21</h1>
-            <p class="meta">18 total changes in 4 runs</p>
+            <p class="meta">24 total changes in 5 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">18:50 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 总体摘要
+本次更新主要聚焦于增强企业级安全管理、提升系统稳定性以及优化资源消耗控制。关键变化包括限制重型技能（如 `/code-review`）的自动运行以节省 Token、修复严重的内存泄漏和 Windows 更新问题、加强对 MCP 工具和子代理的并发限制，并新增了对桌面端 iOS 模拟器工具访问的控制能力。
+
+### 关键主题
+
+*   **资源消耗与性能优化**：为了防止无限消耗资源，新增了对并发运行子代理的数量限制（默认 20），并强制执行预算限制。同时，`/verify` 和 `/code-review` 等重型技能将不再自动触发，必须由开发者手动调用。
+*   **安全与权限细化**：增加了 `disableMobileSimulatorTools` 设置以限制 Claude 对 iOS 模拟器的控制。对于标记为“需要用户交互”的 MCP 工具，系统将强制显示完整权限提示，禁用一键批准，确保关键操作由人工确认。
+*   **稳定性与健壮性**：修复了多个关键 Bug，包括 MCP 工具输出导致的内存泄漏、Windows 自动更新失败导致的可执行文件丢失、以及后台会话隔离中的符号链接逃逸问题。
+*   **容错与行为一致性**：MCP 服务刷新失败时将保留旧工具列表而非置空；模型回退逻辑已优化，禁止回退到上下文窗口更小的模型以防止数据截断；修复了企业级 mTLS 和代理设置被忽略的问题。
+
+### 影响级别：**中等**
+
+**理由**：
+此次更新包含大量底层 Bug 修复（特别是内存泄漏和更新机制），显著提升了工具的健壮性。对企业用户而言，新增的权限控制和配置修复非常重要。行为变更方面，主要影响在于 `/code-review` 等技能不再自动运行，这改变了部分用户的现有工作流，但不涉及破坏性的 API 变更。
+
+### 开发者行动项
+
+*   **调整工作流**：如果您习惯依赖 Claude 自动运行 `/verify` 或 `/code-review`，请注意现在必须手动输入命令触发，以控制 Token 和时间消耗。
+*   **检查并发与预算限制**：如果您使用大量子代理或设置了预算上限，请验证新的环境变量 `CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS` 和 `--max-budget-usd` 是否符合您的后台任务需求。
+*   **审查企业配置**：如果您在 Claude Desktop 中配置了 mTLS、代理或 OAuth Scope，建议升级到此版本以确保这些设置正确生效。
+*   **测试 MCP 集成**：确认您的 MCP 服务器在网络波动时的表现是否符合预期（现在会保留旧工具列表作为降级策略）。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer, documentation analyst.
+    *   **Task:** Analyze 6 documentation changes as a single batch.
+    *   **Format:** Markdown, concise, insightful, Chinese language.
+    *   **Content:** Changes from `desktop.md`, `mcp.md`, `model-config.md`, `skills.md`, `slash-commands.md` (likely a duplicate or similar content to skills.md, based on the diff text provided), and `CHANGELOG.md.md`.
+    *   **Output Structure:** Overall Summary, Key Themes, Impact Level, Action Items.
+
+2.  **Analyze the Individual Pages:**
+
+    *   **`desktop.md`**:
+        *   *Change*: Added `disableMobileSimulatorTools` setting.
+        *   *Meaning*: Admins can now block Claude from controlling the iOS Simulator pane via tools, while users can still use it manually. This is a security/compliance feature.
+
+    *   **`mcp.md`**:
+        *   *Change 1 (Dynamic tool updates)*: If a refresh fails, keep old tools instead of wiping them (graceful degradation). Version: v2.1.214.
+        *   *Change 2 (Permissions)*: Updated text about `anthropic/requiresUserInteraction`. Clarified that &#34;one-tap&#34; approval is withheld for specific tools marked with this annotation or tools requiring terminal-specific rendering (safety warnings, etc.). Version: v2.1.214.
+        *   *Meaning*: Better stability for MCP servers and stricter enforcement of user interaction for sensitive permissions in remote/SDK scenarios.
+
+    *   **`model-config.md`**:
+        *   *Change 1*: Refined text about &#34;fallback model chains&#34;. Clarified behavior when entries are unavailable or outside allowlist.
+        *   *Change 2*: Added logic regarding compaction: won&#39;t fall back to a model with a *smaller* context window. Version: v2.1.178.
+        *   *Meaning*: More predictable model switching behavior, preventing data loss during context compaction.
+
+    *   **`skills.md`** &amp; `slash-commands.md`**:
+        *   *Note*: The diffs for these two are identical in the provided snippet. I will treat them as one theme.
+        *   *Change 1*: Bundled skills like `/verify` and `/code-review` no longer auto-invoke; they require manual invocation. Version: v2.1.215.
+        *   *Change 2*: Clarified behavior of `disableBundledSkills`. `/doctor` remains active even when disabled.
+        *   *Change 3*: Clarified how skill naming works (plugin skills vs. project skills).
+        *   *Meaning*: Better control over resource usage (tokens/time) by stopping auto-invocation of heavy tasks. Clearer naming conventions.
+
+    *   **`CHANGELOG.md.md`**:
+        *   *Version*: 2.1.217.
+        *   *Key changes*: Emoji autocomplete, transcript write warnings, memory leak fix (MCP tools), Windows auto-update fix, symlink canonicalization fix, corporate settings fix (mTLS/proxy), screen reader improvements, subagent concurrency caps (`CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS`), budget enforcement fix for subagents.
+
+3.  **Synthesize and Group Themes:**
+
+    *   *Theme 1: Security &amp; Control (Admin/Permissions)*.
+        *   `desktop.md`: Disable iOS Simulator tools.
+        *   `mcp.md`: Stricter handling of &#34;requiresUserInteraction&#34; tools (one-tap disabled for safety).
+        *   `model-config.md`: Fallback chains respecting allowlists and context windows.
+        *   `CHANGELOG`: Corporate settings fixes (proxy, mTLS), budget enforcement.
+
+    *   *Theme 2: Stability &amp; Reliability (Bug Fixes)*.
+        *   `CHANGELOG`: Memory leak fix, Windows update fix, symlink fix, OOM fix on paths.
+        *   `mcp.md`: Graceful degradation on refresh failure.
+
+    *   *Theme 3: Resource Management &amp; Performance*.
+        *   `skills.md`/`slash-commands.md`: Manual invocation only for `/verify` and `/code-review` (to save tokens).
+        *   `CHANGELOG`: Cap on concurrent subagents, budget enforcement.
+
+    *   *Theme 4: User Experience &amp; Developer Experience*.
+        *   `CHANGELOG`: Emoji autocomplete, transcript warnings.
+        *   `skills.md`: Better skill naming documentation.
+
+4.  **Draft the Analysis (in Chinese):**
+
+    *   *Overall Summary*: 此次更新主要集中在增强对企业级安全控制、提升系统稳定性以及优化资源消耗管理。关键变化包括限制自动运行重型技能、修复内存泄漏、加强对 MCP 工具和子代理的资源限制，以及新增桌面端 iOS 模拟器工具的管理能力。
+
+    *   *Key Themes*:
+        *   **资源消耗控制**: 重型技能（如 `/verify`, `/code-review`）不再自动运行，需手动触发；新增子代理并发数限制（默认 20），防止无限消耗。
+        *   **安全与权限管理**: 新增 `disableMobileSimulatorTools` 设置；增强对需要用户交互的 MCP 工具的权限检查，禁用一键批准；强化企业级代理和 TLS 设置的生效。
+        *   **稳定性与漏洞修复**: 修复了 MCP 工具输出导致的内存泄漏、Windows 更新失败、后台会话隔离等严重 Bug。
+        *   **容错性改进**: MCP 刷新失败时保留旧工具列表，避免服务中断；模型回退链不再回退到上下文窗口更小的模型。
+
+    *   *Impact Level*: **Medium** (中等).
+        *   *Reasoning*: 虽然修复了大量底层 Bug（内存、更新失败）并调整了行为（技能不自动运行），但大部分是为了提升健壮性和管理能力。对于依赖 `/code-review` 自动运行的开发者可能会有工作流上的变化，对企业级用户的安全性有显著提升。没有破坏性 API 变更。
+
+    *   *Action Items*:
+        *   **注意技能行为变更**: 习惯自动 `/code-review` 或 `/verify` 的开发者现在需要手动调用这些命令。
+        *   **检查环境变量**: 如果您配置了大量的子代理或 Token 预算，请关注新增的 `CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS` 和 `--max-budget-usd` 对后台任务的限制行为。
+        *   **更新桌面端配置**: 如果使用 Claude Desktop 并管理 iOS Simulator 权限，可利用新的 `disableMobileSimulatorTools` 策略。
+        *   **监控 MCP 集成**: 确认您的 MCP 服务器在刷新失败时的行为是否符合预期（现在会保留旧列表而非清空）。
+
+5.  **Refine Language and Formatting (Self-Correction):**
+    *   Ensure the tone is professional and concise.
+    *   Check that &#34;Action Items&#34; are actionable.
+    *   Double-check version numbers: 2.1.217 is the main changelog, with some docs referencing 2.1.214, 2.1.215.
+
+6.  **Final Output Generation:** (Proceeding to generate markdown).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/desktop.html" class="page-link">desktop.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/model-config.html" class="page-link">model-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+9</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+9</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+21</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">17:01 EST</div>
