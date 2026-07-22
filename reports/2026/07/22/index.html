@@ -118,9 +118,181 @@
 
         <header>
             <h1>Changes on 2026-07-22</h1>
-            <p class="meta">17 total changes in 2 runs</p>
+            <p class="meta">20 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">18:09 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 总体概要
+
+本次更新主要增强了 **Token 消耗的透明度与诊断能力**，收紧了 **企业级遥测配置的管理控制权**，并修复了大量影响 Windows 用户体验和 Agent 行为稳定性的问题。
+
+### 关键主题
+
+*   **成本洞察与优化**：新增 `/usage` 对“长上下文”和“缓存未命中”等高耗行为的自动标记，并深入文档化了长会话导致费用激增的五大原因（上下文累积、缓存失效、计划任务、队友 Agent、压缩操作）。
+*   **企业级遥测管控**：在受管设置中，通用的 `OTEL_EXPORTER_OTLP_ENDPOINT` 现在强制覆盖用户设置或 Shell 导出的特定信号端点（如 `OTEL_EXPORTER_OTLP_LOGS_ENDPOINT`），确保企业环境下的遥测数据流向符合管理员策略。
+*   **核心功能与稳定性修复**：修复了 Windows 路径包含 `\u` 时被误解析为特殊字符的严重 Bug；改进了 `/code-review` 为后台子代理运行，避免污染会话历史；修复了深度嵌套目录导致的崩溃及多种无障碍功能缺陷。
+
+### 影响等级
+
+**Medium / High** (中 / 高)
+
+**理由**：
+1.  **企业管控收紧**：受管环境中遥测配置优先级的变更可能改变现有的数据流向逻辑，对依赖 OTel 的运维团队有直接影响。
+2.  **关键 Bug 修复**：Windows 路径解析错误的修复解决了特定场景下文件无法访问的阻断性问题。
+3.  **成本可见性**：对于关注预算的开发者，新的诊断机制显著提升了排查隐形消耗的能力。
+
+### 开发者行动项
+
+*   **排查隐形消耗**：运行 `/usage` 查看新增的“长上下文”或“缓存未命中”标记，并根据文档建议（如使用 `/compact` 或 `/clear`）优化长会话成本。
+*   **审查遥测配置**：如果你是企业管理员，需确认受管设置的通用 OTLP 端点配置已按预期接管了所有信号的流量；如果是普通用户，意识到受管设置下无法通过 Shell 变量绕过特定端点配置。
+*   **更新 Windows 环境**：强烈建议 Windows 用户更新至最新版本，以修复文件路径乱码导致的文件不可访问问题。
+*   **调整 Agent 与技能配置**：留意 `skills` 默认改为后台运行（`context: fork`），以及 `/code-review` 行为变为后台子代理，这可能影响现有的交互流程或脚本。
+*   **注意模型切换通知**：利用新增的“快速模式变更”通知，更好地感知通过 `/config model=&lt;x&gt;` 触发的模型切换。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Format:** Markdown, concise, insightful.
+    *   **Input:** 3 pages (`costs.md`, `monitoring-usage.md`, `CHANGELOG.md.md`).
+    *   **Language:** Chinese (as requested by &#34;请用中文回复&#34;).
+
+2.  **Analyze Page 1: `costs.md` (Cost Analysis)**
+    *   *Change 1:* Modified the description of `/usage`. Added that it flags behaviors like &#34;long context&#34; or &#34;cache misses&#34; if they account for 10%+ of usage.
+    *   *Change 2:* Added a new section &#34;Why usage climbs in a long session&#34;. Explains long context accumulation, cache misses (mentioning subscription vs. API key lifetimes), scheduled tasks, agent teammates, and compaction costs.
+    *   *Key takeaway:* Better visibility into *where* tokens are going (diagnostics) and education on why idle/open sessions burn credits.
+
+3.  **Analyze Page 2: `monitoring-usage.md` (Telemetry/OTel)**
+    *   *Change 1:* Added section &#34;Managed endpoints govern signal-specific endpoints&#34;.
+    *   *Detail:* If a generic `OTEL_EXPORTER_OTLP_ENDPOINT` is set in *managed settings*, it overrides signal-specific endpoints (like `OTEL_EXPORTER_OTLP_LOGS_ENDPOINT`) from user/shell settings. Same applies to headers/keys/certs.
+    *   *Exceptions:* If signal-specific vars are *in* the managed settings file, they stick. Exporter selectors/protocol vars still follow normal precedence.
+    *   *Change 2:* Updated &#34;Configuration details&#34; text to reflect this override logic.
+    *   *Change 3:* Updated Tracing section to reflect that managed settings govern the endpoint too.
+    *   *Key takeaway:* Stronger control for administrators (managed settings) over telemetry routing to prevent data leakage or misconfiguration.
+
+4.  **Analyze Page 3: `CHANGELOG.md.md` (Version 2.1.218)**
+    *   *Theme:* Huge list of fixes and improvements.
+    *   *Highlights:*
+        *   `/code-review` runs as background subagent (doesn&#39;t fill chat).
+        *   Accessibility fixes (screen reader announcements).
+        *   Path corruption fix (Windows `\u`).
+        *   `/usage` improvements (matches costs.md changes).
+        *   MCP connection error details.
+        *   Gateway spend metering fix (Bedrock ARNs).
+        *   Deep research no longer auto-launches (needs manual invoke).
+        *   Agent/Skill behavior changes (backgrounding, trust, security).
+
+5.  **Synthesize Themes:**
+    *   *Cost &amp; Performance Visibility:* Deep dive into why sessions are expensive (long context, cache misses) + better diagnostics in `/usage`.
+    *   *Telemetry/Enterprise Control:* Managed settings now strictly override user telemetry endpoint configs.
+    *   *Stability &amp; UX:* Many bug fixes (Windows paths, crashes, screen readers) and UX improvements (backgrounding code review).
+    *   *Agent/Skill Config:* Changes to how agents/skills run (backgrounding, permissions).
+
+6.  **Determine Impact Level:**
+    *   *Managed Settings Change:* This is technically a behavior change (breaking) for users who relied on overriding a managed endpoint with a shell var. However, it&#39;s likely intended for security/compliance. Impact: Medium/High for enterprise admins.
+    *   *Cost Visibility:* High for users on tight budgets (explains &#34;mystery&#34; costs).
+    *   *Path Corruption:* High for Windows users (prevents breaking functionality).
+    *   *Overall:* Medium-High. Significant bug fixes and important clarification on cost/telemetry behavior.
+
+7.  **Draft Action Items:**
+    *   Check `/usage` for cost anomalies.
+    *   Admins: Review managed OTEL config.
+    *   Windows users: Update to fix path corruption.
+    *   Developers: Update agent/skill configs regarding `background: false`.
+
+8.  **Translate to Chinese &amp; Refine (Self-Correction during drafting):**
+    *   *Summary:* 本次更新聚焦于成本可观测性增强、企业级遥测管控收紧，以及大量稳定性修复。
+    *   *Themes:*
+        *   成本诊断：新增 `/usage` 的行为标记（如长上下文）和文档解释。
+        *   遥测管控：受管设置强制优先级，防止用户环境变量绕过管理员配置。
+        *   稳定性/UX：修复了 Windows 路径编码、Agent 行为变更（Code Review 后台运行）及无障碍功能。
+    *   *Impact:* **Medium/High**. 企业配置和成本计量逻辑有变，加上关键 Bug 修复。
+    *   *Actions:*
+        *   关注 `/usage` 的新提示以优化 Token 消耗。
+        *   管理员需注意 OTEL 环境变量的优先级变化。
+        *   Windows 用户应升级以修复路径乱码问题。
+        *   调整 Agent/Skill 配置（默认后台运行）。
+
+9.  **Final Polish:** Ensure tone is professional and concise. Use the requested markdown format.
+
+    *   *Reviewing costs.md change:* &#34;It also flags behaviors such as long context or cache misses...&#34; -&gt; This is v2.1.218 feature.
+    *   *Reviewing monitoring-usage change:* &#34;Managed endpoints govern signal-specific endpoints&#34; -&gt; v2.1.217 feature (based on min-version tag).
+    *   *Reviewing Changelog:* Covers v2.1.218.
+
+    *Wait, a slight inconsistency:* The `monitoring-usage.md` change mentions `{/* min-version: 2.1.217 */}`. The `costs.md` change doesn&#39;t specify a version but correlates with Changelog 2.1.218 (usage flags). I should treat the changelog as the primary source for &#34;what changed&#34; but acknowledge the docs explain the &#34;why&#34;.
+
+    *Structure:*
+    1. Overall Summary.
+    2. Key Themes (Cost Insights, Enterprise Control, Stability).
+    3. Impact (Medium-High).
+    4. Action Items.
+
+    *Translation check:*
+    &#34;Managed endpoints govern signal-specific endpoints&#34; -&gt; 受管端点统管特定信号端点。
+    &#34;Cache misses&#34; -&gt; 缓存未命中。
+    &#34;Background subagent&#34; -&gt; 后台子代理。
+
+    *Final Output Generation.*</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/costs.html" class="page-link">costs.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+9</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+10</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+38</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">17:04 EST</div>
