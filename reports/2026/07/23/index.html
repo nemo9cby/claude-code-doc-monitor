@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026-07-23 - Documentation Changes</title>
+    <style>
+        :root {
+            --bg-color: #1a1a2e;
+            --card-bg: #16213e;
+            --text-color: #eee;
+            --accent: #0f3460;
+            --add-text: #4ade80;
+            --del-text: #f87171;
+            --time-color: #60a5fa;
+        }
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg-color: #f5f5f5;
+                --card-bg: #fff;
+                --text-color: #333;
+                --accent: #e0e0e0;
+                --add-text: #155724;
+                --del-text: #721c24;
+                --time-color: #2563eb;
+            }
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+        .container { max-width: 800px; margin: 0 auto; }
+        header { margin-bottom: 2rem; }
+        h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+        .meta { color: #888; }
+        .batch { margin-bottom: 2rem; }
+        .batch-header {
+            color: var(--time-color);
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--accent);
+        }
+        .page-list { list-style: none; }
+        .page-item {
+            background: var(--card-bg);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .page-item:hover { background: var(--accent); }
+        .page-link {
+            color: var(--text-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .page-summary { color: #888; font-size: 0.9rem; }
+        .added { color: var(--add-text); }
+        .removed { color: var(--del-text); }
+        a { color: #60a5fa; }
+        .back-link { margin-bottom: 1rem; display: inline-block; }
+        .page-item-content { flex: 1; }
+        .page-analysis {
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: 0.25rem;
+        }
+        .source-section {
+            margin-bottom: 1.5rem;
+        }
+        .source-header {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: #8b5cf6;
+        }
+        .batch-analysis {
+            background: var(--card-bg);
+            border-left: 3px solid #22c55e;
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            margin: 0.75rem 0 1rem 0;
+        }
+        .batch-analysis h4 {
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+        .batch-analysis-content {
+            white-space: pre-wrap;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        .reasoning-section {
+            margin-top: 1rem;
+            padding-top: 0.75rem;
+            border-top: 1px dashed var(--accent);
+            font-size: 0.85rem;
+            color: #888;
+        }
+        .reasoning-section summary {
+            cursor: pointer;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../../../index.html" class="back-link">&larr; All reports</a>
+
+        <header>
+            <h1>Changes on 2026-07-23</h1>
+            <p class="meta">21 total changes in 1 run</p>
+        </header>
+
+        
+        <div class="batch">
+            <div class="batch-header">01:48 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 总体摘要
+本次文档更新主要涉及 API 思维模式的重大转变：在新模型（如 Claude Fable 5, Opus 4.8, Sonnet 5）中，手动“扩展思考”已弃用并被“自适应思考”取代，同时 Java SDK 升级至 2.50.0，文档结构也进行了重新整合。
+
+### 关键主题
+*   **思维模式迁移**：手动控制思考的 `budget_tokens` 模式在新模型（Fable 5, Opus 4.8, Sonnet 5 等）中不再支持，转而采用由 `effort` 参数控制的自适应思考。
+*   **API 行为变更**：新增了多个明确的 400 错误类型，用于提示开发者使用了不支持的思考模式配置（如 `thinking.type.enabled`）。
+*   **新模型适配**：文档内容全面更新以适配最新模型（Fable 5, Opus 4.8, Sonnet 5, Haiku 4.5），包括定价、上下文窗口和特性支持表。
+*   **文档结构重组**：内部链接路径大量重构（例如从 `extended-thinking` 迁移至 `thinking` 或 `thinking-steering-and-cost`），将分散的思考相关文档进行了聚合。
+*   **SDK 依赖升级**：Java SDK 及相关 Bedrock/Vertex/Foundry/MCP 依赖包版本从 2.48.0 统一升级至 2.50.0。
+
+### 影响程度：**高**
+**理由**：此次更新不仅涉及 SDK 版本升级，更重要的是对 API 参数的**破坏性变更**。如果开发者在新型号上继续使用旧的 `thinking: {type: &#34;enabled&#34;, budget_tokens: N}` 配置，代码将直接抛出 400 错误并无法运行。这要求开发者必须主动修改现有的请求配置逻辑。
+
+### 开发者行动项
+1.  **更新 SDK**：将 Java 相关依赖（`anthropic-java`, `anthropic-java-bedrock` 等）升级至 `2.50.0`。
+2.  **移除过时参数**：针对 Claude Opus 4.7/4.8、Sonnet 5 及 Fable 5 等新模型，从代码中移除 `budget_tokens` 及手动 `thinking: {type: &#34;enabled&#34;}` 配置。
+3.  **采用新控制方式**：使用 `effort` 参数（如 `high`, `medium`）来替代旧的思考预算控制，以调节响应的深度和成本。
+4.  **处理错误逻辑**：更新错误处理代码，以应对新增的“扩展思考不支持”等特定 400 错误提示。
+5.  **验证链接**：如果内部文档或教程引用了旧的文档路径（如 `adaptive-thinking`），需更新为新的路径（如 `thinking-steering-and-cost`）。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Task:** Analyze a batch of 21 documentation pages (specifically, diffs provided) and summarize what changed and why it matters to developers.
+    *   **Output Format:** Markdown.
+    *   **Language:** Chinese.
+    *   **Specific Sections Required:**
+        1.  Overall Summary (1-2 sentences).
+        2.  Key Themes (bullets).
+        3.  Impact Level (Low/Medium/High/Breaking) with reasoning.
+        4.  Action Items for Developers (max 5 bullets).
+
+2.  **Analyze the Input Data (Diffs):**
+
+    *   *Page: get-started.md*: SDK version update (Java 2.48.0 -&gt; 2.50.0).
+    *   *Page: about-claude/models/overview.md*: Changes in model IDs and pricing for new models (Claude Fable 5, Opus 4.8, Sonnet 5, Haiku 4.5). Major changes: &#34;Adaptive thinking&#34; is now enabled on most models. &#34;Extended thinking&#34; is removed for Fable 5/Opus 4.8/Sonnet 5.
+    *   *Page: about-claude/models/migration-guide.md*: Updating internal links from `adaptive-thinking` to `thinking-steering-and-cost` or `thinking`. Moving towards a consolidated &#34;Thinking&#34; concept.
+    *   *Page: api/errors.md*: New error descriptions for &#34;Extended thinking not supported&#34; and &#34;Thinking cannot be disabled&#34;. Updates to existing error messages for specific models.
+    *   *Page: build-with-claude/overview.md*: Table updates. Links to &#34;Adaptive thinking&#34; changed to `thinking-steering-and-cost`.
+    *   *Page: build-with-claude/text-generation.md*: Similar table updates.
+    *   *Page: build-with-claude/extended-thinking.md*: **Huge Change (-1412 lines, +84 lines)**. The page is essentially rewritten/simplified. It focuses on &#34;manual extended thinking&#34; being deprecated/legacy. It pushes users towards &#34;adaptive thinking&#34;.
+    *   *Page: build-with-claude/streaming.md*: Link updates from `extended-thinking` to `thinking`.
+    *   *Page: build-with-claude/prompt-caching.md*: Minor table updates regarding cache invalidation.
+    *   *Page: build-with-claude/context-windows.md*: Link updates from `extended-thinking` to `thinking`. Text updated to reflect &#34;thinking&#34; rather than &#34;extended thinking&#34;.
+    *   *Page: build-with-claude/context-editing.md*: Link update.
+    *   *Page: build-with-claude/structured-outputs.md*: Link update.
+    *   *Page: build-with-claude/effort.md*: Updates regarding specific model behavior (Sonnet 5 defaults, etc.). Updates to internal links.
+    *   *Page: build-with-claude/claude-on-amazon-bedrock.md*: SDK version update (Java). Code block formatting changes (cURL, CLI, Python, etc.).
+    *   *Page: build-with-claude/claude-on-vertex-ai.md*: SDK version update. Link update.
+    *   *Page: build-with-claude/claude-in-microsoft-foundry.md*: SDK version update.
+    *   *Page: build-with-claude/prompt-engineering/prompting-tools.md*: Link updates for adaptive thinking.
+    *   *Page: build-with-claude/prompt-engineering/claude-prompting-best-practices.md*: Link updates for adaptive thinking.
+    *   *Page: agents-and-tools/tool-use/implement-tool-use.md*: Link updates.
+    *   *Page: agents-and-tools/tool-use/computer-use-tool.md*: Link updates.
+    *   *Page: agents-and-tools/mcp-connector.md*: SDK version update.
+
+3.  **Synthesize Key Themes:**
+
+    *   **Thinking Paradigm Shift:** The biggest change is the deprecation of &#34;Extended Thinking&#34; (`thinking: {type: &#34;enabled&#34;, budget_tokens: N}`) in favor of &#34;Adaptive Thinking&#34; or just &#34;Thinking&#34; (where `effort` is the primary control or it&#39;s automatic). The docs are consolidating under a `thinking` concept.
+    *   **New Model Support:** References to Claude Fable 5, Claude Mythos 5, Opus 4.8, Sonnet 5, Haiku 4.5 imply the documentation is catching up to a major model release.
+    *   **SDK Updates:** Java SDK version bump to 2.50.0.
+    *   **URL Structure Changes:** Many internal links are changing (e.g., `adaptive-thinking` -&gt; `thinking-steering-and-cost` or `thinking`). This suggests a reorganization of the documentation site structure.
+    *   **API Breaking Changes:** Explicit error messages added for using deprecated &#34;extended thinking&#34; on new models.
+
+4.  **Determine Impact Level:**
+
+    *   *Impact:* **High** (approaching Breaking for some).
+    *   *Reasoning:* If developers are using &#34;Extended Thinking&#34; with `budget_tokens` on the new models (Fable 5, Opus 4.8, Sonnet 5), their code will break with 400 errors. They *must* migrate to &#34;Adaptive Thinking&#34; (omitting the thinking config or using effort). The documentation restructuring indicates a fundamental shift in how reasoning is controlled.
+
+5.  **Draft Action Items:**
+
+    *   Update SDK dependencies (Java).
+    *   Refactor code to remove `thinking: {type: &#34;enabled&#34;, budget_tokens: N}` for new models (Opus 4.7+, Sonnet 5, Fable 5).
+    *   Adopt `effort` parameter for controlling output depth.
+    *   Expect changes in API error handling regarding thinking parameters.
+    *   Update internal documentation/bookmarks if referencing specific old URLs (though this is less critical for the end dev using the API).
+
+6.  **Translate and Refine to Chinese:**
+
+    *   *Overall Summary:* 文档进行了重大更新，重点在于将“扩展思考”迁移到“自适应思考”，并添加了对新型号（如 Claude Fable 5, Opus 4.8 等）的支持。SDK 版本也随之更新。
+    *   *Key Themes:*
+        *   Thinking 模式转变：手动扩展思考已弃用，默认为自适应思考。
+        *   新型号支持：适配 Claude Fable 5, Opus 4.8, Sonnet 5 等新模型。
+        *   文档结构重组：链接路径变更，内容聚合。
+        *   SDK 升级：Java SDK 升至 2.50.0。
+    *   *Impact Level:* High. (Reasoning: 使用旧版 `thinking` 配置的代码在新模型上会直接报错 400)。
+    *   *Action Items:*
+        *   更新 Java SDK 至 2.50.0。
+        *   检查代码：针对 Opus 4.7+ 等新模型，移除 `budget_tokens` 配置。
+        *   开始使用 `effort` 参数替代直接思考预算控制。
+        *   处理新的 400 错误情况（如“Extended thinking not supported”）。
+
+7.  **Final Review:**
+    *   Did I capture the rename of links? Yes (Key Themes).
+    *   Did I capture the SDK version? Yes.
+    *   Did I capture the error changes? Yes.
+    *   Is the tone appropriate? Yes, professional and concise.
+
+8.  **Construct Final Markdown Output.** (Proceed to generate output based on these thoughts).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/get-started.html" class="page-link">get-started.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/about-claude/models/overview.html" class="page-link">about-claude/models/overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+30</span>
+                            <span class="removed">-30</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/about-claude/models/migration-guide.html" class="page-link">about-claude/models/migration-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+21</span>
+                            <span class="removed">-21</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/errors.html" class="page-link">api/errors.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+14</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/overview.html" class="page-link">build-with-claude/overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+14</span>
+                            <span class="removed">-14</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/text-generation.html" class="page-link">build-with-claude/text-generation.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+14</span>
+                            <span class="removed">-14</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/extended-thinking.html" class="page-link">build-with-claude/extended-thinking.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+84</span>
+                            <span class="removed">-1412</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/streaming.html" class="page-link">build-with-claude/streaming.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-caching.html" class="page-link">build-with-claude/prompt-caching.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+18</span>
+                            <span class="removed">-17</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/context-windows.html" class="page-link">build-with-claude/context-windows.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+21</span>
+                            <span class="removed">-21</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/context-editing.html" class="page-link">build-with-claude/context-editing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/structured-outputs.html" class="page-link">build-with-claude/structured-outputs.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/effort.html" class="page-link">build-with-claude/effort.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+18</span>
+                            <span class="removed">-22</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-on-amazon-bedrock.html" class="page-link">build-with-claude/claude-on-amazon-bedrock.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+221</span>
+                            <span class="removed">-199</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-on-vertex-ai.html" class="page-link">build-with-claude/claude-on-vertex-ai.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-in-microsoft-foundry.html" class="page-link">build-with-claude/claude-in-microsoft-foundry.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/prompting-tools.html" class="page-link">build-with-claude/prompt-engineering/prompting-tools.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/claude-prompting-best-practices.html" class="page-link">build-with-claude/prompt-engineering/claude-prompting-best-practices.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/implement-tool-use.html" class="page-link">agents-and-tools/tool-use/implement-tool-use.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/computer-use-tool.html" class="page-link">agents-and-tools/tool-use/computer-use-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/mcp-connector.html" class="page-link">agents-and-tools/mcp-connector.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
+        
+    </div>
+</body>
+</html>
