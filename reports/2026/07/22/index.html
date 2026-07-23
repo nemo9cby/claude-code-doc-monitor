@@ -118,9 +118,205 @@
 
         <header>
             <h1>Changes on 2026-07-22</h1>
-            <p class="meta">27 total changes in 4 runs</p>
+            <p class="meta">34 total changes in 5 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">22:48 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### Overall Summary
+本次文档更新重点在于显著增强**子代理**的安全隔离与权限控制，特别是针对工作区信任和 Bash 命令执行范围的限制，并修正了多个 Java SDK 集成的版本依赖。
+
+### Key Themes
+*   **子代理安全加固**:
+    *   **工作区信任强制执行**: 项目子代理的 Frontmatter hooks 现在仅在接受工作区信任对话框后才运行 (v2.1.218)，防止未受信任的代码自动执行。
+    *   **Git 命令访问限制**: 加强了对 Bash 命令的检查，明确禁止子代理通过 `git -C`、`--git-dir` 等参数或复杂命令重定向去访问主检出版本，以维持隔离性 (v2.1.216)。
+*   **依赖版本回退**:
+    *   所有 Java SDK 相关文档（包括 Bedrock, Vertex AI, Foundry, MCP）将推荐版本从 `2.50.0` 回退至 `2.48.0`，通常意味着高版本存在稳定性问题或已撤回。
+
+### Impact Level
+**Medium** (部分场景具有破坏性)
+*   **理由**: 此次变更对使用了子代理的项目具有较高影响。安全策略的收紧（Hooks 需信任、Git 命令受限）可能导致现有的自动化脚本或代理工作流直接报错或停止工作，需要人工介入调整。Java 依赖的回退也要求正在使用新版本的开发者进行降级操作。
+
+### Action Items for Developers
+1.  **更新 Java 依赖**: 如果您正在使用 `2.50.0` 版本的 Java SDK（anthropic-java, anthropic-java-bedrock 等），请立即回退至 `2.48.0` 以确保稳定性。
+2.  **审查子代理 Bash 命令**: 检查您的子代理配置，删除或修改任何试图通过 `git -C`、环境变量或 `cd` 进入主检出目录的 Bash 命令，这些命令现在会报错。
+3.  **配置工作区信任**: 如果您的项目依赖子代理的 Frontmatter hooks，请确保在使用时接受了工作区信任对话框，否则 Hooks 将不会触发。
+4.  **区分命令复杂度**: 对于复杂的 Git 操作，建议将其拆分为多个简单的命令，因为过于复杂的 Bash 命令现在会被拦截。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request**:
+    *   **Role**: World-class programmer/doc expert.
+    *   **Task**: Analyze documentation changes as a single batch.
+    *   **Input**: Diff of 7 pages (hooks.md, sub-agents.md, get-started.md, claude-on-amazon-bedrock.md, claude-on-vertex-ai.md, claude-in-microsoft-foundry.md, mcp-connector.md).
+    *   **Output Format**: Markdown (Overall Summary, Key Themes, Impact Level, Action Items).
+    *   **Language**: Chinese.
+
+2.  **Analyze the Diffs**:
+
+    *   **Page 1: `hooks.md`**:
+        *   Change: &#34;Agents&#34; -&gt; &#34;Subagents&#34;.
+        *   Change: Added a comment block `{/* min-version: 2.1.218 */}` explaining that frontmatter hooks in project subagents now require workspace trust acceptance. Before 2.1.218, they could run without trust (security/permissions fix).
+
+    *   **Page 2: `sub-agents.md`**:
+        *   Change: Update &#34;Tools&#34; description from &#34;all tools&#34; to &#34;every tool [available to subagents]&#34;. Link added.
+        *   Change: Added a comment block `{/* min-version: 2.1.216 */}` detailing new security checks for Bash commands. Specifically, commands redirecting git into the main checkout (via `git -C`, `--git-dir`, etc.) or complex commands will fail. This only applies to Bash, not PowerShell. This prevents subagents from accessing areas outside their allowed scope (linked main checkout).
+        *   Change: The table structure remains, but the content updates reflect specific version notes (min-version tags).
+
+    *   **Page 3-7: `get-started.md`, `claude-on-amazon-bedrock.md`, `claude-on-vertex-ai.md`, `claude-in-microsoft-foundry.md`, `agents-and-tools/mcp-connector.md`**:
+        *   Change: Java SDK version downgrade from `2.50.0` to `2.48.0`.
+        *   *Self-Correction/Note*: It looks like a version rollback or correction. It&#39;s unusual to see a version go *down* in docs unless the higher version was yanked/broken or incorrect.
+
+3.  **Synthesize Themes**:
+
+    *   **Theme 1: Security &amp; Sandboxing (Subagents)**. This is the meat of the update.
+        *   Hooks need workspace trust.
+        *   Bash commands in subagents have stricter git access prevention (preventing access to main checkouts).
+        *   Version tags (`2.1.216`, `2.1.218`) indicate recent patches tightening security.
+    *   **Theme 2: Dependency Corrections**.
+        *   Java SDK versions reverted from 2.50.0 to 2.48.0 across multiple integration docs (Bedrock, Vertex, Foundry, MCP).
+
+4.  **Drafting the Content (Iterative Refinement in Chinese)**:
+
+    *   *Summary*: 此次更新主要集中在增强子代理的安全隔离机制，以及修正多个 Java SDK 的版本依赖。
+    *   *Key Themes*:
+        *   **增强的安全隔离**:
+            *   工作区信任：项目子代理的 Frontmatter hooks 现在仅在接受工作区信任对话框后运行 (v2.1.218)。
+            *   Bash 命令限制：增强了对子代理中 Bash 命令的检查，禁止通过特定标志（如 `git -C`）或复杂命令重定向到主检出版本，从而防止越界访问 (v2.1.216)。
+        *   **依赖版本回退**:
+            *   Java SDK 相关库（Bedrock, Vertex, Foundry, MCP）的版本号从 `2.50.0` 回退至 `2.48.0`，建议开发者同步更新。
+
+    *   *Impact*:
+        *   High? No. Breaking? Maybe for existing workflows relying on hooks in untrusted folders or specific bash command structures.
+        *   Let&#39;s go with **High** (because of the behavior change in security permissions) or **Medium**. Given the &#34;subagent&#34; scope is specific, and version rollback is specific to Java, maybe &#34;Medium&#34;.
+        *   *Re-evaluation*: If someone has a subagent automation relying on git commands hitting the main checkout, it will break. That&#39;s significant for power users. But the Java version rollback is also critical for stability if 2.50.0 was broken.
+        *   Decision: **Medium**. (Security tightening is good but might break things; version fix is crucial).
+
+    *   *Action Items*:
+        *   Review subagent hooks: Ensure workspace trust is enabled/accepted for projects using subagent hooks.
+        *   Check subagent Bash commands: Look for `git -C`, `--git-dir`, or complex git commands in subagents that try to access the main checkout.
+        *   Update Java dependencies: Downgrade from `2.50.0` to `2.48.0`.
+
+5.  **Final Polish (translating to professional Chinese)**:
+
+    *   Summary: 本次文档更新重点在于强化子代理的安全隔离机制，特别是针对工作区信任和 Bash 命令的执行限制，同时修正了 Java SDK 的推荐版本号。
+    *   Themes:
+        *   安全加固: 子代理 hooks 现在严格依赖工作区信任，且 Bash 命令被禁止访问主检出版本。
+        *   版本修正: Java 相关 SDK 版本回退至 2.48.0。
+    *   Impact: Medium. 行为变更可能导致现有的自动化脚本失败，且依赖版本回退对 Java 项目至关重要。
+    *   Action Items:
+        1.  验证涉及子代理 Hooks 的项目是否已配置工作区信任。
+        2.  检查并修改子代理中试图通过 Git 操作主检出 的 Bash 命令。
+        3.  Java 项目将 SDK 依赖从 2.50.0 降级至 2.48.0。
+
+6.  **Formatting Output**: Ensure Markdown structure matches requirements.
+
+    *   *Self-correction on &#34;Impact&#34;*: The hooks change is a security breaking change (hooks won&#39;t run if trust not accepted). The bash change is a functional breaking change (commands will error). The java version is a fix. I will label it &#34;Medium/High&#34; leaning towards High for those affected, but generally Medium. Let&#39;s stick to &#34;Medium&#34; as not everyone uses Subagents or Java.
+
+7.  **Final Output Generation**.</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+54</span>
+                            <span class="removed">-39</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/get-started.html" class="page-link">get-started.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-on-amazon-bedrock.html" class="page-link">build-with-claude/claude-on-amazon-bedrock.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-on-vertex-ai.html" class="page-link">build-with-claude/claude-on-vertex-ai.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-in-microsoft-foundry.html" class="page-link">build-with-claude/claude-in-microsoft-foundry.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/mcp-connector.html" class="page-link">agents-and-tools/mcp-connector.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">19:57 EST</div>
