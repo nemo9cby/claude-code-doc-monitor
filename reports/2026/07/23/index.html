@@ -118,9 +118,179 @@
 
         <header>
             <h1>Changes on 2026-07-23</h1>
-            <p class="meta">21 total changes in 1 run</p>
+            <p class="meta">26 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">11:51 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 文档变更分析
+
+#### 1. 总体摘要
+此次文档更新主要围绕 **v2.1.218** 版本的行为变更，核心是 **Forked Skills（分叉子代理）现在默认在后台运行**。这一变化直接影响文件检查点和回滚机制的有效性，并引入了新的配置灵活性和管理控制选项。
+
+#### 2. 关键主题
+
+*   **子代理执行模式默认化转变**：`context: fork` 的技能默认行为从“前台阻塞”变为“后台运行”。这意味着调用这些技能时，主对话不再等待结果，用户可以继续工作。
+*   **回滚机制的局限性**：由于后台子代理的修改发生在当前会话检查点之外，`rewind` 功能无法撤销这些更改（除非是前台运行的 Forked 技能）。这对于使用 `/code-review --fix` 等后台任务的用户尤为重要。
+*   **配置增强**：技能 Frontmatter 中的布尔字段现在支持 `yes`/`no`、`on`/`off`、`1`/`0`，不再局限于 `true`/`false`。
+*   **新增管理控制**：引入 `disableMobileSimulatorTools` 设置，允许管理员禁止 Claude 访问桌面应用的 iOS 模拟器面板。
+
+#### 3. 影响等级：**中等**
+
+**理由**：Forked Skills 默认行为的改变（从同步变为异步）是一个显著的流程变更。它改变了开发者的工作流（并发 vs 阻塞），并且引入了数据恢复风险（后台修改无法通过简单的 rewind 撤销），需要开发者调整习惯和配置。
+
+#### 4. 开发者行动项
+
+*   **审查现有技能配置**：如果您希望某个分叉技能保持同步阻塞行为（即等待结果），必须在 Frontmatter 中显式设置 `background: false`。
+*   **依赖 Git 进行撤销**：切勿依赖 `rewind` 来撤销后台任务（如 `/code-review`）的文件修改，应使用 `git checkout` 或 `git revert`。
+*   **注意 CI/非交互模式的行为差异**：在使用 `-p` 标志或 Agent SDK 时，即使设置了后台运行，系统仍会强制等待子代理完成。
+*   **利用更灵活的布尔语法**：更新技能配置文件，使用更直观的 `on`/`off` 或 `1`/`0` 来提高可读性。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Understand the Goal**: The user wants an analysis of 5 documentation pages (checkpointing.md, settings.md, skills.md, slash-commands.md, sub-agents.md) as a single batch. The output must be in Chinese, markdown format, and follow a specific structure: Summary, Key Themes, Impact Level, and Action Items.
+
+2.  **Analyze the Diffs**:
+
+    *   **Page: `checkpointing.md`**
+        *   **Change**: Added a new section &#34;Subagent edits not restored&#34;.
+        *   **Content**: Clarifies that edits made by subagents (except foreground forked skills) are *not* restored by the rewind feature.
+        *   **Specifics**: Background `/code-review --fix` and background forked skills are excluded. Foreground forked skills (`context: fork` + `background: false`) *are* restored.
+        *   **Version Note**: Mentions v2.1.218 behavior changes (forked skills run background by default now).
+
+    *   **Page: `settings.md`**
+        *   **Change**: Added `disableMobileSimulatorTools` setting.
+        *   **Content**: Managed setting to block Claude&#39;s access to the iOS Simulator pane in the desktop app. Users can still use it manually. Requires strict JSON boolean `true`.
+        *   **Context**: Security/Management control.
+
+    *   **Page: `skills.md`** &amp; **Page: `slash-commands.md`**
+        *   *Note: These two pages have identical diffs.*
+        *   **Change 1**: Boolean fields now accept `yes`, `no`, `on`, `off`, `1`, `0` (case-insensitive), not just `true`/`false`. (v2.1.218).
+        *   **Change 2**: Added `background` field to frontmatter table. Defaults to `true` (background execution). Only applies with `context: fork`. Setting to `false` makes it foreground (blocking).
+        *   **Change 3**: Updated stackable skills example (removed `/code-review` from the specific example of stacking, clarified that `/code-review` *is* a forked subagent now, so it stops the stack).
+        *   **Change 4**: Added detailed explanation of `context: fork` behavior regarding background vs. foreground execution.
+        *   **Specifics**: Forked skills run in the background by default (v2.1.218). Exception list where they wait: non-interactive mode (`-p`), `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS`, same skill already running, scheduled tasks.
+
+    *   **Page: `sub-agents.md`**
+        *   **Change**: Updated a sentence about background subagents.
+        *   **Content**: Added &#34;except for conversation forks&#34; to the sentence about background subagents running with a smaller tool set. This suggests that forked subagents (likely via skills) *do* get the full tool set even when running in the background (unlike general background subagents).
+
+3.  **Synthesize Findings**:
+
+    *   **Core Theme**: The release v2.1.218 brings significant changes to how &#34;forked skills&#34; (subagents) execute—specifically moving them to run in the **background** by default.
+    *   **Secondary Theme**: Improved configurability (boolean fields) and security settings (simulator blocking).
+    *   **Crucial Side Effect**: Because background subagents aren&#39;t part of the main session&#39;s checkpoints, their file edits won&#39;t be restored by `rewind`.
+
+4.  **Draft the Structure (in Chinese)**:
+
+    *   **Summary**: Documentation updates primarily围绕 (revolve around) v2.1.218 changes regarding subagent execution (specifically forked skills running in the background), checkpointing implications, and new configuration options.
+    *   **Key Themes**:
+        *   Background execution is now the default for forked skills.
+        *   Checkpointing/Rewind does not cover edits made by background subagents.
+        *   Boolean fields in skills/config are more flexible.
+        *   New managed setting for iOS Simulator access.
+    *   **Impact Level**: Medium. The default behavior change for forked skills (background vs foreground) affects workflow (concurrency vs blocking) and data integrity (rewind capability).
+    *   **Action Items**:
+        *   Update custom skills to include `background: false` if blocking behavior is needed.
+        *   Educate users that `/code-review` or background skills might not be undoable via rewind.
+        *   Review CI scripts using `-p` flag as they might behave differently regarding concurrency.
+        *   Utilize new boolean formats if desired.
+
+5.  **Refine the Language (Professional &amp; Developer-Focused)**:
+
+    *   *Summary*: 此次文档更新主要涉及 v2.1.218 版本的重大行为变更，特别是“Forked Skills”（分叉子代理）现在默认在后台运行。这直接影响检查点/回滚机制的行为，并引入了新的配置选项。
+    *   *Key Themes*:
+        *   **默认行为变更**: `context: fork` 的技能现在默认在后台运行（异步），而非前台阻塞。
+        *   **回滚机制限制**: 后台子代理的文件修改无法通过 `rewind` 撤销，因为它们不在当前会话的检查点范围内。
+        *   **配置灵活性**: 技能配置中的布尔字段现在支持 `yes`, `no`, `on`, `off`, `1`, `0`。
+        *   **权限与工具**: 新增 `disableMobileSimulatorTools` 设置；明确了 Forked 子代理在后台运行时仍拥有完整工具集。
+    *   *Impact*: **Medium** (中等). 行为的默认改变（前台 -&gt; 后台）会影响工作流（并发 vs 阻塞）以及数据恢复能力（回滚失效）。
+    *   *Action Items*:
+        *   检查现有技能配置，如果需要同步等待结果，显式添加 `background: false`。
+        *   注意 `/code-review` 等内置命令现在的修改不可回滚，建议使用 Git 管理。
+        *   利用布尔字段的新格式优化可读性。
+
+6.  **Final Review against constraints**:
+    *   Chinese? Yes.
+    *   Markdown? Yes.
+    *   Concise? Yes.
+    *   Insightful? Yes.
+
+7.  **Construct Output**. (Proceeding to generate the markdown response).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/checkpointing.html" class="page-link">checkpointing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+13</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+13</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">01:48 EST</div>
