@@ -118,9 +118,255 @@
 
         <header>
             <h1>Changes on 2026-07-24</h1>
-            <p class="meta">59 total changes in 2 runs</p>
+            <p class="meta">68 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">18:00 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">## 文档变更分析
+
+### 1. 总体概述
+本次文档更新主要涉及插件生态系统的扩展（新增 Workflows 支持及配置安全加固）、模型可用性调整（Opus 4.7 移除 Fast mode 支持）以及文档的技术性清理。
+
+### 2. 关键主题
+*   **插件架构扩展**：插件清单新增 `workflows` 字段，允许插件提供自定义工作流脚本目录。
+*   **配置安全强化**（关键变更）：`pluginConfigs` 不再从项目级本地设置（`.claude/settings.json`）读取，仅限用户级设置、CLI 参数或托管设置，旨在防止供应链攻击。
+*   **模型生命周期管理**：Fast mode 现仅支持 Claude Opus 5 和 4.8；明确移除了对 Opus 4.7 的支持（请求将报错）。
+*   **Hook 事件增强**：`PreToolUse` 等 Hook 事件的负载增加了 `tool_use_id`、`timeout`、`run_in_background` 等详细字段。
+*   **文档去日期化**：移除了 Prompt Caching workspace 隔离的具体生效日期，确认为既定标准行为。
+
+### 3. 影响级别
+**High (高)** - 对于插件开发者；**Medium (中)** - 对于 API 用户。
+
+**理由**：
+*   **插件开发者**：`pluginConfigs` 不再读取项目本地配置是一项破坏性的安全变更，直接影响配置加载逻辑。
+*   **API 用户**：Fast mode 在 Opus 4.7 上的移除会影响定价预期和错误处理，虽然 Opus 4.7 属于较旧模型，但仍需注意。
+
+### 4. 开发者行动项
+*   **迁移插件配置**：检查您的插件，确保敏感或用户特定的 `pluginConfigs` 未依赖项目的 `.claude/settings.json`，需改用全局用户设置。
+*   **更新 Fast mode 策略**：如果您依赖 Fast mode，请从 Claude Opus 4.7 迁移至 Opus 5 或 4.8，否则将遇到报错。
+*   **适配 Hook 数据结构**：如果您编写处理 Hook 事件（如 `PreToolUse`）的代码，请更新逻辑以处理新增的 `tool_use_id` 和工具元数据字段。
+*   **利用 Workflows 功能**：在开发插件时，可利用新的 `workflows/` 目录结构来分发和管理工作流脚本。
+*   **审查隔离策略**：如果您在不同 Workspace 间使用 Prompt Caching，请确认已实施 Workspace 级隔离策略。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer, documentation expert.
+    *   **Task:** Analyze a batch of documentation changes (9 pages).
+    *   **Output Format:** Markdown.
+    *   **Sections:** Overall Summary, Key Themes, Impact Level + Reasoning, Action Items (max 5).
+    *   **Language:** Chinese.
+
+2.  **Analyze the Changes (Page by Page):**
+
+    *   **`claude-code-on-the-web.md`**: Removed a sentence about self-hosted runners program managing runner pools.
+        *   *Implication:* Self-hosted runner management location/UI has changed or the info was outdated/irrelevant.
+
+    *   **`hooks.md`**: Updated the JSON example for `PreToolUse` event.
+        *   *Changes:* Added `description`, `timeout`, `run_in_background` to `tool_input`. Added `tool_use_id`. Updated text to mention `tool_use_id`.
+        *   *Implication:* Hooks now receive more detailed context about tool usage, specifically IDs and metadata.
+
+    *   **`plugins-reference.md`**:
+        *   Added `workflows` field to the manifest table (custom workflow scripts/directories).
+        *   Updated text about `pluginConfigs` storage. Crucially: *Claude Code no longer reads `pluginConfigs` from project-local settings (`.claude/settings.json` or `.claude/settings.local.json`)*. It only reads from User settings, CLI flags, and Managed settings. Reason: security (cloned repo could inject malicious config).
+        *   Added `workflows` to the &#34;Replaces the default&#34; list.
+        *   Updated folder structure diagram to include `workflows/`.
+        *   Updated warning to include `workflows/`.
+        *   Updated directory summary table to include Workflows.
+        *   *Implication:* Plugins now support workflows. **Breaking/Security Change**: Plugin options are now blocked from project-local settings to prevent supply chain attacks.
+
+    *   **`skills.md`**: Minor text change (&#34;in these cases&#34; -&gt; &#34;in cases like these&#34;). Likely just a copyedit.
+
+    *   **`slash-commands.md`**: Same copyedit as `skills.md`.
+
+    *   **`about-claude/models/migration-guide.md`**:
+        *   Added point 8 about &#34;Fast mode&#34;. Clarifies Claude Opus 5 supports fast mode, Opus 4.7 does not.
+        *   Updated &#34;Recommended changes&#34; to note Opus 4.7 fast mode is deprecated/unavailable.
+
+    *   **`about-claude/pricing.md`**:
+        *   Updated Fast mode pricing table. Removed Claude Opus 4.7 pricing.
+        *   Clarifies Fast mode is available on Opus 5 and 4.8 only.
+        *   Explicitly states Fast mode returns error on Opus 4.7.
+
+    *   **`api/rate-limits.md`**:
+        *   Text change: &#34;part of how we prevent...&#34; -&gt; &#34;part of how Anthropic prevents...&#34;.
+        *   Updated Fast mode rate limits section: Removed Opus 4.7 from the list. Clarifies Opus 4.7 returns error, Opus 4.6 runs at standard speed.
+
+    *   **`build-with-claude/prompt-caching.md`**:
+        *   Removed specific date &#34;As of February 5, 2026&#34;. Just states &#34;Prompt caching uses workspace-level isolation.&#34;
+        *   *Implication:* Workspace isolation for caching is now the norm/established fact, no longer a &#34;breaking change&#34; with a date.
+
+3.  **Synthesize and Structure (Drafting the Content):**
+
+    *   **Overall Summary**: Documentation update focusing on plugin architecture (workflows support and security hardening for configs), model availability updates (Fast mode deprecation for Opus 4.7), and minor text refinements.
+
+    *   **Key Themes**:
+        *   **Plugin Ecosystem Expansion**: Added support for custom Workflows.
+        *   **Security Hardening**: `pluginConfigs` can no longer be defined in project-local settings to prevent supply chain attacks.
+        *   **Model Lifecycle**: Fast mode is now limited to Opus 5 and 4.8; Opus 4.7 support is removed.
+        *   **Hook Payloads**: Added detailed fields (`tool_use_id`, etc.) to hook events.
+        *   **General Maintenance**: Removal of specific dates for established features (workspace isolation).
+
+    *   **Impact Level**: **High** (for plugin developers) / **Medium** (for API users using Fast mode).
+        *   *Reasoning*: The change to `pluginConfigs` reading behavior is a security breaking change. The removal of Fast mode for Opus 4.7 affects pricing and usage.
+
+    *   **Action Items**:
+        *   Review plugin configs: Move sensitive plugin options out of `.claude/settings.json`.
+        *   Update migration plans: Note that Fast mode is unavailable on Opus 4.7.
+        *   Update hook logic: Handle new fields (`tool_use_id`, `timeout`) if processing hook events.
+        *   Explore workflows: New directory structure available for plugins.
+        *   Update pricing expectations: Check Fast mode costs for supported models.
+
+4.  **Refine and Translate to Chinese (Iterative Check):**
+
+    *   *Overall Summary*: 本次文档更新重点在于插件架构的扩展（新增 Workflows 支持及配置安全强化）、模型可用性更新（Opus 4.7 移除 Fast mode 支持）以及若干文本润色。
+    *   *Key Themes*:
+        *   插件功能扩展：插件清单新增 `workflows` 字段，支持自定义工作流脚本。
+        *   配置安全变更（重要）：`pluginConfigs` 现在忽略项目级本地配置文件，仅读取用户级、CLI 或托管配置，以防止供应链攻击。
+        *   模型生命周期：Fast mode 现仅适用于 Opus 5 和 4.8，移除了对 Opus 4.7 的支持（会报错）。
+        *   Hook 事件增强：`PreToolUse` 等事件增加了 `tool_use_id`、`timeout` 等详细字段。
+        *   文本维护：移除特定日期描述（如 Prompt Caching 的 Workspace 隔离），确认为既定事实。
+    *   *Impact Level*: **High (High)** for Plugin Devs, **Medium (Medium)** for API Users.
+        *   Reasoning: The restriction on `pluginConfigs` location is a security-breaking change. Removal of Fast mode for older models affects pricing and error handling.
+    *   *Action Items*:
+        *   检查插件配置：将敏感的 `pluginConfigs` 从项目的 `.claude/settings.json` 迁移至全局用户设置。
+        *   更新 Fast mode 依赖：如需 Fast mode，请从 Opus 4.7 迁移至 Opus 5 或 4.8。
+        *   处理 Hook 数据：检查处理 Hook 事件的代码，确保能处理新增的 `tool_use_id` 和元数据字段。
+        *   利用新功能：尝试在插件中使用新的 `workflows/` 目录结构来组织工作流脚本。
+
+5.  **Final Review against constraints:**
+    *   Markdown format? Yes.
+    *   Chinese? Yes.
+    *   Concise? Yes.
+    *   Max 5 action items? Yes.
+
+6.  **Construct Final Output.** (Matches the drafted content).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/claude-code-on-the-web.html" class="page-link">claude-code-on-the-web.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+13</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/about-claude/models/migration-guide.html" class="page-link">about-claude/models/migration-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/about-claude/pricing.html" class="page-link">about-claude/pricing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-7</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/rate-limits.html" class="page-link">api/rate-limits.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-caching.html" class="page-link">build-with-claude/prompt-caching.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">16:15 EST</div>
