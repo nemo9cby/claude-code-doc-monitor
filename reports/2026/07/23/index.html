@@ -118,9 +118,134 @@
 
         <header>
             <h1>Changes on 2026-07-23</h1>
-            <p class="meta">30 total changes in 4 runs</p>
+            <p class="meta">32 total changes in 5 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">22:09 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">1.  **Overall Summary**
+    本次文档更新主要针对 **Claude Code v2.1.217** 版本的行为进行了澄清，重点在于修正并明确了网络配置（如代理环境变量）在 Claude Desktop 会话中的读取范围，以及细化了预算限制对子代理的强制执行逻辑。
+
+2.  **Key Themes across pages**
+    *   **版本依赖的行为变更**：两处更新均明确引入了 `{/* min-version: 2.1.217 */}` 标签，表明该版本包含关键的行为修复或改进。
+    *   **配置作用域的安全性隔离**：在 `network-config.md` 中，严格区分了由“应用管理连接”的会话与本地终端会话。当应用管理连接时，为了防止仓库劫持，代理和认证变量仅从全局设置读取，忽略仓库级设置。
+    *   **资源控制的严格化**：在 `cli-reference.md` 中，明确了 `--max-budget-usd` 在达到上限时对子代理的终止行为，且该强制执行机制仅在新版本中有效。
+
+3.  **Impact level**
+    **Medium**
+    *   **Reasoning**：对于依赖 Claude Desktop 进行第三方提供商集成或需要自定义代理的开发者，这是重要信息，因为之前的版本（v2.1.217 之前）会完全忽略这些变量，而新版本虽然支持了但限制了配置来源（必须放在 `~/.claude/settings.json`）。如果开发者将代理配置放在了项目仓库的 `.claude/settings.json` 中，配置将失效。
+
+4.  **Action items for developers**
+    *   **迁移代理配置**：如果您在 Claude Desktop 中使用代理或需要自定义网络路径，请将 `HTTP_PROXY`、`HTTPS_PROXY` 等环境变量从仓库级配置文件移动到全局用户配置文件 `~/.claude/settings.json` 中。
+    *   **升级以获取完整功能**：升级至 Claude Code v2.1.217 以确保预算限制 (`--max-budget-usd`) 能正确终止后台运行的子代理。
+    *   **审查仓库设置**：意识到在 Claude Desktop 会话中，仓库内的配置文件无法更改由应用托管的 TLS 或代理路径，这是设计上的安全限制。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer with deep expertise in developer tools and documentation.
+    *   **Task:** Analyze documentation changes (2 pages: `cli-reference.md` and `network-config.md`).
+    *   **Output Format:** Markdown, concise, insightful.
+    *   **Language:** Chinese (as requested: &#34;请用中文回复&#34;).
+    *   **Specific Sections:** Overall Summary, Key Themes, Impact Level, Action Items.
+
+2.  **Analyze Page 1: `cli-reference.md`**
+    *   **Change:** Update description for `--max-budget-usd`.
+    *   **Content:**
+        *   Added version tag `{/* min-version: 2.1.217 */}`.
+        *   Clarified behavior: &#34;Once spend reaches the cap, spawning another subagent fails... and Claude Code stops background subagents... the cap-enforcement behaviors require Claude Code v2.1.217 or later&#34;.
+    *   **Meaning:** The budget cap enforcement logic (specifically regarding spawning and stopping subagents) is now tied to version 2.1.217. Before this version, the behavior might have been different or less robust.
+
+3.  **Analyze Page 2: `network-config.md`**
+    *   **Change 1:** Update description of &#34;Environment variables&#34; section regarding proxies.
+    *   **Content:** Added version tag `{/* min-version: 2.1.217 */}`. Clarifies that in Claude Desktop sessions (where the app manages the connection), proxy vars are read *only* from managed settings and `~/.claude/settings.json`, ignoring repo-local settings.
+    *   **Change 2:** New paragraph added after the &#34;mTLS authentication&#34; section.
+    *   **Content:**
+        *   Elaborates on the scope of proxy/network variables (`HTTP_PROXY`, `HTTPS_PROXY`, `NO_PROXY`, `API_KEY`, etc.) in Claude Desktop sessions.
+        *   Key constraint: If the app manages the connection (e.g., Code tab with 3rd-party provider, Cowork sessions), repo settings files *cannot* override TLS or proxy paths for security/consistency reasons.
+        *   Clarifies behavior for local/SSH/WSL sessions signed in via claude.ai (app doesn&#39;t manage connection, so standard scope applies).
+        *   Mentions version tag: &#34;Before v2.1.217, Claude Code ignored these variables in every settings file when the app managed the connection.&#34; This is a fix/enhancement: previously they were ignored *everywhere* in managed sessions; now they are read *from the global/user settings file* (`~/.claude/settings.json`).
+
+4.  **Synthesize Key Themes:**
+    *   **Version 2.1.217 Specifics:** Both changes explicitly cite version `2.1.217`. This suggests a specific release focused on tightening network config and budget enforcement.
+    *   **Scope and Security of Configuration:** The network changes are heavily about *where* configuration can come from. specifically separating &#34;App-Managed&#34; vs. &#34;Terminal/Local&#34; sessions.
+    *   **Fixing Previous Behavior:** The network change explicitly states that before 2.1.217, variables were ignored in managed sessions. Now they are respected (but restricted to specific locations). The budget change clarifies that the *enforcement* logic is version-dependent.
+
+5.  **Determine Impact Level:**
+    *   **Network Config:** Medium/High? For developers using Claude Desktop with third-party providers or specific proxy setups, this is crucial. It fixes a bug where variables were ignored entirely, but introduces a constraint (repo-level settings ignored).
+    *   **Budget Cap:** Low/Medium. If you rely on subagents and budget limits, you need the new version to ensure they actually stop.
+    *   **Overall:** Medium. These are mostly clarifications and documentation of fixes/improvements in v2.1.217. It clarifies behavior that developers might have found confusing (proxies not working, or budget caps not strictly enforced on subagents in older versions).
+
+6.  **Draft Action Items (Chinese):**
+    *   Update to v2.1.217 to get the fixed behavior.
+    *   Move proxy/env vars from repo-level settings to global settings (`~/.claude/settings.json`) if using Claude Desktop.
+    *   Understand that repo settings won&#39;t affect proxies in Desktop sessions.
+
+7.  **Drafting the Response (in Chinese):**
+
+    *   *Overall Summary:* 本次文档更新主要针对 Claude Code v2.1.217 版本的行为进行了澄清，重点在于完善了网络配置（代理）的读取范围以及预算限制的强制执行逻辑。
+    *   *Key Themes:*
+        *   版本依赖性：变更明确标注了 `2.1.217` 版本特性。
+        *   网络配置的权限隔离：区分了“应用托管连接”（如 Claude Desktop）和“本地终端”会话的配置读取策略。
+        *   子代理的预算控制：明确了预算上限对子代理的具体限制机制。
+    *   *Impact Level:* Medium.（这主要是行为澄清和修复说明。对于依赖代理或预算控制的用户，理解配置文件的作用域至关重要；旧版本的网络行为已被改变。）
+    *   *Action Items:*
+        *   将代理环境变量从项目级设置移动到全局用户设置（`~/.claude/settings.json`），以便在 Claude Desktop 中生效。
+        *   升级至 Claude Code v2.1.217 以确保子代理预算限制能正确强制执行。
+        *   了解在 Claude Desktop 托管的会话中，仓库级配置无法覆盖代理设置。
+
+8.  **Refining the Output:** Ensure the tone is professional and &#34;world-class&#34;. The translation should be natural technical Chinese.
+
+    *   *Self-Correction during drafting:* The network change is a double-edged sword. Before v2.1.217: vars ignored *completely* in managed sessions. After v2.1.217: vars respected *but only from user settings*, not repo settings. This is a behavioral change, though likely a fix. I should emphasize the move to `~/.claude/settings.json`.
+
+    *   *Final Polish:*
+        *   Summary: v2.1.217 release notes/documentation sync.
+        *   Themes: Security isolation, versioned behavior.
+        *   Impact: Medium (Crucial for specific use cases).
+        *   Actions: Config migration, Upgrade.
+
+9.  **Final Output Generation** (Proceeding to generate markdown).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/cli-reference.html" class="page-link">cli-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/network-config.html" class="page-link">network-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">19:55 EST</div>
