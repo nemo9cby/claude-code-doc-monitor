@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026-07-27 - Documentation Changes</title>
+    <style>
+        :root {
+            --bg-color: #1a1a2e;
+            --card-bg: #16213e;
+            --text-color: #eee;
+            --accent: #0f3460;
+            --add-text: #4ade80;
+            --del-text: #f87171;
+            --time-color: #60a5fa;
+        }
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg-color: #f5f5f5;
+                --card-bg: #fff;
+                --text-color: #333;
+                --accent: #e0e0e0;
+                --add-text: #155724;
+                --del-text: #721c24;
+                --time-color: #2563eb;
+            }
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+        .container { max-width: 800px; margin: 0 auto; }
+        header { margin-bottom: 2rem; }
+        h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+        .meta { color: #888; }
+        .batch { margin-bottom: 2rem; }
+        .batch-header {
+            color: var(--time-color);
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--accent);
+        }
+        .page-list { list-style: none; }
+        .page-item {
+            background: var(--card-bg);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .page-item:hover { background: var(--accent); }
+        .page-link {
+            color: var(--text-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .page-summary { color: #888; font-size: 0.9rem; }
+        .added { color: var(--add-text); }
+        .removed { color: var(--del-text); }
+        a { color: #60a5fa; }
+        .back-link { margin-bottom: 1rem; display: inline-block; }
+        .page-item-content { flex: 1; }
+        .page-analysis {
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: 0.25rem;
+        }
+        .source-section {
+            margin-bottom: 1.5rem;
+        }
+        .source-header {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: #8b5cf6;
+        }
+        .batch-analysis {
+            background: var(--card-bg);
+            border-left: 3px solid #22c55e;
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            margin: 0.75rem 0 1rem 0;
+        }
+        .batch-analysis h4 {
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+        .batch-analysis-content {
+            white-space: pre-wrap;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        .reasoning-section {
+            margin-top: 1rem;
+            padding-top: 0.75rem;
+            border-top: 1px dashed var(--accent);
+            font-size: 0.85rem;
+            color: #888;
+        }
+        .reasoning-section summary {
+            cursor: pointer;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../../../index.html" class="back-link">&larr; All reports</a>
+
+        <header>
+            <h1>Changes on 2026-07-27</h1>
+            <p class="meta">4 total changes in 1 run</p>
+        </header>
+
+        
+        <div class="batch">
+            <div class="batch-header">14:20 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">1.  **Overall Summary**
+    这批文档更新主要增强了安全性与策略控制能力：引入了沙箱网络的“严格允许列表”模式（禁止白名单外访问且不再提示），并明确了 Hooks 机制现在会穿透到子代理内部执行，实现了对 AI 子任务更深层的监控与管理。
+
+2.  **Key Themes**
+    *   **沙箱网络零信任 (`strictAllowlist`)**：新增配置项允许管理员强制禁止白名单外的网络访问。不同于之前的“提示用户”，新模式会直接拒绝请求，适用于自动化或高安全环境。
+    *   **Hooks 作用域扩展至子代理**：定义在设置文件、托管策略或插件中的 Hooks（如 `PreToolUse`）现在会在子代理内部触发。这意味着开发者可以通过 Hooks 审控或干预子代理的工具调用。
+    *   **策略执行优先级**：明确了 Hooks 的合并策略是累加而非覆盖，且管理策略中的 Hooks 无法被下层设置禁用。HTTP Hooks 的白名单控制对所有来源生效。
+
+3.  **Impact Level**
+    **Medium**
+    *   **理由**：虽然 `strictAllowlist` 默认关闭，但一旦启用将显著改变沙箱行为（从“询问”变为“拒绝”），若配置不当可能导致运行时错误。Hooks 行为的变化主要是功能增强，通常不会破坏现有逻辑，但改变了开发者对子代理的监控能力。
+
+4.  **Action items for developers**
+    *   **评估网络配置**：如果在无人值守或 CI 环境中使用沙箱，考虑在用户或托管设置中启用 `network.strictAllowlist` 以消除阻塞式提示。
+    *   **审查子代理调用**：如果您依赖 Hooks 进行日志记录或权限控制，请验证这些逻辑现在是否能正确捕获子代理内部的工具调用事件。
+    *   **更新安全策略**：注意 `.claude/settings.json` 中无法设置 `strictAllowlist`，必须提升至用户级或 CLI 参数级别，请相应调整配置管理脚本。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request**:
+    *   **Role**: World-class programmer analyzing documentation changes.
+    *   **Format**: Markdown.
+    *   **Language**: Chinese (as requested: &#34;请用中文回复&#34;).
+    *   **Input**: Documentation diffs for 4 pages (`hooks.md`, `sandboxing.md`, `settings.md`, `sub-agents.md`).
+    *   **Output Structure**: 1. Overall Summary, 2. Key Themes, 3. Impact Level, 4. Action Items.
+
+2.  **Analyze the Content**:
+
+    *   **Page 1: `hooks.md`**
+        *   *Change*: Added details about hooks running in subagents (carrying `agent_id` and `agent_type`).
+        *   *Change*: Clarified hook entry merging behavior (additive across levels, managed hooks can&#39;t be easily disabled).
+        *   *Change*: Clarified HTTP hook allowlists apply to *all* sources (`allowedHttpHookUrls`, `httpHookAllowedEnvVars`).
+        *   *Core concept*: Hooks now have tighter integration with subagents and stricter/defined behavior regarding merging and security (HTTP allowlists).
+
+    *   **Page 2: `sandboxing.md`**
+        *   *Change*: Added &#34;Strict allowlist&#34; feature (`strictAllowlist`).
+        *   *Details*: If true, denies access outside the allowlist instead of prompting. Applies to sandboxed commands, not in-process tools like `WebFetch`. Only works in user/managed/CLI settings, not repo local settings. Requires v2.1.219+.
+        *   *Core concept*: New security feature for stricter network control in sandboxes.
+
+    *   **Page 3: `settings.md`**
+        *   *Change*: Added entry for `network.strictAllowlist` in the settings table.
+        *   *Details*: Mirrors the description in `sandboxing.md` (deny instead of prompt, version requirement, scope limitations).
+        *   *Core concept*: Configuration documentation for the new feature.
+
+    *   **Page 4: `sub-agents.md`**
+        *   *Change*: Updated how hooks work in subagents. Hooks defined in `settings.json` now fire *inside* subagents (e.g., `PreToolUse` before a subagent uses a tool).
+        *   *Change*: Clarified that hooks from settings, managed policies, and plugins all apply inside subagents.
+        *   *Core concept*: Enhanced observability/control over subagent behavior via global/managed hooks.
+
+3.  **Synthesize and Structure (Mental Draft -&gt; Chinese)**:
+
+    *   **Overall Summary**:
+        *   These changes introduce tighter security controls for sandbox networking and extend the scope of hooks to operate consistently within subagents.
+        *   *Chinese*: 这批更新引入了更严格的沙箱网络控制（严格允许列表），并扩展了 Hooks 的作用域，使其在子代理中也能一致地运行。
+
+    *   **Key Themes**:
+        *   *Enhanced Security*: Strict allowlist mode (`strictAllowlist`) to enforce zero-trust network access without prompts.
+        *   *Hooks Expansion*: Hooks now propagate to subagents (settings/managed/plugin hooks run inside subagents, providing better observability/control).
+        *   *Policy Enforcement*: Clarification that managed hooks and HTTP allowlists are authoritative and additive, preventing users from easily bypassing them.
+        *   *Chinese*:
+            *   **安全性增强**: 引入 `strictAllowlist` 模式，强制执行零信任网络访问，不再提示用户。
+            *   **Hooks 范围扩展**: Hooks 现在会传播到子代理内部，确保设置和策略在子会话中保持一致。
+            *   **策略执行强化**: 明确了管理策略（Managed Settings）下的 Hooks 和 HTTP 允许列表具有优先权且行为是累加的。
+
+    *   **Impact Level**:
+        *   *Reasoning*: `strictAllowlist` is a potential breaking change if configured incorrectly (denies instead of prompts), but it&#39;s opt-in. The hooks changes are additive improvements in functionality. Overall, medium impact for enterprise/admin users, low for casual users.
+        *   *Rating*: Medium.
+        *   *Reasoning (Chinese)*: 新功能 `strictAllowlist` 是可选的，但如果配置不当可能导致拒绝服务（静默拒绝而非提示），对企业级用户影响较大。Hooks 的变化是行为增强，属于功能补全。
+
+    *   **Action Items**:
+        *   Review network settings if you manage sandboxes (check if `strictAllowlist` is needed).
+        *   Test hooks behavior in subagents if you rely on them for auditing or workflow modification.
+        *   Update documentation for internal teams regarding the additive nature of hooks.
+        *   *Chinese*:
+            *   如果您管理沙箱环境，请评估是否需要启用 `network.strictAllowlist` 以实现自动化的网络拦截。
+            *   验证现有的 Hooks 在子代理调用工具时是否按预期触发（特别是 `PreToolUse` 和 `PostToolUse`）。
+            *   检查并更新组织内部的 Hook 配置，理解它们现在是累加合并且无法被下级设置完全覆盖的。
+
+4.  **Final Review against Constraints**:
+    *   Markdown format? Yes.
+    *   Concise? Yes.
+    *   Chinese? Yes.
+    *   Focus on developers? Yes.
+
+5.  **Construct Final Output** (Translating thoughts to the final markdown response).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sandboxing.html" class="page-link">sandboxing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
+        
+    </div>
+</body>
+</html>
