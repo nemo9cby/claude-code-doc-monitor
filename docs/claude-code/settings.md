@@ -153,7 +153,8 @@ The following example works in any of the settings file locations above. Where y
   },
   "env": {
     "CLAUDE_CODE_ENABLE_TELEMETRY": "1",
-    "OTEL_METRICS_EXPORTER": "otlp"
+    "OTEL_METRICS_EXPORTER": "otlp",
+    "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf"
   },
   "companyAnnouncements": [
     "Welcome to Acme Corp! Review our code guidelines at docs.acme.com",

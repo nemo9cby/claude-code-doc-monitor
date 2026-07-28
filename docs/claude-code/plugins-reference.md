@@ -119,7 +119,7 @@ Plugin hooks respond to the same lifecycle events as [user-defined hooks](/docs/
 | `UserPromptSubmit`    | When you submit a prompt, before Claude processes it                                                                                                   |
 | `UserPromptExpansion` | When a user-typed command expands into a prompt, before it reaches Claude. Can block the expansion                                                     |
 | `PreToolUse`          | Before a tool call executes. Can block it                                                                                                              |
-| `PermissionRequest`   | When a permission dialog appears                                                                                                                       |
+| `PermissionRequest`   | When a tool call needs a permission decision                                                                                                           |
 | `PermissionDenied`    | When a tool call is denied by the auto mode classifier. Return `{retry: true}` to tell the model it may retry the denied tool call                     |
 | `PostToolUse`         | After a tool call succeeds                                                                                                                             |
 | `PostToolUseFailure`  | After a tool call fails                                                                                                                                |
@@ -397,7 +397,7 @@ A project-scope plugin is checked into the repository and reaches every collabor
 Personal-scope plugins have none of these restrictions.
 
 <Warning>
-  Project-scope `@skills-dir` plugins load only from the `.claude/skills/` of the directory where you start Claude Code. They do not [walk up to the repository root](/docs/en/skills#automatic-discovery-from-parent-and-nested-directories) the way plain skills and commands do, so launching from a subdirectory misses a plugin that lives at the repo root. Launch from the repository root, or run `/reload-plugins` after changing directories.
+  Project-scope `@skills-dir` plugins load only from the `.claude/skills/` of the directory where you start Claude Code. They don't [walk up to the repository root](/docs/en/skills#discovery-from-parent-and-nested-directories) the way plain skills and commands do, so launching from a subdirectory misses a plugin that lives at the repo root. Launch from the repository root, or run `/reload-plugins` after changing directories.
 </Warning>
 
 ### Edit, reload, and disable a skills-directory plugin

@@ -118,9 +118,281 @@
 
         <header>
             <h1>Changes on 2026-07-28</h1>
-            <p class="meta">28 total changes in 4 runs</p>
+            <p class="meta">39 total changes in 5 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">19:01 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 总体摘要
+文档更新主要集中在纠正开发容器中的认证持久化配置、澄清钩子的行为约束及超时限制，以及细化技能的加载机制。这些改动旨在解决开发者在容器环境重建、非交互模式下的状态保持及执行控制问题。
+
+### 关键主题
+*   **容器配置修正：** 修复了开发容器重建后认证丢失的问题，明确要求配置 `CLAUDE_CONFIG_DIR` 环境变量以指向挂载卷。
+*   **钩子行为细化：** 明确了 `PermissionRequest` 在非交互模式下的触发限制，并引入了 `SessionEnd` 钩子严格的 1.5 秒超时预算。
+*   **技能加载机制：** 澄清了嵌套目录下的 Skills 采用“按需加载”策略，仅在首次访问该目录文件时激活。
+*   **遥测管理锁定：** 详述了管理设置如何强制覆盖开发者的 OpenTelemetry (OTLP) 端点配置，防止绕过。
+*   **文档规范化：** 清理了安装代码块中冗余的 `theme` 属性。
+
+### 影响级别：Medium
+**理由：** 尽管大部分改动属于文档澄清，但 `devcontainer` 的配置变更是对容器环境身份验证流程的关键修复，直接关系到开发者的工作流连续性。钩子在非交互模式下的行为界定和 `SessionEnd` 的超时限制也会直接影响自动化脚本的编写和调试。
+
+### Action items for developers
+1.  **更新容器配置：** 在 `devcontainer.json` 中添加 `CLAUDE_CONFIG_DIR` 环境变量，指向与 `~/.claude` 挂载卷相同的路径，以确保持久化登录。
+2.  **检查非交互钩子：** 如果你在 CLI 无头模式（`-p`）下依赖权限钩子，请验证是否需要将 `PermissionRequest` 逻辑迁移至 `PreToolUse`。
+3.  **优化 SessionEnd 钩子：** 确保你的 `SessionEnd` 钩子能在 1.5 秒内完成，或在设置中显式增加 `timeout`（上限 60 秒）。
+4.  **配置 OTLP 协议：** 在设置遥测导出时，建议显式添加 `OTEL_EXPORTER_OTLP_PROTOCOL: &#34;http/protobuf&#34;` 以符合最佳实践。
+5.  **理解技能发现机制：** 注意项目深层子目录中的 Skills 不会在启动时加载，只有当 Claude 编辑该目录下的文件后才会激活。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">用户希望我以一名世界级程序员的身份，分析 Claude Code 的文档更改。
+更改涉及 11 个页面。
+我需要提供一个简洁的 Markdown 分析，包括：
+1. 总体摘要（1-2 句话）
+2. 跨页面的关键主题（要点）
+3. 影响级别（低/中/高/破坏性）及理由
+4. 给开发者的可执行项目（要点，最多 5 个）
+语言：中文。
+
+让我们逐一分析每个文件的变更，以了解主题和影响。
+
+**1. `devcontainer.md` (+7 / -5)**
+*   **变更：** 阐明了在重建过程中如何持久化身份验证和设置。之前，它建议挂载 `~/.claude`。现在它解释了 `~/.claude.json`（包含 OAuth、MCP 服务器）位于该目录*之外*，因此为了在重建期间保持登录状态，*还*需要设置 `CLAUDE_CONFIG_DIR` 环境变量指向同一个卷挂载点。
+*   **为什么重要：** 开发者如果不修复配置，将在重建后持续失去登录状态。这是一个关键的配置修复。
+*   **关键细节：** `CLAUDE_CONFIG_DIR` 是新的强制配置变量，用于持久化 `.claude.json`。
+
+**2. `hooks.md` (+16 / -13)**
+*   **变更：**
+    *   `PermissionRequest` 的描述从 &#34;When a permission dialog appears&#34;（当权限对话框出现时）变为 &#34;When a tool call needs a permission decision&#34;（当工具调用需要权限决定时）。
+    *   更新了脚本的 `jq` 语法（使用了 `&lt;&lt;&lt;&#34;$input&#34;`）。
+    *   在脚本中添加了关于 `chmod +x` 的注释。
+    *   更新了 `timeout` 表，以包含 `SessionEnd` 钩子 1.5 秒的预算限制（除非在设置中被覆盖）。
+    *   钩子菜单中的标签（例如 &#34;User&#34; -&gt; &#34;User Settings&#34;）。
+*   **为什么重要：** 关于 `PermissionRequest` 的澄清更准确地反映了时间点。`SessionEnd` 的超时行为是一个新的约束。脚本示例修复了 shell 兼容性问题。
+
+**3. `hooks-guide.md` (+7 / -4)**
+*   **变更：**
+    *   与 `hooks.md` 类似的 `PermissionRequest` 描述变更。
+    *   超时文档中的 `SessionEnd` 钩子细节。
+    *   关于 `PermissionRequest` 行为的澄清：特别是在非交互模式（`-p`）下，它们仅在 Agent SDK 的 `canUseTool` 回调提供提示时触发，或者对于后台子代理。在普通的 `-p` 运行中，应使用 `PreToolUse`。
+*   **为什么重要：** 修正了开发者依赖钩子在非交互模式下进行权限处理的潜在误解。`SessionEnd` 限制对于在会话结束时执行繁重任务至关重要。
+
+**4. `monitoring-usage.md` (+12 / -11)**
+*   **变更：** 重写了 &#34;Managed endpoints govern signal-specific endpoints&#34;（管理端点控制特定信号端点）部分。现在标题为 &#34;How managed settings lock the OTLP destination&#34;（管理设置如何锁定 OTLP 目的地）。它详细说明了当设置通用变量（Endpoint、Protocol、Headers）时，具体的哪些变量会被删除（例如，设置 Headers 会删除开发者的端点变量）。
+*   **为什么重要：** 对管理员意义重大。它阐明了优先级逻辑，并确保通过管理设置强制执行遥测配置，防止开发者绕过它。
+
+**5. `overview.md` (+3 / -3)**
+*   **变更：** 从代码块中移除了重复的 `theme={null}` 属性。清理。
+*   **为什么重要：** 无功能影响，只是格式修复。
+
+**6. `plugins-reference.md` (+2 / -2)**
+*   **变更：**
+    *   `PermissionRequest` 描述变更。
+    *   将关于 &#34;walk up to the repository root&#34;（向上遍历到仓库根目录）的链接更新为 &#34;discovery-from-parent-and-nested-directories&#34;（来自父目录和嵌套目录的发现）。
+*   **为什么重要：** 术语一致性。
+
+**7. `quickstart.md` (+3 / -3)**
+*   **变更：** 从代码块中移除了重复的 `theme={null}` 属性。
+*   **为什么重要：** 格式。
+
+**8. `settings.md` (+2 / -1)**
+*   **变更：** 在遥测示例中添加了 `&#34;OTEL_EXPORTER_OTLP_PROTOCOL&#34;: &#34;http/protobuf&#34;`。
+*   **为什么重要：** 建议遥测设置的最佳实践/完整性。
+
+**9. `setup.md` (+0 / -3)**
+*   **变更：** 从代码块中移除了重复的 `theme={null}` 属性。
+*   **为什么重要：** 格式。
+
+**10. `skills.md` (+3 / -2)**
+*   **变更：** 重写了 &#34;Discovery from parent and nested directories&#34;（来自父目录和嵌套目录的发现）。
+    *   阐明了嵌套目录中的技能是在访问该目录中的文件时*按需*加载的，而不是在启动时加载。
+    *   提到了 `--add-dir`。
+    *   阐明了在按需加载之前，它们不会出现在自动补全中。
+*   **为什么重要：** 纠正了关于 skills 可用性的行为假设。如果预期 skills 在启动时就存在，这可能会影响工作流。
+
+**11. `slash-commands.md` (+3 / -2)**
+*   **变更：** 与 `skills.md` 相同的 &#34;Discovery from parent and nested directories&#34; 重写。
+*   **为什么重要：** 同上。
+
+**综合分析：**
+
+*   **关键主题：**
+    1.  **开发容器持久化修复：** 更正了如何保留登录状态（`CLAUDE_CONFIG_DIR`）。
+    2.  **Hooks 澄清与约束：** 精准化了 `PermissionRequest` 事件并增加了 `SessionEnd` 超时预算。
+    3.  **Skills 发现行为：** 阐明了嵌套 skills 是按需加载的，而非启动时加载。
+    4.  **遥测管理锁定：** 详细说明了管理员如何锁定 OTLP 端点。
+    5.  **格式/清理：** 修复了重复的 `theme` 属性。
+
+*   **影响级别：** **中**。
+    *   理由：`devcontainer` 的变更是那些在容器中遇到登录状态丢失问题的人的关键修复（尽管此前的做法在技术上是“半功能”的，但它是部分的）。Hooks 变更澄清了边缘情况（非交互模式、SessionEnd 超时）。Skills 变更阐明了行为，虽然不一定改变底层逻辑，但对开发者关于何时可用的心智模型很重要。
+
+*   **可执行项目：**
+    1.  更新 `devcontainer.json` 以包含 `CLAUDE_CONFIG_DIR`。
+    2.  检查非交互模式下的钩子依赖（`PermissionRequest` 与 `PreToolUse`）。
+    3.  注意 `SessionEnd` 钩子的超时限制。
+    4.  审查针对遥测的 OTLP 协议设置。
+
+**起草中文回复：**
+
+**总体摘要：**
+文档更新主要集中在纠正开发容器中的认证持久化配置、澄清钩子的行为约束及超时限制，以及细化技能的加载机制。这些改动旨在解决开发者在容器环境和非交互模式下遇到的状态保持及执行控制问题。
+
+**关键主题：**
+*   **容器配置修正：** 修复了开发容器重建后的认证丢失问题，必须新增 `CLAUDE_CONFIG_DIR` 环境变量。
+*   **钩子行为细化：** 明确了 `PermissionRequest` 在非交互模式下的触发条件（仅限 Agent SDK），并新增了 `SessionEnd` 钩子的 1.5 秒超时预算限制。
+*   **技能加载机制：** 澄清了嵌套目录下的 Skills 是按需加载的（首次访问文件时），而非启动时加载。
+*   **遥测管理增强：** 详细说明了管理设置如何锁定 OpenTelemetry (OTLP) 的目标端点。
+*   **文档修复：** 清理了代码块中多余的 `theme` 属性。
+
+**影响级别：Medium**
+**理由：** 虽然大部分是澄清性改动，但 `devcontainer` 的配置修正对于在容器中频繁重建环境的开发者来说是关键的维护性修复；钩子行为的澄清（特别是非交互模式和超时限制）会影响自动化脚本的编写逻辑。
+
+**Action items for developers:**
+1.  更新 `devcontainer.json`，为 `remoteUser` 设置 `CLAUDE_CONFIG_DIR` 环境变量以保持登录状态。
+2.  如果你在非交互模式（`-p`）下使用权限钩子，请检查是否需要从 `PermissionRequest` 迁移到 `PreToolUse`。
+3.  确保 `SessionEnd` 钩子执行速度快于 1.5 秒，或在设置中显式增加超时时间。
+4.  在配置 OpenTelemetry 时，确保同时设置 `OTEL_EXPORTER_OTLP_PROTOCOL` 变量。
+5.  注意：项目子目录中的 Skills 只有在 Claude 操作该目录下文件后才会被加载，启动时不可见。</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/devcontainer.html" class="page-link">devcontainer.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+16</span>
+                            <span class="removed">-13</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+12</span>
+                            <span class="removed">-11</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/overview.html" class="page-link">overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/quickstart.html" class="page-link">quickstart.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/setup.html" class="page-link">setup.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">17:58 EST</div>
