@@ -118,9 +118,163 @@
 
         <header>
             <h1>Changes on 2026-07-28</h1>
-            <p class="meta">11 total changes in 2 runs</p>
+            <p class="meta">15 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">16:12 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 1. Overall Summary
+本次文档更新主要集中在优化计费机制的透明度、修正 MCP（Model Context Protocol）配置的示例与说明，以及明确了桌面版功能的兼容性细节。
+
+### 2. Key Themes
+*   **计费透明度与成本控制** (`costs.md`): 阐明了长上下文会话中工具调用也会触发全量请求并消耗缓存 Token，同时指出了 Pro/Max 计划在长时间中断后提供“从摘要恢复”的选项以节省成本。
+*   **MCP 配置与 CLI 改进** (`mcp.md`): 更新了 CLI 示例命令，新增了对服务器连接状态（如 `✔ Connected`）的解读说明，修正了 HTTP 传输方式在 `.mcp.json` 中的配置结构，并提醒了 WebSocket 服务器不会出现在列表中。
+*   **桌面版兼容性限制** (`desktop.md`): 明确了 CLI 的 `/desktop` 命令在 Windows 上仅支持 **x64** 架构，并提供了更清晰的 `launch.json` 调试配置示例。
+*   **设置优先级修正** (`settings.md`): 细化了 `remoteControlAtStartup` 的描述，明确了组织管理员默认值与系统默认值的优先级逻辑。
+
+### 3. Impact Level
+**Medium** (中等)
+*   **理由**: 虽然主要是文档更新，但计费细节的澄清直接影响开发者预算，MCP 配置格式的修正有助于避免集成错误，且桌面版架构限制（x64 Windows）可能会影响部分用户的工作流。
+
+### 4. Action Items for Developers
+*   **优化成本**: 如果你在使用 Pro/Max 计划，长时间中断后注意利用弹出的“从摘要恢复”选项，避免全量上下文重新处理导致的额外扣费。
+*   **更新 MCP 配置**: 使用 HTTP 传输方式添加 MCP 服务器时，请更新 `.mcp.json` 以使用新的 `type: &#34;http&#34;` 和 `url` 字段结构。
+*   **检查平台兼容性**: 在 ARM64 Windows 设备上使用 CLI 时，注意 `/desktop` 命令可能不可用（目前仅限 macOS 和 x64 Windows）。
+*   **排查 MCP 状态**: 使用 `claude mcp list` 时，关注输出中的状态图标（✔, !, ✘）以快速定位连接或认证问题。
+*   **理解 Stdio 行为**: 运行 `claude mcp serve` 时，如果终端处于静默阻塞状态属于正常现象（表示正在通过 stdin/stdout 等待客户端连接）。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Understand the Goal**: The user wants a world-class programmer&#39;s analysis of documentation changes. The input is four Markdown files with diffs (`costs.md`, `desktop.md`, `mcp.md`, `settings.md`). The output needs to be in Chinese, Markdown format, structured with Overall Summary, Key Themes, Impact Level, and Action Items.
+
+2.  **Analyze the Diffs**:
+
+    *   **Page: `costs.md` (+2 / -2)**
+        *   *Change*: Modified the explanation of &#34;Long context&#34; costs. It now clarifies that *every* request (including tool usage) carries the history and mentions prompt caching re-reads history at a cached rate.
+        *   *Change*: Modified the &#34;Cache misses&#34; section. Added a note about Pro/Max plans offering to &#34;resume from a summary&#34; after a long break to avoid full history costs.
+        *   *Impact*: Clarifies token billing behavior, specifically how context accumulates cost and how Pro/Max features mitigate it.
+
+    *   **Page: `desktop.md` (+2 / -3)**
+        *   *Change*: Improved the Git version check instruction (added &#34;if it prints a version number, Git is installed&#34;).
+        *   *Change*: Updated the example for `launch.json` configurations (changed from a generic `configurations: [...]` to a specific example with `npm run dev`).
+        *   *Change*: Clarified the `/desktop` command availability. It&#39;s available on &#34;macOS and x64 Windows&#34; (previously just &#34;Windows&#34;).
+        *   *Impact*: Improved usability for setup, clearer examples for debugging, and a specific architecture limitation note for the `/desktop` command.
+
+    *   **Page: `mcp.md` (+9 / -6)**
+        *   *Change*: Updated CLI command examples (`github` -&gt; `notion`, `paypal` -&gt; `shared-server`).
+        *   *Change*: Added clarification on `claude mcp add` output (prints &#34;Added...&#34;).
+        *   *Change*: Explained health status indicators (`✔ Connected`, `! Needs auth`, `✘ Failed`).
+        *   *Change*: Noted that WebSocket servers don&#39;t appear in `list` output.
+        *   *Change*: Updated `.mcp.json` example to reflect HTTP transport structure (`&#34;type&#34;: &#34;http&#34;`, `&#34;url&#34;: ...`).
+        *   *Change*: Added checks/warnings about adding duplicate MCP servers (Sentry example updated with a skip condition).
+        *   *Change*: Added a note about `claude mcp serve` being silent (stdio behavior).
+        *   *Impact*: Major clarity improvements for MCP server management, CLI output interpretation, and HTTP transport configuration.
+
+    *   **Page: `settings.md` (+1 / -1)**
+        *   *Change*: Refined the description of `remoteControlAtStartup`. Now mentions &#34;organization&#39;s admin default if one is set, and otherwise Claude Code&#39;s current default&#34;.
+        *   *Impact*: Precision fix for configuration behavior regarding precedence of defaults.
+
+3.  **Synthesize Key Themes**:
+    *   *Clarity and Usability*: Many changes are about making documentation clearer (Git check, MCP status meanings, silent server behavior).
+    *   *Cost Transparency*: Explaining *why* costs are high (context caching, tool usage).
+    *   *Feature Refinements*: Resume from summary, `/desktop` limitations (x64 Windows), HTTP MCP configuration.
+
+4.  **Determine Impact Level**:
+    *   Is it breaking? No.
+    *   Is it High? No code changes, mostly docs.
+    *   Is it Medium? Yes. It clarifies billing (money) and configures tools (MCP, Desktop) which are critical for daily dev workflow.
+    *   *Decision*: Medium.
+
+5.  **Draft Action Items**:
+    *   Check Git setup if on Windows (x64 requirement for `/desktop`).
+    *   Be aware of token costs when using tools/long sessions.
+    *   Use the new `.mcp.json` format if adding HTTP servers.
+    *   Understand MCP health status in CLI output.
+    *   Leverage &#34;resume from summary&#34; on Pro/Max plans to save costs.
+
+6.  **Translate to Chinese &amp; Format**:
+
+    *   *Overall Summary*: 本次更新主要集中在澄清计费细节、完善 MCP 服务器管理配置说明，以及修正桌面版功能和设置的描述。
+    *   *Key Themes*:
+        *   **计费透明度**: 明确了长上下文和工具调用如何消耗 Token，以及 Pro/Max 计划的“从摘要恢复”功能如何节省成本。
+        *   **MCP 工具链改进**: 增加了 CLI 状态码的说明，更新了 HTTP 服务器的配置示例，并阐明了服务器列表的显示规则。
+        *   **环境与设置**: 明确了 `/desktop` 命令仅支持 x64 Windows，并修正了远程控制设置的默认优先级说明。
+    *   *Impact Level*: Medium (主要影响配置管理和成本理解，非破坏性变更)。
+    *   *Action Items*:
+        *   **成本控制**: 使用 Pro/Max 计划时注意利用“从摘要恢复”功能以避免 Cache miss 导致的高额费用。
+        *   **MCP 配置**: 使用 `claude mcp add` 添加 HTTP 服务器时参考新的 `.mcp.json` 结构（`type` 和 `url`）。
+        *   **桌面版迁移**: 注意 CLI 转桌面版的 `/desktop` 命令在 Windows 上仅支持 x64 架构。
+        *   **故障排查**: 通过 `claude mcp list` 输出的状态图标（✔, !, ✘）判断 MCP 服务器连接问题。
+        *   **启动器配置**: 使用 `claude mcp serve` 时，如果终端静默是正常的（stdio 通信机制）。
+
+7.  **Review and Refine**:
+    *   Check against constraints: &#34;Concise, insightful analysis&#34;, &#34;Markdown format&#34;, &#34;Chinese reply&#34;.
+    *   The analysis looks solid. The &#34;costs&#34; change is subtle but important for billing. The &#34;desktop&#34; change about x64 is a platform limitation that devs might miss. The &#34;mcp&#34; changes are very helpful for debugging.
+
+8.  **Final Output Generation**: (Proceed to generate the markdown response).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/costs.html" class="page-link">costs.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/desktop.html" class="page-link">desktop.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+9</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">14:08 EST</div>
