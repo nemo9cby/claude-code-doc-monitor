@@ -189,6 +189,7 @@ Plugins can bundle Model Context Protocol (MCP) servers to connect Claude Code w
 * Servers appear as standard MCP tools in Claude's toolkit
 * Server capabilities integrate seamlessly with Claude's existing tools
 * Plugin servers can be configured independently of user MCP servers
+* If you run [`/reload-plugins`](/docs/en/discover-plugins#apply-plugin-changes-without-restarting) mid-session, Claude Code keeps the live connections of servers whose configuration is unchanged
 
 ### LSP servers
 
@@ -358,12 +359,12 @@ Selecting a plugin theme persists `custom:<plugin-name>:<slug>` in the user's co
 
 When you install a plugin, you choose a **scope** that determines where the plugin is available and who else can use it:
 
-| Scope     | Settings file                                   | Use case                                                 |
-| :-------- | :---------------------------------------------- | :------------------------------------------------------- |
-| `user`    | `~/.claude/settings.json`                       | Personal plugins available across all projects (default) |
-| `project` | `.claude/settings.json`                         | Team plugins shared via version control                  |
-| `local`   | `.claude/settings.local.json`                   | Project-specific plugins, gitignored                     |
-| `managed` | [Managed settings](/docs/en/settings#settings-files) | Managed plugins (read-only, update only)                 |
+| Scope     | Settings file                                   | Use case                                                                    |
+| :-------- | :---------------------------------------------- | :-------------------------------------------------------------------------- |
+| `user`    | `~/.claude/settings.json`                       | Personal plugins available across all projects (default)                    |
+| `project` | `.claude/settings.json`                         | Team plugins shared via version control                                     |
+| `local`   | `.claude/settings.local.json`                   | Project-specific plugins, gitignored when Claude Code saves a setting to it |
+| `managed` | [Managed settings](/docs/en/settings#settings-files) | Managed plugins (read-only, update only)                                    |
 
 Plugins use the same scope system as other Claude Code configurations. For installation instructions and scope flags, see [Install plugins](/docs/en/discover-plugins#install-plugins). For a complete explanation of scopes, see [Configuration scopes](/docs/en/settings#configuration-scopes).
 
@@ -953,7 +954,7 @@ claude plugin install formatter@my-marketplace
 # Install to project scope (shared with team)
 claude plugin install formatter@my-marketplace --scope project
 
-# Install to local scope (gitignored)
+# Install to local scope (not shared with team)
 claude plugin install formatter@my-marketplace --scope local
 ```
 

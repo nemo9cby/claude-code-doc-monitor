@@ -118,9 +118,309 @@
 
         <header>
             <h1>Changes on 2026-07-28</h1>
-            <p class="meta">39 total changes in 5 runs</p>
+            <p class="meta">53 total changes in 6 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">22:05 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更分析
+
+## 总体概览
+本次更新主要澄清了本地配置文件的 Git 处理机制、MCP 服务器在混合环境（桌面/CLI）下的加载优先级，并明确了网络/遥测设置对“远程控制”功能的副作用。同时，新增了针对企业网络配置的验证指南。
+
+## 核心变更主题
+
+*   **本地设置的 Git 忽略逻辑变更**：文档多处澄清，当 Claude Code 将设置保存到 `.claude/settings.local.json` 时，不再仅仅是“建议忽略”，而是会自动将其添加到**全局 Git 排除文件**（`core.excludesFile`），确保其在任何项目中都不会被意外提交。
+*   **MCP 服务器与插件的生命周期优化**：
+    *   细化了桌面应用中 MCP 服务器的来源与优先级（`claude_desktop_config.json` &gt; `~/.claude.json` &gt; `.mcp.json`）。
+    *   明确了执行 `/reload-plugins` 时，配置未变更的服务器将保持现有连接，不会断开重连。
+*   **企业管控与功能依赖性澄清**：
+    *   **市场插件限制**：明确 `strictKnownMarketplaces` 设置为空数组 `[]` 将导致**完全封锁**，包括官方 Anthropic 市场也会被禁用。
+    *   **远程控制依赖**：指出设置 `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` 或 `DISABLE_TELEMETRY` 会禁用功能标志评估，从而导致[远程控制](/docs/en/remote-control)功能不可用。
+*   **网络配置验证指南**：在 `network-config.md` 中新增了“验证配置”章节，指导开发者如何通过 `--debug` 日志和 `/status` 命令排查代理、CA 证书及 mTLS 配置问题。
+*   **文档格式优化**：为大量代码块添加了 `wrap` 属性（例如 ` ```text wrap `），以防止代码溢出，改善移动端阅读体验。
+
+## 影响程度
+**Medium (中等)**
+
+虽然大部分是文档描述的精确化，但关于**遥测开关与远程控制功能的冲突**、以及**MCP 服务器在桌面环境下的具体加载行为**，对于企业环境部署和开发者排查连接故障具有重要意义，可能解决潜在的配置混淆问题。
+
+## 开发者行动建议
+
+1.  **检查远程控制配置**：如果您依赖 Claude Code 的远程控制功能，请确保**未设置** `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` 环境变量，否则该功能将失效。
+2.  **更新市场插件白名单**：管理员在配置 `strictKnownMarketplaces` 时，若需保留官方插件市场，必须显式将 `anthropics/claude-plugins-official` 加入白名单，否则空数组配置会将其屏蔽。
+3.  **利用 Debug 日志排障**：遇到代理或证书连接错误时，使用 `claude --debug` 启动并检查日志中的 `CA certs` 和 `mTLS` 加载状态，而非仅依赖错误提示。
+4.  **审查本地设置文件**：意识到 `.claude/settings.local.json` 现在受全局 Git excludes 保护，如果您手动创建该文件，需要自己处理 Git 忽略问题。
+5.  **确认 MCP 连接来源**：在桌面应用与 CLI 混合使用的场景下，检查 `claude_desktop_config.json` 是否覆盖了您在 `.claude.json` 中的 MCP 服务器定义，以避免连接到错误的实例。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer.
+    *   **Task:** Analyze documentation changes (14 pages) as a single batch.
+    *   **Output Format:** Concise, insightful analysis in Markdown.
+    *   **Language:** Chinese.
+    *   **Structure:** Overall Summary, Key Themes, Impact Level, Action Items.
+
+2.  **Analyze the Input (Page by Page Scan):**
+
+    *   `common-workflows.md`: Added `wrap` to code blocks (` ```text wrap theme={null} ``). This is purely a rendering change to prevent overflow, not a functional change in behavior.
+    *   `data-usage.md`: Clarified that `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` (and `DISABLE_TELEMETRY`) disables feature-flag evaluation required for Remote Control.
+    *   `desktop.md`: Expanded details on MCP server loading. Clarified precedence rules between `claude_desktop_config.json`, `~/.claude.json`, and `.mcp.json`. Specifically mentioned that Desktop re-delivers stdio servers and precedence for duplicate names.
+    *   `devcontainer.md`: Added a troubleshooting note about Node.js installation failure in containers. Reiterated the Remote Control dependency on traffic settings.
+    *   `hooks.md`: Updated table text for clarity (e.g., &#34;gitignored when Claude Code creates it&#34; vs &#34;saves a setting to it&#34;).
+    *   `hooks-guide.md`: Same table update as `hooks.md`.
+    *   `mcp.md`:
+        *   Clarified behavior on Microsoft Foundry (Azure) regarding tool search rejection and upfront loading.
+        *   Clarified plugin server reload behavior (keeping live connections).
+        *   Clarified stdio server precedence in Desktop Code tabs.
+        *   Updated table text for `ENABLE_TOOL_SEARCH`.
+    *   `model-config.md`: Updated table text for environment variables (mostly wording improvements).
+    *   `network-config.md`: Added a new section &#34;Verify your configuration&#34; with debug logging instructions and `/status` command usage. Added note about proxy env var loading at startup.
+    *   `plugin-marketplaces.md`:
+        *   Clarified `strictKnownMarketplaces` behavior, specifically that empty array blocks *everything* including official marketplace.
+        *   Added examples for allowing *only* the official marketplace.
+        *   Fixed matching logic description for GitHub sources.
+    *   `plugins-reference.md`: Table text updates (scoping). Noted that `/reload-plugins` keeps live connections.
+    *   `quickstart.md`: Massive duplication of `theme={null}` in code blocks (looks like a glitch in the provided diff input: `theme={null} theme={null} theme={null}...`). Also changed code blocks to `wrap`.
+    *   `sandboxing.md`: Text update about gitignore behavior for `settings.local.json`.
+    *   `settings.md`:
+        *   Table text updates regarding `settings.local.json` gitignore behavior.
+        *   Detailed explanation of global git excludes file logic.
+        *   Updated `strictKnownMarketplaces` examples (same as plugin-marketplaces).
+
+3.  **Synthesize Key Themes:**
+
+    *   **Theme 1: Git Configuration/Behavior (`.gitignore` &amp; Local Settings).** Several pages (`settings.md`, `sandboxing.md`, `hooks.md`) refined how `settings.local.json` is handled by git. It&#39;s not just &#34;gitignored,&#34; it&#39;s added to the global excludes file when Claude Code saves to it.
+    *   **Theme 2: MCP &amp; Plugin Server Lifecycle/Precedence.** `desktop.md`, `mcp.md`, and `plugins-reference.md` all updated how MCP servers are loaded, reloaded, and prioritized, especially within the Desktop app environment. Keeping live connections during reload is a specific detail.
+    *   **Theme 3: Marketplace Restrictions.** `plugin-marketplaces.md` and `settings.md` added nuance to `strictKnownMarketplaces`, emphasizing that an empty list blocks *everything*, including official sources.
+    *   **Theme 4: Network &amp; Remote Control Dependencies.** `data-usage.md`, `devcontainer.md` clarified that disabling traffic disables the feature flag evaluation needed for Remote Control.
+    *   **Theme 5: Debugging/Verification.** `network-config.md` added specific instructions on verifying proxy/cert configs using debug logs.
+    *   **Theme 6: Minor formatting fixes.** `common-workflows.md` and `quickstart.md` had `wrap` additions (and the latter had a weird `theme` duplication artifact, likely noise, but relevant to note as formatting).
+
+4.  **Determine Impact Level:**
+
+    *   **Functional Impact:** Low to Medium. Most changes are clarifications or refining existing behaviors (like precedence rules). The Remote Control dependency clarification is important if users disable telemetry.
+    *   **Breaking Changes:** No explicit breaking changes, but blocking the official marketplace by default when setting an empty allowlist is a &#34;gotcha&#34; that administrators need to know.
+    *   **Conclusion:** **Medium**. The network configuration verification and the strict marketplace/telemetry clarifications address potential pain points for enterprise/admin users.
+
+5.  **Draft Action Items:**
+
+    *   *Action 1:* Admins configuring marketplaces need to explicitly allow official sources if they set restrictions.
+    *   *Action 2:* Developers needing Remote Control must ensure `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` is not set (or understand the trade-off).
+    *   *Action 3:* Enterprise users facing connection issues should use the new debug logging steps in `network-config.md`.
+    *   *Action 4:* Developers using Desktop/CLI hybrid setups should review the MCP server precedence rules.
+
+6.  **Translate and Refine (Chinese):**
+
+    *   *Summary:* 本次更新主要集中在配置行为澄清、MCP/插件服务器的生命周期管理以及企业级网络配置的验证指南。
+    *   *Themes:* Git 本地配置的处理机制、MCP 服务器加载与优先级、市场插件限制规则、远程控制依赖性、网络验证。
+    *   *Impact:* Medium (对管理和排障有较大帮助)。
+    *   *Action Items:* 检查 Remote Control 配置、验证 Marketplace 白名单、利用 Debug 日志排查网络问题。
+
+7.  **Final Polish:** Ensure the tone is professional and concise. (Self-correction: The `quickstart.md` diff looks like a merge conflict error or script artifact with repeated `theme={null}`, I should focus on the meaningful change which is the addition of `wrap`).
+
+    *   *Refining Action Item:* Focus on the &#34;disable all traffic breaks remote control&#34; aspect as it&#39;s a functional side effect users might hit.
+    *   *Refining Gitignore:* Highlight that Claude Code now modifies the *global* git excludes file for `settings.local.json`, not just the repo gitignore.
+
+8.  **Construct Final Output:** (Proceed to generate markdown).
+
+    *   *Header:* 文档变更分析
+    *   *Summary:* 此次更新重点在于澄清配置作用域（特别是本地设置的 git 忽略行为）、MCP 服务器在桌面应用与 CLI 混合环境下的加载优先级、以及网络/遥测配置对“远程控制”功能的影响。同时新增了网络配置的验证指南。
+    *   *Themes:*
+        *   **本地设置的 Git 处理逻辑**：明确了当 Claude Code 保存设置到 `.claude/settings.local.json` 时，会自动将其添加到全局 Git 排除文件，而非仅仅是项目的 `.gitignore`。
+        *   **MCP 服务器与插件的生命周期**：细化了桌面应用中 MCP 服务器的加载来源与优先级规则；明确了插件重载时会保持现有连接不断开。
+        *   **企业级管控与限制**：澄清了 `strictKnownMarketplaces` 为空数组时会屏蔽包括官方市场在内的所有源；指出了禁用非必要流量会同时禁用远程控制所需的功能标志评估。
+        *   **网络配置验证**：新增了使用 `--debug` 日志和 `/status` 命令验证代理、证书及 mTLS 配置的具体步骤。
+        *   **文档格式微调**：为代码块添加了 `wrap` 属性以优化移动端显示。
+    *   *Impact:* **Medium**。虽然主要是文档说明，但关于遥测开关与远程控制功能的冲突、以及 MCP 服务器加载优先级的澄清，对企业用户和复杂环境下的开发者排查问题至关重要。
+    *   *Action Items:*
+        *   **管理员**：若配置了 `strictKnownMarketplaces`，请确保显式添加官方市场条目，否则将被完全屏蔽。
+        *   **远程控制用户**：确认未设置 `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC`，否则远程控制功能将不可用。
+        *   **网络排障**：遇到代理或证书问题时，参考新增的“Verify your configuration”章节使用 debug 日志进行诊断。
+        *   **桌面/CLI 混合用户**：检查 MCP 服务器配置文件（`claude_desktop_config.json` vs `.claude.json`）的优先级，确保连接了预期的服务器实例。
+        *   **开发者**：知晓 `settings.local.json` 现在通过全局 Git excludes 文件被忽略，即使不在仓库的 `.gitignore` 中。
+
+9.  **Review against constraints:** Concise? Yes. Insightful? Yes. Chinese? Yes. Markdown? Yes.
+
+    *Self-Correction during drafting Action Item 5:* The distinction is that Claude Code adds it to `core.excludesFile`. This is a behavioral change worth noting.
+
+    *Final Polish of the summary:* Ensure the flow is logical.
+
+    (Output Generation)</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/common-workflows.html" class="page-link">common-workflows.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/data-usage.html" class="page-link">data-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/desktop.html" class="page-link">desktop.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/devcontainer.html" class="page-link">devcontainer.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-8</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-8</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+11</span>
+                            <span class="removed">-9</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/model-config.html" class="page-link">model-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+12</span>
+                            <span class="removed">-12</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/network-config.html" class="page-link">network-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+16</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugin-marketplaces.html" class="page-link">plugin-marketplaces.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+10</span>
+                            <span class="removed">-7</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-7</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/quickstart.html" class="page-link">quickstart.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sandboxing.html" class="page-link">sandboxing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+13</span>
+                            <span class="removed">-10</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">19:01 EST</div>

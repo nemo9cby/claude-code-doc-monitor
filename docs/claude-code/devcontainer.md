@@ -57,6 +57,8 @@ When you open the container in VS Code or Codespaces, the feature also adds the 
     ```
 
     Replace the `image` line with your project's base image or remove it if your existing file uses a Dockerfile.
+
+    The Claude Code feature installs Node.js itself when the base image doesn't provide it. If that install fails and the build stops with `Failed to install Node.js and npm`, add `"ghcr.io/devcontainers/features/node:1": {}` to the `features` block above the Claude Code feature and rebuild.
   </Step>
 
   <Step title="Rebuild the container">
@@ -127,6 +129,8 @@ To set [environment variables](/docs/en/env-vars) that apply to every Claude Cod
   "DISABLE_AUTOUPDATER": "1"
 }
 ```
+
+`CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` also disables the feature-flag evaluation that [Remote Control](/docs/en/remote-control#requirements) depends on, so sessions in the container can't use Remote Control.
 
 The Dev Container Feature always installs the latest Claude Code release. To pin a specific Claude Code version for reproducible builds, install it from your Dockerfile with `npm install -g @anthropic-ai/claude-code@X.Y.Z` instead of using the feature, and set `DISABLE_AUTOUPDATER` as shown above.
 

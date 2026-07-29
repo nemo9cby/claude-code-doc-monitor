@@ -175,14 +175,14 @@ See [How a hook resolves](#how-a-hook-resolves) above for a complete walkthrough
 
 Where you define a hook determines its scope:
 
-| Location                                                   | Scope                         | Shareable                                  |
-| :--------------------------------------------------------- | :---------------------------- | :----------------------------------------- |
-| `~/.claude/settings.json`                                  | All your projects             | No, local to your machine                  |
-| `.claude/settings.json`                                    | Single project                | Yes, can be committed to the repo          |
-| `.claude/settings.local.json`                              | Single project                | No, gitignored when Claude Code creates it |
-| Managed policy settings                                    | Organization-wide             | Yes, admin-controlled                      |
-| [Plugin](/docs/en/plugins) `hooks/hooks.json`                   | When plugin is enabled        | Yes, bundled with the plugin               |
-| [Skill](/docs/en/skills) or [agent](/docs/en/sub-agents) frontmatter | While the component is active | Yes, defined in the component file         |
+| Location                                                   | Scope                         | Shareable                                             |
+| :--------------------------------------------------------- | :---------------------------- | :---------------------------------------------------- |
+| `~/.claude/settings.json`                                  | All your projects             | No, local to your machine                             |
+| `.claude/settings.json`                                    | Single project                | Yes, can be committed to the repo                     |
+| `.claude/settings.local.json`                              | Single project                | No, gitignored when Claude Code saves a setting to it |
+| Managed policy settings                                    | Organization-wide             | Yes, admin-controlled                                 |
+| [Plugin](/docs/en/plugins) `hooks/hooks.json`                   | When plugin is enabled        | Yes, bundled with the plugin                          |
+| [Skill](/docs/en/skills) or [agent](/docs/en/sub-agents) frontmatter | While the component is active | Yes, defined in the component file                    |
 
 For details on settings file resolution, see [settings](/docs/en/settings).
 
