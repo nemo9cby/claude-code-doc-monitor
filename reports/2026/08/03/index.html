@@ -118,9 +118,232 @@
 
         <header>
             <h1>Changes on 2026-08-03</h1>
-            <p class="meta">2 total changes in 1 run</p>
+            <p class="meta">10 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">18:03 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更分析
+
+## 总体摘要
+本次更新显著强化了开发者的安全入门引导，提升了示例代码的稳定性（替换外部链接为内部资源），并修正了关键的 API 端点路径与 SDK 语法细节。
+
+## 关键变更主题
+
+*   **安全优先级提升**：在入门和快速开始页面新增了“保护凭据”步骤，强调设置 API Key 过期时间及使用 Workload Identity Federation 的最佳实践。
+*   **资源稳定性增强**：将所有代码示例中引用的外部 Wikipedia 图片链接（蚂蚁图片）全部替换为 Anthropic 官方托管的 `platform.claude.com` 链接，确保示例长期有效。
+*   **API 路径修正**：Sessions API 的流式端点路径发生变更，从 `GET /v1/sessions/{id}/stream` 更新为 `GET /v1/sessions/{id}/events/stream`。
+*   **SDK 语法纠错 (Ruby)**：Ruby SDK 的工具使用示例代码修正了键的类型，从字符串（如 `&#34;tool_use&#34;`）修正为符号（如 `:tool_use`），以匹配 SDK 实际返回的数据结构。
+*   **代码示例优化**：改进了 CLI 参数展示方式（使用标志而非 YAML），完善了 Java 示例的上下文（添加 `main` 方法），并澄清了速率限制中的“试用层级”术语。
+
+## 影响程度：**中等**
+
+**理由**：虽然大部分变更属于文档优化，但 **Sessions API 端点的路径变更**和 **Ruby SDK 示例的语法修正**可能直接导致依赖旧文档的代码运行失败或逻辑判断错误。
+
+## 开发者行动项
+
+*   **更新 Sessions API 调用**：如果您正在实现 Managed Agents 的会话流式功能，请检查并更新端点 URL 为 `/events/stream`。
+*   **修复 Ruby 工具解析代码**：检查您的 Ruby 代码中处理 `tool_use` 和 `bash` 的逻辑，确保使用 Symbol（如 `:command`）而不是 String 进行键值匹配。
+*   **遵循安全新规**：查阅新的[认证指南](/docs/en/manage-claude/authentication)，为您的 API Key 设置过期时间，并考虑将静态密钥迁移至 Workload Identity Federation。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Understand the Goal:** The user wants a concise analysis of documentation changes for Anthropic&#39;s API (specifically Claude-related docs) in Chinese. The output needs to be in markdown format, covering Overall Summary, Key Themes, Impact Level, and Action Items.
+
+2.  **Analyze the Diffs Page by Page:**
+
+    *   `intro.md`:
+        *   Added a new Step: &#34;Secure your credentials&#34;.
+        *   Content mentions setting expiration on API keys, keeping them out of source control, and considering Workload Identity Federation.
+        *   Links to authentication guide.
+
+    *   `get-started.md`:
+        *   Changed CardGroup cols from 3 to 2.
+        *   Added a new Card: &#34;Authentication&#34; (Icon: lock).
+        *   Links to the auth guide.
+
+    *   `api/overview.md`:
+        *   Changed Sessions API endpoint description.
+        *   From: `GET /v1/sessions/{id}/stream`
+        *   To: `GET /v1/sessions/{id}/events/stream`
+        *   *Note:* This looks like a potential API change or clarification on the streaming endpoint structure for managed agents.
+
+    *   `api/rate-limits.md`:
+        *   Text change: &#34;New organizations... may start with limits below the standard limits...&#34; -&gt; &#34;New organizations... may start in the **Evaluation tier**...&#34;
+        *   Clarifies the naming of the starting tier.
+
+    *   `build-with-claude/vision.md`:
+        *   Massive URL replacement. All examples using `https://upload.wikimedia.org/...` (an ant image) are changed to `https://platform.claude.com/docs/images/vision-example.jpg`.
+        *   Filenames changed from `image.jpg` or `ant.jpg` to `vision-example.jpg`.
+        *   cURL example updated to use `$FILE_ID` variable extraction instead of hardcoded placeholder.
+        *   Code formatting improvements (indentation, EOF usage).
+
+    *   `build-with-claude/effort.md`:
+        *   Bash CLI example refactored to use flags (`--model`, `--output-config`, etc.) instead of heredoc YAML.
+        *   C# example formatting changes (multiline arrays).
+        *   Java example wrapped in a `main` method and added imports.
+
+    *   `build-with-claude/working-with-messages.md`:
+        *   Similar to `vision.md`: Massive URL replacement to the internal `platform.claude.com` image.
+        *   Filenames changed to `vision-example.jpg`.
+        *   Output JSON example updated (text content changed from describing an ant to describing a &#34;minimalist/flat-design illustration of a sunset&#34;).
+
+    *   `agents-and-tools/tool-use/bash-tool.md`:
+        *   Ruby syntax change.
+        *   String keys (`&#34;tool_use&#34;`, `&#34;bash&#34;`, `&#34;restart&#34;`, `&#34;command&#34;`) changed to Symbol keys (`:tool_use`, `:bash`, `:restart`, `:command`).
+        *   *Note:* This is a correction or alignment with how the SDK likely represents tool use blocks.
+
+3.  **Synthesize Findings:**
+
+    *   **Theme 1: Security/Auth Emphasis.** There&#39;s a clear push to highlight security best practices right at the start (`intro.md`, `get-started.md`). New cards and steps added.
+    *   **Theme 2: API Refinement/Updates.** The Sessions API endpoint changed (`/stream` to `/events/stream`). Ruby SDK code changed to use symbols instead of strings for keys (likely a bug fix or SDK update alignment).
+    *   **Theme 3: Content Hygiene/Reliability.** All external Wikipedia links for images have been replaced with internal, controlled URLs (`platform.claude.com`). This ensures example images won&#39;t break if Wikipedia changes things.
+    *   **Theme 4: Documentation Polish.** Rate limit terminology clarified (&#34;Evaluation tier&#34;), code snippets refactored for better readability (cURL using variables, Java adding main method, Bash CLI using flags).
+
+4.  **Draft the Analysis (Internal Monologue/Drafting in English first, then translating):**
+
+    *   *Summary:* The update focuses on security onboarding, API reliability (internalizing image assets), and specific API/SDK adjustments (Sessions endpoint, Ruby syntax).
+    *   *Themes:* Security focus, Asset reliability, API/Syntax corrections, Code snippet improvements.
+    *   *Impact:* Medium. Why? The Sessions endpoint change and Ruby syntax fix might break existing code if developers copied old examples. The security stuff is &#34;good to know&#34; but not breaking.
+    *   *Action Items:* Check the new auth guide. Update code using the Sessions API. Fix Ruby tool parsing code if using string keys.
+
+5.  **Translate to Chinese and Format:**
+
+    *   *Overall Summary:* 本次更新主要侧重于提升安全引导、文档资源的稳定性以及修正 API/SDK 示例。重点包括增加了身份认证步骤、替换了不稳定的外部图片链接，并修正了 Sessions API 端点路径和 Ruby SDK 的语法。
+    *   *Key Themes:*
+        *   **安全入门强化**：在简介和快速开始页面显著增加了凭据管理和认证的引导步骤。
+        *   **资源稳定性**：将所有示例中的外部 Wikipedia 图片链接替换为 Anthropic 内部托管的图片，防止链接失效。
+        *   **API 与 SDK 修正**：Sessions API 流式端点路径变更；Ruby SDK 工具调用代码修正为使用 Symbol 键。
+        *   **代码示例优化**：改进了 CLI 命令行参数示例、Java 代码的完整性以及 cURL 的可读性。
+        *   **术语规范化**：明确了新组织的“试用层级” 命名。
+    *   *Impact Level:* **Medium** (中等)。虽然主要是文档更新，但 `Sessions API` 路径变更和 Ruby SDK 的语法修正（String -&gt; Symbol）如果直接复制旧代码可能会导致错误。
+    *   *Action Items:*
+        *   检查并更新使用 `Sessions API` 流式端点的代码（注意 `/events/stream` 路径）。
+        *   如果在 Ruby 中使用工具结果解析，请将字符串键改为符号键（如 `:tool_use`）。
+        *   查阅新的身份认证指南，确保 API 密钥设置了过期时间。
+
+6.  **Final Review against User Constraints:**
+    *   Concise? Yes.
+    *   Insightful? Yes, spotted the Sessions API change and Ruby fix.
+    *   Markdown format? Yes.
+    *   Focus on what matters to devs? Yes.
+    *   Chinese? Yes.
+
+    *Self-Correction during drafting:* The Ruby change is subtle but important. `block.type == &#34;tool_use&#34;` vs `block.type == :tool_use`. If the SDK returns symbols, the string check would fail. This is a high-value insight. The Sessions API change `/stream` vs `/events/stream` is also a potential breaking change for API consumers.
+
+    *Refining the Output:* Ensure the Action Items are actionable.
+
+    (Final Output Construction)
+    # 文档变更分析
+    ...
+    (Matches the plan above)</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/intro.html" class="page-link">intro.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/get-started.html" class="page-link">get-started.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/overview.html" class="page-link">api/overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/rate-limits.html" class="page-link">api/rate-limits.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/vision.html" class="page-link">build-with-claude/vision.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+28</span>
+                            <span class="removed">-26</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/effort.html" class="page-link">build-with-claude/effort.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+24</span>
+                            <span class="removed">-23</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/working-with-messages.html" class="page-link">build-with-claude/working-with-messages.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+20</span>
+                            <span class="removed">-21</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/bash-tool.html" class="page-link">agents-and-tools/tool-use/bash-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">16:22 EST</div>
