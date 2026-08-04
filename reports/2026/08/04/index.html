@@ -118,9 +118,231 @@
 
         <header>
             <h1>Changes on 2026-08-04</h1>
-            <p class="meta">31 total changes in 2 runs</p>
+            <p class="meta">39 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">17:06 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更分析
+
+## 总体摘要
+本次文档更新主要集中在优化插件安装和激活流程，明确了何时需要手动重载插件，并更新了 Google Cloud Agent Platform 上 MCP 工具搜索的模型兼容性规则。
+
+## 关键主题
+
+- **插件激活流程智能化**：不再强制要求安装后总是运行 `/reload-plugins`，改为根据安装摘要智能判断（`Plugin is now active.` 或 `Run /reload-plugins to activate.`）
+- **错误排查指导优化**：将原本的段落式错误处理说明改为结构化的匹配模式，更清晰地指导开发者解决 &#34;Marketplace not found&#34; 和 &#34;Plugin not found&#34; 问题
+- **MCP 工具搜索的模型感知**：在 Google Cloud Agent Platform 上，Claude Opus 4.5/Sonnet 4.5/Haiku 4.5 及更新版本默认启用工具搜索，而 Claude 3.x 等旧版模型因服务端限制自动回退到预加载模式
+- **提示缓存保护机制**：`/reload-plugins` 在会使提示缓存失效时会警告并跳过，需使用 `--force` 强制执行
+- **云环境 Hooks 行为澄清**：明确了 Claude Code on the Web 云会话不读取本地 `~/.claude/settings.json`，hooks 仅来自仓库和组织托管设置
+
+## 影响级别
+**中**
+
+**理由**：虽然属于行为改进和文档澄清，但这些变更直接改变了插件安装后的工作流程，减少了不必要的重载操作，同时澄清了旧版本与新版本的行为差异，对开发者的日常使用有实际影响。
+
+## 开发者行动项
+
+- 更新插件安装流程：注意观察安装摘要提示，仅在显示 `Run /reload-plugins to activate.` 时执行该命令
+- 当使用 `/reload-plugins` 时，如果收到提示缓存失效警告，确认后使用 `/reload-plugins --force` 强制执行
+- 在 Google Cloud Agent Platform 上使用旧版 Claude 3.x 模型时，预期 MCP 工具会预加载而非延迟搜索
+- 云环境开发时，确保 Hooks 配置通过仓库或组织托管设置传递，而非依赖本地 `settings.json`
+- 如遇到插件安装问题，参考新的错误匹配模式快速定位是 Marketplace 未添加还是插件名称错误</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">用户希望我分析一批文档更改，并以 markdown 格式提供简洁、深刻的分析，重点关注对开发者重要的事项。我需要用中文回复。
+
+文档更改包括 8 个页面：
+1. `discover-plugins.md` (+17 / -4)
+2. `google-vertex-ai.md` (+4 / -1)
+3. `hooks.md` (+2 / -1)
+4. `mcp.md` (+18 / -11)
+5. `plugin-marketplaces.md` (+1 / -2)
+6. `plugins.md` (+1 / -1)
+7. `skills.md` (+4 / -2)
+8. `slash-commands.md` (+4 / -2)
+
+让我逐一分析这些更改：
+
+### discover-plugins.md
+主要变更：
+1. 改进了插件安装失败时的错误处理说明，将之前的文本说明改为更清晰的项目符号列表
+2. 关于插件激活的说明发生了重大变化：
+   - 之前：安装后总是需要运行 `/reload-plugins`
+   - 现在：根据安装摘要决定是否需要运行 `/reload-plugins`
+   - 安装摘要有三种状态：
+     - `Plugin is now active.` - 已经激活，无需操作
+     - `Run /reload-plugins to activate.` - 需要手动运行该命令
+     - 加载失败会显示错误详情
+3. 添加了关于市场目录自动更新的说明：
+   - 如果自动更新开启，Claude Code 会刷新目录并重试
+   - 如果自动更新关闭，需要手动运行 `/plugin marketplace update`
+4. 添加了版本兼容性说明（v2.1.221 之前的行为不同）
+5. 关于 `/reload-plugins` 命令的更新：
+   - 当重新加载会使提示缓存失效时，命令会警告并跳过，直到使用 `--force` 标志重新运行
+
+### google-vertex-ai.md
+主要变更：
+1. 更新了关于 MCP 工具搜索的说明：
+   - 现在根据模型代际决定是否启用工具搜索：
+     - Claude Opus 4.5, Sonnet 4.5, Haiku 4.5 及更新版本：默认启用工具搜索
+     - 旧模型（包括所有 Claude 3.x 模型）：因为它们的 Agent Platform 服务堆栈拒绝所需的 beta 标头，所以会预加载 MCP 工具定义
+   - 可以设置 `ENABLE_TOOL_SEARCH=false` 在所有模型上禁用工具搜索
+   - 添加了版本说明：v2.1.221 之前，Claude Code 在 Google Cloud 的 Agent Platform 上默认禁用所有模型的工具搜索
+
+### hooks.md
+主要变更：
+1. 添加了关于 hooks 在不同环境中运行的说明：终端会话、IDE 扩展、桌面应用和 Claude Code on the web 都会触发相同的 hook 事件
+2. 添加了关于云会话中 hooks 的说明：云会话不读取本地的 `~/.claude/settings.json`，hooks 来自仓库和组织的服务器托管设置
+
+### mcp.md
+主要变更：
+1. 改进了安装 mcp-server-dev 插件时的错误处理说明（与 discover-plugins.md 类似）
+2. 更新了关于 MCP 服务器连接和工具搜索的说明：
+   - 添加了关于 Google Cloud Agent Platform 上早期模型（早于 Claude 4.5 代际）的说明
+3. 更新了工具搜索配置的说明：
+   - 之前：在 Google Cloud 的 Agent Platform 上默认禁用工具搜索
+   - 现在：根据模型代际决定（与 google-vertex-ai.md 的更新类似）
+   - 添加了详细的行为表格
+
+### plugin-marketplaces.md
+主要变更：
+1. 更新了插件安装步骤：
+   - 之前：总是运行 `/reload-plugins`
+   - 现在：检查安装摘要，如果需要则运行 `/reload-plugins`
+
+### plugins.md
+主要变更：
+1. 更新了插件安装后的说明：
+   - 之前：总是运行 `/reload-plugins`
+   - 现在：检查安装摘要，如果需要则运行 `/reload-plugins`
+
+### skills.md 和 slash-commands.md
+主要变更：
+1. 这两个页面似乎有相同的更改内容，与 discover-plugins.md 类似：
+   - 改进了安装失败时的错误处理说明
+   - 更新了关于运行 `/reload-plugins` 的说明
+
+总结这些更改：
+
+1. **插件安装和激活的改进**：不再总是需要运行 `/reload-plugins`，而是根据安装摘要决定
+2. **错误处理说明的改进**：更清晰的错误消息处理指导
+3. **Google Cloud Agent Platform 上的工具搜索**：根据模型代际决定是否启用
+4. **Hooks 在云会话中的行为**：澄清了 hooks 在云会话中的来源
+
+现在我需要准备一个简洁的 markdown 分析，包括：
+1. 总体摘要（1-2句话）
+2. 关键主题（项目符号）
+3. 影响级别（低/中/高/破坏性）及理由
+4. 开发者行动项（最多5个项目符号）</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/discover-plugins.html" class="page-link">discover-plugins.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+17</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/google-vertex-ai.html" class="page-link">google-vertex-ai.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+18</span>
+                            <span class="removed">-11</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugin-marketplaces.html" class="page-link">plugin-marketplaces.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins.html" class="page-link">plugins.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">15:23 EST</div>
