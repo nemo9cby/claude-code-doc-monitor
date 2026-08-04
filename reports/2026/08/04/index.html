@@ -118,9 +118,163 @@
 
         <header>
             <h1>Changes on 2026-08-04</h1>
-            <p class="meta">39 total changes in 3 runs</p>
+            <p class="meta">41 total changes in 4 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">18:57 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 整体摘要
+本次发布 (v2.1.222) 侧重于修复关键的安全隔离漏洞（特别是 Git worktree 相关）和提升系统稳定性，同时对配置策略进行了收紧，移除了仓库本地设置开启“远程控制”的权限以防止滥用。
+
+### 关键变更主题
+
+*   **安全与隔离修复**：修复了严重漏洞，此前工作树隔离会话及其子代理能够针对主仓库执行破坏性的 Git 命令；现在隔离机制已全面应用于所有会话类型的文件编辑和 Bash 操作。
+*   **配置策略收紧**：出于安全考虑，仓库级别的配置文件（如 `.claude/settings.json`）不再允许开启“远程控制”功能，必须切换至用户作用域进行配置。
+*   **稳定性与错误修复**：解决了 HTTPS 代理下的启动挂起问题、MCP 服务器使用量统计错误，以及多个会导致崩溃或连接中断的边缘情况。
+*   **功能移除与体验优化**：移除了“ultraplan”功能，改进了屏幕阅读器模式的输入回显，并优化了 Diff 视图的渲染方式。
+
+### 影响等级：中/高
+
+**理由**：
+*   **高**：Git worktree 隔离失效的修复非常关键，直接防止了对主代码库的意外数据破坏。
+*   **中**：禁止仓库本地配置开启“远程控制”属于行为变更，虽然增强了安全性，但改变了部分团队的工作流配置习惯。此外，移除 `ultraplan` 功能可能影响依赖该特性的用户。
+
+### 开发者行动项
+
+*   **升级以修复安全漏洞**：如果您的团队使用 Git worktree 工作流，强烈建议立即升级以防止会话意外修改主仓库。
+*   **调整远程控制配置**：如果您之前在项目内的 `.claude/settings.json` 中配置了自动开启 Remote Control，请在用户作用域通过 `/config` 命令重新启用，因为仓库级配置已不再生效。
+*   **检查自动化流程**：确认依赖 `SendMessage` 传递长摘要的自动化流程不会因内容截断（Truncation）而失败。
+*   **移除过时引用**：如果代码或文档中引用了 `ultraplan` 功能，请及时移除。
+*   **更新使用量监控逻辑**：如果您正在解析 `/usage` 输出以监控 MCP 服务器成本，请注意其计算逻辑已变更（现在仅包含实际消耗工具结果的请求）。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">用户需要我以世界级程序员的视角，分析一份文档变更摘要。
+这是一个批量分析任务，包含两个页面的变更：`security.md` 和 `CHANGELOG.md.md`。
+输出格式必须是 Markdown，并且需要包含四个部分：
+1. Overall Summary (1-2 sentences)
+2. Key Themes across pages (bullets)
+3. Impact level (Low/Medium/High/Breaking) with reasoning
+4. Action items for developers (bullets, max 5)
+语言要求是中文。
+
+**Step 1: Analyze the individual changes.**
+
+**Page 1: `security.md`**
+*   **Change**: `Enable with /sandbox` -&gt; `Configure with /sandbox`.
+*   **Meaning**: This is a very minor wording change. &#34;Enable&#34; suggests turning it on, while &#34;Configure&#34; implies setting it up, possibly with options. It might reflect a slight shift in functionality or just better terminology accuracy since sandboxing might have configuration options beyond a simple on/off switch (like the `denyRead` rules mentioned in the next bullet point).
+*   **Impact**: Very low. Documentation tweak.
+
+**Page 2: `CHANGELOG.md.md`**
+*   **Version**: 2.1.222.
+*   **Content**: A list of fixes, improvements, changes, and removals.
+*   **Key Changes**:
+    *   *Security/Isolation Fixes*: Worktree-isolated sessions running destructive git commands against main checkout. This is a security fix. Isolation now applies to file edits and Bash. `PreToolUse` auto-allow hooks bypassing restrictions.
+    *   *Proxies/Connectivity*: Startup check hanging behind HTTPS proxy.
+    *   *Usage/Attribution*: `/usage` overattributing to MCP servers.
+    *   *Git Integration*: Sessions linking to PRs created after branch push.
+    *   *Model Selection*: Org-restricted model aliases dropping to parent model.
+    *   *Timeouts/Errors*: Stream idle timeout, connection closed mid-response errors.
+    *   *UX/Accessibility*: Screen reader mode improvements (echo on backspace).
+    *   *Settings/Config*: Repo-local settings no longer auto-start Remote Control (security/UX policy change). `SendMessage` long summary truncation.
+    *   *Removal*: Removed &#34;ultraplan&#34; feature.
+
+**Step 2: Synthesize Key Themes.**
+
+1.  **Security &amp; Isolation Improvements**: The worktree isolation fix is critical. The change to repo-local settings affecting Remote Control auto-start is also a security/control measure.
+2.  **Bug Fixes &amp; Stability**: Many fixes regarding proxies, timeouts, git integration, and crashes.
+3.  **Usability &amp; UX**: Better screen reader support, clearer error messages, and precise wording in docs.
+4.  **Configuration Control**: Moving Remote Control auto-start to user scope only prevents repo abuse.
+
+**Step 3: Determine Impact Level.**
+
+*   *Security Fix (Worktree isolation)*: This prevents destructive git commands (like deleting branches or resetting) on the main checkout from an isolated worktree session. This is a **High** impact bug fix because it prevents data loss.
+*   *Remote Control Change*: Repo-local files can no longer enable Remote Control. This might break workflows for teams relying on repo-level config for this feature, but it enhances security. It&#39;s a **Breaking** change behaviorally, or at least a significant behavioral shift.
+*   *Other Fixes*: Mostly Medium/Low impact.
+
+*Overall Impact*: I&#39;d rate this **Medium to High**. The security fix regarding worktrees and the restriction on Remote Control auto-start are significant.
+
+**Step 4: Formulate Action Items.**
+
+1.  Review worktree usage to ensure isolation behaves as expected now (it should be safer).
+2.  If using `.claude/settings.json` to enable Remote Control, update user-level config instead, as repo-level config is now ignored for *enabling* it.
+3.  Be aware that `SendMessage` now truncates long summaries; check if this affects any automated workflows.
+4.  Upgrade to 2.1.222 to get the proxy and isolation fixes.
+5.  Note the removal of &#34;ultraplan&#34; feature.
+
+**Step 5: Draft the response (in Chinese).**
+
+*   **Overall Summary**: 本次更新主要集中在安全隔离修复、稳定性提升及配置策略调整。关键的修复包括阻止工作树隔离会话破坏主仓库，以及调整远程控制自动启动的行为以增强安全性。
+*   **Key Themes**:
+    *   **安全隔离增强**: 修复了工作树隔离会话绕过限制执行破坏性 Git 命令的严重漏洞，加强了文件编辑和 Bash 的隔离。
+    *   **配置策略收紧**: 仓库本地设置（`.claude/settings.json`）不再允许开启“远程控制”，必须在用户级别配置以防止潜在的仓库滥用。
+    *   **稳定性与错误修复**: 解决了代理连接超时、MCP 服务器使用量统计错误、以及会话链接 PR 失败等问题。
+    *   **无障碍与体验改进**: 改善了屏幕阅读器模式下的输入体验，并优化了 Diff 视图和错误提示。
+*   **Impact Level**: **Medium/High**.
+    *   Reasoning: 修复了可能破坏主 Git 仓库的高危安全漏洞（工作树隔离失效）。同时，限制仓库本地配置开启远程控制是一个重大的行为变更，会影响部分用户的自动化设置。
+*   **Action items**:
+    *   **安全审查**: 如果使用 Git worktree，请立即更新至该版本以防止子代理对主检出进行破坏性操作。
+    *   **配置迁移**: 如果此前通过 `.claude/settings.json` 开启 Remote Control，需改为在用户级别通过 `/config` 手动开启，因为仓库级配置不再生效。
+    *   **功能注意**: 注意 `ultraplan` 功能已被移除。
+    *   **自动化检查**: 检查依赖 `SendMessage` 的自动化流程，确认对长摘要截断的容忍度。
+
+Let&#39;s refine the language to be professional and concise.
+
+*Security.md change*: Just a wording tweak (&#34;Enable&#34; to &#34;Configure&#34;). Not super high impact individually, but aligns with the idea of finer control.
+
+*Changelog*:
+- Worktree isolation: &#34;Fixed worktree-isolated sessions... being able to run destructive git commands against the main checkout&#34;. This is the big one.
+- Remote Control: &#34;Changed Remote Control auto-start so repo-local settings... can no longer turn it on&#34;. This prevents a repo from forcing a remote session on a user, which is good security but a behavior change.
+
+Final Polish of Chinese text.</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/security.html" class="page-link">security.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+22</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">17:06 EST</div>
