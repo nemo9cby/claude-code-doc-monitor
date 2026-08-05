@@ -118,9 +118,276 @@
 
         <header>
             <h1>Changes on 2026-08-04</h1>
-            <p class="meta">41 total changes in 4 runs</p>
+            <p class="meta">53 total changes in 5 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">20:01 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 文档变更分析总结
+
+**1. 总体概览**
+本次文档更新主要移除了对 **Ultraplan** 功能的引用，大幅增强了 **Windows/PowerShell 平台 Hooks** 的支持与示例，细化了沙箱隔离与凭据管理的安全策略逻辑，并引入了新的 CLI 参数和 VS Code UI 功能以改善开发者体验。
+
+**2. 关键主题**
+*   **功能移除**: 文档中所有关于 `ultraplan`（云端计划功能）的引用和示例均已被移除。
+*   **跨平台支持增强**: Hooks 文档经过重大重构，新增了针对 Windows (PowerShell) 的详细配置示例和故障排除说明，填补了此前仅关注 Bash 的空白。
+*   **沙箱安全策略细化**: 详细阐明了 `filesystem.disabled` 与托管设置中 `credentials.files` 的交互逻辑，明确了 &#34;deny&#34; 与 &#34;mask&#34; 模式在关闭文件系统隔离时的不同行为，这对企业级安全配置至关重要。
+*   **上下文窗口管理**: 新增了 `--autocompact` CLI 标志 (v2.1.221)，允许在会话级别覆盖自动压缩窗口的设置，优化长会话的上下文管理。
+*   **UI/UX 改进**: VS Code 扩展引入了 **Focus view** (专注模式) (v2.1.221)，允许开发者隐藏工具调用和思考过程，仅查看对话内容。
+
+**3. 影响等级: Medium (中)**
+*   **理由**: `Ultraplan` 的移除表明该功能可能已被废弃，依赖此功能的用户需寻找替代方案。沙箱策略的澄清涉及安全边界配置不当可能导致的风险，影响较深。PowerShell 支持的完善将显著提升 Windows 开发者的集成体验。
+
+**4. 开发者行动建议**
+*   **检查依赖**: 如果您的工作流中使用了 `ultraplan` 相关功能或文档引用，请立即停止使用并寻找替代方案（如直接使用 `/plan` 或云端会话）。
+*   **更新 Hooks 脚本**: 如果您在 Windows 上编写 Hooks，请参考文档中新增的 PowerShell 示例（特别是 `PreToolUse` 拦截逻辑），并确保 `jq` 或 `powershell` 配置正确。
+*   **审查沙箱配置**: 管理员应审查 `sandbox.credentials` 设置，特别是 `mode: &#34;mask&#34;` 回退到 `deny` 的场景，以确保 `filesystem.disabled` 的锁定行为符合预期。
+*   **试用 Focus View**: 在 VS Code 中尝试 `Ctrl+Option+F` (Mac) 或 `Ctrl+Alt+F` (Win/Linux) 启用 Focus view，以获得更清爽的代码审查界面。
+*   **优化长会话**: 在处理大型代码库时，使用 `claude --autocompact &lt;tokens&gt;` 灵活控制上下文压缩时机，以避免过早丢失历史信息。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Understand the Goal**: The user wants a batch analysis of 12 documentation changes for a &#34;world-class programmer&#34; audience. The output must be in markdown, concise, insightful, in Chinese, and focus on what matters to developers. It needs specific sections: Overall Summary, Key Themes, Impact Level, and Action Items.
+
+2.  **Analyze the Diffs**:
+
+    *   **`claude-code-on-the-web.md`**:
+        *   Removed references to &#34;Ultraplan&#34; (feature removed/changed?).
+        *   Clarified auto-compaction behavior (`CLAUDE_CODE_AUTO_COMPACT_WINDOW` vs `/autocompact`).
+        *   Removed &#34;Ultraplan&#34; from related resources.
+    *   **`cli-reference.md`**:
+        *   Added `--autocompact` flag for setting auto-compact window per session. Requires v2.1.221.
+    *   **`costs.md`**:
+        *   Updated context warning explanation to link to &#34;auto-compact window&#34; terminology.
+    *   **`hooks.md`**:
+        *   Major restructure of the &#34;How a hook resolves&#34; section to use Tabs.
+        *   Added specific Windows (PowerShell) examples for hooks (previously focused on Bash).
+        *   Clarified how `TMPDIR` behaves in sandboxes.
+        *   Updated &#34;deduplication&#34; logic for hooks (dedup across settings files, but plugins/skills kept separate).
+        *   Added PowerShell specific notes in troubleshooting.
+    *   **`hooks-guide.md`**:
+        *   Clarified hook deduplication reference.
+        *   Updated note about seeing file changes (PowerShell added to matchers).
+        *   Updated JSON parsing error troubleshooting (PowerShell added as default shell on Windows if Git Bash isn&#39;t present).
+    *   **`sandboxing.md`**:
+        *   Clarified `TMPDIR` behavior.
+        *   Detailed how `filesystem.disabled` interacts with managed settings and `credentials.files` (mode: deny vs mask).
+        *   Refined table explaining what is protected when filesystem isolation is off (env vars vs file reads).
+    *   **`settings.md`**:
+        *   Updated table for invalid field behavior. Added specific version notes for `sandbox.credentials` and `enforceAvailableModels`.
+        *   Added `focusView` setting description.
+    *   **`skills.md`**:
+        *   Clarified naming conflicts for `help` and `feedback` in non-interactive sessions (v2.1.216-220 reserved them, now they don&#39;t).
+    *   **`slash-commands.md`**:
+        *   Same change as `skills.md` (naming conflicts).
+    *   **`sub-agents.md`**:
+        *   Table restructure/consolidation. Clarified that &#34;claude&#34; is the default for background sessions.
+    *   **`terminal-config.md`**:
+        *   Removed mention of &#34;ultraplan&#34; rendering (rainbow gradient).
+    *   **`vs-code.md`**:
+        *   Added **Focus view** feature (v2.1.221). Hides tools/results/thinking.
+        *   Added shortcut `Ctrl+Option+F` / `Ctrl+Alt+F`.
+        *   Added `focusView` setting.
+
+3.  **Synthesize Key Themes**:
+
+    *   **Feature Removal**: &#34;Ultraplan&#34; seems to be deprecated or removed (references stripped from docs).
+    *   **Windows/PowerShell Support**: Significant improvements in documentation and examples for Hooks on Windows (PowerShell).
+    *   **Context Window/Compaction**: Refinement of terminology and new CLI flag (`--autocompact`) to control context window management.
+    *   **Sandboxing Security**: Detailed explanations of how filesystem isolation, credential masking, and temporary directories interact, specifically regarding managed settings.
+    *   **New UI Feature**: &#34;Focus View&#34; in VS Code (v2.1.221) to hide tool details.
+
+4.  **Determine Impact Level**:
+
+    *   *Ultraplan removal*: Medium/High if used, Low if not. (Likely Low/Medium for most).
+    *   *Hooks/PowerShell*: Medium (improves cross-platform parity).
+    *   *Sandboxing*: Medium (clarifies security boundaries).
+    *   *Focus View*: Low (UX improvement).
+    *   *Compaction CLI*: Low (performance tuning).
+    *   *Overall*: **Medium**. The Ultraplan removal is the most &#34;breaking&#34; feeling change, and the PowerShell hooks are a significant cross-platform upgrade. The sandboxing details are important for enterprise/admin devs.
+
+5.  **Drafting the Analysis (in Chinese)**:
+
+    *   *Summary*: Docs update focused on removing Ultraplan, enhancing Windows/PowerShell support for Hooks, clarifying sandboxing security policies, and adding new context window controls.
+    *   *Key Themes*:
+        *   Deprecation: Ultraplan is gone.
+        *   Cross-platform: PowerShell examples and defaults for Hooks.
+        *   Security/Sandboxing: Detailed logic for `filesystem.disabled` and credential masking.
+        *   UX: VS Code &#34;Focus view&#34; added.
+        *   CLI: New `--autocompact` flag.
+    *   *Impact*: Medium. Feature removal (Ultraplan) and significant security clarification.
+    *   *Action Items*:
+        *   Stop using Ultraplan references.
+        *   Update Windows Hook scripts if needed.
+        *   Review sandbox settings if using managed configs.
+        *   Try Focus view in VS Code.
+        *   Use `--autocompact` for context tuning.
+
+6.  **Refining the Output (Self-Correction)**:
+
+    *   Make sure to mention the version numbers where applicable (e.g., v2.1.221).
+    *   Ensure the distinction between &#34;deny&#34; and &#34;mask&#34; in sandboxing is noted as it&#39;s complex.
+    *   Clarify the &#34;Help&#34; and &#34;Feedback&#34; naming conflict resolution for skills.
+
+7.  **Final Polish (Markdown format)**:
+
+    *   **Summary**: 本次更新主要涉及移除 Ultraplan 功能引用、增强 Windows/PowerShell 平台的 Hooks 支持、细化沙箱安全策略以及新增上下文窗口控制 CLI 参数。
+    *   **Themes**: Ultraplan 移除, Windows 兼容性增强, 沙箱与安全细节, VS Code 新功能 (Focus View), 上下文管理.
+    *   **Impact**: Medium (Ultraplan 的移除可能是破坏性变更，沙箱策略的澄清对安全配置至关重要).
+    *   **Action Items**: 具体建议 (更新文档, 检查脚本, 尝试新功能).
+
+8.  **Final Output Generation**: (Proceeding to generate the Chinese response based on these thoughts).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/claude-code-on-the-web.html" class="page-link">claude-code-on-the-web.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/cli-reference.html" class="page-link">cli-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/costs.html" class="page-link">costs.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+57</span>
+                            <span class="removed">-19</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sandboxing.html" class="page-link">sandboxing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+57</span>
+                            <span class="removed">-15</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+19</span>
+                            <span class="removed">-13</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/terminal-config.html" class="page-link">terminal-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/vs-code.html" class="page-link">vs-code.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">18:57 EST</div>
