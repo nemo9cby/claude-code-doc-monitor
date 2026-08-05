@@ -118,9 +118,200 @@
 
         <header>
             <h1>Changes on 2026-08-05</h1>
-            <p class="meta">28 total changes in 2 runs</p>
+            <p class="meta">34 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">17:02 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 整体摘要
+本次文档更新主要集中在优化插件生态系统的灵活性与兼容性，重点引入了自定义 `metadata` 字段，强化了针对 Claude Desktop 的命名规范验证，并澄清了内存压缩和状态栏的行为细节。
+
+### 关键主题
+*   **扩展元数据支持**：在插件、市场和技能的配置中统一引入了 `metadata` 字段，允许开发者存储自定义数据（如目录 ID 或授权信息），且不会影响 Claude Code 的核心行为。
+*   **插件系统兼容性增强**：新增了对插件和市场名称的严格验证（如避免保留字、限制长度和字符），以确保与 Claude Desktop 的兼容性；同时，放宽了 `skills` 路径配置的限制（现支持 `&#34;.&#34;`）。
+*   **持久化与 UI 行为澄清**：明确了 `/compact` 后路径特定规则不会自动重载的机制；解释了自定义状态栏会隐藏部分静态提示（如快捷键提示）但保留上下文提示的行为。
+
+### 影响等级：中等
+*   **理由**：虽然主要是文档说明，但新增的严格验证规则可能会阻止不符合规范的插件同步到 Claude Desktop，且 `metadata` 和路径处理的更新改变了开发者构建插件的最佳实践。
+
+### 开发者行动项
+1.  **审查命名规范**：检查你的插件和市场名称，避免使用 `org` 等保留字，并确保名称长度和字符组成符合 Claude Desktop 的同步要求。
+2.  **利用元数据字段**：在 `plugin.json` 或 `SKILL.md` 中使用新的 `metadata` 字段存储自定义数据，而非滥用现有的 frontmatter 字段。
+3.  **更新技能路径配置**：如果之前因路径验证失败无法使用 `&#34;.&#34;` 表示插件根目录，现在可以安全更新配置以支持此写法。
+4.  **注意规则重置机制**：在使用 `/compact` 后，需意识到基于路径的规则可能失效，直到再次访问相关文件。
+5.  **调整状态栏预期**：若配置了自定义状态栏，应注意用户将不再看到默认的快捷键静态提示。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Understand the Goal**: The user wants a concise, insightful analysis of a batch of documentation changes (6 pages) provided in a unified diff format. I need to summarize what changed, identify themes, assess impact, and list action items, all in Chinese markdown format.
+
+2.  **Analyze the Diffs Page by Page**:
+
+    *   **`memory.md`**:
+        *   *Change*: Updated the explanation of what survives `/compact`.
+        *   *Detail*: Previously, it mentioned nested `CLAUDE.md` files not being re-injected automatically. Now it adds `rules` with `paths:` frontmatter to the list of things not automatically re-injected.
+        *   *Implication*: Developers relying on path-specific rules need to be aware that they might disappear after compaction until a matching file is read.
+
+    *   **`plugin-marketplaces.md`**:
+        *   *Change*: Added new validation rules and fields.
+        *   *Detail*:
+            *   Added `metadata` field to the manifest table (free-form object for catalog data, ignored by Claude Code).
+            *   Added validation errors regarding marketplace and plugin naming constraints (reserved names like `org`, length limits, character sets) specifically for Claude Desktop compatibility.
+            *   Version notes: `metadata` was unrecognized before v2.1.222; name checks didn&#39;t run before v2.1.221.
+
+    *   **`plugins-reference.md`**:
+        *   *Change*: Extensive updates to plugin manifest validation and path handling.
+        *   *Detail*:
+            *   `metadata` field support (same as above). Notes specific handling for wrong types (ignored for `metadata` and `experimental`).
+            *   Path behavior rules updated: `skills` field now accepts `&#34;.&#34;` (root), previously it failed validation.
+            *   Updated troubleshooting table for path errors to include the `&#34;.&#34;` exception.
+
+    *   **`skills.md`** and **`slash-commands.md`**:
+        *   *Change*: Updates to `SKILL.md` frontmatter.
+        *   *Detail*:
+            *   Clarified `metadata` field: Free-form map for own data, Claude Code doesn&#39;t act on it, drops non-map values.
+            *   Added a note about `/deploy` behavior: If Claude tries to deploy manually when it shouldn&#39;t, Claude Code blocks it and suggests running `/deploy` manually.
+
+    *   **`statusline.md`**:
+        *   *Change*: Updated UI behavior description.
+        *   *Detail*: With a custom status line, Claude Code hides some static hints (`? for shortcuts`, `hold space to speak`) but keeps contextual hints (`esc to interrupt`).
+
+3.  **Synthesize Key Themes**:
+    *   *Theme 1: Metadata and Flexibility*: Introduction/clarification of `metadata` fields in plugins and skills for internal tooling/cataloging without affecting Claude&#39;s behavior.
+    *   *Theme 2: Strictness and Compatibility*: Increased validation for Claude Desktop compatibility (naming conventions) and stricter handling of path fields (allowing `&#34;.&#34;` now).
+    *   *Theme 3: Persistence and State Management*: Clarification on what survives memory compaction (path-scoped rules).
+
+4.  **Determine Impact Level**:
+    *   *Reasoning*: Most changes are clarifications or additions of &#34;nice-to-have&#34; fields. The strict validation for marketplace names is important for cross-compatibility but likely affects fewer users. The change to allow `&#34;.&#34;` in paths fixes a bug/friction. The compaction note is behavioral but edge-case.
+    *   *Level*: **Low to Medium**. It&#39;s mostly documentation updates reflecting recent features or clarifying existing behavior. No breaking API changes for the majority, but marketplace authors need to watch out for naming rules.
+
+5.  **Draft Action Items**:
+    *   Plugin authors: update manifests to use `metadata` for custom data.
+    *   Plugin authors: check marketplace/plugin naming for Claude Desktop compatibility (avoid reserved names, keep it short).
+    *   Plugin authors: `skills` path can now use `&#34;.&#34;` if needed (and backwards compatible).
+    *   Developers: Be aware that path-specific rules reset after compaction.
+    *   Status line users: Know that static hints disappear.
+
+6.  **Translate and Format (Chinese)**:
+
+    *   *Summary*: 本次文档更新主要集中在插件生态系统的增强，特别是验证规则、元数据支持以及对内存压缩和状态栏行为的澄清。
+    *   *Themes*:
+        *   **元数据支持**: 在插件、市场和技能中引入了 `metadata` 字段，供开发者存储自定义数据而不影响 Claude 行为。
+        *   **兼容性与验证**: 加强了针对 Claude Desktop 的命名规范验证，明确了 `skills` 路径字段对 `&#34;.&#34;` 的支持。
+        *   **状态与持久化**: 阐明了 `/compact` 后路径特定规则的重载机制，以及状态栏对提示信息的显示策略。
+    *   *Impact*: Medium (due to validation rules potentially blocking syncs, but mostly Low/Medium).
+    *   *Actions*:
+        *   Review marketplace/plugin names for new Desktop constraints.
+        *   Utilize `metadata` field for cataloging.
+        *   Update `skills` path configurations.
+        *   Adjust expectations regarding rule persistence after compaction.
+
+7.  **Refine Content**:
+    *   Make it punchy.
+    *   Ensure the distinction between &#34;Claude Code&#34; and &#34;Claude Desktop&#34; sync rules is clear, as that&#39;s a specific pain point mentioned in the diff.
+
+    *(Self-Correction)*: The `skills.md` and `slash-commands.md` diffs are identical. I should treat them as one point regarding skill frontmatter.
+
+8.  **Final Output Generation** (matching the requested structure).
+
+    *   *Summary*: 本次文档更新主要涉及插件与技能系统的增强，重点包括引入 `metadata` 字段、强化针对 Claude Desktop 的命名验证，以及澄清内存压缩和状态栏的交互行为。
+    *   *Themes*:
+        *   扩展元数据支持。
+        *   插件系统兼容性与路径处理。
+        *   持久化与 UI 行为的澄清。
+    *   *Impact*: **Medium**. 新的验证规则可能会阻止某些插件同步到 Claude Desktop，且路径规则的更新改善了开发体验。
+    *   *Action Items*:
+        *   检查插件/市场名称合规性。
+        *   使用 `metadata` 字段。
+        *   更新 `skills` 路径配置。
+        *   注意规则重置机制。
+
+9.  **Final Polish**: Ensure the tone is professional and &#34;world-class programmer&#34;.</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/memory.html" class="page-link">memory.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugin-marketplaces.html" class="page-link">plugin-marketplaces.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+12</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/statusline.html" class="page-link">statusline.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">15:21 EST</div>
