@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026-08-06 - Documentation Changes</title>
+    <style>
+        :root {
+            --bg-color: #1a1a2e;
+            --card-bg: #16213e;
+            --text-color: #eee;
+            --accent: #0f3460;
+            --add-text: #4ade80;
+            --del-text: #f87171;
+            --time-color: #60a5fa;
+        }
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg-color: #f5f5f5;
+                --card-bg: #fff;
+                --text-color: #333;
+                --accent: #e0e0e0;
+                --add-text: #155724;
+                --del-text: #721c24;
+                --time-color: #2563eb;
+            }
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+        .container { max-width: 800px; margin: 0 auto; }
+        header { margin-bottom: 2rem; }
+        h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+        .meta { color: #888; }
+        .batch { margin-bottom: 2rem; }
+        .batch-header {
+            color: var(--time-color);
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--accent);
+        }
+        .page-list { list-style: none; }
+        .page-item {
+            background: var(--card-bg);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .page-item:hover { background: var(--accent); }
+        .page-link {
+            color: var(--text-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .page-summary { color: #888; font-size: 0.9rem; }
+        .added { color: var(--add-text); }
+        .removed { color: var(--del-text); }
+        a { color: #60a5fa; }
+        .back-link { margin-bottom: 1rem; display: inline-block; }
+        .page-item-content { flex: 1; }
+        .page-analysis {
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: 0.25rem;
+        }
+        .source-section {
+            margin-bottom: 1.5rem;
+        }
+        .source-header {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: #8b5cf6;
+        }
+        .batch-analysis {
+            background: var(--card-bg);
+            border-left: 3px solid #22c55e;
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            margin: 0.75rem 0 1rem 0;
+        }
+        .batch-analysis h4 {
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+        .batch-analysis-content {
+            white-space: pre-wrap;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        .reasoning-section {
+            margin-top: 1rem;
+            padding-top: 0.75rem;
+            border-top: 1px dashed var(--accent);
+            font-size: 0.85rem;
+            color: #888;
+        }
+        .reasoning-section summary {
+            cursor: pointer;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../../../index.html" class="back-link">&larr; All reports</a>
+
+        <header>
+            <h1>Changes on 2026-08-06</h1>
+            <p class="meta">4 total changes in 1 run</p>
+        </header>
+
+        
+        <div class="batch">
+            <div class="batch-header">01:42 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更分析
+
+## 1. Overall Summary
+本次文档更新重点介绍了 **v2.1.221** 版本引入的 **MCP 发现缓存** 功能，通过懒加载机制优化远程 MCP 服务器的启动性能，并明确了 CLI 在非交互模式（`-p`）下的行为细节及限制。
+
+## 2. Key Themes across pages
+*   **MCP 发现缓存**: 远程（HTTP/SSE）MCP 服务器现在会缓存其工具列表（在 `/mcp` 中显示为 `cached` 状态）。系统在启动时直接加载缓存，仅在实际调用工具时才建立连接，显著减少启动延迟。
+*   **CLI 非交互模式 (`-p`) 细节**: 明确了 `-p` 模式下使用 `--mcp-config` 时的行为——系统会等待未就绪的服务器连接（受 `MCP_TIMEOUT` 限制），但已缓存的服务器会跳过等待。同时澄清了 `--bg` 和 `--cloud` 与 `-p` 存在冲突，会被拒绝。
+*   **启动阻塞逻辑优化**: 更新了 `alwaysLoad` 的行为描述，具有有效缓存条目的远程服务器将不再阻塞启动过程，进一步优化了冷启动速度。
+
+## 3. Impact Level
+**Medium**
+
+*Reasoning*: 这是一项重要的性能优化，改变了开发者对 MCP 服务器“启动即连接”的心理预期。虽然默认行为提升了体验，但在排查连接问题时，开发者必须理解新的 `cached` 状态及其带来的延迟连接特性。
+
+## 4. Action items for developers
+*   **检查版本**: 确保使用 Claude Code **v2.1.221** 或更高版本以启用 MCP 缓存优化。
+*   **调整启动行为**: 若业务逻辑依赖服务器在启动时立即连接，请设置环境变量 `MCP_DISCOVERY_CACHE=0` 禁用缓存。
+*   **注意超时设置**: 在脚本或 CI 中使用 `claude -p --mcp-config` 时，留意默认的 **30秒** 启动等待时间 (`MCP_TIMEOUT`)。
+*   **排查连接状态**: 遇到 MCP 工具问题时，检查 `/mcp` 面板是否显示 `cached` 状态，这意味着服务器尚未建立物理连接。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Understand the Goal**: The user wants a concise, insightful batch analysis of 4 documentation changes (`cli-reference.md`, `headless.md`, `mcp.md`, `sub-agents.md`) in markdown format, using Chinese. The persona is a world-class programmer. I need to summarize changes, identify key themes, assess impact, and list action items.
+
+2.  **Analyze the Changes**:
+
+    *   **`cli-reference.md`**: Updated the description of the `--mcp-config` flag.
+        *   *Change*: Added detail about behavior when used with `-p` (print/non-interactive mode). It now waits for pending servers to connect before the first turn (up to `MCP_TIMEOUT`, default 30s). If a server has a cached tool list, it skips the wait. Requires v2.1.221+.
+        *   *Theme*: MCP server connection timing/behavior in CLI print mode.
+
+    *   **`headless.md`**:
+        *   *Change 1*: Minor grammar fix (&#34;the CLI options you need&#34; vs &#34;any CLI options&#34;).
+        *   *Change 2*: Clarified that not *all* CLI options combine with `-p`. Specifically mentions `--bg` and `--cloud` as conflicts.
+        *   *Change 3*: Updated the &#34;MCP server fields&#34; section. Added a paragraph about `--mcp-config` with `-p` (similar to `cli-reference.md`): waits for pending servers, cached tool list status, requires v2.1.221+.
+        *   *Theme*: Refining behavior documentation for non-interactive mode (`-p`) and MCP connection timing.
+
+    *   **`mcp.md`**:
+        *   *Change 1*: Added a new paragraph about &#34;cached&#34; status. Explains that remote (HTTP/SSE) servers can show &#34;cached [time] ago · connects on first use · [count] tools&#34;. Means tool list is loaded from cache, server connects on first tool use. Can be disabled via `MCP_DISCOVERY_CACHE=0`. Requires v2.1.221+.
+        *   *Change 2*: Updated &#34;Automatic lifecycle&#34; section. Mentions that at startup, remote plugin servers can also show `cached` status and connect on first use.
+        *   *Change 3*: Updated `alwaysLoad` section. Clarifies that setting `alwaysLoad: true` blocks startup until connection (unless cached). Remote servers with cached entries supply tools without connecting, so they don&#39;t block startup.
+        *   *Theme*: Introduction of &#34;Discovery Cache&#34; for remote MCP servers to improve startup performance.
+
+    *   **`sub-agents.md`**:
+        *   *Change 1*: Updated a note about &#34;inline server definitions&#34;. Added a sentence about remote servers potentially showing `cached` status and connecting on first use, similar to the other files.
+        *   *Theme*: Consistency in documenting the &#34;cached&#34; status feature for remote servers.
+
+3.  **Synthesize Key Themes**:
+    *   **MCP Discovery Cache (v2.1.221+)**: The core change is the introduction of a caching mechanism for remote MCP server tool lists. This optimizes startup times by connecting servers only when needed (&#34;lazy loading&#34;) if the tool list is cached.
+    *   **Non-interactive Mode (`-p`) Behavior**: Specifics on how `-p` interacts with MCP config (waits for servers, handles cached lists) and CLI option compatibility (rejects `--bg`/`--cloud`).
+    *   **Startup Latency Optimization**: The caching and &#34;connect on first use&#34; mechanism is explicitly designed to reduce startup delays.
+
+4.  **Assess Impact**:
+    *   *Level*: **Medium**.
+    *   *Reasoning*: This is a performance/behavior optimization rather than a breaking API change (though version requirement v2.1.221+ is mentioned). Developers relying on MCP servers will see faster startups, but might need to know about the &#34;cached&#34; state if they debug connection issues. It changes the timing of when tools become available (immediately via cache, but connection might be delayed).
+
+5.  **Draft Action Items**:
+    *   Verify version compatibility (requires v2.1.221+).
+    *   Consider disabling the cache (`MCP_DISCOVERY_CACHE=0`) if you need immediate connections for all servers.
+    *   Update scripts if they rely on immediate connection of *all* MCP servers at startup (especially with `-p`), though the text says it waits up to 30s for pending ones.
+    *   Review `alwaysLoad` behavior changes regarding startup blocking.
+
+6.  **Format the Output (in Chinese)**:
+
+    *   *Summary*: Documentation updates highlight the new MCP Discovery Cache feature (v2.1.221+) which optimizes startup performance by lazy-loading remote servers and clarifies CLI behavior in print mode.
+    *   *Themes*:
+        *   MCP Server Caching: Remote servers can now load tool lists from cache (&#34;cached&#34; status) and connect on first use to speed up startup.
+        *   CLI Print Mode (`-p`): Clarifies that `-p` waits for MCP servers (up to timeout) and rejects conflicting flags (`--bg`, `--cloud`).
+        *   Performance Optimization: `alwaysLoad` behavior refined to respect cached states, reducing startup blocking.
+    *   *Impact*: Medium. Improves startup speed but requires understanding the new &#34;cached&#34; status and potential lazy connection behavior.
+    *   *Action Items*:
+        *   Check for Claude Code v2.1.221+ to leverage the new MCP caching behavior.
+        *   Set `MCP_DISCOVERY_CACHE=0` if you require all servers to connect immediately at startup.
+        *   Update documentation/training materials regarding the `/mcp` panel&#39;s new `cached` status indicators.
+        *   Be aware of the 30-second `MCP_TIMEOUT` default when using `--mcp-config` with `-p`.
+
+7.  **Refine Language**: Ensure professional &#34;programmer-to-programmer&#34; tone in Chinese. Use terms like &#34;懒加载&#34; (lazy load), &#34;启动延迟&#34; (startup latency), &#34;MCP 服务器&#34;.
+
+    *   *Refinement on Theme 1*: Use &#34;MCP 发现缓存&#34;.
+    *   *Refinement on Action Items*: Be specific about the env var.
+
+8.  **Final Polish**: Check against the prompt constraints (markdown, concise, insightful, Chinese).
+
+    *(Self-Correction during drafting)*: The prompt asks for &#34;Impact level&#34; with reasoning. The reasoning needs to be specific. The action items need to be max 5.
+
+    *Drafting the content*:
+    **Summary**: 本次文档更新重点介绍了 v2.1.221 版本引入的 **MCP 发现缓存**功能，旨在优化远程服务器的启动性能，并明确了在非交互模式（`-p`）下的 CLI 行为与限制。
+
+    **Key Themes**:
+    *   **MCP 发现缓存机制**: 远程 MCP 服务器现在会缓存工具列表（显示为 `cached` 状态），仅在首次调用工具时才建立连接，从而显著减少启动延迟。
+    *   **非交互模式优化**: 明确了 `-p` 模式下 `--mcp-config` 的行为，系统会等待服务器连接（最多 30 秒），但若服务器有缓存则跳过等待；同时澄清了 `--bg` 和 `--cloud` 与 `-p` 不兼容。
+    *   **启动阻塞逻辑**: 优化了 `alwaysLoad` 的行为，具有缓存条目的远程服务器不再阻塞启动。
+
+    **Impact Level**: **Medium**。
+    *Reasoning*: 这是一项重大的性能优化，改变了服务器的连接时机。虽然默认行为提升了速度，但开发者需要理解新的“cached”状态，以便在排查连接问题时不会困惑。
+
+    **Action Items**:
+    *   升级至 **Claude Code v2.1.221** 以利用 MCP 缓存带来的启动加速。
+    *   若需要强制所有服务器在启动时立即连接，请设置环境变量 `MCP_DISCOVERY_CACHE=0`。
+    *   在使用 `claude -p` 配合 `--mcp-config` 时，注意默认的 30 秒 `MCP_TIMEOUT` 启动等待行为。
+    *   排查 MCP 问题时，留意 `/mcp` 面板中的 `cached` 状态信息。
+
+9.  **Final Output Generation**. (Matches the drafted content).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/cli-reference.html" class="page-link">cli-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/headless.html" class="page-link">headless.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
+        
+    </div>
+</body>
+</html>
