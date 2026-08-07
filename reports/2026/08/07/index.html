@@ -118,9 +118,139 @@
 
         <header>
             <h1>Changes on 2026-08-07</h1>
-            <p class="meta">17 total changes in 2 runs</p>
+            <p class="meta">20 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">11:50 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更分析
+
+## 总体摘要
+本次更新大幅增强了沙盒环境下的凭证处理能力，特别是针对 AWS 签名请求和结构化凭证值（如 JWT、连接字符串）提供了更精细的控制，同时新增了远程控制对话框超时设置。
+
+## 关键主题
+
+- **增强的凭证掩码功能**：新增 `extract` 字段支持正则提取部分替换，`decode: &#34;jwt&#34;` 支持 JWT 令牌的结构化替换，使工具在沙盒内仍能解析这些凭证
+- **AWS 凭证重新签名改进**：通过 `credentials.awsPairs` 支持自定义变量名的 AWS 凭证组合，新增 `credentials.sigv4` 处理流式上传、预签名 URL 等无法重新签名的场景
+- **远程控制体验优化**：新增 `dialogExpiry` 设置，控制远程客户端对话框的超时时间（如安全拒绝后的模型选择提示）
+- **文档修正**：Web Search 工具文档中的链接文本修正为 &#34;Rate limits&#34;
+
+## 影响级别：**中等**
+- 理由：新增的凭证掩码功能解决了实际痛点（如处理 `DATABASE_URL` 和 JWT），极大提升了沙盒环境的可用性，但需要升级到 v2.1.224 才能使用。AWS 凭证处理的改进对 AWS 用户非常有价值。
+
+## 开发者行动项
+
+- 升级到 Claude Code v2.1.224 以使用新的掩码字段（`extract`、`decode`）和 AWS 凭证组合功能
+- 如果使用非标准变量名存储 AWS 凭证，配置 `credentials.awsPairs` 以启用自动重新签名
+- 对于包含签名且无法重新签名的 AWS 请求（如流式上传、预签名 URL），考虑配置 `credentials.sigv4` 为 `passthrough` 以获取 AWS 的原生错误响应
+- 需要精细控制 JWT 令牌时，使用 `maskClaims` 只屏蔽特定声明而非整个令牌
+- 远程控制场景下，根据需求调整 `dialogExpiry` 设置或使用环境变量 `CLAUDE_CODE_USER_DIALOG_TIMEOUT_MS`</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">用户希望我分析三个文档页面的更改，并用中文提供简洁、深刻的分析。让我逐一检查这些更改：
+
+## Page 1: sandboxing.md | +31 / -4
+
+主要更改：
+1. 重组了关于 AWS 请求重新签名的内容，将其移动到一个新的子部分&#34;Re-sign AWS requests&#34;。
+2. 添加了新的掩码功能：
+   - `extract`：正则表达式，用于替换结构化值中的部分内容（如 `DATABASE_URL` 连接字符串）
+   - `onExtractNoMatch`：控制当模式不匹配时的行为（warn/deny/error）
+   - `decode: &#34;jwt&#34;`：处理 JWT 令牌，用结构有效的假令牌替换
+   - `maskClaims`：可以单独屏蔽 JWT 的特定声明
+3. 添加了 `credentials.awsPairs` 设置，允许将自定义命名的 AWS 凭据变量分组进行重新签名
+4. 添加了 `credentials.sigv4` 设置，用于处理无法重新签名的 AWS 请求形式
+5. 添加了关于 `extract` 功能在 Linux/WSL2 上用于 `hosts.yml` 的说明
+
+这些更改都要求 Claude Code v2.1.224 或更高版本。
+
+## Page 2: settings.md | +46 / -37
+
+主要更改：
+1. 添加了 `dialogExpiry` 设置（默认 &#34;5m&#34;），控制对话框的超时时间，例如安全拒绝后的模型选择提示。
+   - 可接受的值：&#34;60s&#34;, &#34;5m&#34;, &#34;10m&#34;, &#34;never&#34;
+   - 可以通过 `CLAUDE_CODE_USER_DIALOG_TIMEOUT_MS` 环境变量覆盖
+   - 仅从用户、管理和 `--settings` 源读取
+   - 要求 Claude Code v2.1.224 或更高版本
+
+这是一个相对小的添加，主要影响远程控制或 SDK 主机的交互体验。
+
+## Page 3: agents-and-tools/tool-use/web-search-tool.md | +1 / -1
+
+主要更改：
+1. 将链接文本从 &#34;Limits&#34; 改为 &#34;Rate limits&#34;，链接目标保持不变
+   - 这是一个微小的文字更正，可能是为了更准确地反映页面名称
+
+## 总结
+
+这些更改主要集中在：
+1. **增强的安全沙盒功能**：更灵活的环境变量掩码和 AWS 凭证处理
+2. **远程控制体验改进**：对话框超时设置
+3. **文档修正**：微小的链接文本更正
+
+这些更改对开发者的影响主要是正面的，提供了更多的配置选项和更精细的控制，特别是对于那些需要在沙盒环境中处理敏感凭证的开发者。
+
+让我按要求用中文撰写分析报告。</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sandboxing.html" class="page-link">sandboxing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+31</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+46</span>
+                            <span class="removed">-37</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/web-search-tool.html" class="page-link">agents-and-tools/tool-use/web-search-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">03:05 EST</div>
