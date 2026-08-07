@@ -118,9 +118,110 @@
 
         <header>
             <h1>Changes on 2026-08-07</h1>
-            <p class="meta">39 total changes in 7 runs</p>
+            <p class="meta">40 total changes in 8 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">16:34 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">1. **Overall Summary**
+文档更新了 WebFetch 域名安全检查的缓存行为描述，明确区分了“通过检查”与“被阻止/失败”的主机名处理逻辑，以提升系统的容错能力。
+
+2. **Key Themes**
+*   **细化的缓存策略**：不再笼统地缓存所有结果，而是仅对通过检查的主机名缓存 5 分钟。
+*   **增强的鲁棒性**：对于被阻止或检查失败的主机名，系统会在下一次请求时重新检查，而不是沿用 5 分钟的失败缓存，从而避免了因临时网络问题导致的长时间访问受限。
+
+3. **Impact level**
+**Low**
+*   **Reasoning**: 这是一个后台逻辑的优化和文档澄清，旨在改善工具的稳定性和用户体验。开发者无需修改代码或配置，也不涉及 API 的破坏性变更。
+
+4. **Action items for developers**
+*   在排查 WebFetch 访问被拒的问题时，需知晓“被阻止”的状态是暂时的，下一次请求会触发重新检查，不必等待缓存自动过期。
+*   无需进行任何代码或配置层面的更改。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer/developer tools expert.
+    *   **Task:** Analyze documentation changes for `data-usage.md`.
+    *   **Format:** Markdown, single batch analysis, Chinese response.
+    *   **Structure:**
+        1.  Overall Summary (1-2 sentences).
+        2.  Key Themes (bullets).
+        3.  Impact Level (Low/Medium/High/Breaking) with reasoning.
+        4.  Action Items (max 5 bullets).
+
+2.  **Analyze the Diff (`data-usage.md`):**
+    *   *Context:* The section describes the &#34;WebFetch domain safety check&#34; where the tool sends the hostname to `api.anthropic.com` to check against a blocklist.
+    *   *Old Text:* &#34;Results are cached per hostname for five minutes.&#34;
+    *   *New Text:* &#34;Claude Code caches a hostname that passes the check for five minutes, and re-checks a blocked or failed hostname on the next request.&#34;
+    *   *Change Specifics:* The change refines the caching behavior. Instead of a blanket &#34;results are cached,&#34; it specifies that *passing* hostnames are cached, but *blocked or failed* ones are re-checked.
+
+3.  **Synthesize the Analysis:**
+
+    *   **Overall Summary:** The documentation update clarifies the caching logic for the WebFetch domain safety check, specifically distinguishing between how passed and blocked/failed hostnames are handled during the five-minute window.
+
+    *   **Key Themes:**
+        *   *Refined Caching Logic:* The behavior is no longer binary (cache everything); it&#39;s conditional based on the result (pass vs. fail).
+        *   *Robustness:* Re-checking failed/blocked hosts prevents temporary network issues or stale blocklist entries from permanently blocking a domain for the user within that 5-minute window.
+
+    *   **Impact Level:** **Low**.
+        *   *Reasoning:* This is a behavioral improvement/clarification under the hood. Developers don&#39;t need to change code. It improves the reliability of the tool (WebFetch) when dealing with temporary failures or dynamic blocklist updates. It makes the system more robust.
+
+    *   **Action Items:**
+        *   *Knowledge Update:* Be aware that if a WebFetch fails due to a safety check, it might succeed immediately on retry without waiting 5 minutes (unlike a successful check which *does* wait).
+        *   *Troubleshooting:* Keep in mind that &#34;blocked&#34; status is not persistently cached, so transient errors won&#39;t linger as long as before.
+
+4.  **Drafting the Response (in Chinese):**
+
+    *   *Summary:* 更新了 WebFetch 域名安全检查的缓存机制描述，明确区分了“通过检查”与“被阻止/失败”的主机名处理逻辑。
+    *   *Themes:* 增强了安全检查的鲁棒性，细化了缓存策略。
+    *   *Impact:* Low. (Reason: It&#39;s a backend logic improvement for better resilience, no code changes required).
+    *   *Action Items:* None strictly required, but good to know for debugging.
+
+5.  **Refining the Output (Self-Correction during drafting):**
+    *   Make sure to emphasize *why* this matters: temporary failures won&#39;t be &#34;stuck&#34; for 5 minutes.
+    *   Ensure the distinction is clear: Pass = 5 min cache. Fail = Immediate retry (no cache).
+
+6.  **Final Polish (Markdown &amp; Chinese):**
+
+    *   **Overall Summary**: 文档更新了 WebFetch 域名安全检查的缓存行为，明确了只有通过检查的主机名才会被缓存 5 分钟，而被阻止或失败的主机名会在下一次请求时重新检查。
+    *   **Key Themes**:
+        *   **细化的缓存策略**: 从“结果缓存”变为基于状态的缓存（通过缓存，失败重试）。
+        *   **系统鲁棒性**: 防止因临时网络错误或动态拦截列表变化导致的长时间（5分钟）无法访问合法域名。
+    *   **Impact Level**: **Low** (Reason: 这是一个后台行为的优化，旨在提升工具的稳定性和容错能力，开发者无需更改现有代码或配置)。
+    *   **Action Items**:
+        *   了解 WebFetch 在遇到安全检查失败时的重试逻辑已发生变化，无需手动等待缓存过期。
+        *   在排查网络请求问题时，注意被拦截的域名状态并非固定不变，系统会自动重新验证。</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/data-usage.html" class="page-link">data-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">15:48 EST</div>
