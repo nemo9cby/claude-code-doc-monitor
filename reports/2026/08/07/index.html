@@ -118,9 +118,192 @@
 
         <header>
             <h1>Changes on 2026-08-07</h1>
-            <p class="meta">12 total changes in 1 run</p>
+            <p class="meta">17 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">03:05 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">```markdown
+## 整体摘要
+
+本次文档更新主要引入了通过 HTTPS ZIP 归档文件分发插件的新能力，并重构了插件版本解析逻辑以支持这一新来源，同时增强了对 MCP 服务器加载行为及 Marketplace 配置选项的说明。
+
+## 核心主题
+
+*   **新增 ZIP 归档插件源 (`archive`)**：现在允许直接通过 HTTPS URL 下载 ZIP 文件来安装插件，不再强制要求用户本地安装 Git 或 npm。该来源支持通过 `sha256` 校验和进行版本锁定。
+*   **版本解析逻辑通用化**：文档将版本回退机制从“仅限 Git Commit SHA”更新为更通用的“下一级来源”，明确纳入了归档文件的 SHA-256 摘要作为版本标识。
+*   **Marketplace 托管灵活性提升**：增加了对 `url` 类型 Marketplace 的明确支持（支持带认证头的直接 JSON 链接），并明确了在不同分发场景下（如 URL 分发、组织同步）允许的插件源类型。
+*   **MCP 服务器安全提示澄清**：细化了在非交互模式（如 CLI `-p`、Agent SDK、Cloud 会话）下处理项目级 MCP 服务器的规则，并提供了完全排除项目设置的配置方法。
+
+## 影响程度：中等
+
+此次更新属于功能增强而非破坏性变更。引入 `archive` 源显著简化了插件的分发流程（尤其是对于静态资源或工件仓库），但对现有工作流无侵入性。对 MCP 行为的澄清消除了潜在的安全误解。
+
+## 开发者行动项
+
+*   **评估 ZIP 分发方式**：如果你维护插件，可以考虑使用 ZIP 归档 (`archive` source) 替代 Git 或 npm 进行分发，特别是面向不需要这些工具的最终用户时。
+*   **检查企业级限制**：如果你的插件通过组织设置分发，请注意 `archive` 和 `npm` 源目前不受组织同步支持，仍需使用 Git 源或相对路径。
+*   **利用新的 Marketplace 配置**：在配置 Marketplace 时，现在可以显式使用 `url` 类型，并利用 `headers` 进行私有库的认证访问。
+*   **更新 MCP 安全配置**：如果你在 Agent SDK 或云会话中使用 MCP，请确保了解服务器自动加载的行为，并根据需要使用 `disabledMcpjsonServers` 或 `settingSources` 进行严格控制。
+```</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">**1. Analyze the Request:**
+*   **Role:** World-class programmer analyzing documentation changes.
+*   **Format:** Markdown, concise, insightful.
+*   **Language:** Chinese (as requested in the prompt: &#34;请用中文回复&#34;).
+*   **Task:** Analyze a batch of 5 documentation changes.
+*   **Input:** 5 specific diffs (mcp.md, plugin-marketplaces.md, plugins.md, plugins-reference.md, settings.md).
+*   **Output Sections:** Overall Summary, Key Themes, Impact Level, Action Items.
+
+**2. Process Each Page:**
+
+*   **Page 1: `mcp.md` (+1/-1)**
+    *   *Change:* Updated the text explaining the security prompt for project-scoped servers.
+    *   *Detail:* Added explicit mention that `claude -p`, Agent SDK, and cloud sessions load servers *without* asking. Added instructions on how to block servers using `disabledMcpjsonServers` or exclude project settings entirely via `settingSources`.
+    *   *Implication:* Better clarity on security prompts in non-interactive modes. New method to exclude settings entirely.
+
+*   **Page 2: `plugin-marketplaces.md` (+34/-8)**
+    *   *Change:* Introduced `archive` source type (Zip archive) for plugins.
+    *   *Detail:* Added table entry for `archive` source (`url`, `sha256?`). Updated organization sync constraints (npm and archive sources are not supported there). Updated relative paths note to include `archive`. Added a large block of text (truncated in diff, likely table documentation for the new source).
+    *   *Implication:* New way to distribute plugins (simple HTTPS zip files).
+
+*   **Page 3: `plugins.md` (+7/-7)**
+    *   *Change:* Updated versioning description.
+    *   *Detail:* Changed text from &#34;commit SHA is used&#34; to &#34;version comes from the next source in version management&#34;.
+    *   *Implication:* Generalizing version resolution to support the new `archive` source (which uses SHA-256) and removing the hard dependency on git SHA for versioning fallbacks.
+
+*   **Page 4: `plugins-reference.md` (+9/-7)**
+    *   *Change:* Updated `plugin.json` schema table for `version` field and &#34;Version management&#34; section.
+    *   *Detail:* Changed version fallback description from &#34;git commit SHA&#34; to &#34;next source in version management&#34;.
+    *   *Major Change:* Expanded &#34;Version management&#34; section to include `archive` sources (SHA-256 digest). Added &#34;Digest version&#34; to the comparison table.
+    *   *Implication:* Formalizing the `archive` source versioning mechanism.
+
+*   **Page 5: `settings.md` (+2/-1)**
+    *   *Change:* Updated marketplace source types list and URL-based marketplace note.
+    *   *Detail:* Added `url` as a distinct marketplace source type (direct link to `marketplace.json` with optional headers). Updated the note for URL-based marketplaces to explicitly allow `archive` sources (previously listed GitHub, npm, git URL).
+    *   *Implication:* Flexibility in hosting marketplaces and plugins.
+
+**3. Synthesize Themes:**
+
+*   **Theme 1: Plugin Distribution via Zip Archives.** The biggest feature addition is the `archive` source type. This allows distributing plugins as zips over HTTPS, removing the dependency on Git or npm for the end-user.
+*   **Theme 2: Flexible Versioning.** The documentation shifts from a Git-centric view (commit SHA) to a more generic &#34;fallback chain&#34; view, now explicitly including SHA-256 digests for zip files.
+*   **Theme 3: Marketplace &amp; Hosting Options.** Improvements in how marketplaces are defined (URL source with headers) and how plugins within them are sourced (adding `archive` to the list of allowed non-relative sources).
+*   **Theme 4: MCP Security Clarity.** Minor clarification on how non-interactive sessions handle project MCP servers.
+
+**4. Determine Impact:**
+
+*   *Impact:* **Medium**.
+*   *Reasoning:* The addition of `archive` sources is a significant new capability that expands distribution options without breaking existing workflows. It simplifies distribution for teams that don&#39;t use Git/npm for artifacts. The text changes are mostly clarifications or support for this new feature.
+
+**5. Draft Action Items (in Chinese):**
+
+*   Explore using Zip archives for plugin distribution if Git/npm is overkill.
+*   Update marketplace documentation if using relative paths or URL-based marketplaces.
+*   Review MCP settings if strict control over server loading is needed in headless/cloud modes.
+
+**6. Draft the Response (in Chinese):**
+
+*   *Summary:* Focus on the introduction of Zip archive plugin sources and the generalization of versioning logic.
+*   *Themes:* New `archive` source, Versioning fallbacks, Marketplace flexibility, MCP security.
+*   *Impact:* Medium.
+*   *Action Items:* Specific steps for devs.
+
+**(Self-Correction/Refinement during drafting):**
+*   Make sure to mention `sha256` pinning for the `archive` type, as that&#39;s crucial for security/stability.
+*   Note that `archive` sources are *not* supported in Organization sync (Enterprise settings), which is an important constraint for enterprise developers.
+*   Ensure the tone is professional (&#34;world-class programmer&#34;).
+
+**Final Output Generation (Mental Draft -&gt; Final Markdown):**
+
+*   *Summary:* 主要变化是引入了通过 HTTPS ZIP 归档文件分发插件的能力，并完善了版本控制逻辑的描述。
+*   *Themes:* 1. 新增 `archive` 插件源. 2. 版本解析机制通用化. 3. 市场 配置灵活性. 4. MCP 安全提示澄清.
+*   *Impact:* Medium. New feature adds flexibility without breaking changes.
+*   *Action Items:* Try archive sources for distribution. Check Enterprise sync constraints. Review MCP config for headless modes.
+
+Let&#39;s translate and polish.
+
+*   *Theme 1:* 新增 ZIP 归档源 (`archive`)：允许通过 HTTPS 下载 ZIP 文件作为插件源，无需依赖 Git 或 npm。
+*   *Theme 2:* 版本管理逻辑更新：版本解析不再局限于 Git SHA，现在包含 ZIP 的 SHA-256 摘要。
+*   *Theme 3:* 市场 源类型扩展：明确支持通过直接 URL 指向 `marketplace.json`，并支持认证头。
+*   *Theme 4:* MCP 服务器安全：澄清了在非交互模式（如 Agent SDK、云会话）下加载 MCP 服务器的行为。
+
+Looks good. Proceeding to generate output.</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugin-marketplaces.html" class="page-link">plugin-marketplaces.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+34</span>
+                            <span class="removed">-8</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins.html" class="page-link">plugins.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            <span class="removed">-7</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+9</span>
+                            <span class="removed">-7</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">01:35 EST</div>
