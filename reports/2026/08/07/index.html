@@ -118,9 +118,173 @@
 
         <header>
             <h1>Changes on 2026-08-07</h1>
-            <p class="meta">43 total changes in 9 runs</p>
+            <p class="meta">47 total changes in 10 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">18:28 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 整体摘要
+本次文档更新主要明确了 `DirectoryAdded` Hook 的异步非阻塞行为，大幅增强了 MCP 服务器配置的诊断能力与状态可见性，并收紧了自托管云环境 ID 的配置权限以提升安全性。
+
+### 关键变更主题
+
+*   **Hooks 执行模型调整**：明确 `DirectoryAdded` Hook 在后台异步运行，不再阻塞目录添加操作，且细化了触发条件（排除了权限标签页、启动参数等场景）。
+*   **MCP 可观测性与诊断增强**：新增了 Stream JSON 中的错误报告字段，CLI 和 UI 现在能显示更详细的服务器状态（如 `cached`、具体的 HTTP 错误码），并加强了对配置错误（如空白字符、保留名称）的警告。
+*   **配置安全边界**：限制了 `remote.defaultEnvironmentId` 中自托管环境 ID（`ccpool_...`）的作用域，禁止在项目级配置中强制指定自托管环境，防止潜在的安全风险。
+
+### 影响等级
+**Medium (中等)**
+
+**理由**：
+虽然这些主要是文档澄清和新功能说明，但 `DirectoryAdded` 变为异步执行可能改变现有脚本的预期行为（影响依赖同步安装依赖的工作流）。MCP 错误报告的改进对调试体验有显著正面影响，而对自托管环境配置的限制则是重要的安全策略更新。
+
+### 开发者行动项
+
+*   **检查 Hook 逻辑**：审查现有的 `DirectoryAdded` Hook 代码，确保其能适应**后台异步运行**且不阻塞主线程的模式，避免依赖同步执行结果。
+*   **排查 MCP 连接**：利用新增的 `mcp_server_errors` 字段（在 `system/init` 中）及 CLI 提供的详细错误信息来调试服务器连接失败的问题。
+*   **清理 MCP 配置**：检查 `.mcp.json` 或相关配置，移除隐藏的空白字符，避免使用保留的服务器名称（如 `workspace`, `Claude Browser`），并正确处理空 URL 的占位符。
+*   **调整云环境设置**：若使用自托管环境（`ccpool_...`），请将其配置从项目/本地设置移至用户设置或托管设置中，以符合新的安全约束。
+*   **更新 CI/CD 脚本**：如果依赖 `/add-dir` 后立即使用依赖，需添加等待逻辑，因为 Hook 现在是后台执行的。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer/developer tools expert.
+    *   **Task:** Analyze 4 documentation changes as a single batch.
+    *   **Output:** Concise, insightful analysis in markdown format.
+    *   **Language:** Chinese (as requested: &#34;请用中文回复&#34;).
+    *   **Structure:**
+        1.  Overall Summary (1-2 sentences).
+        2.  Key Themes (bullets).
+        3.  Impact Level (Low/Medium/High/Breaking) + reasoning.
+        4.  Action Items (bullets, max 5).
+
+2.  **Analyze the Content (Diff by Diff):**
+
+    *   **Page 1: `hooks.md` (DirectoryAdded)**
+        *   *Change:* Expanded documentation for the `DirectoryAdded` hook.
+        *   *Details:*
+            *   Clarified when the hook *doesn&#39;t* fire: startup flag `--add-dir` (already handled by `SessionStart`), adding via `/permissions` tab, adding a duplicate directory.
+            *   Clarified when it *does* fire: mid-session via `/add-dir` or SDK `register_repo_root`.
+            *   Clarified execution: Runs after sandbox/permission refresh. Hooks run unsandboxed.
+            *   *Crucial change:* &#34;Claude Code doesn&#39;t wait for the hook: the add completes immediately, and the hook runs in the background with the 600-second default timeout.&#34;
+        *   *Theme:* Clarifying hook behavior and async execution.
+
+    *   **Page 2: `hooks-guide.md` (DirectoryAdded matcher)**
+        *   *Change:* Added `DirectoryAdded` to the table of events with matcher data.
+        *   *Details:* Lists `slash_command` and `register_repo_root` as the matcher values.
+        *   *Theme:* Complementary data for the Page 1 change.
+
+    *   **Page 3: `mcp.md` (MCP Server Configuration and Status)**
+        *   *Change:* Significant updates to MCP server handling, error reporting, and status display.
+        *   *Details:*
+            *   JSON config error (`url` but no `type`) now reported in `system/init` event&#39;s `mcp_server_errors` (v2.1.219+).
+            *   &#34;Server status&#34; section expanded.
+            *   &#34;Project server approvals and workspace trust&#34; section expanded.
+            *   &#34;Server status detail&#34; section added: `cached` status explained, failure details (HTTP code, error text) now shown in CLI and UI, empty `url` handling (`not configured` vs error).
+            *   &#34;Configuration warnings&#34; section added: whitespace warnings, reserved server names (`workspace`, `claude-in-chrome`, `computer-use`, `Claude Preview`, `Claude Browser`).
+            *   &#34;Tool availability&#34; section moved/refined.
+        *   *Theme:* Better observability, debugging, and configuration safety for MCP servers.
+
+    *   **Page 4: `settings.md` (remote.defaultEnvironmentId)**
+        *   *Change:* Updated description for `remote.defaultEnvironmentId`.
+        *   *Details:* Anthropic-hosted IDs (`env_...`) follow standard precedence (project settings override user). Self-hosted IDs (`ccpool_...`) are *ignored* in project/local settings (security feature), only honored from user/managed settings to prevent repo hijacking.
+        *   *Theme:* Security hardening around cloud environment selection.
+
+3.  **Synthesize and Structure (in Chinese):**
+
+    *   **Overall Summary:** 本次更新主要细化了 Hooks 的异步执行行为、增强了 MCP 服务器的配置错误诊断与状态可见性，并收紧了关于自托管云环境的设置优先级以提升安全性。
+    *   **Key Themes:**
+        *   *Hooks 行为澄清：* 明确 `DirectoryAdded` 的触发条件（排除权限面板、启动参数等），并重点指出该 Hook 是**后台异步运行**且不阻塞目录添加操作。
+        *   *MCP 可观测性增强：* 改进了 MCP 服务器的错误报告机制（Stream JSON `mcp_server_errors` 字段），增加了详细的状态显示（如 `cached`、具体的错误码）、空 URL 处理以及配置警告（如保留名称、空白字符）。
+        *   *配置安全性：* 限制了 `remote.defaultEnvironmentId` 中自托管环境 ID（`ccpool_...`）的作用域，防止项目配置强制用户使用特定的自托管环境，防止供应链攻击。
+
+    *   **Impact Level:** Medium.
+        *   *Reasoning:* 虽然不是破坏性变更（Breaking change），但 `DirectoryAdded` 的异步行为变化对依赖其同步执行的开发者有显著影响。MCP 诊断工具的改进直接影响调试体验。自托管环境的配置限制是重要的安全实践变更。
+
+    *   **Action Items:**
+        *   检查 `DirectoryAdded` Hook 逻辑，确保其能正确处理后台异步执行（不再阻塞主流程）。
+        *   利用新增的 MCP 服务器诊断详情（错误码、`mcp_server_errors`）来排查连接问题。
+        *   避免在项目配置文件中使用保留的 MCP 服务器名称（如 `workspace`, `Claude Browser`）。
+        *   清理 MCP 配置中可能存在的隐藏空格或空 URL 占位符。
+        *   如果使用自托管云环境，请确保 `ccpool_...` ID 仅在用户/托管设置中配置，而非项目设置中。
+
+4.  **Drafting the Response (Iterative refinement for tone and clarity):**
+
+    *   *Self-Correction on Hooks:* The docs say &#34;doesn&#39;t wait for the hook&#34;. This is the biggest &#34;gotcha&#34;. Developers might think adding a dir waits for deps to install, but it doesn&#39;t.
+    *   *Self-Correction on MCP:* The whitespace warning and reserved names are nice-to-know, but the error reporting is the most actionable &#34;tooling&#34; improvement.
+    *   *Self-Correction on Settings:* The restriction on self-hosted environments in project files is a specific security boundary.
+
+5.  **Final Polish (translating to professional Chinese technical terms):**
+    *   &#34;Sandboxed&#34; -&gt; 沙箱环境
+    *   &#34;Async&#34; -&gt; 异步
+    *   &#34;Reserved names&#34; -&gt; 保留名称
+    *   &#34;Self-hosted&#34; -&gt; 自托管
+
+6.  **Final Output Generation** (Proceed to generate the markdown block).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+14</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">17:33 EST</div>
