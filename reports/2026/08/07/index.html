@@ -118,9 +118,219 @@
 
         <header>
             <h1>Changes on 2026-08-07</h1>
-            <p class="meta">33 total changes in 6 runs</p>
+            <p class="meta">39 total changes in 7 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">15:48 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">1. **总体摘要**
+本次文档更新主要引入了 **“跨会话消息传递”** 功能，允许 Claude Code 的不同会话之间进行通信。文档详细说明了该功能的配置方法、安全限制、对 Token 成本的影响，以及它与沙箱、Dev Containers 和子代理等现有组件的交互方式。
+
+2. **关键主题**
+*   **新功能：跨会话通信机制**
+    *   引入了 `crossSessionInbound` 设置，允许开发者控制如何接收来自其他会话的消息（`accept` 接受、`hold` 暂存、`refuse` 拒绝）。
+    *   `SendMessage` 工具现在支持向本机或其他机器上的其他会话发送消息，而不仅仅是子代理或 Agent Teams。
+*   **成本与性能影响**
+    *   明确指出跨会话消息会发送完整的对话上下文，类似于计划任务，会产生显著的 Token 消耗。
+*   **安全与权限模型更新**
+    *   即使在 `bypassPermissions`（绕过权限）模式下，涉及跨机器消息（`isolatePeerMachines`）的审批仍然强制生效，增强了安全性。
+    *   细化了“子代理”、“跨会话消息”和“Agent Teams”在通信场景下的区别。
+*   **环境兼容性细化**
+    *   **Dev Containers**: 环境变量 `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` 现在也会禁用跨会话消息传递功能。
+    *   **WSL2 沙箱**: 调整了沙箱中调用 Windows 二进制文件的行为（如 `cmd.exe`），现在明确该行为取决于 Unix socket 的设置（`allowAllUnixSockets` 或 `seccomp` 过滤器）。
+
+3. **影响级别**
+**Medium**
+*   **理由**: 这是一个主要的增量功能更新，引入了新的会话交互能力。虽然不破坏现有代码，但改变了会话间的通信模型和成本结构，且对安全配置和容器环境有特定影响，开发者需要了解这些新行为。
+
+4. **开发者行动项**
+*   **审查配置**: 如果不希望会话间互相干扰，请检查并设置 `crossSessionInbound` 为 `&#34;hold&#34;` 或 `&#34;refuse&#34;`。
+*   **监控成本**: 注意跨会话消息会消耗大量 Token（发送完整上下文），长时间运行的会话尤其要注意。
+*   **检查容器环境**: 如果在 Dev Container 中使用了 `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC`，请注意这将无法使用新的跨会话消息功能。
+*   **更新安全策略**: 认识到 `bypassPermissions` 模式下，跨机器通信仍需审批，需据此调整自动化脚本或 CI/CD 流程。
+*   **WSL2 用户**: 如果在 WSL2 中使用沙箱并需要调用 Windows 程序，需根据新的 Unix socket 规则调整沙箱配置。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Task:** Analyze a batch of 6 documentation pages (`costs.md`, `desktop.md`, `devcontainer.md`, `sandboxing.md`, `settings.md`, `sub-agents.md`).
+    *   **Output:** Concise, insightful analysis in markdown format, Chinese response.
+    *   **Structure:** 1. Overall Summary, 2. Key Themes, 3. Impact Level, 4. Action Items.
+
+2.  **Analyze the Diffs:**
+
+    *   **`costs.md`**:
+        *   *Change:* Added a bullet point under &#34;Long context&#34; about &#34;Cross-session messages&#34;.
+        *   *Detail:* Delivering messages from another session sends the full context each time. To hold messages, set `crossSessionInbound` to `hold`.
+        *   *Implication:* New feature (Cross-session messaging) impacts token usage/costs.
+
+    *   **`desktop.md`**:
+        *   *Change:* The diff is truncated in the prompt, but looking at `desktop.md` vs others, it seems to show table changes. Wait, the diff is empty or very truncated in the prompt display?
+        *   *Correction:* Let me re-read the `desktop.md` diff carefully. It shows a table structure but the content inside the diff block seems to be cut off or empty compared to `settings.md` which is visible.
+        *   *Observation:* The prompt&#39;s `desktop.md` diff shows table headers changing from `Behavior` to a long separator line but doesn&#39;t explicitly show the content change like the others. However, given the other changes (especially `settings.md` adding `crossSessionInbound`), it&#39;s likely related to permission modes or settings updates, but I must rely on what&#39;s explicitly visible. *Wait*, looking closer at the `desktop.md` diff, it shows `+` lines are just the table separator. It seems like a formatting change or perhaps a placeholder for the previous content. *Actually*, looking at the other diffs, they all heavily reference &#34;cross-session messaging&#34;. It&#39;s highly probable `desktop.md` updated the &#34;Bypass permissions&#34; mode description to include cross-session messaging safeguards, similar to `sandboxing.md`. However, based *strictly* on the provided text, the visible change is mostly formatting (the table separator line got longer/changed characters). I will note this cautiously, but the main story is elsewhere.
+
+    *   **`devcontainer.md`**:
+        *   *Change:* Updated the note about `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC`.
+        *   *Detail:* Previously only disabled &#34;Remote Control&#34;. Now also disables &#34;cross-session messaging&#34;.
+        *   *Implication:* If you use dev containers, you need to be aware that this env var blocks the new messaging feature.
+
+    *   **`sandboxing.md`**:
+        *   *Change 1:* WSL2 notes. Previously said sandbox blocks Windows binaries. Now says it depends on Unix-socket settings. If seccomp is installed, socket is blocked. To allow, use `allowAllUnixSockets`. To keep out, use `excludedCommands`.
+        *   *Change 2:* Comparison table for `/sandbox` vs permission modes. In the `--dangerously-skip-permissions` row, added a new item to the list of things that *still* prompt: &#34;and the [cross-session messaging safeguards]...&#34;.
+        *   *Implication:* WSL2 handling is now more precise. Cross-session messaging has safety safeguards that persist even in bypass mode.
+
+    *   **`settings.md`**:
+        *   *Change:* Added a new setting `crossSessionInbound`.
+        *   *Detail:* Controls how inbound messages from other sessions are treated (`&#34;accept&#34;`, `&#34;hold&#34;`, `&#34;refuse&#34;`). Default behavior involves decision logic based on trusted sources. Priority: managed -&gt; flag -&gt; user -&gt; project/local (if stricter). Requires v2.1.224 or later.
+        *   *Implication:* This is the core configuration for the new feature.
+
+    *   **`sub-agents.md`**:
+        *   *Change 1:* Note block updated. Changed &#34;For sessions that communicate with each other&#34; to &#34;For separate sessions that pass messages to each other, see [cross-session messaging]&#34;. Distinguishes between subagents (internal), cross-session (external), and agent teams (coordinated).
+        *   *Change 2:* Background subagent tool filter section. Added mention that [`ListAgents`] (from cross-session messaging) is filtered like a built-in tool (kept in foreground, removed in background).
+        *   *Change 3:* Warning block for `bypassPermissions`. Added &#34;The [`isolatePeerMachines`](/docs/en/settings#available-settings) approval for messages beyond this machine&#34; to the list of things that still prompt even in bypass mode.
+        *   *Change 4:* `SendMessage` tool description. Added clarification that it can now message other sessions (on this machine or beyond it) when cross-session messaging is enabled.
+
+3.  **Synthesize the Findings:**
+
+    *   **Core Feature:** The introduction and documentation of **Cross-Session Messaging** (跨会话消息传递).
+    *   **Details:** It allows sessions to send messages to each other. It has settings (`crossSessionInbound`). It costs tokens (full context sent). It interacts with existing security mechanisms (bypass permissions, sandboxing, dev containers). It interacts with subagents (`ListAgents` tool, `SendMessage` scope).
+    *   **WSL2 Update:** A refinement on how sandboxing interacts with WSL2 and Windows binaries (related to Unix sockets).
+    *   **Safety/Safeguards:** Cross-session messaging has specific safeguards that are hard to bypass (even with `bypassPermissions`).
+
+4.  **Drafting the Response (in Chinese):**
+
+    *   *Overall Summary:* Claude Code 引入了“跨会话消息传递”功能，允许不同会话之间进行通信。文档更新主要涵盖了此功能的配置、成本影响、安全限制以及与现有工具（如子代理、沙箱、Dev Containers）的集成。
+
+    *   *Key Themes:*
+        *   **新功能：跨会话通信:** 允许会话互相发送消息，增加了 `crossSessionInbound` 设置来控制接收行为（接受、暂存、拒绝）。
+        *   **成本与性能提醒:** 跨会话消息发送会携带完整的上下文，会导致 Token 消耗，并在 `costs.md` 中特别注明。
+        *   **安全边界增强:** 即使在 `bypassPermissions` 模式下，跨会话消息传递（特别是涉及 `isolatePeerMachines` 的消息）仍需要审批。WSL2 沙箱对 Windows 二进制文件的处理逻辑更加精确（基于 Unix socket 设置）。
+        *   **工具与子代理集成:** 更新了 `SendMessage` 的范围，明确了 `ListAgents` 在后台子代理中的工具过滤规则，并细化了不同代理模式（子代理 vs Agent Teams vs 跨会话）的区别。
+
+    *   *Impact Level:* **High** (or Medium-High). This is a significant feature addition (messaging between sessions) that changes how sessions interact, introduces new settings, and hardens security around bypass modes. It affects billing behavior (token usage) and environment configuration (dev containers).
+        *   *Reasoning:* It&#39;s not just a doc update; it&#39;s the rollout documentation for a major feature that changes the interaction model of the tool.
+
+    *   *Action Items:*
+        *   Review new `crossSessionInbound` setting to manage inbound message behavior.
+        *   Be aware of token costs associated with cross-session messaging due to full context transmission.
+        *   Check Dev Container configurations if `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` is used, as it now blocks this new feature.
+        *   Note that WSL2 sandboxing behavior for Windows binaries has been updated regarding Unix socket access.
+        *   Understand that certain security prompts persist even in bypass mode for cross-peer machine communication.
+
+5.  **Refining the content:**
+
+    *   *Desktop.md:* I should acknowledge the diff there. It seems to be a formatting update to the table, likely consistent with the broader updates, but the specific text isn&#39;t visible. I will focus on the clearly defined changes in the other files.
+    *   *WSL2:* The change here is actually quite technical. It moves from &#34;sandbox blocks it&#34; to &#34;it depends on the seccomp filter/socket settings&#34;. This is a behavior change/refinement.
+    *   *Terminologies:* Translate &#34;Cross-session messaging&#34; to &#34;跨会话消息传递&#34;. &#34;Context window&#34; to &#34;上下文窗口&#34;. &#34;Bypass permissions&#34; to &#34;绕过权限模式&#34;.
+
+6.  **Final Polish (Markdown):** Ensure the structure matches the prompt requirements.
+
+    *   *Summary:* New feature introduction.
+    *   *Themes:* Feature implementation, Cost implication, Security/Permissions, Environment compatibility.
+    *   *Impact:* Medium/High. It&#39;s a new capability.
+    *   *Action Items:* Settings, Cost awareness, Dev Container check, Safety check.
+
+    *(Self-Correction during drafting)*: The prompt asks for concise analysis.
+    *   Impact: I&#39;ll go with **Medium**. It&#39;s a new feature, but existing code continues to work. It&#39;s additive unless you rely on specific WSL2 behaviors (which got more precise).
+    *   Action Items: Keep them practical. &#34;Review settings&#34;, &#34;Monitor costs&#34;.
+
+7.  **Final Output Generation:** (Proceed to generate Chinese response based on these points).
+
+    *   Check `desktop.md` diff again. The diff shows the table definition line changing `| Behavior...` to a long line of dashes. It&#39;s purely formatting. I will ignore it for the summary content as it adds no semantic value compared to the other rich diffs.
+
+    *   Check `sub-agents.md`. The clarification about `SendMessage` and `ListAgents` is important for developers building agents or using advanced subagent features.
+
+    *   Check `sandboxing.md`. The WSL2 note is significant for Windows users.
+
+    *   Check `devcontainer.md`. The env var side-effect is important for container users.
+
+    *   Let&#39;s assemble.</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/costs.html" class="page-link">costs.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/desktop.html" class="page-link">desktop.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+10</span>
+                            <span class="removed">-10</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/devcontainer.html" class="page-link">devcontainer.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sandboxing.html" class="page-link">sandboxing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+10</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">14:46 EST</div>
