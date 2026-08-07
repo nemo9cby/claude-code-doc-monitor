@@ -118,9 +118,284 @@
 
         <header>
             <h1>Changes on 2026-08-07</h1>
-            <p class="meta">47 total changes in 10 runs</p>
+            <p class="meta">57 total changes in 11 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">19:28 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">**Overall Summary**
+本次更新主要优化了成本控制机制与命令行交互体验（尤其是历史记录与粘贴内容的处理），同时对 MCP 配置、模型策略及技能文档进行了清理与澄清。
+
+**Key Themes**
+*   **成本控制优化**：新增环境变量 `ENABLE_PROMPT_CACHING_1H` 以在使用额度时保持 1 小时缓存寿命；明确 Headless 模式下的 JSON 成本数据仅为客户端估算值。
+*   **交互体验增强**：命令历史现在支持跨会话访问（基于项目），并详细说明了粘贴大段内容后的缓存与重发机制。
+*   **配置文档清理**：移除了 MCP 配置中的旧版作用域别名（如 `global`），规范了技能与子代理的模型覆盖逻辑说明。
+*   **技术细节澄清**：修正了 OAuth 错误处理的描述，删除了关于 MCP 服务器优势的冗余文本。
+
+**Impact Level**
+**Medium**
+*   **Reasoning**：虽然大部分为文档修正，但引入了影响成本的新环境变量，且命令历史行为的变更（跨会话保留及粘贴内容的缓存逻辑）会直接改变开发者的日常操作习惯，属于重要的体验升级。
+
+**Action Items**
+*   若在使用使用额度时希望延长缓存时间以节省成本，设置环境变量 `ENABLE_PROMPT_CACHING_1H=1`。
+*   在编写自动化脚本解析 `--output-format json` 时，应注意 `total_cost_usd` 为估算值，而非精确账单。
+*   了解命令历史的新行为：跨会话共享，且回顾包含粘贴内容的 Prompt 时会重新发送该内容（若未过期）。
+*   检查并更新 MCP 配置脚本，将旧版的 `global` 作用域更新为 `user`，将 `project` 明确为共享配置。
+*   审查技能配置：如果技能配置了模型覆盖且运行在子代理中，需注意其现在遵循子代理的模型回退逻辑。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Task:** Analyze a batch of 10 changed pages from Claude Code documentation.
+    *   **Format:** Markdown. Concise, insightful. Focus on developer impact.
+    *   **Language:** Chinese.
+    *   **Structure:**
+        1.  Overall Summary (1-2 sentences).
+        2.  Key Themes (bullets).
+        3.  Impact Level (Low/Medium/High/Breaking) with reasoning.
+        4.  Action Items for Developers (max 5 bullets).
+
+2.  **Analyze the Individual Diffs:**
+
+    *   **Page: `costs.md`**
+        *   *Change:* Added info about environment variable `ENABLE_PROMPT_CACHING_1H=1` to maintain 1-hour cache lifetime even when using usage credits.
+        *   *Impact:* Cost optimization.
+
+    *   **Page: `headless.md`**
+        *   *Change:* Added a disclaimer that `total_cost_usd` in JSON output is a &#34;client-side estimate&#34; and might differ from the actual bill.
+        *   *Impact:* Accuracy/Expectation management for scripts.
+
+    *   **Page: `interactive-mode.md`**
+        *   *Change:* Clarified command history behavior. It now persists across sessions within the same project. Added details about recalling prompts with pasted text (it re-sends full content if cached, handles cleanup gracefully).
+        *   *Impact:* UX improvement, history management.
+
+    *   **Page: `mcp.md`**
+        *   *Change:*
+            *   Clarified scope flags (`local` vs `project`, `user` vs `global`) - removed &#34;Older versions called this...&#34; references.
+            *   Simplified &#34;Viewing plugin MCP servers&#34; section (condensed).
+            *   Removed &#34;Benefits of plugin MCP servers&#34; section (redundant).
+            *   Clarified OAuth error handling (401/403 logic).
+            *   Removed a tip about &#34;The server provides access to Claude&#39;s tools...&#34;
+            *   Removed usage examples for `MAX_MCP_OUTPUT_TOKENS`.
+        *   *Impact:* Documentation cleanup, clarity, removal of deprecated references.
+
+    *   **Page: `model-config.md`**
+        *   *Change:* Clarified behavior when a skill/command overrides a blocked model. If a skill runs in a subagent, it follows subagent behavior instead of session behavior.
+        *   *Impact:* Policy/Security/Model selection logic clarity.
+
+    *   **Page: `settings.md`**
+        *   *Change:* The diff shows a large chunk of the table but cuts off. It seems to be a formatting or table structure update, though the specific change isn&#39;t fully visible in the provided text snippet (it ends at `allowedChannelPlugins`). Wait, looking closer at the snippet: `| :--------------------------------- | :---...` It seems like a table formatting fix or potentially a content update, but without the &#34;after&#34; state fully visible or a clear side-by-side of specific rows changing content, it&#39;s hard to pinpoint *what* changed besides potential alignment or whitespace, or perhaps the start of the table.
+        *   *Self-Correction:* The diff shows `+132 / -132`. This suggests a formatting change (e.g., markdown table syntax adjustment) or a reordering. Since I can&#39;t see the full content change, I will treat it as documentation structure/formatting refinement unless I see a specific field changing. *Wait*, looking at the snippet provided: it cuts off at `allowedChannelPlugins` in the &#34;after&#34; state. It looks like it&#39;s just rendering the table definition. It might be a &#34;rewrap&#34; or &#34;table format&#34; change. Let&#39;s look at the file stats again. `+132 / -132`. This strongly suggests a formatting change (e.g., column width adjustment) rather than new content. I will note this as formatting/refinement.
+
+    *   **Page: `skills.md` and `slash-commands.md` (Identical diffs)**
+        *   *Change:* Updated note about `.claude/commands/` vs Skills. Removed sentence about &#34;Your SKILL.md can contain anything...&#34;.
+        *   *Impact:* Clarity on legacy support.
+
+    *   **Page: `sub-agents.md`**
+        *   *Change:* Removed a sentence stating Claude Code includes built-in subagents like Explore/Plan (or moved it elsewhere/changed context). The &#34;Built-in subagents&#34; header is still there.
+        *   *Impact:* Minor text cleanup.
+
+    *   **Page: `terminal-config.md`**
+        *   *Change:* Added detailed explanation of how large pastes are handled in command history. They are cached in `~/.claude/paste-cache/`. Explains behavior when cache is cleaned up (removes placeholder vs cancelling submission depending on context).
+        *   *Impact:* Understanding history/cache behavior for large inputs.
+
+3.  **Synthesize Key Themes:**
+    *   **Cost &amp; Usage Tracking:** Better tools for cost control (env var) and clearer billing expectations (client-side estimates).
+    *   **Command History &amp; UX:** Improved history persistence across sessions and better handling of large pasted content in history.
+    *   **MCP &amp; Configuration:** Cleanup of deprecated terminology, clarifying scopes, and refining OAuth error handling details.
+    *   **Model/Policy Logic:** Clarifying edge cases in model selection and overrides (skills vs subagents).
+    *   **Documentation Hygiene:** Removing redundant text, updating notes, and formatting consistency (settings table).
+
+4.  **Determine Impact Level:**
+    *   *Reasoning:* Most changes are clarifications, documentation cleanup, or minor UX enhancements. The `ENABLE_PROMPT_CACHING_1H` env var is a specific utility. The history changes affect daily usage but aren&#39;t breaking. The billing disclaimer is important for accurate expectations. No &#34;Breaking&#34; changes (API breaks, forced migrations) are evident.
+    *   *Verdict:* **Low to Medium**. I&#39;ll lean towards **Medium** because the cost/env var is useful for power users and the history changes modify core interactive behavior.
+
+5.  **Draft Action Items:**
+    *   Use `ENABLE_PROMPT_CACHING_1H=1` if using usage credits but want long cache life.
+    *   Be aware that JSON cost output is an estimate.
+    *   Understand that command history now persists across project sessions.
+    *   Check Skills/Command docs for updated frontmatter/structure info if maintaining legacy commands.
+
+6.  **Draft the Response (in Chinese):**
+
+    *   *Summary:* 本次更新主要集中在成本控制优化、交互模式体验提升（特别是命令历史记录的持久化与粘贴内容处理）、以及配置文档的清理与澄清。
+    *   *Themes:*
+        *   成本优化：引入新环境变量延长缓存寿命，明确计费估算的属性。
+        *   交互增强：命令历史跨会话保留，粘贴大文件在历史记录中的缓存机制得到完善。
+        *   文档清理：移除过时的 MCP 术语引用，修正表格格式，阐明模型选择策略的边缘情况。
+    *   *Impact:* Medium. (Reasoning: 涉及核心交互行为的改进和成本相关的实用功能，虽然无破坏性变更，但对开发者日常使用有实际影响。)
+    *   *Action Items:*
+        *   设置 `ENABLE_PROMPT_CACHING_1H=1` 以在使用使用额度时保持 1 小时缓存时长。
+        *   注意 `headless` 模式下的 JSON 返回成本仅为客户端估算值。
+        *   了解历史记录现在跨项目会话保留且回忆时会重新发送粘贴内容。
+        *   审阅 MCP 配置中的 `local` 与 `project` 作用域定义变化。
+
+7.  **Refine:** Make it concise and &#34;world-class programmer&#34; tone. Professional, direct.
+
+    *   *Refinement on `settings.md`:* The diff is massive but seems to be mostly formatting or a table dump. I shouldn&#39;t over-analyze specific rows since I can&#39;t see the &#34;before&#34; fully, just treat it as general formatting.
+    *   *Refinement on `terminal-config.md`:* The paste cache behavior is a specific implementation detail that users might encounter. Worth noting.
+
+8.  **Final Polish (Chinese):**
+
+    **Overall Summary**
+    本次更新优化了成本控制与历史记录体验，并清理了大量技术文档中的过时引用与格式问题。
+
+    **Key Themes**
+    *   **成本与计费优化**：新增环境变量以在消耗额外额度时保留长缓存，明确 JSON 输出中的成本仅为估算值。
+    *   **交互体验增强**：命令历史现在跨会话保留，且优化了大型粘贴内容在历史记录中的缓存与清理逻辑。
+    *   **配置与策略澄清**：移除了 MCP 配置中的旧版术语（如 `global`），澄清了技能与子代理中的模型覆盖策略。
+    *   **文档卫生**：统一了技能与命令的描述文本，规范化了设置表格的格式。
+
+    **Impact Level**
+    **Medium**
+    *   **Reasoning**：虽然主要是文档和体验改进，但新增的环境变量（影响成本）和历史记录行为的变更（影响日常操作）对活跃开发者有实质性帮助，且需要适应新的交互逻辑（如粘贴内容的重新发送机制）。
+
+    **Action Items**
+    *   若在使用使用额度（Usage Credits）时希望保持 1 小时缓存寿命，请设置环境变量 `ENABLE_PROMPT_CACHING_1H=1`。
+    *   在编写脚本解析 `--output-format json` 的成本时，请注意这是客户端估算值，可能与账单有出入。
+    *   了解命令历史现在跨会话保留，且回顾包含大段粘贴内容的 Prompt 时，系统会重新发送该内容。
+    *   更新 MCP 配置知识：作用域 `local`（仅当前项目）与 `project`（项目共享）的定义已明确，旧版别名引用已移除。
+    *   检查技能配置：若在技能中指定了模型覆盖，需注意当技能运行在子代理中时，其行为逻辑与直接在会话中运行不同。
+
+9.  **Final check against constraints:**
+    *   Markdown format? Yes.
+    *   Concise? Yes.
+    *   Chinese? Yes.
+    *   4 specific sections? Yes.
+
+    (Self-correction: The `settings.md` diff is large but inconclusive without seeing the *content* change clearly, just the table structure start. I will assume formatting/cleanup. The `costs.md` change is the most functional &#34;feature&#34; add.)
+
+    Ready to generate output.</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/costs.html" class="page-link">costs.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/headless.html" class="page-link">headless.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/interactive-mode.html" class="page-link">interactive-mode.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-15</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/model-config.html" class="page-link">model-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+132</span>
+                            <span class="removed">-132</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+23</span>
+                            <span class="removed">-24</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+23</span>
+                            <span class="removed">-24</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/terminal-config.html" class="page-link">terminal-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">18:28 EST</div>
