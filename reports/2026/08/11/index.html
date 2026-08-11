@@ -118,9 +118,165 @@
 
         <header>
             <h1>Changes on 2026-08-11</h1>
-            <p class="meta">51 total changes in 8 runs</p>
+            <p class="meta">54 total changes in 9 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">18:35 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 总体概述
+
+文档新增了关于技能和斜杠命令中“注入命令”的详细执行机制、错误处理及权限检查说明，并明确了 Worktree 环境下 Bash 命令的安全隔离验证规则。
+
+### 关键主题
+
+*   **执行环境透明化**：详细解释了 `shell` frontmatter 配置与系统环境如何共同决定使用 Bash 还是 PowerShell 工具，以及两者如何继承工作目录、处理 stderr 和超时（默认 2 分钟）。
+*   **严格的错误终止策略**：明确指出注入命令中的任何单个命令失败（默认非零退出码）都将导致**整个技能调用中止**，Claude 将无法看到该技能的任何内容。
+*   **权限行为变更**：注入命令不会触发交互式权限提示。如果权限检查返回非“允许”结果（包括通常询问的规则），调用将直接中止。
+*   **隔离机制收紧**：在 Worktree 中，Bash 命令现在不仅会被检查是否重定向 git，还会因为“形状过于复杂导致无法验证其停留在 Worktree 内”而被拒绝。
+
+### 影响级别
+
+**High**
+
+**理由**：
+1.  **破坏性错误处理**：如果开发者的技能中包含可能返回非零退出码的命令（如检查脚本），以前可能被忽略，现在会导致整个技能直接失败。
+2.  **权限交互消除**：依赖用户在运行时授权的技能现在将静默失败，要求必须使用 `allowed-tools` 进行预授权。
+3.  **Worktree 兼容性**：Worktree 中使用的复杂 Bash 命令可能会因为无法通过形状验证而被新规则拒绝。
+
+### 开发者行动项
+
+*   **适配退出码处理**：对所有可能返回非零退出码但不应中断技能的命令（如检查命令 `grep`、`diff` 之外的自定义脚本），追加 `|| true`。
+*   **预批准工具权限**：在技能 frontmatter 的 `allowed-tools` 中明确声明所需的工具，以避免因权限检查导致静默中止。
+*   **使用路径变量**：使用 `${CLAUDE_SKILL_DIR}` 或 `${CLAUDE_PROJECT_DIR}` 替代相对路径，确保当 shell 当前目录变化时命令仍能正确解析。
+*   **审查复杂 Bash 命令**：检查在 Worktree 中运行的脚本，避免使用结构过于复杂或难以静态分析是否“越界”的命令。
+*   **理解超时机制**：了解注入命令的 2 分钟超时限制，以及长时间运行的任务被移至后台时的输出捕获行为。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Understand the Goal**: The user wants a concise, insightful analysis of specific documentation changes (Claude Code docs). The output needs to be in Markdown, in Chinese, and cover specific sections: Overall Summary, Key Themes, Impact Level, and Action Items.
+
+2.  **Analyze the Input**:
+    *   **Page 1: `skills.md`**: Added a new section &#34;How injected commands run&#34; explaining shell selection (bash vs. PowerShell), working directory behavior, stderr merging, timeouts, backgrounding behavior, and output limits. Also added &#34;When an injected command fails&#34; explaining failure scenarios, exit code handling (carveouts for grep, etc.), and permission checking (pre-approval needed for non-allow outcomes).
+    *   **Page 2: `slash-commands.md`**: *Identical* diff to `skills.md`. It seems slash commands and skills share this mechanism for injecting commands.
+    *   **Page 3: `sub-agents.md`**: Updated the worktree isolation section for Bash commands. It now explicitly mentions two checks: blocking git redirects and refusing &#34;shapes&#34; that can&#39;t be verified to stay inside the worktree. Previously it implied &#34;too-complex-to-check&#34; rules but the phrasing is more explicit now.
+
+3.  **Synthesize Themes**:
+    *   **Transparency in Execution**: The docs now explain *how* things run (shell selection, environment).
+    *   **Error Handling &amp; Robustness**: Clearer rules on failure conditions (exit codes, timeouts, permissions).
+    *   **Security &amp; Isolation**: Stricter definitions of what is allowed in worktrees (command shape verification).
+    *   **Cross-Platform Support**: Detailed explanation of the interplay between Bash and PowerShell.
+
+4.  **Determine Impact**:
+    *   **Impact Level**: High to Medium. Why? Because this affects how developers write skills and slash commands. Understanding the abort behavior (one command fails = whole skill fails) and permission requirements (no prompts, aborts immediately) is crucial for creating robust tools. The worktree change might break previously &#34;too complex&#34; commands that relied on silent execution or implicit safety.
+    *   *Correction*: The `sub-agents.md` change is about *refusal* of unverified shapes. If a developer had a complex command working in a worktree, it might now be blocked. That&#39;s a potential breaking behavior for edge cases. The skills/slash-commands change clarifies that permissions abort immediately instead of prompting, which is a behavioral change in the user experience (UX) of using skills.
+
+5.  **Draft Action Items (Mental Draft)**:
+    *   Review skills using injected commands.
+    *   Add `|| true` to commands where non-zero exit is expected.
+    *   Pre-approve tools if commands are sensitive.
+    *   Use env vars for paths instead of relying on current working directory.
+    *   Check worktree commands for complexity.
+
+6.  **Translate and Format (Chinese)**:
+
+    *   *Summary*: Documentation added details on command injection behavior (shell selection, errors, permissions) and refined worktree isolation rules.
+    *   *Themes*: Execution behavior transparency, Error handling, Security/Isolation.
+    *   *Impact*: High/Borderline Breaking (Permission changes change workflow, Worktree changes might block commands). Let&#39;s stick to &#34;High&#34; because of the permission abort change.
+    *   *Action Items*:
+        *   Add `|| true` for commands allowed to fail.
+        *   Use `allowed-tools` for permissions.
+        *   Use absolute env vars for paths.
+        *   Review complex bash commands in worktrees.
+
+7.  **Refining the Output**:
+
+    *   *Overall Summary*: 文档新增了关于技能和斜杠命令中注入命令的执行机制、错误处理及权限检查的详细说明，并明确了 Worktree 中 Bash 命令的隔离规则。
+    *   *Key Themes*:
+        *   **执行环境明确化**：详细解释了 Bash 与 PowerShell 工具的选择逻辑及环境变量继承。
+        *   **错误与中断机制**：明确了注入命令失败将导致整个技能中断，以及 Exit Code 的特殊处理。
+        *   **权限安全强化**：注入命令不再提示权限确认，而是直接中断或需预批准。
+        *   **隔离策略更新**：Worktree 现在会拒绝无法验证形状的复杂 Bash 命令。
+    *   *Impact*: **High**. Reason: 明确了“任何非零退出码都会导致中断”以及“权限检查失败直接中止”的行为，这对现有技能的稳定性有重大影响。Worktree 的检查变严也可能导致部分复杂命令被拒绝。
+    *   *Action Items*:
+        *   检查技能中的注入命令，对预期的非零退出码命令添加 `|| true`。
+        *   使用 `allowed-tools` 预批准需要特殊权限的命令。
+        *   使用 `${CLAUDE_SKILL_DIR}` 等环境变量替代相对路径，以确保路径解析稳定。
+        *   审查 Worktree 中使用的复杂 Bash 命令，确保其能通过形状验证。
+
+8.  **Final Review**: Does this capture the essence for a &#34;world-class programmer&#34;? Yes, it focuses on the &#34;gotchas&#34; (exit codes, silent aborts, path resolution) rather than just listing the text.
+
+    *Self-Correction on &#34;Impact&#34;*: While the docs say &#34;inject commands never prompt&#34;, this might have been the behavior before but undocumented. However, the `sub-agents.md` change about &#34;refusing command shape&#34; implies a *new* or *stricter* refusal mechanism (&#34;refuses a command whose shape it can&#39;t verify&#34;). This definitely increases the impact to High for edge cases. The skills/slash-commands doc adds crucial context that explains *why* a skill might fail silently or abruptly.
+
+    Let&#39;s finalize the text.
+
+    *Summary*: 文档新增了技能和斜杠命令中注入命令的详细执行逻辑、错误处理机制及权限检查说明，同时加强了 Worktree 环境下 Bash 命令的安全隔离规则。
+
+    *Themes*:
+    - **执行透明化**：明确了 Bash/PowerShell 的选择逻辑、工作目录继承、超时及输出处理。
+    - **错误与终止策略**：强调了单命令失败即终止整个技能调用的严格规则，以及 Exit Code 的特殊豁免情况。
+    - **权限与交互变更**：注入命令不再触发交互式权限确认，需预批准或直接中止。
+    - **隔离机制收紧**：Worktree 中无法验证安全性的复杂 Bash 命令现将被拒绝。
+
+    *Impact*: **High**. Reasoning: 确认了严格的错误终止机制（任意非零退出码即失败）和权限行为变更（无提示直接中止）。Worktree 中对“无法验证形状”命令的拒绝可能会破坏现有的复杂脚本。
+
+    *Action Items*:
+    - **适配退出码处理**：对所有可能返回非零退出码（如检查脚本）的注入命令追加 `|| true`，防止技能意外中断。
+    - **预批准权限**：在技能 frontmatter 中使用 `allowed-tools` 显式授权，避免因权限检查导致静默失败。
+    - **使用绝对路径变量**：利用 `${CLAUDE_SKILL_DIR}` 或 `${CLAUDE_PROJECT_DIR}` 代替相对路径，确保在不同工作目录下命令执行一致。
+    - **审查复杂脚本**：检查 Worktree 中运行的 Bash 命令，避免使用因过于复杂而被拒绝的命令结构。
+    - **关注超时与后台任务**：了解注入命令的 2 分钟超时限制及后台任务处理逻辑，防止长时间运行的任务被误判为失败。</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+20</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+20</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">17:39 EST</div>
