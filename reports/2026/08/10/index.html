@@ -118,9 +118,150 @@
 
         <header>
             <h1>Changes on 2026-08-10</h1>
-            <p class="meta">10 total changes in 5 runs</p>
+            <p class="meta">13 total changes in 6 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">21:15 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 1. Overall Summary
+此次文档变更主要明确了 `Notification` Hooks 的触发逻辑，新增了基于用户“活跃状态”的防抖机制（Idle Detection），并增加了针对 MCP 服务器的 `elicitation_url_dialog` 事件类型。
+
+### 2. Key Themes across pages
+*   **智能通知防扰:** 明确了通知事件并非立即触发。例如，`permission_prompt` 和 `elicitation_dialog` 现在仅在用户未输入约 6 秒后才触发，而 `idle_prompt` 需等待约 60 秒。这意味着如果你正在积极输入，不会收到干扰性通知。
+*   **新增 MCP 事件支持:** 在 `Notification` 事件匹配列表中新增了 `elicitation_url_dialog`，用于捕获 MCP 服务器请求打开浏览器 URL 的场景。
+*   **文档精确化与交叉引用:** 三个页面均更新了对通知触发时机的描述，并添加了指向详细定义的链接，以消除歧义。
+
+### 3. Impact level: **Medium**
+**Reasoning:** 虽然 Hook 的 API 接口本身没有发生破坏性变更，但**行为发生了重要改变**。开发者如果依赖 Hooks 进行即时响应（例如在 Claude 等待批准时立即通过脚本介入），会发现现在存在约 6 秒的延迟。这改变了用户与工具交互的即时性预期。
+
+### 4. Action items for developers
+*   **审查现有的 Notification Hooks:** 如果你的脚本依赖 `permission_prompt` 等事件的即时触发，请注意现在会有约 6 秒的延迟（等待用户停止输入）。
+*   **更新 Matchers 配置:** 如需处理 MCP 服务器的浏览器 URL 请求，请在 Hook 配置中添加对 `elicitation_url_dialog` 的监听。
+*   **查阅详细时序:** 参考 `hooks.md` 中的表格，了解不同通知类型的确切等待时间（6秒 vs 60秒），以便调整通知策略。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Output Format:** Markdown, concise, insightful, Chinese language.
+    *   **Scope:** 3 changed pages (`hooks.md`, `hooks-guide.md`, `terminal-config.md`).
+    *   **Goal:** Summarize changes and explain why they matter to developers.
+
+2.  **Analyze the Input Data (Diffs):**
+
+    *   **Page 1: `hooks.md`**
+        *   *Change:* The table listing event types and matcher values was updated.
+        *   *Specifics:* The row for the `Notification` event.
+        *   *Old:* &#34;notification type&#34; with values like `permission_prompt`, `idle_prompt`, `auth_success`, `elicitation_dialog`, etc.
+        *   *New:* &#34;notification type&#34; with values `permission_prompt`, `idle_prompt`, `auth_success`, `elicitation_dialog`, `elicitation_url_dialog`, `elicitation_complete`, `elicitation_response`, `agent_needs_input`, `agent_completed`.
+        *   *Observation:* Added `elicitation_url_dialog` and `agent_needs_input`, `agent_completed`. *Wait, looking closer at `hooks-guide.md` might clarify if the *values* changed or if it&#39;s just a formatting sync.* Let&#39;s look at the `hooks-guide.md` diff for the semantic change first.
+
+    *   **Page 2: `hooks-guide.md`**
+        *   *Change 1 (Notification Hook Example):* Added a sentence: &#34;See [when each notification type fires](/docs/en/hooks#notification) for the exact timing.&#34; This suggests the timing logic is now better documented elsewhere, emphasizing specific behavior.
+        *   *Change 2 (Matcher Table for Notification):*
+            *   Old: `permission_prompt` -&gt; &#34;Claude needs you to approve a tool use&#34;.
+            *   New: `permission_prompt` -&gt; &#34;Claude needs you to approve a tool use **and you haven&#39;t typed for about 6 seconds**&#34;.
+            *   Old: `idle_prompt` -&gt; &#34;Claude is done and waiting for your next prompt&#34;.
+            *   New: `idle_prompt` -&gt; &#34;Claude finished responding about 60 seconds ago **and you haven&#39;t typed since**&#34;.
+            *   New row: `elicitation_url_dialog` -&gt; &#34;An MCP server asks you to open a browser URL and you haven&#39;t typed for about 6 seconds&#34;.
+        *   *Change 3 (Event/Matcher Table at bottom):*
+            *   Added `elicitation_url_dialog` to the `Notification` row values.
+            *   Added `agent_needs_input` and `agent_completed` to the `Notification` row values.
+
+    *   **Page 3: `terminal-config.md`**
+        *   *Change:* Text description of when notifications fire.
+        *   Old: &#34;When Claude finishes a task or pauses for a permission prompt, it fires a notification event.&#34;
+        *   New: &#34;When Claude finishes a task or pauses for a permission prompt, **and you appear to be away from the terminal**, it fires a notification event. See [when each notification type fires](/docs/en/hooks#notification) for the exact timing.&#34;
+
+3.  **Synthesize the Findings:**
+
+    *   **Core Theme:** The behavior of `Notification` events has been refined to be smarter—specifically, they now have a &#34;presence detection&#34; (idle time) mechanism to avoid spamming the user if they are actively working in the terminal.
+    *   **Specific Changes:**
+        *   Added logic: Notifications only fire if the user hasn&#39;t typed for a specific duration (e.g., 6 seconds for prompts, 60 seconds for idle).
+        *   New event type: `elicitation_url_dialog` added for MCP URL prompts.
+        *   Documentation clarification: Cross-referenced the exact timing conditions across all three pages.
+
+4.  **Drafting the Response (Internal Monologue/Drafting in Chinese):**
+
+    *   *Overall Summary:* Documentation updated to clarify that `Notification` hooks now have idle-timeout conditions (anti-spam) and added a new MCP event type.
+    *   *Key Themes:*
+        *   **Smart Notification Logic:** Notifications aren&#39;t immediate anymore; they wait to see if the user is &#34;away&#34; (idle for ~6s or ~60s). This is a UX improvement.
+        *   **New MCP Feature:** Added support for `elicitation_url_dialog`.
+        *   **Documentation Refinement:** Better cross-linking and clearer definitions of *when* events fire.
+    *   *Impact Level:* Medium. It&#39;s not a breaking API change, but it changes the *behavior* of existing hooks (they might fire less often or later than expected). Developers relying on immediate notifications might be confused if they don&#39;t read the docs.
+    *   *Action Items:*
+        *   Review notification hooks if you relied on immediate firing (it&#39;s now delayed by idle time).
+        *   Update custom hooks to handle the new `elicitation_url_dialog` if relevant.
+        *   Check the updated `hooks.md` table for the full list of notification matchers.
+
+5.  **Refining the Output (Polishing the Chinese):**
+
+    *   *Summary:* 文档主要更新了 `Notification` 事件的行为描述，明确了触发通知的“闲置检测”机制（即仅在用户看起来离开终端时才触发），并新增了 MCP 服务器的 URL 对话框事件。
+    *   *Themes:*
+        *   **智能通知防扰:** `permission_prompt` 和 `idle_prompt` 等事件现在增加了“约 6 秒”或“约 60 秒”的防抖逻辑，仅在用户未输入时触发。
+        *   **新增 MCP 事件类型:** 引入了 `elicitation_url_dialog`，用于处理 MCP 服务器请求打开浏览器 URL 的场景。
+        *   **文档精确化:** 跨页统一了事件触发时机的描述，并添加了指向详细定义的链接。
+    *   *Impact:* Medium. (Behavior change, not syntax change).
+    *   *Action Items:* Check hooks relying on immediate notifications. Add support for new URL dialog event if needed.
+
+6.  **Final Review against constraints:**
+    *   Format: Markdown? Yes.
+    *   Language: Chinese? Yes.
+    *   Concise/Insightful? Yes.
+
+7.  **Final Output Generation** (Proceed to generate response based on step 5).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+36</span>
+                            <span class="removed">-30</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+31</span>
+                            <span class="removed">-30</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/terminal-config.html" class="page-link">terminal-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">19:29 EST</div>
