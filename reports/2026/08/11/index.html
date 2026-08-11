@@ -118,9 +118,207 @@
 
         <header>
             <h1>Changes on 2026-08-11</h1>
-            <p class="meta">46 total changes in 7 runs</p>
+            <p class="meta">51 total changes in 8 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">17:39 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">```markdown
+# 文档变更分析
+
+## Overall Summary
+本次文档更新主要解决了配置与行为的模糊地带：明确了 Hook 在非交互模式（如 SDK 或 `-p` 标志）下的限制，将沙箱文件系统中复杂的通配符处理逻辑（特别是 Linux/WSL2 上的行为差异）统一迁移至设置文档，并补充了自托管网关的支出限制说明。
+
+## Key Themes
+
+*   **沙箱规则集中化与平台差异**：将关于 Glob 模式（通配符）的详细处理逻辑从 `sandboxing.md` 移至 `settings.md`。关键点在于明确了在 Linux/WSL2 上，`allowWrite` 和 `denyWrite` **不支持**通配符（如 `*`, `?`），条目会被跳过，而在 macOS 上则有效。
+*   **Hook 行为边界明确**：修正了 Hooks 的输出行为，特别是 `terminalSequence` 仅在交互式会话中生效，在非交互模式（Agent SDK 或 `-p`）下会被忽略。同时澄清了 Exit Code 2 与 JSON 输出混用时的具体阻断逻辑。
+*   **客户端配置体验区分**：细化了终端版与桌面版在修改配置（如 Output Style）时的行为差异，桌面版 `/config` 将打开 UI 而非菜单。
+*   **网关限制支持**：新增了对 &#34;Claude apps gateway&#34; 支出上限错误信息的排查指引。
+
+## Impact Level: Medium
+
+**理由：** 虽然大部分内容为文档梳理，但对 Linux/WSL2 用户及 Hook 开发者有实质影响。
+1.  **高影响点**：Linux 用户如果在沙箱 `allowWrite` 配置中使用了通配符，以前可能未生效（静默失败），现在文档明确指出会被跳过，需要修正配置。
+2.  **中等影响点**：依赖 Hooks 发送桌面通知的开发者需要知晓该功能在 SDK 环境下不可用。
+
+## Action Items for Developers
+
+*   **审查 Linux 沙箱配置**：如果您在 Linux/WSL2 环境下的 `sandbox.filesystem.allowWrite` 或 `denyWrite` 中使用了通配符（`*`），请将其更改为具体路径，因为根据新文档，这些条目当前会被系统跳过。
+*   **调整 Hook 通知逻辑**：如果您使用 `terminalSequence` 在 Hooks 中触发桌面通知，请确保您的代码能处理非交互式环境（如 CI/CD 或 Agent SDK），因为该字段在这些环境下会被忽略。
+*   **关注网关支出错误**：若管理自托管网关，当开发者反馈无法访问时，请新增排查“支出上限”的情况。
+*   **更新配置方式**：桌面应用用户应直接修改设置文件中的 `outputStyle` 字段，而非依赖 `/config` 命令的菜单交互。
+```</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Input:** 5 documentation diffs (`costs.md`, `hooks.md`, `output-styles.md`, `sandboxing.md`, `settings.md`).
+    *   **Output Format:** Markdown, specific sections (Overall Summary, Key Themes, Impact Level, Action Items).
+    *   **Language:** Chinese.
+    *   **Goal:** Concise, insightful analysis focusing on what matters to developers.
+
+2.  **Analyze Individual Diffs:**
+
+    *   **`costs.md` (+2 / -1):**
+        *   *Change:* Added a 4th situation to the &#34;When a developer asks about a limit&#34; section. It describes a &#34;spend limit message&#34; from a &#34;Claude apps gateway&#34;.
+        *   *Why:* New feature or clarification regarding self-hosted gateway spend caps.
+        *   *Impact:* Admins/Developers using self-hosted gateways need to know about this specific error message.
+
+    *   **`hooks.md` (+47 / -44):**
+        *   *Change:* Significant refactoring of text regarding how hooks communicate (JSON, exit codes).
+        *   *Key Details:*
+            *   Clarified that `terminalSequence` works on events that discard `systemMessage` (like `Notification`, `StopFailure`).
+            *   Added limitation: `terminalSequence` only works in interactive sessions, not with `-p` flag or Agent SDK.
+            *   Clarified `Exit code 2` behavior (blocking error). Mentioned that on `Elicitation` and `ElicitationResult`, `hookSpecificOutput` is ignored if exit code is 2.
+            *   Updated phrasing about JSON vs Exit Code mixing.
+            *   *Why:* Better precision on hook behavior, especially regarding notifications and specific event exceptions.
+        *   *Impact:* Hook developers need to update expectations about `terminalSequence` in non-interactive modes and understand specific blocking behaviors.
+
+    *   **`output-styles.md` (+4 / -2):**
+        *   *Change:* Updated instructions on how to change output style.
+        *   *Key Details:* Added instructions for the **Desktop app** (setting `outputStyle` in settings file directly) vs Terminal (using `/config` menu). Noted that `/config` in desktop opens the settings UI instead of a menu.
+        *   *Why:* Reflects UI changes or capabilities in the Desktop app vs Terminal.
+        *   *Impact:* Desktop users need to know the CLI command behavior changes in that context.
+
+    *   **`sandboxing.md` (+11 / -36):**
+        *   *Change:* Removed platform-specific glob pattern handling details from this page and moved/refined path prefix explanations.
+        *   *Key Details:* Removed the large section detailing glob pattern differences on Linux/WSL2 vs macOS. Added a link to `settings.md` for specific path details. Added note on trailing slashes/wildcards behavior (reference to `settings.md`).
+        *   *Why:* Centralization of complex glob pattern rules into `settings.md` to avoid duplication.
+        *   *Impact:* Less info here, users need to check `settings.md` for the detailed logic.
+
+    *   **`settings.md` (+3 / -0):**
+        *   *Change:* Added the detailed glob pattern behavior for sandbox filesystem settings that was removed from `sandboxing.md`.
+        *   *Key Details:* Explains `/**` stripping. Explains wildcard (`*`, `?`, `[`) support differences:
+            *   `allowWrite`/`denyWrite`: Wildcards work on macOS, skipped on Linux/WSL2 (concrete paths only).
+            *   `denyRead`/`allowRead`: Wildcards work everywhere (expanded on Linux/WSL2).
+        *   *Why:* Consolidating technical correctness.
+        *   *Impact:* Critical for developers configuring sandboxes on Linux/WSL2, as wildcards might fail silently or behave unexpectedly.
+
+3.  **Synthesize Key Themes:**
+    *   **Clarification &amp; Precision:** Tightening language around Hook behavior (JSON vs Exit codes, Interactive vs Non-interactive).
+    *   **Configuration Consolidation:** Moving sandbox glob pattern logic from `sandboxing.md` to `settings.md` to centralize truth.
+    *   **Platform Specifics:** Highlighting differences between Desktop vs Terminal, and Linux/macOS behavior (Hooks, Sandboxes).
+    *   **Feature Expansion:** Adding gateway spend limit documentation.
+
+4.  **Assess Impact:**
+    *   *Sandboxing on Linux/WSL2:* If developers relied on wildcards in `allowWrite`, they might be breaking (or were never working correctly). The docs now explicitly say they are skipped. This is a **Medium/High** impact for anyone on Linux configuring strict sandboxes.
+    *   *Hooks:* The limitation on `terminalSequence` not working in `-p` mode/Agent SDK is important for integration developers. **Medium**.
+    *   *General:* Mostly clarifications. No &#34;Breaking&#34; API changes in the code itself, but &#34;Breaking&#34; expectations in documentation (e.g., &#34;I thought I could use wildcards on Linux&#34;).
+
+5.  **Draft Action Items:**
+    *   Review Sandbox settings if on Linux/WSL2 (wildcards might not work for write access).
+    *   Check Hook implementations if using `terminalSequence` in non-interactive contexts.
+    *   Note the new gateway spend limit message for troubleshooting.
+
+6.  **Translate to Chinese &amp; Format:**
+
+    *   *Summary:* Documentation updated to clarify hook execution environments (interactive vs SDK), consolidate sandbox glob pattern rules into settings, and document new gateway spend limits.
+    *   *Themes:*
+        *   **Sandbox Config:** Glob pattern logic (especially wildcards on Linux/WSL2) clarified and moved to `settings.md`.
+        *   **Hooks:** Precise details on `terminalSequence` limitations (no `-p`/SDK) and Exit Code 2 handling.
+        *   **Cross-platform:** Distinctions between Desktop app and Terminal for configuration; Linux vs macOS for sandboxing.
+    *   *Impact:* Medium. Critical corrections for Linux sandbox users and Hook integrators.
+    *   *Action Items:*
+        *   Check Linux sandbox configs for write wildcards.
+        *   Verify hook notifications in non-interactive modes.
+        *   Be aware of the new gateway spend limit error.
+
+7.  **Refine Output:** Ensure tone is &#34;World-class programmer&#34;. Concise and sharp.
+
+    *   *Self-Correction during drafting:* The diff for `sandboxing.md` removed a lot of text. The key takeaway is *not* that features were removed, but that the documentation was moved. I need to highlight that the *logic* is now in `settings.md`. The logic regarding wildcards on Linux being skipped is the technical insight.
+
+8.  **Final Polish (Chinese):**
+    *   Overall Summary: 文档更新主要聚焦于明确 Hook 在不同模式（交互式 vs SDK）下的行为差异，将沙箱通配符规则（特别是 Linux/WSL2 的限制）集中整理至设置文档，并补充了网关支出限制的说明。
+    *   Key Themes: 沙箱配置规则集中化, Hook 行为边界明确, 平台差异细化.
+    *   Impact: Medium (High for specific Linux/Sandbox use cases).
+    *   Action Items:
+        1. Linux/WSL2 审查沙箱配置.
+        2. Hook 通知功能排查.
+        3. 了解网关支出错误.
+
+    *Let&#39;s double check the `hooks.md` diff again.*
+    &#34;Claude Code writes the sequence only in an interactive session, and only while its interface is on screen. In non-interactive mode with the -p flag and in the Agent SDK, it ignores the field.&#34; -&gt; This is a significant constraint to call out.
+
+    *Let&#39;s double check `settings.md` diff.*
+    &#34;allowWrite and denyWrite: on macOS, wildcards work. On Linux and WSL2... Claude Code skips an entry that contains *, ?, or [...&#34; -&gt; This is very important. If a Linux dev put `*` in there, it wasn&#39;t working, and now they know.
+
+9.  **Final Output Generation.** (Proceeding to generate markdown).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/costs.html" class="page-link">costs.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+47</span>
+                            <span class="removed">-44</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/output-styles.html" class="page-link">output-styles.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sandboxing.html" class="page-link">sandboxing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+11</span>
+                            <span class="removed">-36</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">16:43 EST</div>
