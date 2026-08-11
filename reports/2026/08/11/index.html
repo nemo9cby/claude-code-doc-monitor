@@ -118,9 +118,404 @@
 
         <header>
             <h1>Changes on 2026-08-11</h1>
-            <p class="meta">13 total changes in 4 runs</p>
+            <p class="meta">29 total changes in 5 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">14:54 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### Overall Summary
+本次批量更新重点重构了模型配置与上下文窗口文档，引入了插件 Node.js 依赖自动安装机制，并现代化了 GitLab CI/CD 的 OIDC 认证配置示例，同时清理了大量历史版本标记以保持文档时效性。
+
+### Key Themes
+*   **GitLab CI/CD 现代化**: 将 AWS Bedrock 和 Google Cloud 的身份验证方式更新为显式的 `id_tokens` 块，符合 GitLab 16.x+ 的最佳实践，并修正了安装路径问题。
+*   **插件开发体验提升**: Claude Code 现在会自动为插件缓存并安装 Node.js 依赖（支持 npm/bun lockfile），简化了插件开发流程。
+*   **文档结构重组与去噪**: 将 &#34;Auto-compact window&#34; 相关说明从 `context-window.md` 统一迁移至 `model-config.md`，修复了跨页链接，并删除了多处 &#34;As of v2.1.xxx&#34; 的版本特定说明。
+*   **安全与配置精细化**: 插件市场配置新增组织通配符（`owner/*`）支持；细化了 Hook 输出中 JSON 解析与 Exit Code 的交互逻辑；明确了子代理在禁用 Bypass 模式下的权限继承行为。
+
+### Impact Level
+**Medium**
+
+**Reasoning**: 大多数修改为文档优化，但 GitLab CI/CD 配置示例的更新意味着用户应更新其流水线以保持最佳实践；插件依赖管理的自动化虽然提升了体验，但也改变了插件的运行环境行为，可能需要开发者适配。文档链接的变动有助于开发者更准确地找到配置信息。
+
+### Action Items for Developers
+*   **更新 GitLab CI 配置**: 如果正在使用文档中的 AWS Bedrock 或 GCP 示例，请将身份验证部分更新为新的 `id_tokens:` 语法。
+*   **简化插件代码**: 检查您的插件 `SessionStart` Hook，如果存在手动安装依赖的逻辑，可以考虑移除并利用 Claude Code 的自动依赖安装功能。
+*   **利用通配符配置**: 如果您管理插件市场白名单，可以使用新的 `repo: &#34;org/*&#34;` 通配符语法来允许整个组织的仓库。
+*   **检查 Hook 逻辑**: 如果您依赖 Exit Code 阻止行为且同时输出 JSON，请务必查阅更新后的 Hook 文档，确认 JSON 解析逻辑是否符合预期。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Input:** 16 changed pages with diffs.
+    *   **Format:** Concise, insightful analysis in markdown.
+    *   **Language:** Chinese (requested: &#34;请用中文回复&#34;).
+    *   **Structure:**
+        1.  Overall Summary (1-2 sentences).
+        2.  Key Themes (bullets).
+        3.  Impact Level (Low/Medium/High/Breaking) with reasoning.
+        4.  Action Items for Developers (bullets, max 5).
+
+2.  **Scan and Analyze Individual Page Changes:**
+
+    *   **Page 1: `claude-code-on-the-web.md`**
+        *   *Change:* Broken link fix. `auto-compact window` link target changed from `/context-window` to `/model-config`.
+        *   *Reasoning:* Documentation restructuring. The section &#34;Set the auto-compact window&#34; was moved to `model-config.md`.
+
+    *   **Page 2: `cli-reference.md`**
+        *   *Change:* Broken link fix. `auto-compact window` link target changed from `/context-window` to `/model-config`.
+        *   *Reasoning:* Same as Page 1.
+
+    *   **Page 3: `costs.md`**
+        *   *Change:* Broken link fix. `auto-compact window` link target changed from `/context-window` to `/model-config`.
+        *   *Reasoning:* Same as Page 1 &amp; 2.
+
+    *   **Page 4: `gitlab-ci-cd.md`**
+        *   *Changes:*
+            *   Added `export PATH=&#34;$HOME/.local/bin:$PATH&#34;` to `before_script` (installer location fix).
+            *   AWS Bedrock setup: OIDC token exchange logic updated. Changed from using `CI_JOB_JWT_V2` (implicit/old) to explicit `id_tokens:` block defining `GITLAB_OIDC_TOKEN`. Updated the `aws sts assume-role...` command to read from this new token variable.
+            *   Google Cloud setup: OIDC token exchange logic updated. Similar to AWS, now uses explicit `id_tokens:` block and writes token to a file for credential source. Added `GOOGLE_APPLICATION_CREDENTIALS` export. Added `CLAUDE_CODE_USE_VERTEX=1` and `ANTHROPIC_VERTEX_PROJECT_ID`.
+            *   Updated variable descriptions for WIF (Workload Identity Federation).
+            *   Updated cost optimization tips (syntax change: `max_turns` -&gt; `--max-turns`, `timeout_minutes` -&gt; `timeout`).
+        *   *Reasoning:* Improved GitLab CI/CD integration best practices, specifically around OIDC authentication (moving to explicit tokens) and installation paths. Aligning with newer GitLab CI features.
+
+    *   **Page 5: `hooks.md`**
+        *   *Changes:*
+            *   `PermissionDenied` event description updated to specify JSON structure: `hookSpecificOutput.retry: true` instead of just `{retry: true}`.
+            *   `StopFailure` event description refined: &#34;Decision output and exit code are ignored&#34; instead of just &#34;Output and exit code&#34;.
+            *   MCP Tool Hooks: Clarified stdout behavior (plain text vs JSON).
+            *   Removed version specific note &#34;as of v2.1.139&#34;.
+            *   Refined Exit Code output section: Clarified that JSON is parsed on *any* exit code, not just 0 (except exit 2 which blocks).
+        *   *Reasoning:* Improving accuracy of technical specifications for hooks, particularly around JSON output parsing and exit codes. Removing specific version references suggests generalizing the docs.
+
+    *   **Page 6: `hooks-guide.md`**
+        *   *Changes:*
+            *   Similar table updates for `PermissionDenied` and `StopFailure` events.
+            *   Refined &#34;Exit codes&#34; section: clarified behavior of exit 0, 2, and others regarding JSON parsing.
+            *   Updated &#34;JSON validation failed&#34; troubleshooting section to &#34;Hook JSON has no effect&#34;.
+            *   Clarified behavior when JSON is invalid on exit 0 (non-blocking error).
+        *   *Reasoning:* Aligning the guide with the reference docs (Page 5), clarifying the relationship between exit codes and JSON output.
+
+    *   **Page 7: `interactive-mode.md`**
+        *   *Changes:*
+            *   Simplified the &#34;macOS users&#34; Note. Instead of listing individual terminal settings, it points to a new anchor/section.
+            *   Removed version specific notes (e.g., &#34;As of v2.1.169&#34;, &#34;Before v2.1.202&#34;, &#34;Before v2.1.216&#34;).
+        *   *Reasoning:* Cleanup and organization of the UI documentation, removing temporary version-specific text to keep it evergreen.
+
+    *   **Page 8: `model-config.md`**
+        *   *Changes:*
+            *   Updated description/meta text.
+            *   Added &#34;Fable 5 and usage credits&#34; section explaining billing prompts and behavior in interactive vs non-interactive modes.
+            *   **Major Addition:** &#34;Context window and auto-compaction&#34; section moved here (from `context-window.md` presumably, hence the link fixes in pages 1-3).
+            *   Detailed documentation on setting auto-compact window via command, flag, and env vars.
+            *   Detailed documentation on default thresholds and `CLAUDE_CODE_MAX_CONTEXT_TOKENS` usage (gateway support).
+        *   *Reasoning:* This is the hub for the &#34;auto-compact window&#34; link fixes seen earlier. Centralizing model and context window configuration. Adding billing logic for new models (Fable 5).
+
+    *   **Page 9: `network-config.md`**
+        *   *Change:* Added `registry.npmjs.org` to the network access list.
+        *   *Reasoning:* Necessary because Claude Code now installs Node.js dependencies for plugins (seen in other diffs).
+
+    *   **Page 10: `output-styles.md`**
+        *   *Change:* Removed &#34;As of v2.1.178&#34; version tag.
+        *   *Reasoning:* Cleanup/Generalization.
+
+    *   **Page 11: `plugin-marketplaces.md`**
+        *   *Changes:*
+            *   Mentioned that Claude Code installs Node.js dependencies.
+            *   Added support for &#34;owner-wildcard&#34; (`acme-corp/*`) in `strictKnownMarketplaces` (allowlist/blocklist). Requires v2.1.223+.
+            *   Clarified matching rules.
+        *   *Reasoning:* Enhancing marketplace security policies with wildcard support and reflecting the new dependency installation behavior.
+
+    *   **Page 12: `plugins-reference.md`**
+        *   *Changes:*
+            *   Event table updates (`PermissionDenied`, `StopFailure`) consistent with hooks docs.
+            *   `${CLAUDE_PLUGIN_ROOT}` cleanup details refined (grace period).
+            *   `${CLAUDE_PLUGIN_DATA}` usage note (mentioning automatic Node.js installs).
+            *   **Major Addition:** &#34;Node.js package dependencies&#34; section. Explains auto-installation of dependencies in the plugin cache using `bun` or `npm`.
+        *   *Reasoning:* Significant improvement to the plugin developer experience. Claude Code now handles Node.js dependencies automatically, reducing boilerplate in plugin hooks.
+
+    *   **Page 13: `settings.md`**
+        *   *Changes:*
+            *   Refined descriptions for `agentPushNotifEnabled`, `allowAllClaudeAiMcps`, `allowedChannelPlugins`.
+            *   Added `allowedMarketplaceOrgs` setting.
+            *   Updated `maxTurns` type to `integer` (from number?).
+            *   Updated `profile` description.
+            *   Added `strictKnownMarketplaces` details.
+            *   Removed version tags.
+        *   *Reasoning:* Aligning settings definitions with new features (wildcards in marketplaces) and refining type descriptions.
+
+    *   **Page 14: `statusline.md`**
+        *   *Changes:*
+            *   Removed flicker note (version specific).
+            *   Removed &#34;echo statement&#34; implementation detail from multiline section.
+            *   Updated clickable links example code (kept the concept, removed explicit `sed` explanation or just simplified).
+        *   *Reasoning:* Cleanup and simplification.
+
+    *   **Page 15: `sub-agents.md`**
+        *   *Change:* Added note about `permissions.disableBypassPermissionsMode` overriding frontmatter `permissionMode`. Removed &#34;Before v2.1.223...&#34; text.
+        *   *Reasoning:* Clarifying security precedence in managed settings.
+
+    *   **Page 16: `terminal-config.md`**
+        *   *Change:* Removed detailed explanation of fullscreen memory usage benefits in the flicker section, just pointing to the fullscreen page.
+        *   *Reasoning:* Cleanup.
+
+3.  **Synthesize Key Themes:**
+
+    *   **Theme 1: Documentation Restructuring &amp; Cleanup.** Many pages (1, 2, 3, 7, 8, 10, 14, 16) show moves of content (specifically &#34;Context window&#34; to &#34;Model config&#34;) and removal of version-specific notes (&#34;As of v2.1.xxx&#34;). This makes the docs more evergreen and logically organized.
+    *   **Theme 2: Enhanced CI/CD Integration.** The `gitlab-ci-cd.md` changes are substantial. Moving to explicit `id_tokens` blocks for OIDC is a significant modernization for GitLab 16.x+.
+    *   **Theme 3: Plugin Dependency Management.** Pages 9, 11, 12 show that Claude Code now automatically installs Node.js dependencies for plugins. This is a major developer experience improvement.
+    *   **Theme 4: Granular Security &amp; Configuration.** Updates to plugin marketplace wildcards (`owner/*`), hooks specification (JSON vs Exit code behavior), and sub-agent permission precedence.
+    *   **Theme 5: Fable 5 &amp; Billing.** New documentation on Fable 5 usage credits behavior.
+
+4.  **Determine Impact Level:**
+    *   *Reasoning:*
+        *   GitLab CI/CD OIDC changes require users to update their `.gitlab-ci.yml` files if they are using those specific examples.
+        *   The new auto-dependency installation for plugins is a big convenience but might change behavior if developers were manually managing them (though likely for the better).
+        *   Link changes are low impact.
+        *   Version tag removals are low impact.
+    *   *Level:* **Medium**. (Not &#34;Breaking&#34; generally, but CI config changes and plugin behavior changes require attention).
+
+5.  **Draft Action Items:**
+
+    *   Update GitLab CI/CD pipelines to use the new `id_tokens` syntax for OIDC authentication.
+    *   Plugin developers can remove manual `npm install`/`bun install` logic from hooks if relying on the new auto-installation feature.
+    *   Review Fable 5 usage if concerned about usage credit billing.
+    *   Marketplace administrators can now use owner wildcards for allowlists.
+
+6.  **Drafting the Content (in Chinese):**
+
+    *   *Summary:* 此次文档更新主要涉及 GitLab CI/CD 集成的现代化（OIDC）、插件自动依赖管理功能的引入、以及配置文档的结构重组与去版本化清理。
+    *   *Themes:*
+        *   GitLab CI/CD 现代化。
+        *   插件开发体验提升（自动安装依赖）。
+        *   文档结构优化。
+        *   安全与配置精细化。
+    *   *Impact:* Medium.
+    *   *Action Items:*
+        *   更新 GitLab CI 配置。
+        *   简化插件代码。
+        *   配置 Marketplace 白名单。
+        *   检查 Fable 5 账单设置。
+
+7.  **Refining the Output:**
+
+    *   Make it concise and professional.
+    *   Ensure technical terms (OIDC, WIF, hooks, MCP) are used correctly in Chinese context or kept in English where appropriate.
+
+    *(Self-Correction during drafting)*: The &#34;Context window&#34; section move is a significant structural change. I should emphasize that `model-config.md` is now the source of truth for compaction settings. The `id_tokens` change in GitLab is important because the old way (implicit JWT) is being deprecated or replaced by the new explicit block in modern GitLab versions.
+
+8.  **Final Polish (matching the requested markdown format):**
+
+    *   **Summary:** 本次批量更新重点重构了配置与上下文窗口文档，引入了插件 Node.js 依赖自动安装机制，并现代化了 GitLab CI/CD 的 OIDC 认证配置示例，同时清理了大量历史版本标记以保持文档时效性。
+    *   **Key Themes:**
+        *   **GitLab CI/CD 现代化**: 将 AWS Bedrock 和 GCP 的身份验证更新为显式的 `id_tokens` 块，符合 GitLab 16.x+ 的最佳实践。
+        *   **插件开发体验**: Claude Code 现在会自动为插件安装 Node.js 依赖（npm/bun），开发者无需再在 Hook 中手动处理。
+        *   **文档结构重组**: 将 &#34;Auto-compact window&#34; 相关说明统一迁移至 `model-config.md`，并修复了多处相关链接。
+        *   **安全与权限**: 插件市场支持组织通配符（`owner/*`）配置；细化了 Hook 输出中 JSON 解析与 Exit Code 的交互逻辑。
+    *   **Impact:** **Medium**。
+        *   *Reasoning:* 虽然 Core 功能未变，但 GitLab CI 配置需要更新以适应新的 OIDC 语法；插件依赖管理的自动化可能改变现有插件的行为，需开发者确认；文档链接变更有助于信息检索。
+    *   **Action Items:**
+        *   更新现有的 GitLab CI/CD 流水线配置，使用新的 `id_tokens` 语法替换旧的 JWT 获取方式。
+        *   插件开发者可审查并移除 `SessionStart` Hook 中手动安装 `node_modules` 的代码，利用系统内置的自动依赖安装功能。
+        *   Marketplace 管理员可利用新的 `strictKnownMarketplaces` 通配符规则（如 `acme-corp/*`）简化白名单配置。
+        *   Hook 开发者需注意，JSON 输出现在在非 Exit 2 状态下也会被解析，需调整逻辑以避免意外行为。
+
+9.  **Final Check:** Does it meet all constraints? Yes. Chinese, markdown, concise, insightful, max 5 action items.</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/claude-code-on-the-web.html" class="page-link">claude-code-on-the-web.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/cli-reference.html" class="page-link">cli-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/costs.html" class="page-link">costs.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/gitlab-ci-cd.html" class="page-link">gitlab-ci-cd.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+44</span>
+                            <span class="removed">-24</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+40</span>
+                            <span class="removed">-23</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+16</span>
+                            <span class="removed">-13</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/interactive-mode.html" class="page-link">interactive-mode.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+61</span>
+                            <span class="removed">-70</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/model-config.html" class="page-link">model-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+33</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/network-config.html" class="page-link">network-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/output-styles.html" class="page-link">output-styles.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugin-marketplaces.html" class="page-link">plugin-marketplaces.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+24</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+162</span>
+                            <span class="removed">-148</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/statusline.html" class="page-link">statusline.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/terminal-config.html" class="page-link">terminal-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">12:53 EST</div>

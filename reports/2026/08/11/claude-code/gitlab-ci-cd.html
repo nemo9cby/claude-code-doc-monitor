@@ -114,15 +114,15 @@
 
         <header>
             <h1>gitlab-ci-cd.md</h1>
-            <p class="meta">Changed on 2026-08-11 11:55:28 EST</p>
+            <p class="meta">Changed on 2026-08-11 14:54:33 EST</p>
         </header>
 
         <div class="summary">
             <div class="stat added">
-                <span>+4</span> lines added
+                <span>+44</span> lines added
             </div>
             <div class="stat removed">
-                <span>-29</span> lines removed
+                <span>-24</span> lines removed
             </div>
         </div>
 
@@ -130,168 +130,185 @@
 
         <div class="diff-container">
             <div class="diff-header">Visual Diff</div>
-            <div class="diff-content"><span>&gt; ## Documentation Index&para;<br>&gt; Fetch the complete documentation index at: https://code.claude.com/docs/llms.txt&para;<br>&gt; Use this file to discover all available pages before exploring further.&para;<br>&para;<br># Claude Code GitLab CI/CD&para;<br>&para;<br>&gt; Learn about integrating Claude Code into your development workflow with GitLab CI/CD&para;<br>&para;<br>&lt;Info&gt;&para;<br>  Claude Code for GitLab CI/CD is currently in beta. Features and functionality may evolve as we refine the experience.&para;<br>&para;<br>  This integration is maintained by GitLab. For support, see the following [GitLab issue](https://gitlab.com/gitlab-org/gitlab/-/issues/573776).&para;<br>&lt;/Info&gt;&para;<br>&para;<br>&lt;Note&gt;&para;<br>  This integration is built on top of the [Claude Code CLI and Agent SDK](/docs/en/agent-sdk/overview), enabling programmatic use of Claude in your CI/CD jobs and custom automation workflows.&para;<br>&lt;/Note&gt;&para;<br>&para;<br>## Why use Claude Code with GitLab?&para;<br>&para;<br>* **Instant MR creation**: Describe what you need, and Claude proposes a complete MR with changes and explanation&para;<br>* **Automated implementation**: Turn issues into working code with a single command or mention&para;<br>* **Project-aware**: Claude follows your `CLAUDE.md` guidelines and existing code patterns&para;<br>* **Simple setup**: Add one job to `.gitlab-ci.yml` and a masked CI/CD variable&para;<br>* **Enterprise-ready**: Choose Claude API, Amazon Bedrock, or Google Cloud's Agent Platform to meet data residency and procurement needs&para;<br>* **Secure by default**: Runs in your GitLab runners with your branch protection and approvals&para;<br>&para;<br>## How it works&para;<br>&para;<br>Claude Code uses GitLab CI/CD to run AI tasks in isolated jobs and commit results back via MRs:&para;<br>&para;<br>1. **Event-driven orchestration**: GitLab listens for your chosen triggers (for example, a comment that mentions `@claude` in an issue, MR, or review thread). The job collects context from the thread and repository, builds prompts from that input, and runs Claude Code.&para;<br>&para;<br>2. **Provider abstraction**: Use the provider that fits your environment:&para;<br>   * Claude API (SaaS)&para;<br>   * Amazon Bedrock (IAM-based access, cross-region options)&para;<br>   * Google Cloud's Agent Platform (GCP-native, Workload Identity Federation)&para;<br>&para;<br>3. **Sandboxed execution**: Each interaction runs in a container with strict network and filesystem rules. Claude Code enforces workspace-scoped permissions to constrain writes. Every change flows through an MR so reviewers see the diff and approvals still apply.&para;<br>&para;<br>Pick regional endpoints to reduce latency and meet data-sovereignty requirements while using existing cloud agreements.&para;<br>&para;<br>## What can Claude do?&para;<br>&para;<br>Claude Code enables powerful CI/CD workflows that transform how you work with code:&para;<br>&para;<br>* Create and update MRs from issue descriptions or comments&para;<br>* Analyze performance regressions and propose optimizations&para;<br>* Implement features directly in a branch, then open an MR&para;<br>* Fix bugs and regressions identified by tests or comments&para;<br>* Respond to follow-up comments to iterate on requested changes&para;<br>&para;<br>## Setup&para;<br>&para;<br>### Quick setup&para;<br>&para;<br>The fastest way to get started is to add a minimal job to your `.gitlab-ci.yml` and set your API key as a masked variable.&para;<br>&para;<br>1. **Add a masked CI/CD variable**&para;<br>   * Go to **Settings** → **CI/CD** → **Variables**&para;<br>   * Add `ANTHROPIC_API_KEY` (masked, protected as needed)&para;<br>&para;<br>2. **Add a Claude job to `.gitlab-ci.yml`**&para;<br>&para;<br>```yaml theme={null}&para;<br>stages:&para;<br>  - ai&para;<br>&para;<br>claude:&para;<br>  stage: ai&para;<br>  image: node:24-alpine3.21&para;<br>  # Adjust rules to fit how you want to trigger the job:&para;<br>  # - manual runs&para;<br>  # - merge request events&para;<br>  # - web/API triggers when a comment contains '@claude'&para;<br>  rules:&para;<br>    - if: '$CI_PIPELINE_SOURCE == "web"'&para;<br>    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'&para;<br>  variables:&para;<br>    GIT_STRATEGY: fetch&para;<br>  before_script:&para;<br>    - apk update&para;<br>    - apk add --no-cache git curl bash&para;<br>    - curl -fsSL https://claude.ai/install.sh | bash&para;<br>  script:&para;<br>    # Optional: start a GitLab MCP server if your setup provides one&para;<br>    - /bin/gitlab-mcp-server || true&para;<br>    # Use AI_FLOW_* variables when invoking via web/API triggers with context payloads&para;<br>    - echo "$AI_FLOW_INPUT for $AI_FLOW_CONTEXT on $AI_FLOW_EVENT"&para;<br>    - &gt;&para;<br>      claude&para;<br>      -p "${AI_FLOW_INPUT:-'Review this MR and implement the requested changes'}"&para;<br>      --permission-mode acceptEdits&para;<br>      --allowedTools "Bash Read Edit Write mcp__gitlab"&para;<br>      --debug&para;<br>```&para;<br>&para;<br>After adding the job and your `ANTHROPIC_API_KEY` variable, test by running the job manually from **CI/CD** → **Pipelines**, or trigger it from an MR to let Claude propose updates in a branch and open an MR if needed.&para;<br>&para;<br>&lt;Note&gt;&para;<br>  To run on Amazon Bedrock or Google Cloud's Agent Platform instead of the Claude API, see the [Using with Amazon Bedrock and Google Cloud](#using-with-amazon-bedrock-and-google-cloud) section below for authentication and environment setup.&para;<br>&lt;/Note&gt;&para;<br>&para;<br>### Manual setup (recommended for production)&para;<br>&para;<br>If you prefer a more controlled setup or need enterprise providers:&para;<br>&para;<br>1. **Configure provider access**:&para;<br>   * **Claude API**: Create and store `ANTHROPIC_API_KEY` as a masked CI/CD variable&para;<br>   * **Amazon Bedrock**: **Configure GitLab** → **AWS OIDC** and create an IAM role for Amazon Bedrock&para;<br>   * **Google Cloud's Agent Platform**: **Configure Workload Identity Federation for GitLab** → **GCP**&para;<br>&para;<br>2. **Add project credentials for GitLab API operations**:&para;<br>   * Use `CI_JOB_TOKEN` by default, or create a Project Access Token with `api` scope&para;<br>   * Store as `GITLAB_ACCESS_TOKEN` (masked) if using a PAT&para;<br>&para;<br>3. **Add the Claude job to `.gitlab-ci.yml`**</span><del style="background:#ffe6e6;"> (see examples below</del><ins style="background:#e6ffe6;">: use the [Quick setup](#quick-setup) job for the Claude API, or a provider job from [Configuration examples](#configuration-examples</ins><span>)&para;<br>&para;<br>4. **(Optional) Enable mention-driven triggers**:&para;<br>   * Add a project webhook for "Comments (notes)" to your event listener (if you use one)&para;<br>   * Have the listener call the pipeline trigger API with variables like `AI_FLOW_INPUT` and `AI_FLOW_CONTEXT` when a comment contains `@claude`&para;<br>&para;<br>## Example use cases&para;<br>&para;<br>### Turn issues into MRs&para;<br>&para;<br>In an issue comment:&para;<br>&para;<br>```text wrap theme={null}&para;<br>@claude implement this feature based on the issue description&para;<br>```&para;<br>&para;<br>Claude analyzes the issue and codebase, writes changes in a branch, and opens an MR for review.&para;<br>&para;<br>### Get implementation help&para;<br>&para;<br>In an MR discussion:&para;<br>&para;<br>```text wrap theme={null}&para;<br>@claude suggest a concrete approach to cache the results of this API call&para;<br>```&para;<br>&para;<br>Claude proposes changes, adds code with appropriate caching, and updates the MR.&para;<br>&para;<br>### Fix bugs quickly&para;<br>&para;<br>In an issue or MR comment:&para;<br>&para;<br>```text wrap theme={null}&para;<br>@claude fix the TypeError in the user dashboard component&para;<br>```&para;<br>&para;<br>Claude locates the bug, implements a fix, and updates the branch or opens a new MR.&para;<br>&para;<br>## Using with Amazon Bedrock and Google Cloud&para;<br>&para;<br>For enterprise environments, you can run Claude Code entirely on your cloud infrastructure with the same developer experience.&para;<br>&para;<br>&lt;Tabs&gt;&para;<br>  &lt;Tab title="Amazon Bedrock"&gt;&para;<br>    ### Prerequisites&para;<br>&para;<br>    Before setting up Claude Code with Amazon Bedrock, you need:&para;<br>&para;<br>    1. An AWS account with Amazon Bedrock access to the desired Claude models&para;<br>    2. GitLab configured as an OIDC identity provider in AWS IAM&para;<br>    3. An IAM role with Amazon Bedrock permissions and a trust policy restricted to your GitLab project/refs&para;<br>    4. GitLab CI/CD variables for role assumption:&para;<br>       * `AWS_ROLE_TO_ASSUME` (role ARN)&para;<br>       * `AWS_REGION` (Amazon Bedrock region)&para;<br>&para;<br>    ### Setup instructions&para;<br>&para;<br>    Configure AWS to allow GitLab CI jobs to assume an IAM role via OIDC (no static keys).&para;<br>&para;<br>    **Required setup:**&para;<br>&para;<br>    1. Enable Amazon Bedrock and request access to your target Claude models&para;<br>    2. Create an IAM OIDC provider for GitLab if not already present&para;<br>    3. Create an IAM role trusted by the GitLab OIDC provider, restricted to your project and protected refs&para;<br>    4. Attach least-privilege permissions for Amazon Bedrock invoke APIs&para;<br>&para;<br>    </span><del style="background:#ffe6e6;">**Required values to store in CI/CD variables:**&para;<br>&para;<br>    * `AWS_ROLE_TO_ASSUME`&para;<br>    * `AWS_REGION`&para;<br>&para;<br>    Add variables in Settings → CI/CD → Variables:&para;<br>&para;<br>    ```yaml theme={null}&para;<br>    # For Amazon Bedrock:&para;<br>    - AWS_ROLE_TO_ASSUME&para;<br>    - AWS_REGION&para;<br>    ```&para;<br>&para;<br>    Use the Amazon Bedrock job </del><ins style="background:#e6ffe6;">Use the [Amazon Bedrock job example](#configuration-</ins><span>example</span><del style="background:#ffe6e6;"> above</del><ins style="background:#e6ffe6;">s)</ins><span> to exchange the GitLab job token for temporary AWS credentials at runtime.&para;<br>  &lt;/Tab&gt;&para;<br>&para;<br>  &lt;Tab title="Google Cloud's Agent Platform"&gt;&para;<br>    ### Prerequisites&para;<br>&para;<br>    Before setting up Claude Code with Google Cloud's Agent Platform, you need:&para;<br>&para;<br>    1. A Google Cloud project with:&para;<br>       * Google Cloud's Agent Platform API enabled&para;<br>       * Workload Identity Federation configured to trust GitLab OIDC&para;<br>    2. A dedicated service account with only the required Google Cloud's Agent Platform roles&para;<br>    3. GitLab CI/CD variables for WIF:&para;<br>       * `GCP_WORKLOAD_IDENTITY_PROVIDER` (full resource name)&para;<br>       * `GCP_SERVICE_ACCOUNT` (service account email)&para;<br>&para;<br>    ### Setup instructions&para;<br>&para;<br>    Configure Google Cloud to allow GitLab CI jobs to impersonate a service account via Workload Identity Federation.&para;<br>&para;<br>    **Required setup:**&para;<br>&para;<br>    1. Enable IAM Credentials API, STS API, and Google Cloud's Agent Platform API&para;<br>    2. Create a Workload Identity Pool and provider for GitLab OIDC&para;<br>    3. Create a dedicated service account with Google Cloud's Agent Platform roles&para;<br>    4. Grant the WIF principal permission to impersonate the service account&para;<br>&para;<br>    </span><del style="background:#ffe6e6;">**Required values to store in CI/CD variables:**&para;<br>&para;<br>    * `GCP_WORKLOAD_IDENTITY_PROVIDER`&para;<br>    * `GCP_SERVICE_ACCOUNT`&para;<br>&para;<br>    Add variables in Settings → CI/CD → Variables:&para;<br>&para;<br>    ```yaml theme={null}&para;<br>    # For Google Cloud's Agent Platform:&para;<br>    - GCP_WORKLOAD_IDENTITY_PROVIDER&para;<br>    - GCP_SERVICE_ACCOUNT&para;<br>    - CLOUD_ML_REGION (for example, us-east5)&para;<br>    ```&para;<br>&para;<br>    Use the job example above for Google Cloud's Agent Platform to authenticate without storing keys.&para;<br>  &lt;/Tab&gt;&para;<br>&lt;/Tabs&gt;&para;<br>&para;<br>## Configuration examples&para;<br>&para;<br>Below are ready-to-use snippets you can adapt to your pipeline.&para;<br>&para;<br>### Basic .gitlab-ci.yml (Claude API)&para;<br>&para;<br>```yaml theme={null}&para;<br>stages:&para;<br>  - ai&para;<br>&para;<br>claude:&para;<br>  stage: ai&para;<br>  image: node:24-alpine3.21&para;<br>  rules:&para;<br>    - if: '$CI_PIPELINE_SOURCE == "web"'&para;<br>    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'&para;<br>  variables:&para;<br>    GIT_STRATEGY: fetch&para;<br>  before_script:&para;<br>    - apk update&para;<br>    - apk add --no-cache git curl bash&para;<br>    - curl -fsSL https://claude.ai/install.sh | bash&para;<br>  script:&para;<br>    - /bin/gitlab-mcp-server || true&para;<br>    - &gt;&para;<br>      claude&para;<br>      -p "${AI_FLOW_INPUT:-'Summarize recent changes and suggest improvements'}"&para;<br>      --permission-mode acceptEdits&para;<br>      --allowedTools "Bash Read Edit Write mcp__gitlab"&para;<br>      --debug&para;<br>  # Claude Code will use ANTHROPIC_API_KEY from CI/CD variables&para;<br>```</del><ins style="background:#e6ffe6;">Use the [Agent Platform job example](#configuration-examples) to authenticate without storing keys.&para;<br>  &lt;/Tab&gt;&para;<br>&lt;/Tabs&gt;&para;<br>&para;<br>## Configuration examples&para;<br>&para;<br>Below are ready-to-use snippets you can adapt to your pipeline.</ins><span>&para;<br>&para;<br>### Amazon Bedrock job example (OIDC)&para;<br>&para;<br>**Prerequisites:**&para;<br>&para;<br>* Amazon Bedrock enabled with access to your chosen Claude model(s)&para;<br>* GitLab OIDC configured in AWS with a role that trusts your GitLab project and refs&para;<br>* IAM role with Amazon Bedrock permissions (least privilege recommended)&para;<br>&para;<br>**Required CI/CD variables:**&para;<br>&para;<br>* `AWS_ROLE_TO_ASSUME`: ARN of the IAM role for Amazon Bedrock access&para;<br>* `AWS_REGION`: Amazon Bedrock region (for example, `us-west-2`)&para;<br>&para;<br>```yaml theme={null}&para;<br></span><ins style="background:#e6ffe6;">stages:&para;<br>  - ai&para;<br>&para;<br></ins><span>claude-bedrock:&para;<br>  stage: ai&para;<br>  image: node:24-alpine3.21&para;<br>  rules:&para;<br>    - if: '$CI_PIPELINE_SOURCE == "web"'&para;<br>  before_script:&para;<br>    - apk add --no-cache bash curl jq git python3 py3-pip&para;<br>    - pip install --no-cache-dir awscli&para;<br>    - curl -fsSL https://claude.ai/install.sh | bash&para;<br>    # Exchange GitLab OIDC token for AWS credentials&para;<br>    - export AWS_WEB_IDENTITY_TOKEN_FILE="${CI_JOB_JWT_FILE:-/tmp/oidc_token}"&para;<br>    - if [ -n "${CI_JOB_JWT_V2}" ]; then printf "%s" "$CI_JOB_JWT_V2" &gt; "$AWS_WEB_IDENTITY_TOKEN_FILE"; fi&para;<br>    - &gt;&para;<br>      aws sts assume-role-with-web-identity&para;<br>      --role-arn "$AWS_ROLE_TO_ASSUME"&para;<br>      --role-session-name "gitlab-claude-$(date +%s)"&para;<br>      --web-identity-token "file://$AWS_WEB_IDENTITY_TOKEN_FILE"&para;<br>      --duration-seconds 3600 &gt; /tmp/aws_creds.json&para;<br>    - export AWS_ACCESS_KEY_ID="$(jq -r .Credentials.AccessKeyId /tmp/aws_creds.json)"&para;<br>    - export AWS_SECRET_ACCESS_KEY="$(jq -r .Credentials.SecretAccessKey /tmp/aws_creds.json)"&para;<br>    - export AWS_SESSION_TOKEN="$(jq -r .Credentials.SessionToken /tmp/aws_creds.json)"&para;<br>  script:&para;<br>    - /bin/gitlab-mcp-server || true&para;<br>    - &gt;&para;<br>      claude&para;<br>      -p "${AI_FLOW_INPUT:-'Implement the requested changes and open an MR'}"&para;<br>      --permission-mode acceptEdits&para;<br>      --allowedTools "Bash Read Edit Write mcp__gitlab"&para;<br>      --debug&para;<br>  variables:&para;<br>    AWS_REGION: "us-west-2"&para;<br>```&para;<br>&para;<br>&lt;Note&gt;&para;<br>  Model IDs for Amazon Bedrock include region-specific prefixes (for example, `us.anthropic.claude-sonnet-4-6`). Pass the desired model via your job configuration or prompt if your workflow supports it.&para;<br>&lt;/Note&gt;&para;<br>&para;<br>### Agent Platform job example (Workload Identity Federation)&para;<br>&para;<br>**Prerequisites:**&para;<br>&para;<br>* Google Cloud's Agent Platform API enabled in your GCP project&para;<br>* Workload Identity Federation configured to trust GitLab OIDC&para;<br>* A service account with Google Cloud's Agent Platform permissions&para;<br>&para;<br>**Required CI/CD variables:**&para;<br>&para;<br>* `GCP_WORKLOAD_IDENTITY_PROVIDER`: Full provider resource name&para;<br>* `GCP_SERVICE_ACCOUNT`: Service account email&para;<br>* `CLOUD_ML_REGION`: Google Cloud's Agent Platform region (for example, `us-east5`)&para;<br>&para;<br>```yaml theme={null}&para;<br></span><ins style="background:#e6ffe6;">stages:&para;<br>  - ai&para;<br>&para;<br></ins><span>claude-vertex:&para;<br>  stage: ai&para;<br>  image: gcr.io/google.com/cloudsdktool/google-cloud-cli:slim&para;<br>  rules:&para;<br>    - if: '$CI_PIPELINE_SOURCE == "web"'&para;<br>  before_script:&para;<br>    - apt-get update &amp;&amp; apt-get install -y git &amp;&amp; apt-get clean&para;<br>    - curl -fsSL https://claude.ai/install.sh | bash&para;<br>    # Authenticate to Google Cloud via WIF (no downloaded keys)&para;<br>    - &gt;&para;<br>      gcloud auth login --cred-file=&lt;(cat &lt;&lt;EOF&para;<br>      {&para;<br>        "type": "external_account",&para;<br>        "audience": "${GCP_WORKLOAD_IDENTITY_PROVIDER}",&para;<br>        "subject_token_type": "urn:ietf:params:oauth:token-type:jwt",&para;<br>        "service_account_impersonation_url": "https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${GCP_SERVICE_ACCOUNT}:generateAccessToken",&para;<br>        "token_url": "https://sts.googleapis.com/v1/token"&para;<br>      }&para;<br>      EOF&para;<br>      )&para;<br>    - gcloud config set project "$(gcloud projects list --format='value(projectId)' --filter="name:${CI_PROJECT_NAMESPACE}" | head -n1)" || true&para;<br>  script:&para;<br>    - /bin/gitlab-mcp-server || true&para;<br>    - &gt;&para;<br>      CLOUD_ML_REGION="${CLOUD_ML_REGION:-us-east5}"&para;<br>      claude&para;<br>      -p "${AI_FLOW_INPUT:-'Review and update code as requested'}"&para;<br>      --permission-mode acceptEdits&para;<br>      --allowedTools "Bash Read Edit Write mcp__gitlab"&para;<br>      --debug&para;<br>  variables:&para;<br>    CLOUD_ML_REGION: "us-east5"&para;<br>```&para;<br>&para;<br>&lt;Note&gt;&para;<br>  With Workload Identity Federation, you do not need to store service account keys. Use repository-specific trust conditions and least-privilege service accounts.&para;<br>&lt;/Note&gt;&para;<br>&para;<br>## Best practices&para;<br>&para;<br>### CLAUDE.md configuration&para;<br>&para;<br>Create a `CLAUDE.md` file at the repository root to define coding standards, review criteria, and project-specific rules. Claude reads this file during runs and follows your conventions when proposing changes.&para;<br>&para;<br>### Security considerations&para;<br>&para;<br>**Never commit API keys or cloud credentials to your repository**. Always use GitLab CI/CD variables:&para;<br>&para;<br>* Add `ANTHROPIC_API_KEY` as a masked variable (and protect it if needed)&para;<br>* Use provider-specific OIDC where possible (no long-lived keys)&para;<br>* Limit job permissions and network egress&para;<br>* Review Claude's MRs like any other contributor&para;<br>&para;<br>### Optimizing performance&para;<br>&para;<br>* Keep `CLAUDE.md` focused and concise&para;<br>* Provide clear issue/MR descriptions to reduce iterations&para;<br></span><del style="background:#ffe6e6;">* Configure sensible job timeouts to avoid runaway runs&para;<br></del><span>* Cache npm and package installs in runners where possible&para;<br>&para;<br>### CI costs&para;<br>&para;<br>When using Claude Code with GitLab CI/CD, be aware of associated costs:&para;<br>&para;<br>* **GitLab Runner time**:&para;<br>  * Claude runs on your GitLab runners and consumes compute minutes&para;<br>  * See your GitLab plan's runner billing for details&para;<br>&para;<br>* **API costs**:&para;<br>  * Each Claude interaction consumes tokens based on prompt and response size&para;<br>  * Token usage varies by task complexity and codebase size&para;<br>  * See [Anthropic pricing](https://platform.claude.com/docs/en/about-claude/pricing) for details&para;<br>&para;<br>* **Cost optimization tips**:&para;<br>  * Use specific `@claude` commands to reduce unnecessary turns&para;<br>  * Set appropriate `max_turns` and job timeout values&para;<br>  * Limit concurrency to control parallel runs&para;<br>&para;<br></span><del style="background:#ffe6e6;">## Security and governance&para;<br>&para;<br>* Each job runs in an isolated container with restricted network access&para;<br>* Claude's changes flow through MRs so reviewers see every diff&para;<br>* Branch protection and approval rules apply to AI-generated code&para;<br>* Claude Code uses workspace-scoped permissions to constrain writes&para;<br>* Costs remain under your control because you bring your own provider credentials&para;<br>&para;<br></del><span>## Troubleshooting&para;<br>&para;<br>### Claude not responding to @claude commands&para;<br>&para;<br>* Verify your pipeline is being triggered (manually, MR event, or via a note event listener/webhook)&para;<br>* Ensure </span><del style="background:#ffe6e6;">CI/CD variables (</del><ins style="background:#e6ffe6;">your </ins><span>`ANTHROPIC_API_KEY` or cloud provider </span><del style="background:#ffe6e6;">settings)</del><ins style="background:#e6ffe6;">variables</ins><span> are present</span><del style="background:#ffe6e6;"> and unmasked</del><span>&para;<br>* Check that the comment contains `@claude` (not `/claude`) and that your mention trigger is configured&para;<br>&para;<br>### Job can't write comments or open MRs&para;<br>&para;<br>* Ensure `CI_JOB_TOKEN` has sufficient permissions for the project, or use a Project Access Token with `api` scope&para;<br>* Check the `mcp__gitlab` tool is enabled in `--allowedTools`&para;<br>* Confirm the job runs in the context of the MR or has enough context via `AI_FLOW_*` variables&para;<br>&para;<br>### Authentication errors&para;<br>&para;<br>* **For Claude API**: Confirm `ANTHROPIC_API_KEY` is valid and unexpired&para;<br>* **For Amazon Bedrock or Google Cloud's Agent Platform**: Verify OIDC/WIF configuration, role impersonation, and secret names; confirm region and model availability&para;<br>&para;<br>## Advanced configuration&para;<br>&para;<br>### Common parameters and variables&para;<br>&para;<br>Claude Code supports these commonly used inputs:&para;<br>&para;<br>* `prompt` / `prompt_file`: Provide instructions inline (`-p`) or via a file&para;<br>* `max_turns`: Limit the number of back-and-forth iterations&para;<br>* `timeout_minutes`: Limit total execution time&para;<br>* `ANTHROPIC_API_KEY`: Required for the Claude API (not used for Amazon Bedrock or Google Cloud's Agent Platform)&para;<br>* Provider-specific environment: `AWS_REGION`, project/region vars for Google Cloud's Agent Platform&para;<br>&para;<br>&lt;Note&gt;&para;<br>  Exact flags and parameters may vary by version of `@anthropic-ai/claude-code`. Run `claude --help` in your job to see supported options.&para;<br>&lt;/Note&gt;&para;<br>&para;<br>### Customizing Claude's behavior&para;<br>&para;<br>You can guide Claude in two primary ways:&para;<br>&para;<br>1. **CLAUDE.md**: Define coding standards, security requirements, and project conventions. Claude reads this during runs and follows your rules.&para;<br>2. **Custom prompts**: Pass task-specific instructions via `prompt`/`prompt_file` in the job. Use different prompts for different jobs (for example, review, implement, refactor).&para;<br></span></div>
+            <div class="diff-content"><span>&gt; ## Documentation Index&para;<br>&gt; Fetch the complete documentation index at: https://code.claude.com/docs/llms.txt&para;<br>&gt; Use this file to discover all available pages before exploring further.&para;<br>&para;<br># Claude Code GitLab CI/CD&para;<br>&para;<br>&gt; Learn about integrating Claude Code into your development workflow with GitLab CI/CD&para;<br>&para;<br>&lt;Info&gt;&para;<br>  Claude Code for GitLab CI/CD is currently in beta. Features and functionality may evolve as we refine the experience.&para;<br>&para;<br>  This integration is maintained by GitLab. For support, see the following [GitLab issue](https://gitlab.com/gitlab-org/gitlab/-/issues/573776).&para;<br>&lt;/Info&gt;&para;<br>&para;<br>&lt;Note&gt;&para;<br>  This integration is built on top of the [Claude Code CLI and Agent SDK](/docs/en/agent-sdk/overview), enabling programmatic use of Claude in your CI/CD jobs and custom automation workflows.&para;<br>&lt;/Note&gt;&para;<br>&para;<br>## Why use Claude Code with GitLab?&para;<br>&para;<br>* **Instant MR creation**: Describe what you need, and Claude proposes a complete MR with changes and explanation&para;<br>* **Automated implementation**: Turn issues into working code with a single command or mention&para;<br>* **Project-aware**: Claude follows your `CLAUDE.md` guidelines and existing code patterns&para;<br>* **Simple setup**: Add one job to `.gitlab-ci.yml` and a masked CI/CD variable&para;<br>* **Enterprise-ready**: Choose Claude API, Amazon Bedrock, or Google Cloud's Agent Platform to meet data residency and procurement needs&para;<br>* **Secure by default**: Runs in your GitLab runners with your branch protection and approvals&para;<br>&para;<br>## How it works&para;<br>&para;<br>Claude Code uses GitLab CI/CD to run AI tasks in isolated jobs and commit results back via MRs:&para;<br>&para;<br>1. **Event-driven orchestration**: GitLab listens for your chosen triggers (for example, a comment that mentions `@claude` in an issue, MR, or review thread). The job collects context from the thread and repository, builds prompts from that input, and runs Claude Code.&para;<br>&para;<br>2. **Provider abstraction**: Use the provider that fits your environment:&para;<br>   * Claude API (SaaS)&para;<br>   * Amazon Bedrock (IAM-based access, cross-region options)&para;<br>   * Google Cloud's Agent Platform (GCP-native, Workload Identity Federation)&para;<br>&para;<br>3. **Sandboxed execution**: Each interaction runs in a container with strict network and filesystem rules. Claude Code enforces workspace-scoped permissions to constrain writes. Every change flows through an MR so reviewers see the diff and approvals still apply.&para;<br>&para;<br>Pick regional endpoints to reduce latency and meet data-sovereignty requirements while using existing cloud agreements.&para;<br>&para;<br>## What can Claude do?&para;<br>&para;<br>Claude Code enables powerful CI/CD workflows that transform how you work with code:&para;<br>&para;<br>* Create and update MRs from issue descriptions or comments&para;<br>* Analyze performance regressions and propose optimizations&para;<br>* Implement features directly in a branch, then open an MR&para;<br>* Fix bugs and regressions identified by tests or comments&para;<br>* Respond to follow-up comments to iterate on requested changes&para;<br>&para;<br>## Setup&para;<br>&para;<br>### Quick setup&para;<br>&para;<br>The fastest way to get started is to add a minimal job to your `.gitlab-ci.yml` and set your API key as a masked variable.&para;<br>&para;<br>1. **Add a masked CI/CD variable**&para;<br>   * Go to **Settings** → **CI/CD** → **Variables**&para;<br>   * Add `ANTHROPIC_API_KEY` (masked, protected as needed)&para;<br>&para;<br>2. **Add a Claude job to `.gitlab-ci.yml`**&para;<br>&para;<br>```yaml theme={null}&para;<br>stages:&para;<br>  - ai&para;<br>&para;<br>claude:&para;<br>  stage: ai&para;<br>  image: node:24-alpine3.21&para;<br>  # Adjust rules to fit how you want to trigger the job:&para;<br>  # - manual runs&para;<br>  # - merge request events&para;<br>  # - web/API triggers when a comment contains '@claude'&para;<br>  rules:&para;<br>    - if: '$CI_PIPELINE_SOURCE == "web"'&para;<br>    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'&para;<br>  variables:&para;<br>    GIT_STRATEGY: fetch&para;<br>  before_script:&para;<br>    - apk update&para;<br>    - apk add --no-cache git curl bash&para;<br>    - curl -fsSL https://claude.ai/install.sh | bash&para;<br></span><ins style="background:#e6ffe6;">    # The installer places claude in ~/.local/bin, which isn't on PATH in this image&para;<br>    - export PATH="$HOME/.local/bin:$PATH"&para;<br></ins><span>  script:&para;<br>    # Optional: start a GitLab MCP server if your setup provides one&para;<br>    - /bin/gitlab-mcp-server || true&para;<br>    # Use AI_FLOW_* variables when invoking via web/API triggers with context payloads&para;<br>    - echo "$AI_FLOW_INPUT for $AI_FLOW_CONTEXT on $AI_FLOW_EVENT"&para;<br>    - &gt;&para;<br>      claude&para;<br>      -p "${AI_FLOW_INPUT:-'Review this MR and implement the requested changes'}"&para;<br>      --permission-mode acceptEdits&para;<br>      --allowedTools "Bash Read Edit Write mcp__gitlab"&para;<br>      --debug&para;<br>```&para;<br>&para;<br>After adding the job and your `ANTHROPIC_API_KEY` variable, test by running the job manually from **CI/CD** → **Pipelines**, or trigger it from an MR to let Claude propose updates in a branch and open an MR if needed.&para;<br>&para;<br>&lt;Note&gt;&para;<br>  To run on Amazon Bedrock or Google Cloud's Agent Platform instead of the Claude API, see the [Using with Amazon Bedrock and Google Cloud](#using-with-amazon-bedrock-and-google-cloud) section below for authentication and environment setup.&para;<br>&lt;/Note&gt;&para;<br>&para;<br>### Manual setup (recommended for production)&para;<br>&para;<br>If you prefer a more controlled setup or need enterprise providers:&para;<br>&para;<br>1. **Configure provider access**:&para;<br>   * **Claude API**: Create and store `ANTHROPIC_API_KEY` as a masked CI/CD variable&para;<br>   * **Amazon Bedrock**: **Configure GitLab** → **AWS OIDC** and create an IAM role for Amazon Bedrock&para;<br>   * **Google Cloud's Agent Platform**: **Configure Workload Identity Federation for GitLab** → **GCP**&para;<br>&para;<br>2. **Add project credentials for GitLab API operations**:&para;<br>   * Use `CI_JOB_TOKEN` by default, or create a Project Access Token with `api` scope&para;<br>   * Store as `GITLAB_ACCESS_TOKEN` (masked) if using a PAT&para;<br>&para;<br>3. **Add the Claude job to `.gitlab-ci.yml`**: use the [Quick setup](#quick-setup) job for the Claude API, or a provider job from [Configuration examples](#configuration-examples)&para;<br>&para;<br>4. **(Optional) Enable mention-driven triggers**:&para;<br>   * Add a project webhook for "Comments (notes)" to your event listener (if you use one)&para;<br>   * Have the listener call the pipeline trigger API with variables like `AI_FLOW_INPUT` and `AI_FLOW_CONTEXT` when a comment contains `@claude`&para;<br>&para;<br>## Example use cases&para;<br>&para;<br>### Turn issues into MRs&para;<br>&para;<br>In an issue comment:&para;<br>&para;<br>```text wrap theme={null}&para;<br>@claude implement this feature based on the issue description&para;<br>```&para;<br>&para;<br>Claude analyzes the issue and codebase, writes changes in a branch, and opens an MR for review.&para;<br>&para;<br>### Get implementation help&para;<br>&para;<br>In an MR discussion:&para;<br>&para;<br>```text wrap theme={null}&para;<br>@claude suggest a concrete approach to cache the results of this API call&para;<br>```&para;<br>&para;<br>Claude proposes changes, adds code with appropriate caching, and updates the MR.&para;<br>&para;<br>### Fix bugs quickly&para;<br>&para;<br>In an issue or MR comment:&para;<br>&para;<br>```text wrap theme={null}&para;<br>@claude fix the TypeError in the user dashboard component&para;<br>```&para;<br>&para;<br>Claude locates the bug, implements a fix, and updates the branch or opens a new MR.&para;<br>&para;<br>## Using with Amazon Bedrock and Google Cloud&para;<br>&para;<br>For enterprise environments, you can run Claude Code entirely on your cloud infrastructure with the same developer experience.&para;<br>&para;<br>&lt;Tabs&gt;&para;<br>  &lt;Tab title="Amazon Bedrock"&gt;&para;<br>    ### Prerequisites&para;<br>&para;<br>    Before setting up Claude Code with Amazon Bedrock, you need:&para;<br>&para;<br>    1. An AWS account with Amazon Bedrock access to the desired Claude models&para;<br>    2. GitLab configured as an OIDC identity provider in AWS IAM&para;<br>    3. An IAM role with Amazon Bedrock permissions and a trust policy restricted to your GitLab project/refs&para;<br>    4. GitLab CI/CD variables for role assumption:&para;<br>       * `AWS_ROLE_TO_ASSUME` (role ARN)&para;<br>       * `AWS_REGION` (Amazon Bedrock region)&para;<br>&para;<br>    ### Setup instructions&para;<br>&para;<br>    Configure AWS to allow GitLab CI jobs to assume an IAM role via OIDC (no static keys).&para;<br>&para;<br>    **Required setup:**&para;<br>&para;<br>    1. Enable Amazon Bedrock and request access to your target Claude models&para;<br>    2. Create an IAM OIDC provider for GitLab if not already present&para;<br>    3. Create an IAM role trusted by the GitLab OIDC provider, restricted to your project and protected refs&para;<br>    4. Attach least-privilege permissions for Amazon Bedrock invoke APIs&para;<br>&para;<br>    Use the [Amazon Bedrock job example](#configuration-examples) to exchange the </span><del style="background:#ffe6e6;">GitLab job</del><ins style="background:#e6ffe6;">job's OIDC</ins><span> token for temporary AWS credentials at runtime.&para;<br>  &lt;/Tab&gt;&para;<br>&para;<br>  &lt;Tab title="Google Cloud's Agent Platform"&gt;&para;<br>    ### Prerequisites&para;<br>&para;<br>    Before setting up Claude Code with Google Cloud's Agent Platform, you need:&para;<br>&para;<br>    1. A Google Cloud project with:&para;<br>       * Google Cloud's Agent Platform API enabled&para;<br>       * Workload Identity Federation configured to trust GitLab OIDC&para;<br>    2. A dedicated service account with only the required Google Cloud's Agent Platform roles&para;<br>    3. GitLab CI/CD variables</span><del style="background:#ffe6e6;"> for WIF</del><span>:&para;<br>       * `GCP_WORKLOAD_IDENTITY_PROVIDER` (</span><del style="background:#ffe6e6;">full</del><ins style="background:#e6ffe6;">provider</ins><span> resource name</span><ins style="background:#e6ffe6;"> without the `//iam.googleapis.com/` prefix, such as `projects/123456789/locations/global/workloadIdentityPools/my-pool/providers/my-provider`</ins><span>)&para;<br>       * `GCP_SERVICE_ACCOUNT` (service account email)</span><ins style="background:#e6ffe6;">&para;<br>       * `GCP_PROJECT_ID` (Google Cloud project ID)</ins><span>&para;<br>&para;<br>    ### Setup instructions&para;<br>&para;<br>    Configure Google Cloud to allow GitLab CI jobs to impersonate a service account via Workload Identity Federation.&para;<br>&para;<br>    **Required setup:**&para;<br>&para;<br>    1. Enable IAM Credentials API, STS API, and Google Cloud's Agent Platform API&para;<br>    2. Create a Workload Identity Pool and provider for GitLab OIDC&para;<br>    3. Create a dedicated service account with Google Cloud's Agent Platform roles&para;<br>    4. Grant the WIF principal permission to impersonate the service account&para;<br>&para;<br>    Use the [Agent Platform job example](#configuration-examples) to authenticate without storing keys.&para;<br>  &lt;/Tab&gt;&para;<br>&lt;/Tabs&gt;&para;<br>&para;<br>## Configuration examples&para;<br>&para;<br>Below are ready-to-use snippets you can adapt to your pipeline.&para;<br>&para;<br>### Amazon Bedrock job example (OIDC)&para;<br>&para;<br>**Prerequisites:**&para;<br>&para;<br>* Amazon Bedrock enabled with access to your chosen Claude model(s)&para;<br>* GitLab OIDC configured in AWS with a role that trusts your GitLab project and refs&para;<br>* IAM role with Amazon Bedrock permissions (least privilege recommended)&para;<br>&para;<br>**Required CI/CD variables:**&para;<br>&para;<br>* `AWS_ROLE_TO_ASSUME`: ARN of the IAM role for Amazon Bedrock access&para;<br>* `AWS_REGION`: Amazon Bedrock region (for example, `us-west-2`)&para;<br>&para;<br></span><ins style="background:#e6ffe6;">GitLab mints the job's OIDC token from the `id_tokens:` block and exposes it as `GITLAB_OIDC_TOKEN`. Set `aud` to the audience value you configured on the IAM OIDC identity provider in AWS, for example your GitLab instance URL.&para;<br>&para;<br></ins><span>```yaml theme={null}&para;<br>stages:&para;<br>  - ai&para;<br>&para;<br>claude-bedrock:&para;<br>  stage: ai&para;<br>  image: node:24-alpine3.21&para;<br>  rules:&para;<br>    - if: '$CI_PIPELINE_SOURCE == "web"'&para;<br></span><ins style="background:#e6ffe6;">  id_tokens:&para;<br>    GITLAB_OIDC_TOKEN:&para;<br>      aud: https://gitlab.example.com&para;<br></ins><span>  before_script:&para;<br>    - apk add --no-cache bash curl jq git </span><del style="background:#ffe6e6;">python3 py3-pip&para;<br>    - pip install --no-cache-dir </del><span>aws</span><ins style="background:#e6ffe6;">-</ins><span>cli&para;<br>    - curl -fsSL https://claude.ai/install.sh | bash&para;<br>    # </span><del style="background:#ffe6e6;">Exchange GitLab</del><ins style="background:#e6ffe6;">The installer places claude in ~/.local/bin, which isn't on PATH in this image&para;<br>    - export PATH="$HOME/.local/bin:$PATH"&para;<br>    # Exchange the job's</ins><span> OIDC token for AWS credentials&para;<br>    - export AWS_WEB_IDENTITY_TOKEN_FILE="</span><del style="background:#ffe6e6;">${CI_JOB_JWT_FILE:-</del><span>/tmp/oidc_token</span><del style="background:#ffe6e6;">}</del><span>"&para;<br>    - </span><del style="background:#ffe6e6;">if [ -n "${CI_JOB_JWT_V2}" ]; then printf "%s" "$CI_JOB_JWT_V2</del><ins style="background:#e6ffe6;">printf "%s" "$GITLAB_OIDC_TOKEN</ins><span>" &gt; "$AWS_WEB_IDENTITY_TOKEN_FILE"</span><del style="background:#ffe6e6;">; fi</del><span>&para;<br>    - &gt;&para;<br>      aws sts assume-role-with-web-identity&para;<br>      --role-arn "$AWS_ROLE_TO_ASSUME"&para;<br>      --role-session-name "gitlab-claude-$(date +%s)"&para;<br>      --web-identity-token "file://$AWS_WEB_IDENTITY_TOKEN_FILE"&para;<br>      --duration-seconds 3600 &gt; /tmp/aws_creds.json&para;<br>    - export AWS_ACCESS_KEY_ID="$(jq -r .Credentials.AccessKeyId /tmp/aws_creds.json)"&para;<br>    - export AWS_SECRET_ACCESS_KEY="$(jq -r .Credentials.SecretAccessKey /tmp/aws_creds.json)"&para;<br>    - export AWS_SESSION_TOKEN="$(jq -r .Credentials.SessionToken /tmp/aws_creds.json)"&para;<br>  script:&para;<br>    - /bin/gitlab-mcp-server || true&para;<br>    - &gt;&para;<br>      claude&para;<br>      -p "${AI_FLOW_INPUT:-'Implement the requested changes and open an MR'}"&para;<br>      --permission-mode acceptEdits&para;<br>      --allowedTools "Bash Read Edit Write mcp__gitlab"&para;<br>      --debug&para;<br>  variables:&para;<br>    AWS_REGION: "us-west-2"&para;<br></span><ins style="background:#e6ffe6;">    CLAUDE_CODE_USE_BEDROCK: "1"&para;<br></ins><span>```&para;<br>&para;<br>&lt;Note&gt;&para;<br>  Model IDs for Amazon Bedrock include region-specific prefixes (for example, `us.anthropic.claude-sonnet-4-6`). Pass the desired model via your job configuration or prompt if your workflow supports it.&para;<br>&lt;/Note&gt;&para;<br>&para;<br>### Agent Platform job example (Workload Identity Federation)&para;<br>&para;<br>**Prerequisites:**&para;<br>&para;<br>* Google Cloud's Agent Platform API enabled in your GCP project&para;<br>* Workload Identity Federation configured to trust GitLab OIDC&para;<br>* A service account with Google Cloud's Agent Platform permissions&para;<br>&para;<br>**Required CI/CD variables:**&para;<br>&para;<br>* `GCP_WORKLOAD_IDENTITY_PROVIDER`:</span><del style="background:#ffe6e6;"> Full</del><span> provider resource name</span><ins style="background:#e6ffe6;"> without the `//iam.googleapis.com/` prefix, such as `projects/123456789/locations/global/workloadIdentityPools/my-pool/providers/my-provider`</ins><span>&para;<br>* `GCP_SERVICE_ACCOUNT`: </span><del style="background:#ffe6e6;">S</del><ins style="background:#e6ffe6;">s</ins><span>ervice account email&para;<br></span><ins style="background:#e6ffe6;">* `GCP_PROJECT_ID`: Google Cloud project ID&para;<br></ins><span>* `CLOUD_ML_REGION`: Google Cloud's Agent Platform region (for example, `us-east5`)&para;<br>&para;<br></span><ins style="background:#e6ffe6;">GitLab mints the job's OIDC token from the `id_tokens:` block and exposes it as `GITLAB_OIDC_TOKEN`. Set `aud` to the audience value you configured on the Workload Identity Pool provider, for example your GitLab instance URL. The job writes the token to a file, and the credential configuration's `credential_source` entry tells Google's auth libraries to read it from there. Setting `GOOGLE_APPLICATION_CREDENTIALS` to the credential configuration file makes it available to Claude Code through [Application Default Credentials](/docs/en/google-vertex-ai#3-configure-gcp-credentials).&para;<br>&para;<br></ins><span>```yaml theme={null}&para;<br>stages:&para;<br>  - ai&para;<br>&para;<br>claude-vertex:&para;<br>  stage: ai&para;<br>  image: gcr.io/google.com/cloudsdktool/google-cloud-cli:slim&para;<br>  rules:&para;<br>    - if: '$CI_PIPELINE_SOURCE == "web"'&para;<br></span><ins style="background:#e6ffe6;">  id_tokens:&para;<br>    GITLAB_OIDC_TOKEN:&para;<br>      aud: https://gitlab.example.com&para;<br></ins><span>  before_script:&para;<br>    - apt-get update &amp;&amp; apt-get install -y git &amp;&amp; apt-get clean&para;<br>    - curl -fsSL https://claude.ai/install.sh | bash&para;<br>    # </span><del style="background:#ffe6e6;">Authenticate to Google Cloud via WIF</del><ins style="background:#e6ffe6;">The installer places claude in ~/.local/bin, which isn't on PATH in this image&para;<br>    - export PATH="$HOME/.local/bin:$PATH"&para;<br>    # Write the job's OIDC token where credential_source expects it&para;<br>    - printf "%s" "$GITLAB_OIDC_TOKEN" &gt; /tmp/oidc_token&para;<br>    # Write the WIF credential configuration to a file</ins><span> (no downloaded keys)&para;<br>    - </span><del style="background:#ffe6e6;">&gt;</del><ins style="background:#e6ffe6;">|</ins><span>&para;<br>      </span><del style="background:#ffe6e6;">gcloud auth login --cred-file=&lt;(cat</del><ins style="background:#e6ffe6;">cat &gt; /tmp/cred.json</ins><span> &lt;&lt;EOF&para;<br>      {&para;<br>        "type": "external_account",&para;<br>        "audience": "</span><ins style="background:#e6ffe6;">//iam.googleapis.com/</ins><span>${GCP_WORKLOAD_IDENTITY_PROVIDER}",&para;<br>        "subject_token_type": "urn:ietf:params:oauth:token-type:jwt",&para;<br></span><ins style="background:#e6ffe6;">        "token_url": "https://sts.googleapis.com/v1/token",&para;<br>        "credential_source": {&para;<br>          "file": "/tmp/oidc_token"&para;<br>        },&para;<br></ins><span>        "service_account_impersonation_url": "https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${GCP_SERVICE_ACCOUNT}:generateAccessToken"</span><del style="background:#ffe6e6;">,&para;<br>        "token_url": "https://sts.googleapis.com/v1/token"&para;<br>      }&para;<br>      EOF&para;<br>      )&para;<br>    - gcloud config set project "$(gcloud projects list --format='value(projectId)' --filter="name:${CI_PROJECT_NAMESPACE}" | head -n1)" || true</del><ins style="background:#e6ffe6;">&para;<br>      }&para;<br>      EOF&para;<br>    # Expose the credentials to Claude Code via Application Default Credentials&para;<br>    - export GOOGLE_APPLICATION_CREDENTIALS=/tmp/cred.json&para;<br>    # Authenticate the gcloud CLI with the same credential configuration&para;<br>    - gcloud auth login --cred-file=/tmp/cred.json&para;<br>    - gcloud config set project "$GCP_PROJECT_ID"</ins><span>&para;<br>  script:&para;<br>    - /bin/gitlab-mcp-server || true&para;<br>    - &gt;&para;<br>      CLOUD_ML_REGION="${CLOUD_ML_REGION:-us-east5}"&para;<br>      claude&para;<br>      -p "${AI_FLOW_INPUT:-'Review and update code as requested'}"&para;<br>      --permission-mode acceptEdits&para;<br>      --allowedTools "Bash Read Edit Write mcp__gitlab"&para;<br>      --debug&para;<br>  variables:&para;<br>    CLOUD_ML_REGION: "us-east5"&para;<br></span><ins style="background:#e6ffe6;">    CLAUDE_CODE_USE_VERTEX: "1"&para;<br>    ANTHROPIC_VERTEX_PROJECT_ID: "$GCP_PROJECT_ID"&para;<br></ins><span>```&para;<br>&para;<br>&lt;Note&gt;&para;<br>  With Workload Identity Federation, you do not need to store service account keys. Use repository-specific trust conditions and least-privilege service accounts.&para;<br>&lt;/Note&gt;&para;<br>&para;<br>## Best practices&para;<br>&para;<br>### CLAUDE.md configuration&para;<br>&para;<br>Create a `CLAUDE.md` file at the repository root to define coding standards, review criteria, and project-specific rules. Claude reads this file during runs and follows your conventions when proposing changes.&para;<br>&para;<br>### Security considerations&para;<br>&para;<br>**Never commit API keys or cloud credentials to your repository**. Always use GitLab CI/CD variables:&para;<br>&para;<br>* Add `ANTHROPIC_API_KEY` as a masked variable (and protect it if needed)&para;<br>* Use provider-specific OIDC where possible (no long-lived keys)&para;<br>* Limit job permissions and network egress&para;<br>* Review Claude's MRs like any other contributor&para;<br>&para;<br>### Optimizing performance&para;<br>&para;<br>* Keep `CLAUDE.md` focused and concise&para;<br>* Provide clear issue/MR descriptions to reduce iterations&para;<br>* Cache npm and package installs in runners where possible&para;<br>&para;<br>### CI costs&para;<br>&para;<br>When using Claude Code with GitLab CI/CD, be aware of associated costs:&para;<br>&para;<br>* **GitLab Runner time**:&para;<br>  * Claude runs on your GitLab runners and consumes compute minutes&para;<br>  * See your GitLab plan's runner billing for details&para;<br>&para;<br>* **API costs**:&para;<br>  * Each Claude interaction consumes tokens based on prompt and response size&para;<br>  * Token usage varies by task complexity and codebase size&para;<br>  * See [Anthropic pricing](https://platform.claude.com/docs/en/about-claude/pricing) for details&para;<br>&para;<br>* **Cost optimization tips**:&para;<br>  * Use specific `@claude` commands to reduce unnecessary turns&para;<br>  * Set appropriate `</span><ins style="background:#e6ffe6;">--</ins><span>max</span><del style="background:#ffe6e6;">_</del><ins style="background:#e6ffe6;">-</ins><span>turns` and job </span><ins style="background:#e6ffe6;">`</ins><span>timeout</span><ins style="background:#e6ffe6;">`</ins><span> values&para;<br>  * Limit concurrency to control parallel runs&para;<br>&para;<br>## Troubleshooting&para;<br>&para;<br>### Claude not responding to @claude commands&para;<br>&para;<br>* Verify your pipeline is being triggered (manually, MR event, or via a note event listener/webhook)&para;<br>* Ensure your `ANTHROPIC_API_KEY` or cloud provider variables are present&para;<br>* Check that the comment contains `@claude` (not `/claude`) and that your mention trigger is configured&para;<br>&para;<br>### Job can't write comments or open MRs&para;<br>&para;<br>* Ensure `CI_JOB_TOKEN` has sufficient permissions for the project, or use a Project Access Token with `api` scope&para;<br>* Check the `mcp__gitlab` tool is enabled in `--allowedTools`&para;<br>* Confirm the job runs in the context of the MR or has enough context via `AI_FLOW_*` variables&para;<br>&para;<br>### Authentication errors&para;<br>&para;<br>* **For Claude API**: Confirm `ANTHROPIC_API_KEY` is valid and unexpired&para;<br>* **For Amazon Bedrock or Google Cloud's Agent Platform**: Verify OIDC/WIF configuration, role impersonation, and secret names; confirm region and model availability&para;<br>&para;<br>## Advanced configuration&para;<br>&para;<br>### Common parameters and variables&para;<br>&para;<br></span><ins style="background:#e6ffe6;">Control </ins><span>Claude Code </span><del style="background:#ffe6e6;">supports these commonly used inputs:&para;<br>&para;<br>* `prompt` / `prompt_file`: Provide instructions inline (`-p`) or via a file</del><ins style="background:#e6ffe6;">runs in your jobs with these CLI flags, GitLab keywords, and variables:&para;<br>&para;<br>* `-p`: provide instructions inline, for example `claude -p "Review this MR"`</ins><span>&para;<br>* `</span><ins style="background:#e6ffe6;">--</ins><span>max</span><del style="background:#ffe6e6;">_</del><ins style="background:#e6ffe6;">-</ins><span>turns`: </span><del style="background:#ffe6e6;">L</del><ins style="background:#e6ffe6;">l</ins><span>imit the number of back-and-forth iterations&para;<br>* `timeout</span><del style="background:#ffe6e6;">_minutes</del><span>`: </span><del style="background:#ffe6e6;">L</del><ins style="background:#e6ffe6;">l</ins><span>imit total </span><ins style="background:#e6ffe6;">job </ins><span>execution time</span><ins style="background:#e6ffe6;"> with GitLab's job-level `timeout` keyword, for example `timeout: 30m`</ins><span>&para;<br>* `ANTHROPIC_API_KEY`: </span><del style="background:#ffe6e6;">R</del><ins style="background:#e6ffe6;">r</ins><span>equired for the Claude API (not used for Amazon Bedrock or Google Cloud's Agent Platform)&para;<br>* Provider-specific environment: `AWS_REGION`, project/region vars for Google Cloud's Agent Platform&para;<br>&para;<br>&lt;Note&gt;&para;<br>  Exact flags and parameters may vary by version of `@anthropic-ai/claude-code`. Run `claude --help` in your job to see supported options.&para;<br>&lt;/Note&gt;&para;<br>&para;<br>### Customizing Claude's behavior&para;<br>&para;<br>You can guide Claude in two primary ways:&para;<br>&para;<br>1. **CLAUDE.md**: Define coding standards, security requirements, and project conventions. Claude reads this during runs and follows your rules.&para;<br>2. **Custom prompts**: Pass task-specific instructions via `</span><ins style="background:#e6ffe6;">-</ins><span>p</span><del style="background:#ffe6e6;">rompt`/`prompt_file</del><span>` in the job. Use different prompts for different jobs (for example, review, implement, refactor).&para;<br></span></div>
         </div>
 
         <h2 style="margin-top: 2rem; margin-bottom: 1rem;">Unified Diff</h2>
         <pre><code>--- a/gitlab-ci-cd.md
 +++ b/gitlab-ci-cd.md
-@@ -114,7 +114,7 @@
-    * Use `CI_JOB_TOKEN` by default, or create a Project Access Token with `api` scope
-    * Store as `GITLAB_ACCESS_TOKEN` (masked) if using a PAT
- 
--3. **Add the Claude job to `.gitlab-ci.yml`** (see examples below)
-+3. **Add the Claude job to `.gitlab-ci.yml`**: use the [Quick setup](#quick-setup) job for the Claude API, or a provider job from [Configuration examples](#configuration-examples)
- 
- 4. **(Optional) Enable mention-driven triggers**:
-    * Add a project webhook for &#34;Comments (notes)&#34; to your event listener (if you use one)
-@@ -180,20 +180,7 @@
+@@ -82,6 +82,8 @@
+     - apk update
+     - apk add --no-cache git curl bash
+     - curl -fsSL https://claude.ai/install.sh | bash
++    # The installer places claude in ~/.local/bin, which isn&#39;t on PATH in this image
++    - export PATH=&#34;$HOME/.local/bin:$PATH&#34;
+   script:
+     # Optional: start a GitLab MCP server if your setup provides one
+     - /bin/gitlab-mcp-server || true
+@@ -180,7 +182,7 @@
      3. Create an IAM role trusted by the GitLab OIDC provider, restricted to your project and protected refs
      4. Attach least-privilege permissions for Amazon Bedrock invoke APIs
  
--    **Required values to store in CI/CD variables:**
--
--    * `AWS_ROLE_TO_ASSUME`
--    * `AWS_REGION`
--
--    Add variables in Settings → CI/CD → Variables:
--
--    ```yaml theme={null}
--    # For Amazon Bedrock:
--    - AWS_ROLE_TO_ASSUME
--    - AWS_REGION
--    ```
--
--    Use the Amazon Bedrock job example above to exchange the GitLab job token for temporary AWS credentials at runtime.
-+    Use the [Amazon Bedrock job example](#configuration-examples) to exchange the GitLab job token for temporary AWS credentials at runtime.
+-    Use the [Amazon Bedrock job example](#configuration-examples) to exchange the GitLab job token for temporary AWS credentials at runtime.
++    Use the [Amazon Bedrock job example](#configuration-examples) to exchange the job&#39;s OIDC token for temporary AWS credentials at runtime.
    &lt;/Tab&gt;
  
    &lt;Tab title=&#34;Google Cloud&#39;s Agent Platform&#34;&gt;
-@@ -220,21 +207,7 @@
-     3. Create a dedicated service account with Google Cloud&#39;s Agent Platform roles
-     4. Grant the WIF principal permission to impersonate the service account
+@@ -192,9 +194,10 @@
+        * Google Cloud&#39;s Agent Platform API enabled
+        * Workload Identity Federation configured to trust GitLab OIDC
+     2. A dedicated service account with only the required Google Cloud&#39;s Agent Platform roles
+-    3. GitLab CI/CD variables for WIF:
+-       * `GCP_WORKLOAD_IDENTITY_PROVIDER` (full resource name)
++    3. GitLab CI/CD variables:
++       * `GCP_WORKLOAD_IDENTITY_PROVIDER` (provider resource name without the `//iam.googleapis.com/` prefix, such as `projects/123456789/locations/global/workloadIdentityPools/my-pool/providers/my-provider`)
+        * `GCP_SERVICE_ACCOUNT` (service account email)
++       * `GCP_PROJECT_ID` (Google Cloud project ID)
  
--    **Required values to store in CI/CD variables:**
--
--    * `GCP_WORKLOAD_IDENTITY_PROVIDER`
--    * `GCP_SERVICE_ACCOUNT`
--
--    Add variables in Settings → CI/CD → Variables:
--
--    ```yaml theme={null}
--    # For Google Cloud&#39;s Agent Platform:
--    - GCP_WORKLOAD_IDENTITY_PROVIDER
--    - GCP_SERVICE_ACCOUNT
--    - CLOUD_ML_REGION (for example, us-east5)
--    ```
--
--    Use the job example above for Google Cloud&#39;s Agent Platform to authenticate without storing keys.
-+    Use the [Agent Platform job example](#configuration-examples) to authenticate without storing keys.
-   &lt;/Tab&gt;
- &lt;/Tabs&gt;
+     ### Setup instructions
  
-@@ -242,49 +215,23 @@
+@@ -227,6 +230,8 @@
  
- Below are ready-to-use snippets you can adapt to your pipeline.
- 
--### Basic .gitlab-ci.yml (Claude API)
-+### Amazon Bedrock job example (OIDC)
+ * `AWS_ROLE_TO_ASSUME`: ARN of the IAM role for Amazon Bedrock access
+ * `AWS_REGION`: Amazon Bedrock region (for example, `us-west-2`)
 +
-+**Prerequisites:**
-+
-+* Amazon Bedrock enabled with access to your chosen Claude model(s)
-+* GitLab OIDC configured in AWS with a role that trusts your GitLab project and refs
-+* IAM role with Amazon Bedrock permissions (least privilege recommended)
-+
-+**Required CI/CD variables:**
-+
-+* `AWS_ROLE_TO_ASSUME`: ARN of the IAM role for Amazon Bedrock access
-+* `AWS_REGION`: Amazon Bedrock region (for example, `us-west-2`)
++GitLab mints the job&#39;s OIDC token from the `id_tokens:` block and exposes it as `GITLAB_OIDC_TOKEN`. Set `aud` to the audience value you configured on the IAM OIDC identity provider in AWS, for example your GitLab instance URL.
  
  ```yaml theme={null}
  stages:
-   - ai
- 
--claude:
--  stage: ai
--  image: node:24-alpine3.21
--  rules:
--    - if: &#39;$CI_PIPELINE_SOURCE == &#34;web&#34;&#39;
--    - if: &#39;$CI_PIPELINE_SOURCE == &#34;merge_request_event&#34;&#39;
--  variables:
--    GIT_STRATEGY: fetch
--  before_script:
--    - apk update
--    - apk add --no-cache git curl bash
--    - curl -fsSL https://claude.ai/install.sh | bash
--  script:
--    - /bin/gitlab-mcp-server || true
--    - &gt;
--      claude
--      -p &#34;${AI_FLOW_INPUT:-&#39;Summarize recent changes and suggest improvements&#39;}&#34;
--      --permission-mode acceptEdits
--      --allowedTools &#34;Bash Read Edit Write mcp__gitlab&#34;
--      --debug
--  # Claude Code will use ANTHROPIC_API_KEY from CI/CD variables
--```
--
--### Amazon Bedrock job example (OIDC)
--
--**Prerequisites:**
--
--* Amazon Bedrock enabled with access to your chosen Claude model(s)
--* GitLab OIDC configured in AWS with a role that trusts your GitLab project and refs
--* IAM role with Amazon Bedrock permissions (least privilege recommended)
--
--**Required CI/CD variables:**
--
--* `AWS_ROLE_TO_ASSUME`: ARN of the IAM role for Amazon Bedrock access
--* `AWS_REGION`: Amazon Bedrock region (for example, `us-west-2`)
--
--```yaml theme={null}
- claude-bedrock:
-   stage: ai
+@@ -237,13 +242,17 @@
    image: node:24-alpine3.21
-@@ -337,6 +284,9 @@
+   rules:
+     - if: &#39;$CI_PIPELINE_SOURCE == &#34;web&#34;&#39;
++  id_tokens:
++    GITLAB_OIDC_TOKEN:
++      aud: https://gitlab.example.com
+   before_script:
+-    - apk add --no-cache bash curl jq git python3 py3-pip
+-    - pip install --no-cache-dir awscli
++    - apk add --no-cache bash curl jq git aws-cli
+     - curl -fsSL https://claude.ai/install.sh | bash
+-    # Exchange GitLab OIDC token for AWS credentials
+-    - export AWS_WEB_IDENTITY_TOKEN_FILE=&#34;${CI_JOB_JWT_FILE:-/tmp/oidc_token}&#34;
+-    - if [ -n &#34;${CI_JOB_JWT_V2}&#34; ]; then printf &#34;%s&#34; &#34;$CI_JOB_JWT_V2&#34; &gt; &#34;$AWS_WEB_IDENTITY_TOKEN_FILE&#34;; fi
++    # The installer places claude in ~/.local/bin, which isn&#39;t on PATH in this image
++    - export PATH=&#34;$HOME/.local/bin:$PATH&#34;
++    # Exchange the job&#39;s OIDC token for AWS credentials
++    - export AWS_WEB_IDENTITY_TOKEN_FILE=&#34;/tmp/oidc_token&#34;
++    - printf &#34;%s&#34; &#34;$GITLAB_OIDC_TOKEN&#34; &gt; &#34;$AWS_WEB_IDENTITY_TOKEN_FILE&#34;
+     - &gt;
+       aws sts assume-role-with-web-identity
+       --role-arn &#34;$AWS_ROLE_TO_ASSUME&#34;
+@@ -263,6 +272,7 @@
+       --debug
+   variables:
+     AWS_REGION: &#34;us-west-2&#34;
++    CLAUDE_CODE_USE_BEDROCK: &#34;1&#34;
+ ```
+ 
+ &lt;Note&gt;
+@@ -279,9 +289,12 @@
+ 
+ **Required CI/CD variables:**
+ 
+-* `GCP_WORKLOAD_IDENTITY_PROVIDER`: Full provider resource name
+-* `GCP_SERVICE_ACCOUNT`: Service account email
++* `GCP_WORKLOAD_IDENTITY_PROVIDER`: provider resource name without the `//iam.googleapis.com/` prefix, such as `projects/123456789/locations/global/workloadIdentityPools/my-pool/providers/my-provider`
++* `GCP_SERVICE_ACCOUNT`: service account email
++* `GCP_PROJECT_ID`: Google Cloud project ID
  * `CLOUD_ML_REGION`: Google Cloud&#39;s Agent Platform region (for example, `us-east5`)
++
++GitLab mints the job&#39;s OIDC token from the `id_tokens:` block and exposes it as `GITLAB_OIDC_TOKEN`. Set `aud` to the audience value you configured on the Workload Identity Pool provider, for example your GitLab instance URL. The job writes the token to a file, and the credential configuration&#39;s `credential_source` entry tells Google&#39;s auth libraries to read it from there. Setting `GOOGLE_APPLICATION_CREDENTIALS` to the credential configuration file makes it available to Claude Code through [Application Default Credentials](/docs/en/google-vertex-ai#3-configure-gcp-credentials).
  
  ```yaml theme={null}
-+stages:
-+  - ai
-+
- claude-vertex:
-   stage: ai
+ stages:
+@@ -292,22 +305,35 @@
    image: gcr.io/google.com/cloudsdktool/google-cloud-cli:slim
-@@ -394,7 +344,6 @@
+   rules:
+     - if: &#39;$CI_PIPELINE_SOURCE == &#34;web&#34;&#39;
++  id_tokens:
++    GITLAB_OIDC_TOKEN:
++      aud: https://gitlab.example.com
+   before_script:
+     - apt-get update &amp;&amp; apt-get install -y git &amp;&amp; apt-get clean
+     - curl -fsSL https://claude.ai/install.sh | bash
+-    # Authenticate to Google Cloud via WIF (no downloaded keys)
+-    - &gt;
+-      gcloud auth login --cred-file=&lt;(cat &lt;&lt;EOF
++    # The installer places claude in ~/.local/bin, which isn&#39;t on PATH in this image
++    - export PATH=&#34;$HOME/.local/bin:$PATH&#34;
++    # Write the job&#39;s OIDC token where credential_source expects it
++    - printf &#34;%s&#34; &#34;$GITLAB_OIDC_TOKEN&#34; &gt; /tmp/oidc_token
++    # Write the WIF credential configuration to a file (no downloaded keys)
++    - |
++      cat &gt; /tmp/cred.json &lt;&lt;EOF
+       {
+         &#34;type&#34;: &#34;external_account&#34;,
+-        &#34;audience&#34;: &#34;${GCP_WORKLOAD_IDENTITY_PROVIDER}&#34;,
++        &#34;audience&#34;: &#34;//iam.googleapis.com/${GCP_WORKLOAD_IDENTITY_PROVIDER}&#34;,
+         &#34;subject_token_type&#34;: &#34;urn:ietf:params:oauth:token-type:jwt&#34;,
+-        &#34;service_account_impersonation_url&#34;: &#34;https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${GCP_SERVICE_ACCOUNT}:generateAccessToken&#34;,
+-        &#34;token_url&#34;: &#34;https://sts.googleapis.com/v1/token&#34;
++        &#34;token_url&#34;: &#34;https://sts.googleapis.com/v1/token&#34;,
++        &#34;credential_source&#34;: {
++          &#34;file&#34;: &#34;/tmp/oidc_token&#34;
++        },
++        &#34;service_account_impersonation_url&#34;: &#34;https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${GCP_SERVICE_ACCOUNT}:generateAccessToken&#34;
+       }
+       EOF
+-      )
+-    - gcloud config set project &#34;$(gcloud projects list --format=&#39;value(projectId)&#39; --filter=&#34;name:${CI_PROJECT_NAMESPACE}&#34; | head -n1)&#34; || true
++    # Expose the credentials to Claude Code via Application Default Credentials
++    - export GOOGLE_APPLICATION_CREDENTIALS=/tmp/cred.json
++    # Authenticate the gcloud CLI with the same credential configuration
++    - gcloud auth login --cred-file=/tmp/cred.json
++    - gcloud config set project &#34;$GCP_PROJECT_ID&#34;
+   script:
+     - /bin/gitlab-mcp-server || true
+     - &gt;
+@@ -319,6 +345,8 @@
+       --debug
+   variables:
+     CLOUD_ML_REGION: &#34;us-east5&#34;
++    CLAUDE_CODE_USE_VERTEX: &#34;1&#34;
++    ANTHROPIC_VERTEX_PROJECT_ID: &#34;$GCP_PROJECT_ID&#34;
+ ```
  
- * Keep `CLAUDE.md` focused and concise
- * Provide clear issue/MR descriptions to reduce iterations
--* Configure sensible job timeouts to avoid runaway runs
- * Cache npm and package installs in runners where possible
+ &lt;Note&gt;
+@@ -361,7 +389,7 @@
  
- ### CI costs
-@@ -415,20 +364,12 @@
-   * Set appropriate `max_turns` and job timeout values
+ * **Cost optimization tips**:
+   * Use specific `@claude` commands to reduce unnecessary turns
+-  * Set appropriate `max_turns` and job timeout values
++  * Set appropriate `--max-turns` and job `timeout` values
    * Limit concurrency to control parallel runs
  
--## Security and governance
--
--* Each job runs in an isolated container with restricted network access
--* Claude&#39;s changes flow through MRs so reviewers see every diff
--* Branch protection and approval rules apply to AI-generated code
--* Claude Code uses workspace-scoped permissions to constrain writes
--* Costs remain under your control because you bring your own provider credentials
--
  ## Troubleshooting
+@@ -387,12 +415,12 @@
  
- ### Claude not responding to @claude commands
+ ### Common parameters and variables
  
- * Verify your pipeline is being triggered (manually, MR event, or via a note event listener/webhook)
--* Ensure CI/CD variables (`ANTHROPIC_API_KEY` or cloud provider settings) are present and unmasked
-+* Ensure your `ANTHROPIC_API_KEY` or cloud provider variables are present
- * Check that the comment contains `@claude` (not `/claude`) and that your mention trigger is configured
+-Claude Code supports these commonly used inputs:
+-
+-* `prompt` / `prompt_file`: Provide instructions inline (`-p`) or via a file
+-* `max_turns`: Limit the number of back-and-forth iterations
+-* `timeout_minutes`: Limit total execution time
+-* `ANTHROPIC_API_KEY`: Required for the Claude API (not used for Amazon Bedrock or Google Cloud&#39;s Agent Platform)
++Control Claude Code runs in your jobs with these CLI flags, GitLab keywords, and variables:
++
++* `-p`: provide instructions inline, for example `claude -p &#34;Review this MR&#34;`
++* `--max-turns`: limit the number of back-and-forth iterations
++* `timeout`: limit total job execution time with GitLab&#39;s job-level `timeout` keyword, for example `timeout: 30m`
++* `ANTHROPIC_API_KEY`: required for the Claude API (not used for Amazon Bedrock or Google Cloud&#39;s Agent Platform)
+ * Provider-specific environment: `AWS_REGION`, project/region vars for Google Cloud&#39;s Agent Platform
  
- ### Job can&#39;t write comments or open MRs
+ &lt;Note&gt;
+@@ -404,4 +432,4 @@
+ You can guide Claude in two primary ways:
+ 
+ 1. **CLAUDE.md**: Define coding standards, security requirements, and project conventions. Claude reads this during runs and follows your rules.
+-2. **Custom prompts**: Pass task-specific instructions via `prompt`/`prompt_file` in the job. Use different prompts for different jobs (for example, review, implement, refactor).
++2. **Custom prompts**: Pass task-specific instructions via `-p` in the job. Use different prompts for different jobs (for example, review, implement, refactor).
 </code></pre>
     </div>
 </body>
