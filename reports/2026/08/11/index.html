@@ -118,9 +118,323 @@
 
         <header>
             <h1>Changes on 2026-08-11</h1>
-            <p class="meta">29 total changes in 5 runs</p>
+            <p class="meta">44 total changes in 6 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">15:57 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更分析
+
+## 总体摘要
+本次更新引入了自托管运行器支持、Anthropic 配置文件与联邦认证、钩子系统的行为澄清，以及 `/btw` 侧边问题在 VS Code 扩展中的面板化支持。同时包含大量 Bug 修复和监控能力的增强。
+
+## 关键主题
+
+- **🚀 自托管运行器 (Self-Hosted Runner)**: 新增 `claude self-hosted-runner` 命令，允许将本地机器或容器注册为自托管环境，在自有基础设施上托管 Claude Code 云会话（需 v2.1.224+）。
+- **🔐 身份认证扩展**: 新增对 Anthropic Profile 和 Workload Identity Federation (WIF) 凭据的完整支持，明确了其认证优先级（介于 `apiKeyHelper` 和 `/login` 之间），并解释了组织锁定 (`forceLoginOrgUUID`) 对不同凭据类型的影响。
+- **🪝 钩子系统行为澄清**: 修正了 `StopFailure` 事件的描述（不再声明忽略决策输出），并详细说明了 Exit Code 2 与 JSON 输出同时存在时的处理逻辑，明确了阻塞消息在不同事件中的显示位置。
+- **💬 侧边问题 (`/btw`) 增强**: 在 VS Code 扩展中，`/btw` 现在打开独立面板而非覆盖层，支持追问，且线程在窗口重载后依然保留（需扩展 v2.1.227+）。
+- **📊 可观测性提升**: 新增 `claude_code.subagent_completed` 遥测事件，用于追踪子代理的运行时、工具调用数和模型切换情况。
+- **🛠️ 浏览器集成细化**: 明确了多浏览器连接时的选择逻辑，强调了 Claude Code v2.1.154+ 对持久化浏览器选择的支持。
+- **📦 技能与插件限制**: 预留了 `synced` 文件夹名称（不区分大小写），用于从 claude.ai 同步技能，本地同名的自定义技能将被跳过。
+
+## 影响级别
+**中高**
+
+**理由**: 引入了新的自托管 CLI 命令和认证流程，涉及基础设施变更。钩子行为的澄清虽未直接破坏代码，但改变了部分边缘情况下的预期行为（特别是错误处理路径），依赖钩子进行严格控制的项目需审查。侧边问题的 UI 变更改变了 VS Code 中的交互模式。
+
+## 开发者行动项
+
+- **评估自托管方案**: 如需在自有基础设施运行 Claude Code，研究 `claude self-hosted-runner` 命令及相关配置。
+- **检查钩子逻辑**: 如果使用了 `StopFailure` 事件或依赖 Exit Code 2 的阻塞行为，请对照文档更新确认逻辑是否符合预期。
+- **关注认证优先级**: 如果同时使用 API Key、Profile 或 `/login`，确认当前激活的认证方式是否符合预期，特别是组织策略锁定的影响。
+- **利用新遥测事件**: 如果监控子代理性能，可接入新增的 `subagent_completed` 事件来追踪运行时长和模型切换。
+- **避让保留文件夹名**: 检查自定义技能目录，确保没有使用 `synced` 作为文件夹名，以免在启用技能同步时被跳过。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">用户想要我分析文档变更，并以Markdown格式提供简洁、深刻的分析。我需要用中文回复，并重点介绍对开发者重要的内容。
+
+让我分析一下这些变更：
+
+1. **chrome.md**:
+   - 增加了关于多浏览器选择的更详细说明
+   - 新增了版本要求说明（Claude Code v2.1.154或更高版本）
+   - 强调了用户如何选择浏览器以及如何切换
+
+2. **cli-reference.md**:
+   - 新增了 `claude self-hosted-runner` 命令
+   - 添加了关于自托管运行器的文档引用
+   - 标注需要Claude Code v2.1.224或更高版本
+
+3. **hooks.md**:
+   - 修改了 `StopFailure` 事件的描述，删除了关于决策输出被忽略的说明
+   - 更新了关于systemMessage行为的说明
+   - 详细说明了退出代码2的行为
+   - 更新了各种钩子事件能否被阻止的表格
+
+4. **hooks-guide.md**:
+   - 与hooks.md类似的修改
+   - 更新了关于退出代码行为的说明
+   - 修改了阻止错误显示位置的说明
+
+5. **iam.md**:
+   - 更新了关于forceLoginOrgUUID和forceLoginMethod的说明
+   - 新增了关于Anthropic配置文件和联合凭据的详细说明
+   - 扩展了受支持的认证类型列表
+   - 添加了关于认证优先级的新章节
+
+6. **interactive-mode.md**:
+   - 更新了关于`/btw`命令的文档
+   - 新增了关于侧边问题在VS Code扩展中的行为说明
+   - 强调了侧边问题不会使用工具，但可以看到已加载的文件
+
+7. **mcp.md**:
+   - 新增了Anthropic profile变量相关的说明
+   - 更新了关于工具搜索功能的说明
+   - 新增了关于禁用预发布能力的说明链接
+
+8. **model-config.md**:
+   - 更新了模型选择阻止行为的说明
+   - 添加了关于subagent模型切换的版本要求
+   - 修改了模型选择器中显示完整模型ID行为的说明
+
+9. **monitoring-usage.md**:
+   - 新增了关于子代理完成事件的部分
+   - 添加了在自托管环境中运行时Prometheus端点的说明
+   - 新增了多个与子代理相关的属性
+
+10. **plugins-reference.md**:
+    - 更新了StopFailure事件的描述，与hooks.md一致
+
+11. **skills.md**:
+    - 新增了关于保留文件夹名&#34;synced&#34;的说明
+    - 添加了版本要求说明
+
+12. **slash-commands.md**:
+    - 与skills.md相同的修改
+
+13. **sub-agents.md**:
+    - 更新了关于使用`/btw`替代子代理的说明
+
+14. **vs-code.md**:
+    - 新增了关于VS Code扩展中侧边问题的说明
+    - 添加了版本要求说明
+
+15. **CHANGELOG.md.md**:
+    - 新增了v2.1.228版本的更新日志
+    - 包括多个修复和改进
+
+现在让我总结这些变更的关键主题：
+
+1. **自托管运行器支持**：新增了`claude self-hosted-runner`命令和相关文档
+2. **Anthropic配置文件和联合凭据**：新增了详细说明，支持新的认证方法
+3. **钩子系统改进**：更新了多个钩子事件的行为，特别是StopFailure和退出代码处理
+4. **浏览器集成增强**：改进了多浏览器选择和切换功能
+5. **侧边问题（/btw）功能扩展**：在VS Code扩展中增加了侧边问题面板功能
+6. **监控和遥测**：新增了子代理完成事件和相关的Prometheus端点
+7. **技能和插件**：新增了保留文件夹名&#34;synced&#34;的说明
+8. **Bug修复和改进**：多个 bug 修复，包括会话管理、认证处理等
+
+影响级别：中高。新增了许多重要功能，包括自托管运行器、新的认证方法、增强的钩子行为等。
+
+需要开发者采取的行动：
+1. 如果使用自托管环境，查看新的`claude self-hosted-runner`命令
+2. 如果使用Anthropic配置文件或联合凭据，了解新的优先级规则
+3. 如果依赖钩子系统，特别是StopFailure或退出代码2的行为，需要仔细查看更新
+4. 如果使用`/btw`命令，注意在VS Code扩展中的新行为
+5. 如果使用技能，注意保留文件夹名&#34;synced&#34;的新限制</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/chrome.html" class="page-link">chrome.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/cli-reference.html" class="page-link">cli-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+85</span>
+                            <span class="removed">-71</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/iam.html" class="page-link">iam.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+21</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/interactive-mode.html" class="page-link">interactive-mode.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-7</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/model-config.html" class="page-link">model-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+24</span>
+                            <span class="removed">-22</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+16</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/vs-code.html" class="page-link">vs-code.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+19</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">14:54 EST</div>
