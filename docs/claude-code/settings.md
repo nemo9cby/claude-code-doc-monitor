@@ -112,7 +112,7 @@ Code through hierarchical settings:
 
     File-based managed settings also support a drop-in directory at `managed-settings.d/` in the same system directory alongside `managed-settings.json`. This lets separate teams deploy independent policy fragments without coordinating edits to a single file.
 
-    Following the systemd convention, `managed-settings.json` is merged first as the base, then all `*.json` files in the drop-in directory are sorted alphabetically and merged on top. Later files override earlier ones for scalar values, arrays are concatenated and de-duplicated, and objects are deep-merged. Hidden files starting with `.` are ignored.
+    Following the systemd convention, Claude Code merges `managed-settings.json` first as the base, then sorts all `*.json` files in the drop-in directory alphabetically and merges them on top. For scalar values, Claude Code lets later files override earlier ones; it concatenates and de-duplicates arrays and deep-merges objects. A later file's `fallbackModel` chain replaces an earlier one instead of merging with it, and a later file's [`extraKnownMarketplaces`](#extraknownmarketplaces) entry replaces an earlier file's same-name entry whole. Claude Code ignores hidden files starting with `.`.
 
     Use numeric prefixes to control merge order, for example `10-telemetry.json` and `20-security.json`.
 
@@ -907,6 +907,8 @@ The `git` source type works with any git hosting service, including self-hosted 
 For `github` and `git` sources, set `"skipLfs": true` inside the `source` object (alongside `repo` or `url`) to skip Git LFS downloads when Claude Code clones or updates the marketplace repository. LFS pointer files remain as pointers instead of downloading their content. Use this when the repository contains large LFS objects unrelated to plugin content. Requires Claude Code v2.1.153 or later.
 
 Each marketplace entry also accepts an optional `autoUpdate` Boolean. Set `"autoUpdate": true` alongside `source` to make Claude Code refresh that marketplace and update its installed plugins in the background after startup. When omitted, official Anthropic marketplaces default to `true` and all other marketplaces default to `false`. See [Configure auto-updates](/docs/en/discover-plugins#configure-auto-updates).
+
+When more than one settings file defines a marketplace entry under the same name, Claude Code uses the entry from the [highest-precedence file](#settings-precedence) whole. That entry replaces the lower-precedence entry and inherits none of its fields, so a redefinition can't combine one file's `source.headers` credential with a URL another file controls. Before v2.1.228, Claude Code merged same-name entries field by field, so an entry in a higher-precedence file could inherit fields it didn't set, including another file's `headers`.
 
 Use `source: 'settings'` to declare a small set of plugins inline without setting up a hosted marketplace repository. Plugins listed here must reference external sources such as GitHub or npm. You still need to enable each plugin separately in `enabledPlugins`.
 

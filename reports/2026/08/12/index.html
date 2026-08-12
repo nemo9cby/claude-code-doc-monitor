@@ -118,9 +118,130 @@
 
         <header>
             <h1>Changes on 2026-08-12</h1>
-            <p class="meta">81 total changes in 4 runs</p>
+            <p class="meta">83 total changes in 5 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">13:54 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 整体摘要
+
+本次文档更新主要优化了插件本地开发的缓存处理机制，并明确修正了配置文件合并逻辑。特别是在 `settings.md` 中，引入了关于 Marketplace 条目和特定配置字段（如 `fallbackModel`）在多文件环境下如何解析的重要规则变更。
+
+### 关键主题
+
+*   **插件开发体验增强**: 明确指出当开发者将本地开发环境的 checkout 通过 symlink 链接到插件缓存时，Claude Code 不会将其标记为孤立文件或在后台清理中删除，从而确保了本地开发环境的稳定性。
+*   **配置合并逻辑的精细化修正**: 更新了 `managed-settings.d` 的合并规则，明确了 `fallbackModel` 链和 `extraKnownMarketplaces` 条目采用“整体替换”而非“合并”策略。
+*   **Marketplace 配置解析行为变更**: 修正了跨配置文件定义同名 Marketplace 时的行为。从 v2.1.228 版本起，高优先级文件的配置将**完全替换**低优先级配置，不再进行字段级别的合并（例如，无法再通过合并继承另一个文件中的 `source.headers`）。
+
+### 影响级别: Medium (中等)
+
+**理由**: 虽然 symlink 相关的更改属于纯粹的体验改进，但 `settings.md` 中关于 Marketplace 配置合并逻辑的变更具有破坏性。依赖旧版“字段级合并”行为（例如，在一个文件中定义 Marketplace URL，在另一个文件中定义 Headers）的部署配置将在新版本中失效，可能导致插件无法加载或认证失败。
+
+### 开发者行动项
+
+*   **检查 Marketplace 配置分散情况**: 如果你使用了多个配置文件（如 `managed-settings.json` 和 `managed-settings.d/*.json`）定义同一个 Marketplace，请确保所有必需字段（特别是 `source` 和 `source.headers`）都集中在最高优先级的文件中，不要指望它们会跨文件合并。
+*   **审查 Drop-in 配置**: 检查 `managed-settings.d` 目录下的文件，确认 `fallbackModel` 和 `extraKnownMarketplaces` 的覆盖逻辑符合预期（注意：数组不再是简单的去重合并，特定条目是整体替换）。
+*   **利用 Symlink 进行本地测试**: 在插件开发调试阶段，可以放心地将本地构建目录软链接到缓存路径，无需担心被后台清理任务误删。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Input:** A batch of documentation changes (2 pages: `plugins-reference.md` and `settings.md`).
+    *   **Format:** Markdown.
+    *   **Language:** Chinese.
+    *   **Key Components:** Overall Summary, Key Themes, Impact Level, Action Items.
+
+2.  **Analyze the Diff - Page 1 (`plugins-reference.md`):**
+    *   *Change:* Added a paragraph explaining how Claude Code handles symlinks in the plugin cache.
+    *   *Details:* It clarifies that folders containing symlinks to development checkouts are *not* marked as orphaned or deleted during the 14-day background sweep. Claude Code won&#39;t write version-tracking files inside the linked checkout.
+    *   *Implication:* Developers can safely symlink local plugin development builds into the cache for testing without fear of the system deleting them or messing up their git state.
+
+3.  **Analyze the Diff - Page 2 (`settings.md`):**
+    *   *Change 1 (Merge Logic):* Updated the description of how `managed-settings.d/` drop-in files are merged.
+        *   *Details:* Clarified that specific fields (`fallbackModel` chain and `extraKnownMarketplaces` entries) are replaced (whole) rather than merged/concatenated. Previously, the text implied a general &#34;deep merge&#34; or &#34;concatenate&#34; behavior which might be misleading for these specific fields.
+    *   *Change 2 (Marketplace Entry Redefinition):* Added a paragraph about behavior when multiple settings files define a marketplace with the same name.
+        *   *Details:* In newer versions (v2.1.228+), if a marketplace entry is redefined in a higher-precedence file, it *replaces* the lower-precedence entry entirely (no field-by-field merging). This prevents inheriting fields like `headers` or `source`. This is a breaking change from the previous behavior (merge).
+    *   *Implication:* This is crucial for developers managing complex configurations across multiple files (e.g., system-wide vs. user-level). Relying on merging behavior for credentials (`headers`) or marketplace definitions will fail in the new version.
+
+4.  **Synthesize and Structure:**
+
+    *   **Overall Summary:** The updates refine configuration merging logic and plugin caching behavior. Specifically, they define how symlinks are treated in the plugin cache to aid development, and they clarify/alter how settings files (marketplace definitions and specific drop-in keys) are merged or replaced.
+    *   **Key Themes:**
+        *   *Plugin Development Workflow:* Safe handling of symlinks in cache.
+        *   *Configuration Precedence &amp; Merging:* Explicit rules for replacing vs. merging settings (especially `managed-settings` and `extraKnownMarketplaces`).
+        *   *Backwards Compatibility/Breaking Change:* Change in marketplace entry merging strategy (whole replacement vs. field merging).
+    *   **Impact Level:** Medium.
+        *   *Reasoning:* The symlink change is a positive developer experience improvement (Low risk). The settings merging change affects how users configure `marketplace` entries across files, potentially breaking existing setups that relied on partial field inheritance (Medium/High risk for admins).
+    *   **Action Items:**
+        *   Review marketplace configurations if using multiple settings files (ensure credentials/headers aren&#39;t split across files expecting a merge).
+        *   Verify `managed-settings.d/` logic for `fallbackModel` and `extraKnownMarketplaces`.
+        *   (Optional) Utilize symlink feature for local plugin testing if applicable.
+
+5.  **Drafting the Content (in Chinese):**
+
+    *   *Summary:* 此次文档更新主要集中在插件缓存的本地开发支持以及配置文件合并逻辑的精确性定义。特别是明确了 symlink 在缓存中的持久化行为，以及变更了同名 marketplace 配置条目的合并策略。
+    *   *Themes:*
+        *   **插件开发体验优化**: 阐明了 symlink 在插件缓存中的持久化机制，保护开发环境不被清理。
+        *   **配置合并策略精细化**: 明确了 `managed-settings.d` 中特定字段（如 `fallbackModel`）是“替换”而非“合并”。
+        *   **市场配置解析行为变更**: 纠正了多文件定义同名 marketplace 时的合并行为，从字段级合并改为整体替换。
+    *   *Impact:* **Medium** (中等).
+        *   *Reasoning:* Symlink 的改进是纯粹的增强；但 Marketplace 条目合并逻辑的改变（从字段合并变为整体替换）可能会导致依赖旧版本行为（跨文件继承 `source.headers`）的配置失效，属于潜在的破坏性变更。
+    *   *Action Items:*
+        *   检查跨多个配置文件（如系统级和用户级）定义的 `marketplace` 条目，确保凭据（`headers`）和 URL 没有分散在不同文件中，因为现在它们不会被合并。
+        *   审查 `managed-settings.d` 目录下的配置，确认 `fallbackModel` 和 `extraKnownMarketplaces` 的行为符合预期（遵循“后者覆盖前者”的原则）。
+        *   利用新增的 symlink 机制将开发中的插件链接到缓存，以进行更稳定的本地测试。
+
+6.  **Refining the Tone:** Ensure it sounds professional (&#34;world-class programmer&#34;). Use precise terms like &#34;breaking change,&#34; &#34;precedence,&#34; &#34;symlink.&#34;
+
+7.  **Final Polish (Markdown Check):**
+    *   Headings used? Yes.
+    *   Bullets used? Yes.
+    *   Action items max 5? Yes (3 items).
+    *   Chinese language used? Yes.
+
+8.  **Output Generation.** (Proceed to generate output based on drafted points).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">12:52 EST</div>
