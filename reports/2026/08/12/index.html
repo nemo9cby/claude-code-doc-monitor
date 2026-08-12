@@ -118,9 +118,152 @@
 
         <header>
             <h1>Changes on 2026-08-12</h1>
-            <p class="meta">102 total changes in 7 runs</p>
+            <p class="meta">103 total changes in 8 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">17:39 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">1.  **总体摘要**
+    2.1.229 版本主要聚焦于提升系统稳定性和远程控制能力，修复了大量导致崩溃和 UI 卡顿的 Bug，并引入了会话恢复、动态插件解析及 VSCode 会话分组等新功能。此外，它实施了更严格的安全策略，禁止自动批准包含危险标志的 Git 命令，并更改了 Windows 上自托管 Runner 的启动要求。
+
+2.  **关键主题**
+    *   **稳定性与性能增强**：修复了长响应流式传输丢失、Windows 长路径崩溃、窄终端渲染错误、文件监视器句柄泄漏等问题；针对 Vertex/Bedrock 增加了 SSE 保活机制以防止超时断开。
+    *   **远程控制与工作流优化**：新增 `claude remote-control --continue` 用于恢复会话；优化了多 Agent 工作流以复用提示前缀，降低成本和延迟；改进了会话状态标记（离线/云端）。
+    *   **集成与生态扩展**：引入基于本地命令的插件市场来源（支持动态解析和链接模式）；修复了 MCP OAuth 严格授权问题；增强了 VSCode 扩展（会话分组、侧边栏调整）。
+    *   **安全与配置变更**：`/commit-push-pr` 不再自动批准 `--force`、`--amend` 等危险 Git 标志；自托管 Runner 在 Windows 上现在强制要求显式指定 `--base-dir`。
+
+3.  **影响等级**
+    *   **高 (High)**
+    *   **理由**：此次更新包含破坏性配置变更（Windows 自托管 Runner 必须指定 `--base-dir`）以及关键的安全逻辑变更（危险 Git 标志不再自动批准），这直接影响了现有的自动化脚本和工作流。同时，修复的大量崩溃 Bug 显著提升了工具的可靠性。
+
+4.  **开发者行动项**
+    *   **更新 Windows 自托管脚本**：必须为 Windows 上的自托管 Runner 启动命令添加显式的 `--base-dir` 参数，否则将无法启动。
+    *   **调整 Git 工作流**：检查依赖 `/commit-push-pr` 的自动化流程，确保逻辑上不再期望对包含 `--force` 或 `--amend` 的命令进行自动批准。
+    *   **利用新会话管理功能**：VSCode 用户可利用新的会话分组功能整理历史记录，使用 `--continue` 快速恢复意外中断的远程会话。
+    *   **优化插件配置**：考虑利用新的 `command` 来源来动态解析插件目录，以实现更灵活的插件管理而无需重启。
+    *   **验证容器部署**：如果在 CPU 受限的容器中运行，请验证动态工作流现在是否正确使用了容器限制而非宿主机核心数。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **分析用户请求：**
+    *   **角色：** 世界级程序员，深度专精于开发者工具和文档。
+    *   **任务：** 将以下文档更改作为一个批次进行分析。总结变更内容及其对开发者的意义。
+    *   **输入：** 来自 `CHANGELOG.md.md` 的单个差异（添加了版本 2.1.229）。
+    *   **输出格式：** Markdown（简洁、有见地），使用中文。
+    *   **结构：**
+        1.  Overall Summary (1-2 sentences)（总体摘要（1-2句话））。
+        2.  Key Themes (bullets)（关键主题（要点））。
+        3.  Impact Level + Reasoning (Low/Medium/High/Breaking)（影响等级 + 理由（低/中/高/破坏性））。
+        4.  Action Items (max 5 bullets)（行动项（最多 5 个要点））。
+
+2.  **分析输入数据（变更日志 2.1.229）：**
+    *   *新增/记录功能：*
+        *   `claude remote-control --continue`（会话恢复）。
+        *   自托管 runner 的服务器端 hook。
+        *   SSE 保活 ping（长时间思考期间保持连接活跃，防止在 Vertex/Bedrock 上超时）。
+        *   插件市场 `command` 来源（本地命令、链接模式、动态解析）。
+        *   `ListAgents` 改进（离线/云标签）。
+        *   VSCode 功能：会话分组，可调整大小的 `/btw` 面板，“报告问题”对话框。
+    *   *Bug 修复（可靠性/稳定性）：*
+        *   长响应消失/重复打印。
+        *   工具调用崩溃（非字符串 glob/file_path/command）。
+        *   窄窗口崩溃（进度条/表格）。
+        *   Windows 路径崩溃（长路径/UNC）。
+        *   禁用归属标头时自动模式失败。
+        *   通过自定义网关时 Sonnet/Opus 1M 的 `/model` 拒绝问题。
+        *   MCP OAuth 严格服务器（127.0.0.1 与 localhost）。
+        *   Remote Control spinner 卡住。
+        *   代码审查工作流在 PR 上发布失败。
+        *   大量 IDE 诊断导致 UI 卡顿。
+        *   `claude plugin` 导致清理失败。
+        *   容器 CPU 限制 vs 主机核心计数。
+        *   文件监视器句柄泄漏/Windows 错误。
+        *   纯空格消息导致 400 错误。
+        *   32 MB 限制错误处理（更清晰的失败信息）。
+        *   OpenTelemetry 导出被拒绝。
+        *   自托管 runner 启动挂起（Git Credential Manager）。
+    *   *改进/优化：*
+        *   工作流分支（代理之间的缓存提示前缀，节省成本/延迟）。
+        *   改进的“提示过长”错误。
+        *   沙盒 IPv6 支持。
+    *   *行为变更（潜在破坏性/关键）：*
+        *   `/commit-push-pr`：危险 git 标志（`--force`，`--amend` 等）不再自动批准。（安全/工作流变更）。
+        *   自托管 runner Windows 启动：现在需要显式的 `--base-dir`（之前有默认值？或现在是强制性的）。
+
+3.  **起草分析（内心独白/粗略笔记）：**
+
+    *   *总体摘要：* 此版本 (2.1.229) 涵盖了多项稳定性修复、新的远程控制功能、增强的插件机制以及关键的 UI/UX 改进，特别是关于 VSCode 集成和工作流管理的内容。它还收紧了涉及危险 git 标志的安全行为。
+
+    *   *关键主题：*
+        *   **稳定性与可靠性：** 崩溃修复（Windows 路径、窄终端、工具调用）、长响应修复。
+        *   **远程控制与工作流：** `--continue`、服务器端 hook、并行代理优化（缓存）、离线标记。
+        *   **集成与插件：** 新的插件命令来源、MCP OAuth 修复、VSCode 会话分组/UI 改进。
+        *   **基础设施与性能：** SSE 保活（防止 Vertex/Bedrock 超时）、容器 CPU 感知、文件监视器修复。
+        *   **安全与工作流逻辑：** 阻止 `commit-push-pr` 中危险 git 标志的自动批准。
+
+    *   *影响等级：* 高/中。修复了许多崩溃和 UI 问题。自托管 runner 的行为变更可能破坏现有的启动脚本。git 工作流的变更（非自动批准危险标志）影响自动化，但更安全。
+        *   *决定：* **中高**（通常按“高”缩放以便提醒，但严格来说主要是修复/改进。针对 runner 和 git 安全的行为变更推动了该评级）。让我们坚持 **中高** 或简称 **高**，鉴于混合了关键修复和行为变更。让我们选择 **高**，因为有针对自动批准“危险” git 标志的行为变更以及自托管 runner 要求。
+
+    *   *行动项：*
+        1.  更新自托管 runner Windows 脚本以包含 `--base-dir`。
+        2.  检查依赖 `--force` 或 `--amend` 标志的自动化工作流，因为它们不再被自动批准。
+        3.  如果在 Vertex/Bedrock 上处理长时间运行的任务，利用 `--continue` 进行会话恢复或监控 SSE 保活改进。
+        4.  VSCode 用户应查看新的会话分组和 `/btw` 调整大小功能以获得更好的工作区管理。
+        5.  更新插件配置以使用新的 `command` 来源（如果依赖本地解析）。
+
+4.  **翻译成中文并格式化：**
+
+    *   *总体摘要：* 2.1.229 版本重点提升了稳定性，修复了多项崩溃和 UI 卡顿问题，并引入了 Remote Control 会话恢复、动态插件解析及 VSCode 会话分组等新功能。此外，更改了 `/commit-push-pr` 的安全策略，不再自动批准包含危险标志的 Git 命令。
+
+    *   *关键主题：*
+        *   **稳定性修复**：解决了长响应丢失、Windows 路径崩溃、终端宽度适配、文件监视器泄漏以及 SSE 连接超时（针对 Vertex/Bedrock）等问题。
+        *   **远程控制与工作流优化**：新增会话恢复命令 (`--continue`)，优化了多 Agent 工作流的缓存机制以减少 Token 消耗，改进了离线/云端会话的标记。
+        *   **集成与插件生态**：引入了基于本地命令的插件源解析，修复了 MCP OAuth 严格授权问题，并增强了 VSCode 扩展的 UI（会话分组、侧边栏调整）。
+        *   **安全与配置变更**：自托管 Runner 在 Windows 上现在必须显式指定 `--base-dir`；`/commit-push-pr` 不再自动批准 `--force` 等危险 Git 标志。
+
+    *   *影响等级：* **高** (High)。
+    *   *理由：* 包含多项关键的安全行为变更（Git 危险标志不再自动批准）和配置强制性变更（Windows 自托管 Runner 需指定目录），同时修复了大量可能导致崩溃的 Bug，显著提升了工具在生产环境中的可靠性。
+
+    *   *行动项：*
+        1.  **更新 Windows 自托管 Runner 启动脚本**：必须显式添加 `--base-dir` 参数，否则启动将失败。
+        2.  **审查自动化工作流**：如果使用 `/commit-push-pr`，需确保代码逻辑不依赖对 `--force` 或 `--amend` 等危险标志的自动批准。
+        3.  **利用会话恢复功能**：在 Remote Control 模式下，可使用 `claude remote-control --continue` 快速恢复中断的会话。
+        4.  **配置插件源**：检查并更新插件配置以尝试使用新的 `command` 来源模式，实现无需重启的动态解析。
+        5.  **关注 IDE 性能**：如果之前遇到包含大量诊断信息的文件导致 IDE 卡顿，此次更新应已缓解该问题。
+
+5.  **最终审查：** 根据限制条件进行检查。简洁吗？是的。有见地吗？是的。Markdown 格式？是的。中文？是的。遵循了具体结构？是的。
+
+6.  **最终输出生成。**</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+33</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">16:49 EST</div>
