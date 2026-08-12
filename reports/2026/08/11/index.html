@@ -118,9 +118,213 @@
 
         <header>
             <h1>Changes on 2026-08-11</h1>
-            <p class="meta">54 total changes in 9 runs</p>
+            <p class="meta">59 total changes in 10 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">21:23 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">1. **Overall Summary**
+本次文档更新收紧了 Hooks（特别是 HTTP Hooks）的处理逻辑，导致纯文本响应不再注入上下文，属于破坏性变更；同时调整了 `Notification` Hook 的行为，并放宽了 `/code-review` 技能的自动调用与预加载权限。
+
+2. **Key Themes**
+*   **HTTP Hook 行为变更**: 返回 `2xx` 状态码配合**纯文本**正文体不再被视为成功并注入上下文，而是被视为非阻塞错误。若要传递信息，必须返回 JSON 对象（例如使用 `additionalContext` 字段）。
+*   **技能权限调整**: `/code-review` 不再与 `/verify` 一样受限于“仅手动运行”。它现在可以被 Claude 自动触发，也允许被子代理预加载。
+*   **Notification Hook 降级**: `Notification` Hook 现在会完全忽略退出代码和 `stderr`（之前会显示 `stderr`），使其更加静默。
+*   **上下文注入规范化**: 通过 `stdout` 和 `additionalContext` 注入的上下文，现在都会明确带有 Hook 名称的标签。
+
+3. **Impact level**
+**High (高)**
+*   **理由**: HTTP Hook 的响应处理逻辑发生了根本性变化。如果开发者现有的 Hook 依赖返回 `2xx` 状态码和纯文本正文来向 Claude 提供上下文，该功能将完全失效。这属于潜在的 Breaking Change，需要立即修复代码。
+
+4. **Action items**
+*   **修复 HTTP Hooks**: 检查所有返回 `2xx` 状态码且正文为纯文本的 HTTP Hook。必须将其修改为返回包含 `additionalContext` 字段的 JSON 对象，以确保信息能正确传递给 Claude。
+*   **移除 Notification 依赖**: 停止依赖 `Notification` Hook 的 `stderr` 输出来传递关键错误信息或用户提示，因为现在这些输出会被忽略。
+*   **更新子代理配置**: 由于 `/code-review` 现在支持预加载和自动调用，如需在子代理中使用此技能，请更新相应的配置文件。
+*   **验证 Hook 上下文**: 确认依赖 Hook 上下文的代码逻辑能适应新的标签格式（即所有上下文都带有 Hook 名称前缀）。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">用户希望我以世界级程序员的角度分析一批文档更改。更改涉及 5 个页面：`hooks.md`、`hooks-guide.md`、`skills.md`、`slash-commands.md` 和 `sub-agents.md`。
+
+让我们分解一下每个页面的差异：
+
+**1. `hooks.md` (+5 / -5)**
+*   **更改 1：** 在“每次事件的退出代码 2 行为”表格中，`Notification` 行从“仅向用户显示 stderr”更改为“退出代码和 stderr 被忽略”。
+*   **更改 2：** 在“HTTP 响应处理”部分：
+    *   添加了一条注释，说明特定的失败契约（如 `WorktreeCreate`）优先适用于失败的 HTTP hook。
+    *   **重要：** “带 JSON 正文体的 2xx”：从“成功，使用与命令 hook 相同的 JSON 输出模式进行解析”变为“使用与命令 hook 相同的 JSON 输出模式进行解析。验证失败的正文是非阻塞性错误”。
+    *   **重要：** “带任何其他正文（例如纯文本）的 2xx”：从“成功，文本被添加为上下文”变为“非阻塞性错误，与非 2xx 状态的处理方式相同。Claude Code 不会将文本添加到 Claude 的上下文中”。**这是行为的重大变更。** 以前，纯文本 2xx 会将文本添加到上下文中。现在，只有通过 JSON 中的 `additionalContext` 添加文本才行，或者它是非阻塞性错误（意味着文本被忽略或仅记录为错误）。
+    *   对“带空正文体的 2xx”的措辞进行了轻微清理。
+*   **更改 3：** 在“参数验证” -&gt; “配置指令”中（隐含的上下文是 `PreToolUse` 或类似参数，但文本提到了“用户输入”）：关于 `PreUserPrompt` 或类似的描述更新。“标准输出和 additionalContext 值均作为以 hook 名称开头的系统提醒注入”。之前的文本暗示“标准输出……被注入为标有 hook 名称的系统提醒，而 additionalContext 值被注入为未标记的系统提醒”。现在两者都加上标签了。
+
+**2. `hooks-guide.md` (+1 / -1)**
+*   **更改：** 在退出代码 2 的解释中，列表“对于 `SessionStart`、`Setup`、`Notification` 和其他……”更改为“对于 `SessionStart`、`Setup` 和其他……”。这与 `hooks.md` 中关于 `Notification` 忽略退出代码的更改相匹配。
+
+**3. `skills.md` (+1 / -1)**
+*   **更改：** 在关于自动调用捆绑技能的描述中：“包括 `/verify` 和 `/code-review`”更改为“包括 `/verify`”。文本“v2.1.215 之前，Claude 也可以自行运行 `/verify` 和 `/code-review`”更改为“v2.1.215 之前，Claude 也可以自行运行 `/verify`”。
+*   **含义：** 看起来 `/code-review` 可能*可以*被 Claude 自动调用了，或者文档以前说不可以，现在更正为仅 `/verify` 受到此限制，或者 `/code-review` 现在允许自动调用？让我们仔细看看。文本说“其他技能，包括 `/verify`，仅在您调用它们时运行”。之前的列表中同时包含 `/verify` 和 `/code-review` 作为*仅*手动运行的技能。新的列表中*仅*包含 `/verify`。这意味着 `/code-review` *可以*自动运行了。这是能力的增加。
+
+**4. `slash-commands.md` (+1 / -1)**
+*   **更改：** 与 `skills.md` 完全相同。从“包括 `/verify` 和 `/code-review`”更改为“包括 `/verify`”。从“v2.1.215 之前……`/verify` 和 `/code-review`”更改为“v2.1.215 之前……`/verify`”。
+
+**5. `sub-agents.md` (+1 / -1)**
+*   **更改：** 在关于预加载技能的部分中：“这包括捆绑的 `/verify` 和 `/code-review` 技能”更改为“这包括捆绑的 `/verify` 技能”。
+*   **含义：** 由于 `/code-review` 不再属于“仅限用户运行”的技能（基于其他文件的更改），因此它*可以*被预加载到子代理中。
+
+**主题综合：**
+1.  **Hook 行为更新：**
+    *   `Notification` hook 更严格：现在忽略退出代码和 stderr（之前显示 stderr）。
+    *   HTTP hook 处理已收紧：带文本正文体的 2xx 不再将文本添加到上下文（它会变成非阻塞性错误）。上下文必须通过 JSON 添加。这破坏了以前依赖纯文本 2xx 响应以向 Claude 提供信息的 HTTP hook。
+    *   JSON 验证逻辑已阐明：失败验证的 JSON 正文现在被视为非阻塞性错误（尽管暗示错误状态继续）。
+    *   上下文注入：从 hook 注入的上下文（标准输出）现在明确标记了 hook 名称。
+2.  **技能权限/自动调用：**
+    *   `/code-review` 不再与 `/verify` 一同被限制为“仅限手动运行”。这允许 Claude 自动调用 `/code-review`，并允许它被子代理预加载。
+
+**影响级别：**
+*   HTTP Hook 的更改是**破坏性的**，或者至少是行为上的重大变更。如果开发人员有一个返回 200 OK 和纯文本正文的 HTTP hook，以便向 Claude 提供上下文，这现在将停止工作（文本被忽略，它变为错误）。他们必须更新为返回具有 `additionalContext` 的 JSON。
+*   技能的更改是“新特性”或“行为放宽”（低到中）。它允许更多自动化。
+*   `Notification` hook 的更改是行为变更（中）。
+
+**给开发人员的行动项：**
+1.  检查返回带有纯文本正文体的 200 状态的 HTTP Hook。更新它们以返回带有 `additionalContext` 的 JSON，否则上下文将丢失。
+2.  注意 `Notification` hook 中的 `stderr` 现在被忽略了；使用 JSON 输出（如果支持）或依赖日志记录。
+3.  意识到 `/code-review` 可能会自动运行或被子代理使用。
+
+**起草回复（中文）：**
+
+1.  **整体摘要：**
+    此次文档更新主要收紧了 HTTP Hooks 的处理逻辑（特别是纯文本响应不再注入上下文），并调整了 `Notification` Hook 的行为。同时，放宽了 `/code-review` 技能的调用限制，允许自动运行或由子代理预加载。
+
+2.  **关键主题：**
+    *   **HTTP Hook 行为变更**: 对于 HTTP Hooks，`2xx` 状态码配合纯文本正文体不再被视为成功并注入上下文，而是被视为非阻塞错误。必须返回 JSON 对象（如包含 `additionalContext`）才能将信息传递给 Claude。这是一种 Breaking Change（破坏性变更）。
+    *   **Notification Hook 调整**: `Notification` Hook 现在会忽略退出代码和 `stderr`（之前仅显示 `stderr`），这意味着该 Hook 的错误输出不再直接影响流程流或用户可见性。
+    *   **技能权限放宽**: `/code-review` 技能不再仅限于手动调用。它现在可以像其他技能一样由 Claude 自动触发，也可以被子代理预加载。这与 `/verify` 不同，后者仍受手动调用限制。
+    *   **上下文注入细化**: Hook 的标准输出和 `additionalContext` 现在都会明确添加 Hook 名称作为标签注入到系统提醒中。
+
+3.  **影响级别：**
+    *   **Medium to High (中等到高)**
+    *   **理由**: 主要是 **HTTP Hook 处理方式的变更** 属于破坏性变更。如果开发者之前依赖返回纯文本的 `2xx` 响应来向 Claude 提供上下文，该功能将失效。这需要立即修复现有代码。
+
+4.  **行动项：**
+    *   **审查 HTTP Hooks**: 检查所有返回 `2xx` 状态码且正文为纯文本的 Hooks。必须修改逻辑，改为返回包含 `additionalContext` 字段的 JSON 对象，以确保信息能正确传递给 Claude。
+    *   **更新 Notification Hooks**: 如果依赖 `Notification` Hook 通过 `stderr` 向用户传递信息，需注意该输出现在会被忽略，需考虑其他反馈机制。
+    *   **利用 Code Review 自动化**: 利用 `/code-review` 现在支持自动调用的特性，可以在配置中或子代理设计中更灵活地使用它。
+
+让我们完善一下。
+Hook 输出是否“Visible transcript”（可见转录条目）有细微变化。之前 Plain stdout 是“unlabeled system reminder”，现在“starts with the hook&#39;s name”。
+HTTP 2xx 纯文本是“non-blocking error”。
+
+检查格式。
+Markdown。
+中文。
+
+结构：
+1. Overall Summary
+2. Key Themes
+3. Impact level
+4. Action items
+
+完善文本以使其符合“世界级程序员”的语调（简洁、技术性）。
+
+摘要：文档更新收紧了 HTTP Hooks 行为，取消了纯文本响应的上下文注入，并调整了 `Notification` Hook 输出处理。同时，解禁了 `/code-review` 的自动调用权限。
+
+关键主题：
+*   **HTTP Hook 输出严格化**: 2xx 纯文本响应不再注入上下文（变为非阻塞错误），必须使用 JSON `additionalContext`。
+*   **Hook 上下文标签**: 所有注入 Claude 上下文的 Hook 输出现在都会携带 Hook 名称标签。
+*   **技能权限变更**: `/code-review` 现可被自动调用或子代理预加载（此前仅为手动）。
+*   **Notification Hook 行为**: 忽略退出码和 stderr。
+
+影响级别：**High (高)**。
+理由：HTTP Hook 的响应处理逻辑发生重大变更。依赖纯文本 2xx 响应传递上下文的现有代码将失效，这直接影响开发者的 Hook 集成功能。
+
+行动项：
+*   **修复 HTTP Hooks**: 将所有返回纯文本 2xx 响应的 HTTP Hook 修改为返回 JSON 格式（使用 `additionalContext` 字段）。
+*   **检查 Hook 输出**: 确认 `Notification` Hook 的错误处理逻辑，不再依赖 stderr 传递关键信息。
+*   **配置调整**: 如需防止 `/code-review` 自动运行，需重新评估相关权限配置（尽管文档主要强调其能力放开）。
+
+看起来不错。我将基于这个逻辑编写最终回复。
+一个细节：“v2.1.215 之前”。这意味着当前版本允许 `/code-review` 自动运行，或者描述更新是为了反映 `/code-review` 已从“手动仅限”列表中移除。文本说“其他……包括 `/verify`，仅在您调用它们时运行……之前 v2.1.215 Claude 可以自行运行 `/verify`”。这意味着 v2.1.215+ `/verify` 仅限手动。但是 `/code-review` 从“手动仅限”列表中*移除*，暗示它在 v2.1.215+ 可以自动运行。
+
+让我们再次仔细检查 `hooks.md` 中的差异。
+“带 JSON 对象正文体的 2xx：……验证失败的正文是非阻塞性错误”。
+“带任何其他正文（例如纯文本）的 2xx：非阻塞性错误，与非 2xx 状态的处理方式相同。Claude Code 不会将文本添加到 Claude 的上下文中”。
+这是最关键的变更。
+
+好的，准备生成。</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">18:35 EST</div>
