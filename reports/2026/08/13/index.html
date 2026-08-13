@@ -118,9 +118,227 @@
 
         <header>
             <h1>Changes on 2026-08-13</h1>
-            <p class="meta">33 total changes in 4 runs</p>
+            <p class="meta">40 total changes in 5 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">15:53 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">以下是对这批文档变更的深度分析：
+
+### 总体摘要
+这批文档更新主要定义并澄清了 Claude Code 中 **Command Source（命令源）插件** 的行为规范、更新机制及安全策略。同时，针对 MCP 配置和受管环境下的安全行为进行了细微的修正与补充。
+
+### 核心变更主题
+
+*   **Command Source 插件的独立性**：
+    *   **安装机制**：引入了“链接模式”与“复制模式”的区别。命令源插件通常在原地使用，而非复制到缓存目录。
+    *   **版本控制**：明确了 manifest 中的 `version` 字段**无法**锁定命令源插件，其更新完全取决于命令输出的 hash 变化。
+    *   **更新逻辑**：此类插件拥有独立的更新节奏（每会话重跑一次命令），且不受全局环境变量 `DISABLE_AUTOUPDATER` 的限制。
+
+*   **安全与托管策略**：
+    *   在受管或受限环境中，系统默认禁用命令源插件以防止潜在的安全风险。
+    *   新增并定义了 `disableCommandPluginSources` 设置及其安全回退行为（配置无效时默认为禁用）。
+
+*   **CLI 体验优化**：
+    *   安装包含命令源的插件时，需使用 `--yes` 标志来接受其显示的命令。
+    *   优化了 `--strict-mcp-config` 的文档描述，增加了跨文档引用以解释其在托管 MCP 文件下的行为。
+
+### 影响等级：Medium
+**理由**：虽然这些变更没有破坏现有 API 或工作流，但它们引入了一种新的插件分发和运行模式，其行为（特别是关于自动更新和版本锁定）与标准插件不同。如果不了解这些差异，可能会导致用户对插件更新行为感到困惑，或者在安全策略配置上出现偏差。
+
+### 开发者行动项
+
+*   **插件作者**：如果你的插件使用了 Command Source，请意识到 `plugin.json` 中的 `version` 字段将不再控制更新频率，应确保命令输出的内容变化能正确反映版本迭代。
+*   **系统管理员**：若需在组织中允许使用命令源插件，必须在托管设置中显式将 `disableCommandPluginSources` 设为 `false`，否则默认会被禁用。
+*   **终端用户**：安装命令源插件时，注意使用 CLI 的 `--yes` 参数，并知晓这类插件会在每次会话中尝试自动更新（忽略 `DISABLE_AUTOUPDATER`）。
+*   **安全审查**：检查现有的安全配置，确保了解命令源插件在受管环境中的默认禁用行为及其例外情况。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Format:** Markdown.
+    *   **Language:** Chinese.
+    *   **Task:** Analyze 7 documentation pages, summarize changes and explain why they matter to developers.
+    *   **Structure:** Overall Summary, Key Themes, Impact Level, Action Items.
+
+2.  **Analyze the Data (Page by Page):**
+
+    *   **Page: `cli-reference.md`**
+        *   *Change:* Updated the description for `--strict-mcp-config`.
+        *   *Content:* Added a reference to &#34;Exclusive control with managed-mcp.json&#34; explaining what the flag does under a managed MCP file.
+        *   *Why:* Clarification and cross-linking for managed environments.
+
+    *   **Page: `discover-plugins.md`**
+        *   *Change 1:* Added note about installing plugins with a `command` source using `claude plugin install`. Mention `--yes` flag is needed to accept the command.
+        *   *Change 2:* Added paragraph explaining how plugins with `command` source update (separate cadence, once per session).
+        *   *Change 3:* Clarified `DISABLE_AUTOUPDATER` behavior. It doesn&#39;t stop `command` source plugins from updating (they follow their own re-resolve logic).
+        *   *Why:* New feature/functionality regarding `command` source plugins. Specifics about auto-updating behavior.
+
+    *   **Page: `hooks.md`**
+        *   *Change:* Added a bullet point under a restricted environment section.
+        *   *Content:* Claude Code disables plugins with a `command` source unless `disableCommandPluginSources` is explicitly set to `false` in managed settings.
+        *   *Why:* Security/Managed environment behavior. Command execution is risky, so it&#39;s disabled by default in strict modes.
+
+    *   **Page: `plugin-marketplaces.md`**
+        *   *Change 1:* Note about `version` field in manifest. Clarified that plugins with a `command` source are *not* pinned by this field.
+        *   *Change 2:* Note about plugin installation. Clarified that `command` source in &#34;link mode&#34; is used in place, whereas others are copied.
+        *   *Change 3:* Table update for manifest fields (truncated in diff, but context implies updates to `version` or `command` related descriptions).
+        *   *Why:* Technical precision regarding how &#34;command&#34; source plugins handle versioning and file installation.
+
+    *   **Page: `plugins.md`**
+        *   *Change:* Updated the table for `plugin.json` fields.
+        *   *Content:* Updated description for `version` field. Explicitly notes the exception for `command` source.
+        *   *Why:* Consistency with other docs. Clarifying version control for this specific source type.
+
+    *   **Page: `plugins-reference.md`**
+        *   *Change 1:* Text update for &#34;Skills-directory plugins&#34;. Changed &#34;Unlike a marketplace install&#34; to &#34;Unlike a copied marketplace install&#34; (emphasizing the copy vs. in-place distinction).
+        *   *Change 2:* Table update for metadata fields. Updated `version` description to reference the `command` source exception.
+        *   *Why:* Nuance correction regarding caching mechanisms (copy vs link/in-place) and versioning logic.
+
+    *   **Page: `settings.md`**
+        *   *Change:* Added a new entry in the &#34;Security-enforcement fields&#34; table: `disableCommandPluginSources`.
+        *   *Content:* If invalid, it&#39;s treated as `true` (disabling them) with a warning.
+        *   *Why:* Security policy definition. If you mess up the setting, assume &#34;safe&#34; (disabled).
+
+3.  **Synthesize and Structure:**
+
+    *   **Overall Summary:** The documentation updates center on defining the behavior, security implications, and update mechanisms for plugins sourced via &#34;command&#34; (`command` source) within the Claude Code ecosystem. They clarify how these plugins differ from standard marketplace plugins regarding versioning, installation (link vs. copy mode), and auto-updating.
+
+    *   **Key Themes:**
+        *   **Command Source Plugins:** A recurring topic. These are plugins defined/installed via a shell command output.
+        *   **Versioning &amp; Updating:** `command` source plugins ignore the standard `version` field pinning and update based on command output hash changes per session, independent of the global `DISABLE_AUTOUPDATER`.
+        *   **Managed/Security Mode:** Strict security settings disable `command` source plugins by default to prevent unauthorized command execution.
+        *   **Installation Modes:** Distinction between &#34;copy mode&#34; (standard) and &#34;link mode&#34; (in-place usage for command sources).
+
+    *   **Impact Level:** Medium. This introduces a new plugin mechanism with specific behaviors that differ from the norm. If developers are building or using these plugins, they need to know these rules. It&#39;s not a breaking change to existing code, but a new feature specification.
+
+    *   **Action Items:**
+        *   **Plugin Authors:** If using `command` source, be aware that `version` fields in manifests won&#39;t pin your plugin; rely on command output hash for updates.
+        *   **System Admins:** Review the new `disableCommandPluginSources` setting if you want to allow command-source plugins in managed environments (default is restricted).
+        *   **Developers:** Note that `DISABLE_AUTOUPDATER` does not stop `command` source plugins from updating; they update per session based on command output.
+
+4.  **Drafting the Response (in Chinese):**
+
+    *   *Summary:* 主要针对插件市场中 `command` source（命令源）插件的行为、更新机制、版本控制及安全策略进行了详细说明和修正。
+    *   *Themes:*
+        *   **Command Source 插件特性**: 强调了此类插件的安装（链接模式）、版本控制（不受 manifest `version` 字段锁定）以及更新机制（基于 hash 变化，每会话重跑命令）。
+        *   **自动更新逻辑**: 澄清了 `DISABLE_AUTOUPDATER` 环境变量无法阻止 Command Source 插件的自动解析和更新。
+        *   **安全与托管设置**: 新增了关于在受管/受限环境中对 Command Source 插件的禁用逻辑（`disableCommandPluginSources`）。
+        *   **MCP 配置**: 澄清了 `--strict-mcp-config` 在托管文件下的行为。
+    *   *Impact:* Medium. 虽然不破坏现有代码，但对于希望使用或开发动态命令源插件的开发者至关重要，改变了部分更新和版本管理预期。
+    *   *Actions:*
+        *   Plugin Authors: 检查命令源插件的版本策略，确保了解更新逻辑。
+        *   Admins: 如果需要允许 Command Source 插件，检查受管设置。
+        *   Users: 使用 `--yes` 标志安装命令源插件。
+
+5.  **Refining the Output:** Ensure tone is professional (&#34;world-class programmer&#34;) and markdown is clean.
+
+    *   *Self-Correction during drafting:* Make sure to mention the `--yes` flag for install as it&#39;s a specific action item found in the diffs. Ensure the distinction between &#34;copy&#34; and &#34;link&#34; mode is clear in themes.
+
+6.  **Final Polish (Mental Check against constraints):**
+    *   Single batch analysis? Yes.
+    *   Chinese? Yes.
+    *   Markdown? Yes.
+    *   Concise? Yes.
+
+7.  **Final Output Generation** (matches the provided good response).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/cli-reference.html" class="page-link">cli-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/discover-plugins.html" class="page-link">discover-plugins.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugin-marketplaces.html" class="page-link">plugin-marketplaces.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+61</span>
+                            <span class="removed">-25</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins.html" class="page-link">plugins.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+34</span>
+                            <span class="removed">-31</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+16</span>
+                            <span class="removed">-12</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">14:54 EST</div>
