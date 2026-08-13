@@ -118,9 +118,229 @@
 
         <header>
             <h1>Changes on 2026-08-13</h1>
-            <p class="meta">56 total changes in 7 runs</p>
+            <p class="meta">64 total changes in 8 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">19:35 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 1. Overall Summary
+此次更新主要优化了插件安装时的目录刷新机制，显著增强了 GitHub Actions 代码审查工作流的集成体验（支持直接在 PR 发表评论），并修复了多项涉及安全沙箱和远程控制的关键稳定性问题。
+
+### 2. Key Themes across pages
+*   **插件安装逻辑改进**：改变了插件未找到时的处理逻辑。现在，如果安装时使用完整语法 `plugin-name@marketplace-name`，Claude Code 会强制刷新该 Marketplace 目录，解决了关闭自动更新后无法安装新发布插件的问题。
+*   **CI/CD 体验升级**：GitHub Actions 中的代码审查工作流（`code-review`）现在可以通过配置直接在 Pull Request 中发表评论，而不再仅限于写入运行日志。
+*   **安全加固与修复**：修复了 PowerShell 参数劫持、Bash 符号链接越权等安全漏洞，加强了文件系统沙箱隔离，并改善了跨会话消息传递的安全性。
+*   **模型与鉴权澄清**：明确了当使用 LLM Gateway 时，1M 上下文模型的调用不再受本地使用量检查限制；修正了 `CLAUDE_CODE_OAUTH_TOKEN` 在新会话中的重读行为描述。
+
+### 3. Impact level
+**High**
+
+*   **理由**：
+    *   **功能增强**：GitHub Actions 现在支持在 PR 上直接评论，这对于使用自动化代码审查的开发团队是显著的工作流改进。
+    *   **安全修复**：Changelog 中包含多项针对 PowerShell 和 Bash 的权限绕过修复，对生产环境的安全性至关重要。
+    *   **开发体验**：插件安装逻辑的优化减少了手动更新目录的繁琐步骤，提升了日常开发效率。
+
+### 4. Action items for developers
+*   更新现有的 GitHub Actions 工作流配置，添加 `--comment` 和 `claude_args` 参数以启用 PR 评论功能。
+*   在安装新发布的插件时，优先使用 `plugin-name@marketplace-name` 语法以绕过本地缓存限制。
+*   如果在生产环境使用 1M 上下文模型，注意检查 `ANTHROPIC_BASE_URL` 网关配置，因为本地不再拦截此类请求。
+*   审查 CI 脚本中的 `CLAUDE_CODE_OAUTH_TOKEN` 使用情况，确保理解其在每次新会话中都会被重新读取的行为。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Format:** Markdown, single batch analysis.
+    *   **Language:** Chinese.
+    *   **Constraint:** Concise, insightful, focus on what matters to developers.
+
+2.  **Analyze the Input Data (Diff Blocks):**
+
+    *   **Page: `discover-plugins.md` (+9/-5):**
+        *   *Change:* Significant revision to how plugin installation handles marketplace refreshing. Previously, auto-update settings determined behavior. Now, behavior depends on how you name the plugin (e.g., `plugin@marketplace` vs just `plugin`).
+        *   *Key Detail:* Using `plugin@marketplace` forces a refresh (unless specific conditions like offline mode or recent refresh are met). Using just `plugin-name` relies on cached catalogs and auto-update settings.
+        *   *Impact:* Improves reliability of installing newly published plugins if the full syntax is used.
+
+    *   **Page: `github-actions.md` (+13/-5):**
+        *   *Change:* Updated review workflow behavior.
+        *   *Key Detail:* Before v2.1.229, reviews were only in logs. Now, with `--comment` and `claude_args`, Claude posts comments inline on PRs.
+        *   *Detail:* Added triggers for `ready_for_review` and `reopened`.
+        *   *Detail:* Added instructions on how to update existing workflows.
+        *   *Impact:* More useful CI/CD integration. Reviews are visible directly in PRs.
+
+    *   **Page: `iam.md` (+1/-1):**
+        *   *Change:* Clarification on `CLAUDE_CODE_OAUTH_TOKEN` behavior.
+        *   *Key Detail:* If the env var is set, it re-reads in every *new* session until removed. If `/login` is run while set, it switches for the current session.
+        *   *Impact:* Better understanding of credential persistence and precedence in scripts/CI.
+
+    *   **Page: `mcp.md` (+1/-1):**
+        *   *Change:* Minor text update regarding plugin installation failure (link fix, removal of redundant text about auto-update logic).
+        *   *Impact:* Consistency with `discover-plugins.md`.
+
+    *   **Page: `model-config.md` (+1/-0):**
+        *   *Change:* Clarification on 1M context usage checks.
+        *   *Key Detail:* If using a gateway (`ANTHROPIC_BASE_URL`) + saved login, Claude Code *doesn&#39;t* check usage credits locally. The gateway handles it.
+        *   *Impact:* Users can use 1M context via gateways even if the direct API check would block it (depending on gateway config).
+
+    *   **Pages: `skills.md`, `slash-commands.md` (+1/-1 each):**
+        *   *Change:* Same minor text update as `mcp.md` regarding plugin installation failures.
+        *   *Impact:* Consistency across documentation.
+
+    *   **Page: `CHANGELOG.md.md` (+50/-0):**
+        *   *Change:* Version 2.1.232 changelog.
+        *   *Key Features:* Subagent forking on by default, cross-session messaging (`@name`), GitLab support for marketplaces, Plugin install refresh behavior (matches `discover-plugins.md`), Security fixes (PowerShell, Bash, Sandbox, Remote Control), Remote Control stability improvements.
+
+3.  **Synthesize and Categorize (Key Themes):**
+
+    *   *Plugin Installation Logic:* The core change is the behavioral shift regarding marketplace refreshing. Using the full syntax `plugin@marketplace` forces a refresh, solving the &#34;stale catalog&#34; issue for new plugins.
+    *   *GitHub Actions / CI/CD:* Code review workflows now actually post comments on PRs instead of just logging output. This is a significant UX improvement for dev teams.
+    *   *Security &amp; Reliability:* Changelog mentions several security hardenings (PowerShell, Bash, sandbox) and Remote Control stability fixes.
+    *   *Context &amp; Model Usage:* Clarification on how 1M context works with gateways (bypassing local credit checks).
+    *   *Authentication:* Behavior clarification for `CLAUDE_CODE_OAUTH_TOKEN`.
+
+4.  **Drafting the Analysis (in Chinese):**
+
+    *   *Summary:* 此次更新主要优化了插件安装的刷新机制、增强了 GitHub Actions 代码审查功能的集成体验，并修复了多项与安全和远程控制相关的稳定性问题。
+    *   *Themes:*
+        *   **插件安装机制更新**: 改进插件安装时的 Marketplace 刷新逻辑。使用 `plugin@marketplace` 语法会强制刷新，确保能立即安装新发布的插件。
+        *   **CI/CD 集成增强**: GitHub Actions 的代码审查工作流现在支持直接在 PR 上发表评论（而不仅仅是日志），并增加了新的触发条件。
+        *   **安全与稳定性**: 修复了 PowerShell 和 Bash 的权限绕过漏洞，加强了沙箱隔离，并大幅改善了 Remote Control 的连接稳定性。
+        *   **模型上下文与鉴权**: 澄清了通过 LLM Gateway 使用 1M 上下文时的权限检查逻辑，以及 `CLAUDE_CODE_OAUTH_TOKEN` 的行为细节。
+
+    *   *Impact:* High. The GitHub Actions update is a major functional improvement for users relying on automated reviews. The plugin installation change is a quality-of-life fix that reduces friction. The security patches are critical for enterprise environments.
+
+    *   *Action Items:*
+        *   更新现有的 GitHub Actions 工作流以支持 PR 评论功能（添加 `--comment` 和 `claude_args`）。
+        *   在安装新发布的插件时，使用 `plugin-name@marketplace-name` 语法以确保获取最新目录。
+        *   审查并应用 Changelog 中提到的安全补丁。
+        *   注意在 Gateway 环境下 1M 上下文的使用不再受本地使用量检查限制。
+
+5.  **Refining the Content:**
+
+    *   *Refinement on Impact:* Is it &#34;High&#34;? Yes, the PR commenting feature is a major workflow change. The security fixes are also &#34;High&#34; importance for ops.
+    *   *Refinement on Action Items:* Keep them concise.
+    *   *Language Check:* Ensure natural Chinese phrasing.
+
+6.  **Final Polish (Self-Correction during drafting):**
+    *   The `discover-plugins.md` change is nuanced. It used to be about auto-update settings, now it&#39;s about the specific command syntax. I need to make sure the summary captures that distinction.
+    *   The `CHANGELOG` confirms the version is 2.1.232.
+    *   The `iam.md` change is small but important for CI/CD debugging.
+
+7.  **Final Output Generation:** (Matches the provided good response).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/discover-plugins.html" class="page-link">discover-plugins.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+9</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/github-actions.html" class="page-link">github-actions.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+13</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/iam.html" class="page-link">iam.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/model-config.html" class="page-link">model-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+50</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">18:35 EST</div>
