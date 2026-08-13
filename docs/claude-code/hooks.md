@@ -928,7 +928,7 @@ seq=$(printf '\033]777;notify;%s;%s\007' "$title" "$body")
 jq -nc --arg seq "$seq" '{terminalSequence: $seq}'
 ```
 
-The `{ "terminalSequence": "..." }` shape is the same from any shell or language. On Windows, build the escape string in PowerShell or a script and emit the same JSON object.
+The `{ "terminalSequence": "..." }` shape is the same from any shell or language.
 
 #### Add context for Claude
 
@@ -2780,7 +2780,7 @@ WorktreeCreate hooks don't use the standard allow/block decision model. Instead,
 
 If the hook fails or produces no path, worktree creation fails with an error.
 
-Claude Code resolves a relative path against the directory the hook ran in, collapsing any `.` or `..` segments in it. If the resulting path isn't a directory Claude Code can enter, the session prints an error naming the path and exits with code 1. Before v2.1.205, a relative path or a path that didn't exist on disk crashed the session at startup, and with `-p` it stalled for about 30 seconds before exiting with code 0.
+Claude Code resolves a relative path against the directory the hook ran in, collapsing any `.` or `..` segments in it. If the resulting path isn't a directory Claude Code can enter, the session prints an error naming the path and exits with code 1.
 
 Claude Code refuses an absolute path that contains `.` or `..` segments, and any path that passes through a symlink below the repository root, because a symlink committed to the repository could redirect the worktree outside it. The error names the rejected component. Return a normalized path that doesn't pass through a symlink inside the repository. Before v2.1.216, worktree creation followed the hook's path without this screening.
 
