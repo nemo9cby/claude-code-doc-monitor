@@ -898,8 +898,6 @@ For `PreToolUse` and `PostToolUse` hooks, the stop applies even when the tool ca
 
 #### Emit terminal notifications
 
-The `terminalSequence` field requires Claude Code v2.1.141 or later.
-
 Hooks run without a controlling terminal, so writing escape sequences directly to `/dev/tty` fails. Instead, return the escape sequence in the `terminalSequence` field and Claude Code emits it for you through its own terminal write path. This is race-free, works inside tmux and GNU screen, and works on Windows where there is no `/dev/tty`.
 
 The field accepts a string of one or more allowlisted escape sequences:
