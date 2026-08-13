@@ -118,9 +118,173 @@
 
         <header>
             <h1>Changes on 2026-08-13</h1>
-            <p class="meta">1 total change in 1 run</p>
+            <p class="meta">5 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">12:51 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 整体摘要
+本次文档更新主要扩展了企业级管控设置 `allowManagedHooksOnly` 的权限范围，将其从单纯的 Hooks 限制延伸至状态栏和 UI 建议等配置；同时，针对 MCP 工具的自动加载逻辑 (`ENABLE_TOOL_SEARCH`) 提供了更精确的阈值行为描述。
+
+### 关键主题
+*   **企业管控范围扩大**：`allowManagedHooksOnly` 设置现不仅屏蔽用户和插件 Hooks，还会强制将状态栏 (`statusLine`)、文件建议 (`fileSuggestion`) 和子代理状态栏 (`subagentStatusLine`) 限制为仅使用托管配置中的值。
+*   **MCP 工具加载逻辑澄清**：澄清了 `ENABLE_TOOL_SEARCH=auto` 的具体行为。系统会计算所有本应延迟加载的工具定义总量，若总和小于上下文窗口的 10% 则全部预加载，一旦达到或超过 10% 则全部改为延迟加载。
+*   **插件与状态栏的差异化处理**：明确指出在 `allowManagedHooksOnly` 生效时，即便插件在管理设置中被强制启用，其自带的 `statusLine` 配置也不会运行（这与 Hooks 的豁免逻辑不同）。
+
+### 影响级别
+**级别：中高**
+
+**理由**：
+对于在受控企业环境中工作的开发者，这是一个功能性的变更。现有的自定义状态栏或文件建议设置可能会突然失效，从而影响用户体验。对于插件作者，这意味着需要重新评估插件在受控环境下的 UI 表现行为。对于 MCP 配置者，虽然主要是澄清，但有助于更精准地控制上下文消耗。
+
+### 开发者行动建议
+*   **企业管理员**：请重新评估 `allowManagedHooksOnly` 的影响范围，确认是否意图屏蔽用户的自定义状态栏配置。
+*   **插件开发者**：注意插件默认的 `statusLine` 在严格受控模式下不会生效（不同于 Hooks），请相应调整插件的用户提示或文档。
+*   **MCP 集成者**：若对上下文窗口敏感，应理解 `auto` 模式是基于“所有工具定义总和”的集体阈值策略，而非单个工具的独立判断。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Format:** Markdown, concise, insightful.
+    *   **Language:** Chinese (requested by the user).
+    *   **Input:** 4 pages of documentation changes (`hooks.md`, `mcp.md`, `settings.md`, `statusline.md`).
+    *   **Output Structure:**
+        1.  Overall Summary.
+        2.  Key Themes.
+        3.  Impact Level with reasoning.
+        4.  Action Items for developers.
+
+2.  **Analyze the Input Diff Data:**
+
+    *   **Page 1: `hooks.md`**
+        *   *Change:* Expanded the description of the `allowManagedHooksOnly` setting (managed settings).
+        *   *Old:* Blocks user, project, plugin hooks (except force-enabled ones).
+        *   *New:* Adds that it also restricts/narrows `statusLine`, `fileSuggestion`, and `subagentStatusLine` to managed settings.
+        *   *Implication:* This setting is becoming a &#34;lockdown&#34; switch not just for hooks, but for UI/status customization too.
+
+    *   **Page 2: `mcp.md`**
+        *   *Change:* Clarified the behavior of `ENABLE_TOOL_SEARCH=auto` (threshold mode).
+        *   *Old:* &#34;load schemas upfront when they fit within 10%... and defer only the overflow.&#34;
+        *   *New:* &#34;Claude Code then loads every schema upfront while the definitions it would otherwise defer total less than 10% of the context window, and defers every one of those definitions once they reach 10%.&#34;
+        *   *Table Update:* Similar clarification in the table row for `auto`.
+        *   *Implication:* Better precision on how the 10% threshold works. It&#39;s binary based on the *total* size of deferrable definitions, not per-tool (though &#34;every schema&#34; implies a collective check). The phrasing is now more explicit about the trigger (total &lt; 10% = load all; total &gt;= 10% = defer all).
+
+    *   **Page 3: `settings.md`**
+        *   *Change:* Updated description for `allowManagedHooksOnly`.
+        *   *Old:* Only managed hooks, SDK hooks, etc. loaded. Others blocked.
+        *   *New:* Restrict which hooks run, *and* narrows `statusLine`, `fileSuggestion`, and `subagentStatusLine` to managed settings.
+        *   *Implication:* Reinforces the change in `hooks.md`. The scope of this setting has increased.
+
+    *   **Page 4: `statusline.md`**
+        *   *Change 1:* Updated section on gates/trust for `subagentStatusLine`. Added `allowManagedHooksOnly` to the list of gates. Added clarification that plugin values don&#39;t run under this restriction even if force-enabled (unlike hooks).
+        *   *Change 2 (Tips section):* Updated troubleshooting for `disableAllHooks`. Now says Claude runs *only* managed status line, or disables it if none exist.
+        *   *Change 3 (Tips section):* New tip about `allowManagedHooksOnly`. Warns users that custom status lines disappear without warning if this setting is enabled.
+        *   *Implication:* Tightened security/lockdown behavior for status lines. Differentiates behavior between plugins and hooks regarding managed settings.
+
+3.  **Synthesize the Analysis (Internal Draft):**
+
+    *   *Summary:* The changes primarily refine enterprise-level restrictions (`allowManagedHooksOnly`) to cover more UI elements like status lines, and clarify the logic of MCP tool loading thresholds (`ENABLE_TOOL_SEARCH=auto`).
+    *   *Key Themes:*
+        *   Expanded Enterprise Lockdown: `allowManagedHooksOnly` now affects `statusLine` and UI suggestions, not just hooks.
+        *   Clarification of MCP Behavior: Specifics on how the 10% context threshold works for tool search.
+        *   Documentation Consistency: Aligning descriptions across hooks, settings, and statusline docs.
+    *   *Impact Level:*
+        *   For Enterprise Users/Admins: **High**. Their config changes behavior.
+        *   For Plugin Developers: **Medium**. Status lines defined by plugins might be suppressed differently now.
+        *   For General Users: **Low/Medium**. Just clarification on MCP, but potential confusion if their status line suddenly vanishes due to an admin policy.
+        *   *Overall Verdict:* **Medium**. Significant behavioral change for managed environments.
+    *   *Action Items:*
+        *   Check `allowManagedHooksOnly` if you are an admin.
+        *   Plugin authors need to know that status lines are treated differently from hooks in managed mode.
+        *   Review `ENABLE_TOOL_SEARCH` if you rely on specific context window management for MCP.
+
+4.  **Translate and Refine to Chinese:**
+
+    *   *Summary:* 本次更新主要扩展了企业级设置 `allowManagedHooksOnly` 的范围，使其不仅限制 Hooks，还锁定了状态栏和文件建议等 UI 自定义项；同时，对 MCP 工具搜索的阈值逻辑进行了更精确的澄清。
+    *   *Key Themes:*
+        *   **企业管控范围扩大**: `allowManagedHooksOnly` 现在会强制应用“仅限托管设置”的状态栏、子代理状态栏和文件建议，而不仅仅是 Hooks。
+        *   **MCP 工具加载逻辑澄清**: 明确了 `ENABLE_TOOL_SEARCH=auto` 的行为，即所有可延迟定义的总和小于 10% 时全部加载，超过则全部延迟。
+        *   **插件与状态栏的区别**: 文档明确了即便插件在管理设置中被强制启用，其状态栏配置在受控模式下也不会运行（与 Hooks 行为不同）。
+    *   *Impact Level:*
+        *   **级别: 中高**
+        *   **原因**: 对于使用 `allowManagedHooksOnly` 的企业环境，这是功能范围的实质性扩大，可能会导致用户现有的自定义状态栏失效。对于普通开发者主要是文档澄清。
+    *   *Action Items:*
+        *   **企业管理员**: 审查 `allowManagedHooksOnly` 设置，确保知晓该开关现在会影响状态栏和 UI 体验。
+        *   **插件开发者**: 注意插件中的 `statusLine` 默认值在受控模式下会被绕过，这与 Hooks 的豁免逻辑不同。
+        *   **MCP 用户**: 如果依赖上下文窗口优化，理解 `auto` 模式是基于“所有定义总和”而非单个工具的阈值。
+
+5.  **Final Review against Constraints:**
+    *   Markdown format? Yes.
+    *   Concise? Yes.
+    *   Insightful? Yes.
+    *   Chinese? Yes.
+    *   4 specific sections? Yes.
+
+6.  **Construct Final Output.** (Proceed to generate response).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/statusline.html" class="page-link">statusline.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">05:57 EST</div>
