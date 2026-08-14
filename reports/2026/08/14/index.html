@@ -118,9 +118,279 @@
 
         <header>
             <h1>Changes on 2026-08-14</h1>
-            <p class="meta">15 total changes in 3 runs</p>
+            <p class="meta">25 total changes in 4 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">18:16 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 整体摘要
+本次文档更新主要将默认的权限模式正式定名为 **Manual 模式**，并细化了 **Auto 模式**下分类器在沙箱和网络访问场景的自动审批逻辑。此外，Prompt Hooks 新增了 `impossible` 字段，允许模型判定任务不可达成时自动终止，防止无限循环。
+
+### 关键主题
+*   **术语规范化**: 全局将 &#34;default mode&#34; 统一重命名为 &#34;Manual mode&#34;，涵盖桌面应用、子代理、沙箱及终端配置等页面，消除了“默认”一词的歧义。
+*   **Hooks 逻辑增强**: Prompt Hooks 的 JSON 响应结构新增 `impossible` 字段。当模型判断目标永远无法满足时返回 `true`，系统将停止任务而非让 Claude 持续重试，优化了长任务的处理效率。
+*   **Auto 模式集成**: 明确了在 Pro/Max/Team 计划中，沙箱的网络域名请求和命令逃逸将默认通过分类器自动审批，而非弹出提示。
+*   **措辞精确化**: 微调了诸如“working toward”（致力于达成）、“unmatched command”（未匹配的命令）等表述，提升了技术描述的准确性。
+
+### 影响级别
+**Medium**
+**理由**: 尽管大部分是术语上的重命名（不破坏现有功能），但这种变更范围较广，需要开发者更新心智模型。新增的 `impossible` 字段是一个向后兼容的功能增强，对于编写复杂 Hooks 的开发者来说是重要的行为变更。
+
+### 开发者行动项
+*   **更新术语认知**: 在代码注释、团队Wiki或配置文件中，将 &#34;default permission mode&#34; 统一更改为 &#34;Manual mode&#34;。
+*   **优化 Hook 脚本**: 检查现有的 Prompt Hooks（特别是 `/goal` 或 `Stop` 事件），利用新的 `impossible: true` 字段来处理那些注定失败的任务，避免资源浪费。
+*   **关注自动审批行为**: 如果使用 Pro/Max/Team 计划并开启了 Auto 模式，请注意沙箱内的首次网络域名请求和危险命令逃逸可能不再弹出对话框，而是由后台分类器自动处理。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Task:** Analyze a batch of 10 documentation pages (diffs provided).
+    *   **Output:** Concise, insightful analysis in Markdown format.
+    *   **Language:** Chinese.
+    *   **Structure:**
+        1.  Overall Summary (1-2 sentences).
+        2.  Key Themes (bullets).
+        3.  Impact Level (Low/Medium/High/Breaking) with reasoning.
+        4.  Action Items for Developers (max 5 bullets).
+
+2.  **Analyze the Diffs (Page by Page):**
+
+    *   **`chrome.md`:**
+        *   *Change:* Updated text regarding the &#34;Claude in Chrome&#34; permission dialog. It now mentions the specific text of the dialog (&#34;Claude in Chrome wants to&#34;) and the option to &#34;allow all actions on that site for the session.&#34;
+        *   *Theme:* UI/UX clarification, permissions.
+
+    *   **`desktop.md`:**
+        *   *Change 1:* Refined the intro paragraph for &#34;Choose a permission mode&#34; to be more direct.
+        *   *Change 2:* Changed the description of &#34;Manual&#34; mode. Removed &#34;Recommended for new users.&#34;
+        *   *Change 3:* (Implicit) The focus is on permission mode definitions.
+        *   *Theme:* Permission modes terminology refinement.
+
+    *   **`hooks.md` &amp; `hooks-guide.md` (grouping related changes):**
+        *   *Change 1 (hooks.md):* Changed &#34;returns a yes/no decision&#34; to &#34;returns its decision&#34;.
+        *   *Change 2 (hooks.md):* Changed &#34;keep working until a condition holds&#34; to &#34;keep working toward a condition&#34;.
+        *   *Change 3 (hooks.md &amp; hooks-guide.md):* Major update to **Prompt Hooks** response schema. Added an `&#34;impossible&#34;` boolean field.
+            *   *Logic:* If `&#34;impossible&#34;: true` is set with `&#34;ok&#34;: false`, the system treats it as a condition that can *never* be satisfied. Instead of feeding the reason back to continue working, the turn ends (for Stop/SubagentStop events).
+        *   *Change 4 (hooks.md):* Updated `continueOnBlock` description for clarity.
+        *   *Theme:* Logic updates in hooks (specifically &#34;impossible&#34; state), terminology.
+
+    *   **`model-config.md`:**
+        *   *Change:* &#34;keep it working until that outcome holds&#34; -&gt; &#34;keep it working toward that outcome&#34;.
+        *   *Theme:* Minor phrasing consistency.
+
+    *   **`sandboxing.md`:**
+        *   *Change 1:* Added mention of &#34;auto mode&#34; classifier when prompting for network domain approval.
+        *   *Change 2:* Clarified &#34;default mode&#34; vs &#34;Manual mode&#34; in multiple places. Changed &#34;default mode&#34; to &#34;Manual mode&#34;.
+        *   *Change 3:* Clarified fallback to classifier in auto mode.
+        *   *Theme:* Renaming &#34;default mode&#34; to &#34;Manual mode&#34;, clarifying auto mode behavior.
+
+    *   **`skills.md` &amp; `slash-commands.md`:**
+        *   *Change:* &#34;To keep a command from aborting...&#34; -&gt; &#34;To keep an *unmatched* command from aborting...&#34;
+        *   *Theme:* Precision in wording regarding permission rules.
+
+    *   **`sub-agents.md`:**
+        *   *Change 1:* Clarified how the background session permission mode is determined (inherits settings, starts as auto mode on Pro/Max/Team).
+        *   *Change 2:* Changed `default` mode description to explicitly state &#34;Manual mode&#34;.
+        *   *Change 3:* Clarified agent spawning logic (minor truncation in diff, but related to teams/forks).
+        *   *Theme:* Permission mode terminology (Default -&gt; Manual), auto mode integration.
+
+    *   **`terminal-config.md`:**
+        *   *Change:* &#34;default permission mode&#34; -&gt; &#34;Manual mode&#34;.
+        *   *Theme:* Terminology consistency.
+
+3.  **Synthesize Key Themes:**
+    *   **Terminology Shift:** The biggest theme is the explicit renaming/referencing of the standard permission mode from &#34;default mode&#34; to **&#34;Manual mode&#34;**. This appears in `desktop.md`, `sandboxing.md`, `sub-agents.md`, and `terminal-config.md`.
+    *   **Auto Mode Integration:** Several pages (`sandboxing.md`, `sub-agents.md`, `chrome.md` implicitly) update descriptions to explicitly mention how the &#34;auto mode&#34; (classifier) interacts with permission flows (e.g., network access, sandbox escapes).
+    *   **Hooks Logic Enhancement:** The addition of the `&#34;impossible&#34;` field in Prompt Hooks is a functional feature update. It allows the AI to decide a goal is impossible and stop, rather than looping forever trying to achieve it.
+    *   **Language Precision:** Small tweaks like &#34;working toward&#34; instead of &#34;until&#34;, &#34;unmatched command&#34;, etc., aim for accuracy.
+
+4.  **Determine Impact Level:**
+    *   *Reasoning:*
+        *   The rename to &#34;Manual mode&#34; is purely cosmetic/terminological but widespread. It doesn&#39;t break code, but developers need to update their mental model or search queries.
+        *   The Hooks `&#34;impossible&#34;` field is a new feature/parameter. Old hooks ignoring it will work as before (default false), but new hooks can utilize it. This is a non-breaking enhancement.
+        *   Auto mode clarifications align documentation with existing behavior for Pro/Max/Team users.
+    *   *Conclusion:* **Medium**. The terminology shift is significant enough to cause confusion if missed, and the hook addition changes potential behavior.
+
+5.  **Draft Action Items:**
+    *   Update documentation/mental models: Replace &#34;default mode&#34; with &#34;Manual mode&#34;.
+    *   Review Hooks scripts: Check if custom prompt hooks would benefit from the new `&#34;impossible&#34;` field to prevent infinite loops.
+    *   Update configs: Ensure references to `default` mode are understood as `Manual`.
+    *   Sandbox/Auto mode: Be aware that Pro/Max/Team accounts might see fewer prompts due to auto-mode classifier integration.
+
+6.  **Translate to Chinese &amp; Format:**
+
+    *   *Summary:* 本次文档更新主要统一了权限模式的命名（将“默认模式”正式称为“Manual 模式”），并强化了“Auto 模式”在沙箱和网络访问中的行为说明。此外，Prompt Hooks 引入了 `impossible` 字段以优化任务终止逻辑。
+    *   *Themes:*
+        *   **术语统一**: 明确使用 &#34;Manual mode&#34; 指代默认的询问式权限模式。
+        *   **功能增强**: Prompt Hooks 新增 `impossible` 字段，允许模型判断任务不可完成并停止会话。
+        *   **Auto 模式集成**: 细化了沙箱逃逸、域名访问等场景下分类器的工作流程。
+        *   **措辞精确**: 修正了关于命令匹配和任务描述的细微措辞。
+    *   *Impact:* **Medium**. 主要是术语变更和新功能参数，不会破坏现有逻辑，但影响开发者对系统的理解和配置。
+    *   *Action Items:*
+        *   更新思维模型/脚本：将所有关于 &#34;default permission mode&#34; 的引用替换为 &#34;Manual mode&#34;。
+        *   优化 Hooks 逻辑：检查现有的 Prompt Hooks 配置，利用新的 `impossible: true` 字段避免无限循环尝试不可达条件。
+        *   了解权限流：熟悉 Auto 模式下分类器如何自动处理沙箱网络请求和越权命令。
+
+7.  **Refine Chinese Output (Self-Correction):**
+    *   Ensure &#34;Manual mode&#34; is clear.
+    *   Make sure the `impossible` field explanation is clear (it stops the loop).
+    *   Keep it concise.
+
+    *Drafting the response...*
+
+    **Summary:** 本次更新重点在于将默认权限模式正式定名为 **Manual 模式**，并深入阐述了 **Auto 模式**下的分类器如何自动处理权限请求。此外，Prompt Hooks 新增了 `impossible` 字段，用于判定任务不可达时提前终止会话。
+
+    **Key Themes:**
+    *   **术语规范化**: 全局将 &#34;default mode&#34; 统一改为 &#34;Manual mode&#34;（涉及桌面端、沙箱、子代理等文档）。
+    *   **Hooks 逻辑增强**: Prompt Hooks 响应结构新增 `impossible` 字段，允许 AI 判定目标无法达成从而结束任务，防止死循环。
+    *   **Auto 模式行为细化**: 明确了在 Pro/Max/Team 计划下，沙箱网络访问和逃逸命令如何通过分类器自动批准，减少人工干预。
+    *   **文案微调**: 提升了关于命令匹配和目标描述的准确性。
+
+    **Impact Level: Medium**
+    *   **Reasoning**: 术语变更较为普遍，虽不破坏功能但需开发者更新认知；Hooks 新增字段是向后兼容的功能增强，能显著提升特定场景下的体验（如防止无限循环）。
+
+    **Action Items:**
+    *   **更新术语**: 在内部文档或配置注释中，将 &#34;default permission mode&#34; 更新为 &#34;Manual mode&#34; 以保持一致。
+    *   **优化 Hook 配置**: 检查现有的 Prompt Hooks，特别是在 `/goal` 或 `Stop` 事件中，考虑引入 `impossible` 字段以优雅处理无法完成的任务。
+    *   **理解 Auto 模式**: 如果是 Pro/Max/Team 用户，需意识到沙箱外的网络请求和命令逃逸现在可能会被分类器静默批准。
+
+8.  **Final Review against constraints:**
+    *   Chinese? Yes.
+    *   Markdown? Yes.
+    *   Concise? Yes.
+    *   Developer focused? Yes.
+    *   Batch analysis? Yes.
+
+    Proceed with output.</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/chrome.html" class="page-link">chrome.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/desktop.html" class="page-link">desktop.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+13</span>
+                            <span class="removed">-13</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+21</span>
+                            <span class="removed">-19</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/model-config.html" class="page-link">model-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sandboxing.html" class="page-link">sandboxing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-8</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/terminal-config.html" class="page-link">terminal-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">17:19 EST</div>
