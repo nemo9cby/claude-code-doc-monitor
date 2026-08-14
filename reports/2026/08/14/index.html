@@ -118,9 +118,173 @@
 
         <header>
             <h1>Changes on 2026-08-14</h1>
-            <p class="meta">25 total changes in 4 runs</p>
+            <p class="meta">27 total changes in 5 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">19:15 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">```markdown
+## 文档变更分析
+
+### 1. Overall Summary
+此次更新极大地简化了 mTLS 证书的生命周期管理，使其支持在运行时自动重载，并发布了 v2.1.233 版本。该版本重点修复了 Windows 上的凭据泄露漏洞，优化了自托管运行器的性能，并针对新一代模型（如 Sonnet 5）默认移除了 Todo 工具。
+
+### 2. Key Themes
+*   **mTLS 自动重载**：证书和密钥轮换不再需要重启 Claude Code，当发生连接级错误（如 TLS 握手失败）时会自动重新读取文件。
+*   **安全加固**：修复了 Windows 路径验证绕过漏洞（CVE 类问题），防止 NTLM 凭据泄露；回滚了 2.1.232 中有问题的 Bash 权限更改。
+*   **资源与性能控制**：新增 Linux Bash 工具的内存限制支持 (`CLAUDE_CODE_TOOL_MEMORY_LIMIT`)，显著缩短了自托管运行器的启动时间。
+*   **模型能力变更**：Opus 4.8、Sonnet 5 等新模型默认不再内置 Todo/任务追踪工具，需通过环境变量显式开启。
+*   **平台兼容性增强**：新增 GitLab Merge Request 支持，改进了屏幕阅读器模式和插件验证机制。
+
+### 3. Impact Level
+**High** (高)
+*   **理由**：本次包含影响安全性的关键补丁（Windows 凭据泄露）；mTLS 重载机制的变更直接改变了企业级用户的运维操作流程；新模型默认移除 Todo 工具属于破坏性变更，可能导致依赖该功能的现有自动化任务失败。
+
+### 4. Action Items for Developers
+*   **应用安全更新**：如果在 Windows 环境下运行，应尽快更新以关闭 NTLM 凭据泄露风险。
+*   **恢复 Todo 工具**：如果你在 Opus 4.8/Sonnet 5+ 等新模型上使用 Todo 或任务追踪功能，请设置环境变量 `CLAUDE_CODE_ENABLE_TODO_TOOLS=1`。
+*   **更新运维手册**：根据新的 `network-config.md` 更新证书轮换 SOP，明确无需重启即可生效，但需注意 OTLP 导出器仍需重启。
+*   **配置资源限制**：在 Linux 上开发时，利用 `CLAUDE_CODE_TOOL_MEMORY_LIMIT` 防止构建命令占用过多内存导致会话卡顿。
+*   **验证 Windows Bash 行为**：留意 v2.1.233 已回滚了 2.1.232 中关于 Cygwin 符号链接和输入重定向的权限变更。
+```</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request**:
+    *   **Role**: World-class programmer with expertise in dev tools/docs.
+    *   **Task**: Analyze documentation changes as a single batch.
+    *   **Input**: Two pages (`network-config.md` and `CHANGELOG.md.md`).
+    *   **Language**: Chinese.
+    *   **Format**: Concise markdown (Summary, Key Themes, Impact, Action Items).
+
+2.  **Analyze Page 1: `network-config.md`**:
+    *   **Change**: Large rewrite of the section on rotating mTLS certificates and keys.
+    *   **Old behavior**: Claude Code reads certs at startup and on settings apply. It does *not* watch for changes. To rotate, you restart or wait for a settings sync.
+    *   **New behavior**: Claude Code now automatically re-reads certs on connection-level errors (e.g., connection reset, TLS handshake failure). It no longer requires a restart for rotation in running sessions, although it still reads on startup/settings apply.
+    *   **Specific details added**:
+        *   Timing details: Re-read happens on retry after failure, not immediately upon file swap.
+        *   Gateway rejections distinction: Connection errors trigger reload; HTTP errors do not.
+        *   Error handling: Half-written rotations (mismatched cert/key) keep the previous pair.
+        *   Exemptions: OTLP exporters require restart.
+        *   Opt-out: `CLAUDE_CODE_DISABLE_MTLS_RELOAD_ON_STALE_CONNECTION=1`.
+        *   Verification: Debug logging flag `Stale connection — reloaded rotated mTLS client material`.
+    *   **Why it matters**: Developers managing mTLS certs in production no longer need to restart Claude Code to rotate credentials, reducing downtime and simplifying ops.
+
+3.  **Analyze Page 2: `CHANGELOG.md.md` (v2.1.233)**:
+    *   **Changes**:
+        *   GitLab MR support (`--worktree`, `claude agents`).
+        *   `forward_user_identity` gateway setting.
+        *   Linux memory cgroup limits for Bash tool (`CLAUDE_CODE_TOOL_MEMORY_LIMIT`).
+        *   WebFetch cache TTL config.
+        *   **Bug Fixes**: Cloud sessions lost on shutdown, MCP v2 subscriptions loops, Notification hooks for permission prompts, Linux 100% CPU idle, Skill alias shadowing, Argument substitution recursion, Windows NT path security leak.
+        *   **Improvements**: `self-hosted-runner` start time, Apps gateway error forwarding, `plugin validate` check, Screen reader mode, Print mode diagnostics.
+        *   **Behavior Changes**: GitHub app tip logic for non-GitHub origins.
+        *   **Removals/Deprecations**: Todo/task tools removed for Opus 4.8/Sonnet 5/etc (unless env var enabled).
+        *   **Reverts**: Bash permission changes for Cygwin symlinks/input redirection on Windows (reverted from 2.1.232).
+    *   **Why it matters**: Security fixes (Windows paths), Performance improvements (runner start time, Linux CPU), Better DevEx (GitLab support, screen reader), Important capability changes (mTLS reload mentioned in docs, Todo tools removed by default).
+
+4.  **Synthesize and Cross-Reference**:
+    *   *Connection*: The `network-config.md` update explains the implementation detail behind a likely unlisted or implied improvement in the changelog (related to connection handling and stability), although the specific version mention `v2.1.232` in the docs implies this was slightly older or just referencing the previous baseline. Actually, the docs mention &#34;Before v2.1.232... so it kept the pair it had already loaded...&#34;. This implies the feature landed in 2.1.233 (or 2.1.232 but clarified now). The Changelog is for 2.1.233. The docs mention &#34;Before v2.1.232... it kept the pair... [implying 2.1.232+ fixed it]&#34;. The Changelog 2.1.233 has a revert for 2.1.232 Bash permissions.
+    *   *Key Theme*: Reliability, Security, and mTLS Automation.
+
+5.  **Drafting the Response (Iterative Refinement in Chinese)**:
+
+    *   *Summary*:
+        *   *Draft*: This batch updates mTLS rotation behavior to be automatic and adds a new version 2.1.233 with various bug fixes and features.
+        *   *Refinement*: 本次更新主要优化了 mTLS 证书轮换机制（支持在运行时自动重载），并发布了 v2.1.233 版本，包含多项关键安全修复、性能提升及对新模型（如 Sonnet 5）的适配。
+
+    *   *Key Themes*:
+        *   mTLS Automation: Rotates certs on connection error without restart.
+        *   Security: Windows path validation fix.
+        *   DevEx: GitLab support, better screen reader, tool memory limits.
+        *   Model Updates: Removal of Todo tools for new models by default.
+
+    *   *Impact Level*: Medium/High.
+        *   Why: Security fix (credential leak) is high impact. mTLS automation is high impact for enterprise users. Todo tool removal is breaking for specific workflows.
+
+    *   *Action Items*:
+        *   Check mTLS rotation behavior (no restart needed).
+        *   Verify Todo tool usage (might be disabled).
+        *   Review Windows path security (if applicable).
+        *   Enable/disable env vars for memory limits or Todo tools if needed.
+
+6.  **Final Polish (Chinese)**:
+
+    *   **Overall Summary**: 此次更新显著改进了 mTLS 证书轮换体验，使其能在连接错误时自动重载而无需重启；同时发布的 v2.1.233 版本修复了 Windows 路径验证漏洞，并针对新一代模型移除了默认的 Todo 工具。
+    *   **Key Themes**:
+        *   **自动化与稳定性**: mTLS 证书现在会在连接级错误（如握手失败）时自动重载，不再强制要求重启会话。
+        *   **安全性**: 修复了 Windows NT 路径前缀绕过 UNC 验证的潜在凭据泄露漏洞。
+        *   **性能与资源管理**: 优化了自托管运行器的启动速度，为 Linux Bash 工具增加了内存限制 (`CLAUDE_CODE_TOOL_MEMORY_LIMIT`)。
+        *   **平台兼容性**: 新增 GitLab Merge Request 支持，优化了屏幕阅读器模式。
+        *   **模型行为变更**: Opus 4.8、Sonnet 5 等新模型默认不再提供 Todo/任务追踪工具。
+    *   **Impact Level**: **High** (高)
+        *   理由: 包含关键的凭据泄露安全修复；mTLS 轮换逻辑的重大变更直接影响企业用户的运维流程；新模型下默认移除 Todo 工具属于破坏性变更，可能影响现有自动化脚本。
+    *   **Action Items**:
+        *   **检查安全更新**: 如果在 Windows 环境使用，请立即更新以修复凭据泄露漏洞。
+        *   **调整 mTLS 策略**: 更新证书轮换文档，确认不再需要为更新证书而重启 Claude Code，但需注意 OTLP 导出器仍需重启。
+        *   **应对 Todo 工具移除**: 如果依赖 Todo/Task 工具且使用 Opus 4.8/Sonnet 5+ 模型，需设置环境变量 `CLAUDE_CODE_ENABLE_TODO_TOOLS=1` 来恢复功能。
+        *   **配置资源限制**: 在 Linux 环境下，可利用 `CLAUDE_CODE_TOOL_MEMORY_LIMIT` 防止构建命令耗尽内存。
+        *   **排查回归问题**: 针对 Windows 用户，注意 v2.1.232 中 Bash 权限的更改已在 v2.1.233 中回滚。
+
+7.  **Final Review against constraints**:
+    *   Markdown format? Yes.
+    *   Chinese? Yes.
+    *   Concise? Yes.
+    *   2 pages analyzed? Yes.
+
+    *Self-Correction during drafting*: The docs mention &#34;Before v2.1.232... Claude Code didn&#39;t re-read...&#34;. The Changelog is for 2.1.233. The docs update aligns with the *current* state (presumably 2.1.233 or the release introducing this). I will treat the feature availability as current.
+
+    *Action items refinement*: Make sure to highlight the environment variable for Todo tools as it&#39;s a breaking change for users relying on it.
+
+8.  **Generate Output**. (Proceed to generate the markdown response).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/network-config.html" class="page-link">network-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+10</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+21</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">18:16 EST</div>
