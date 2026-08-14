@@ -118,9 +118,199 @@
 
         <header>
             <h1>Changes on 2026-08-14</h1>
-            <p class="meta">5 total changes in 1 run</p>
+            <p class="meta">11 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">16:24 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 文档变更分析摘要
+
+**1. 总体概述**
+此次文档更新重点修正了 **Hooks（钩子）** 和 **Skills（技能）** 的作用域与生命周期描述，细化了 CLI 参数定义与配置加载机制，旨在消除开发者对行为边界（特别是技能覆盖和钩子持久性）的潜在误解。
+
+**2. 关键变更主题**
+*   **Hooks 作用域明确化**：明确区分了 **Skill hooks** 与 **Subagent hooks** 的生命周期。
+    *   **Skill hooks**：一旦被调用，在会话剩余期间持续有效（除非设置 `once: true`）。
+    *   **Subagent hooks**：仅在子代理运行期间有效，随子代理结束而移除。
+*   **技能覆盖机制澄清**：自定义技能虽然会覆盖同名的内置技能，但**不会覆盖**内置技能的别名。例如，自定义 `code-review` 不会接管 `/review` 别名。
+*   **配置发现范围扩展**：明确 `--add-dir` 不仅加载 Skills，也会自动加载 `.claude/commands/` 下的命令文件。
+*   **CLI 与解析细节**：
+    *   `--agents` 参数定义的字段列表更加精确。
+    *   细化了 Hook 输出的 JSON 解析规则（明确纯文本与 JSON 对象的处理差异）。
+    *   `--append-subagent-system-prompt` 现明确不适用于“派生子代理”。
+
+**3. 影响等级**
+**中等**
+这些变更主要是澄清了现有或微调后的行为逻辑。虽然没有破坏性的 API 更改，但对 Hooks 生命周期和技能覆盖行为的重新定义，可能会影响现有的自动化脚本和技能配置的预期效果。
+
+**4. 开发者行动项**
+*   **审查 Hook 配置**：检查 Skills 中的 Hooks 定义，如果希望 Hook 仅运行一次，必须显式添加 `once: true` 字段。
+*   **检查别名冲突**：如果你创建了替代内置功能的自定义 Skill，请确认你并未依赖该功能的原有别名。
+*   **利用 `--add-dir` 加载命令**：现在可以确信通过 `--add-dir` 添加的目录中，自定义命令也会被自动加载。
+*   **更新 CLI 脚本**：若使用 CLI 动态定义 Agents (`--agents`)，请确保 JSON 结构符合新的字段描述（`prompt` 字段 + 其他特定 frontmatter 字段）。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Task:** Analyze a batch of 6 documentation pages for Claude Code (CLI, hooks, skills, sub-agents).
+    *   **Format:** Markdown (Overall Summary, Key Themes, Impact Level, Action Items).
+    *   **Language:** Chinese.
+
+2.  **Analyze the Changes (Page by Page):**
+
+    *   **Page 1: `cli-reference.md`**
+        *   *Change:* `--agents` flag description updated to point to specific fields (&#34;Choose the subagent scope&#34;) instead of generic frontmatter link.
+        *   *Change:* `--append-subagent-system-prompt` truncated in diff (ends with `claude`), but context suggests clarification.
+        *   *Significance:* Refinement of CLI documentation for dynamic agent definition.
+
+    *   **Page 2: `hooks.md`**
+        *   *Change (Table):* Split &#34;Skill or Agent frontmatter&#34; into two rows: &#34;Skill frontmatter&#34; and &#34;Subagent frontmatter&#34; with distinct scope descriptions. Skills persist for the session; subagents persist only while running.
+        *   *Change (Text):* &#34;Hooks in skills and agents&#34; section updated to clarify that Subagent hooks run only while active, while Skill hooks persist for the rest of the session (can use `once: true` to change behavior).
+        *   *Change (MCP tool hooks):* Clarified that tool content is parsed like stdout (following &#34;exit code 0&#34; rules).
+        *   *Change (Exit code output):* Refined wording about JSON output validation (&#34;parsed object that passes schema validation&#34;).
+        *   *Significance:* Crucial clarification on hook scoping (Skills vs. Subagents). Previously implied they worked similarly; now explicitly different. Subagent hooks are transient; Skill hooks are persistent session-wide unless flagged otherwise.
+
+    *   **Page 3: `hooks-guide.md`**
+        *   *Change:* Similar scope table update as `hooks.md` (splitting Skill/Subagent).
+        *   *Change:* Clarified &#34;Exit 0&#34; behavior regarding stdout being &#34;plain text&#34;.
+        *   *Change:* Clarified &#34;Other exit code&#34; behavior regarding JSON vs. plain text vs. empty stdout.
+        *   *Change:* Clarified &#34;Agent hooks&#34; timeout/format (diff is cut off, but context aligns with `hooks.md`).
+        *   *Significance:* Mirrors the `hooks.md` updates regarding scoping and stdout parsing behavior.
+
+    *   **Page 4: `skills.md`**
+        *   *Change:* Clarified Skill overriding behavior. A custom skill overrides a bundled skill by name, but *not* the bundled skill&#39;s aliases. (e.g., `/review` alias still points to bundled skill, not your custom `code-review`).
+        *   *Change:* Note about `.claude/commands/`: Added that `name` and `paths` frontmatter are ignored in command files.
+        *   *Change:* &#34;Skills from additional directories&#34;: Clarified that *both* skills *and* commands are loaded from `--add-dir` paths, not just skills.
+        *   *Change:* `user-invocable` description expanded to mention hiding from `/name` invocation too, not just menu.
+        *   *Significance:* Important behavior fix for skill overriding (aliases). Clarification on `--add-dir` scope (commands included).
+
+    *   **Page 5: `slash-commands.md`**
+        *   *Change:* Identical to `skills.md` changes. (Looks like `slash-commands.md` and `skills.md` have overlapping content or were copy-pasted updates).
+        *   *Significance:* Same as Page 4.
+
+    *   **Page 6: `sub-agents.md`**
+        *   *Change:* `--agents` flag JSON field description refined to be explicit about the `prompt` field plus other frontmatter fields.
+        *   *Change:* `--append-subagent-system-prompt` clarification: Clarified it applies to *nested* subagents but *excludes* forked subagents.
+        *   *Significance:* Technical precision regarding the `--agents` CLI flag and system prompt appending edge cases.
+
+3.  **Synthesize Key Themes:**
+    *   **Scope Clarification (Hooks):** Clear distinction between Skill hooks (persistent session-wide) vs. Subagent hooks (transient/lifecycle-bound).
+    *   **Configuration Discovery:** Clarifications on what is loaded from `--add-dir` (both skills and commands).
+    *   **Overriding Behavior:** Custom skills don&#39;t steal bundled aliases.
+    *   **Parsing/Precision:** Refinements on how JSON/stdout is parsed in hooks and CLI flags.
+
+4.  **Determine Impact Level:**
+    *   *Reasoning:* The changes are mostly clarifications and documentation of existing behaviors (or slight behavior tweaks regarding hook persistence). However, the clarification on Skill hooks persisting for the *whole session* vs Subagent hooks dying with the subagent is a significant conceptual shift for developers relying on hooks.
+    *   *Level:* **Medium**. It corrects potential misunderstandings about hook lifetimes and skill overriding.
+
+5.  **Draft Action Items (Developers):**
+    *   Review Skill/Subagent hook definitions to ensure persistence logic (using `once: true` if needed) matches intent.
+    *   Check for alias conflicts if custom skills replace bundled ones.
+    *   Verify CLI arguments for `--agents` if defining them dynamically via JSON.
+    *   Update `--add-dir` expectations if relying on commands being loaded.
+
+6.  **Translate and Format to Chinese:**
+
+    *   *Summary:* 文档主要更新了钩子和技能的作用域行为，澄清了 CLI 参数定义和配置发现机制。
+    *   *Themes:*
+        *   **钩子作用域区分**：明确 Skill hooks 在整个会话持续，Subagent hooks 仅在运行期间有效。
+        *   **技能覆盖逻辑**：自定义技能仅覆盖同名的内置技能，不会覆盖其别名。
+        *   **配置发现机制**：`--add-dir` 现在明确会加载 Skills 和 Commands。
+        *   **系统提示与解析**：细化了 JSON 输出解析规则和 Subagent 系统提示的追加逻辑。
+    *   *Impact:* **Medium**。主要修正了对钩子生命周期和技能覆盖机制的理解偏差。
+    *   *Actions:*
+        *   检查 Skill hooks 是否需要设置 `once: true` 以避免在会话后期重复触发。
+        *   如果自定义了替代内置技能的技能，确认是否依赖原有别名功能。
+        *   使用 `--add-dir` 时，可放心利用加载的 Commands。
+        *   更新 CLI 动态定义 Subagent 的 JSON 结构以匹配文档。
+
+7.  **Final Review:** Check against constraints (Concise, insightful, Chinese, markdown). The summary looks accurate and the distinction between Skill and Subagent hooks is the most important technical takeaway.</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/cli-reference.html" class="page-link">cli-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+47</span>
+                            <span class="removed">-39</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+15</span>
+                            <span class="removed">-14</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+9</span>
+                            <span class="removed">-9</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+9</span>
+                            <span class="removed">-9</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">15:43 EST</div>
