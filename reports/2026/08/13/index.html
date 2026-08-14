@@ -118,9 +118,328 @@
 
         <header>
             <h1>Changes on 2026-08-13</h1>
-            <p class="meta">64 total changes in 8 runs</p>
+            <p class="meta">81 total changes in 9 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">21:24 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 1. 总体摘要
+本次文档更新主要致力于澄清“工作区信任”的安全边界模型，明确区分了交互式会话与打印模式（`-p`）下不同配置组件（如 Hooks、Skills、MCP 服务器）的执行规则。此外，还引入了跨会话消息传递的新功能说明，并修复了关于 OAuth 回调地址的版本兼容性描述。
+
+### 2. 关键主题
+*   **工作区信任模型的精细化定义**：文档大篇幅重述了在不同场景下（交互式 vs `-p`/SDK）哪些内容会在用户信任文件夹之前运行。
+    *   **关键点**：在 `-p` 模式下，Claude Code 视文件夹为“已信任”，因此会自动运行项目设置中的 Hooks、MCP 服务器以及 `headersHelper`，即使这是你从未信任过的仓库。
+    *   **安全警示**：项目 Skills 中的 `allowed-tools` 字段不受信任限制，即使在未信任的文件夹中运行 `-p` 也会生效，这赋予了仓库代码广泛的工具权限。
+*   **配置优先级与覆盖逻辑**：明确了 `disableAllHooks` 等设置的继承与覆盖规则。例如，项目级 `.claude/settings.json` 中的 `false` 设置可以覆盖用户级设置中的 `true`，从而强制开启 Hooks。
+*   **跨会话交互能力**：新增了通过 `@` 符号提及并消息传递给同一机器上其他 Claude Code 会话的功能（v2.1.232+），并在监控事件中增加了 `&#34;peer&#34;` 类型。
+*   **Bug 修复与版本细节**：解决了 v2.1.229 中 OAuth 回调地址使用 `127.0.0.1` 而非 `localhost` 导致的认证失败问题（v2.1.231 已修复）。
+
+### 3. 影响等级：**中 (Medium)**
+**理由**：虽然没有直接的 API 破坏性变更，但此次更新对安全模型的澄清对开发者至关重要。它揭示了在 CI/CD 流程或脚本中使用 `claude -p` 处理第三方仓库时可能存在的安全盲区（自动执行仓库定义的 Hooks 或加载不受控的 MCP 服务器）。开发者需要重新审视其自动化流程的安全性。
+
+### 4. 开发者行动项
+*   **审查 CI/CD 脚本的安全性**：检查使用 `claude -p` 处理未受信任仓库的脚本，确保审查了仓库中的 `.claude/settings.json`（Hooks）和 `.mcp.json`。考虑使用 `--bare` 模式以彻底跳过这些配置。
+*   **利用覆盖机制保护本地环境**：如果你担心项目配置强制开启 Hooks，可以使用命令行参数 `--settings &#39;{&#34;disableAllHooks&#34;: true}&#39;` 来临时覆盖项目设置。
+*   **处理 OAuth 配置兼容性**：如果你在 v2.1.229 版本遇到了 MCP 服务器登录报错（重定向 URI 不匹配），请升级至 v2.1.231 或在服务器端临时添加 `127.0.0.1` 的回调地址。
+*   **更新监控逻辑**：如果你在解析监控事件数据，请更新代码以支持新的 `&#34;peer&#34;` 提及类型（用于跨会话消息）。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer with deep expertise in developer tools and documentation.
+    *   **Task:** Analyze documentation changes (17 pages) as a single batch.
+    *   **Output Format:** Markdown.
+    *   **Language:** Chinese.
+    *   **Structure:** 1. Overall Summary, 2. Key Themes, 3. Impact Level, 4. Action Items.
+
+2.  **Analyze the Content (Page by Page scan for patterns):**
+
+    *   `cli-reference.md`: Added note about session naming conflict resolution (&#34;variant of it&#34;).
+    *   `discover-plugins.md`: Clarified team marketplace installation behavior. Previously said it &#34;prompts&#34; to install. Now says it &#34;adds... without a further prompt&#34; after trusting the folder.
+    *   `google-vertex-ai.md`: Clarified `gcpAuthRefresh` behavior regarding workspace trust. It runs under the same rule as hooks.
+    *   `headless.md`: Added note about what runs in `-p` mode before trusting (hooks, MCP servers). Links to new &#34;What runs before you trust a folder&#34; section.
+    *   `hooks.md`: **Major Changes.**
+        *   Clarified subagent frontmatter hooks vs. skill frontmatter hooks vs. settings file hooks regarding workspace trust.
+        *   `disableAllHooks` behavior clarification regarding settings precedence (project overrides user).
+        *   Added a new &#34;Workspace trust&#34; section explaining exactly what runs in interactive vs. `-p` modes. Specifically, settings file hooks run in `-p` even in untrusted folders.
+    *   `hooks-guide.md`: Clarified `disableAllHooks` precedence.
+    *   `interactive-mode.md`: Added new `@` mention behavior for cross-session messaging (v2.1.232).
+    *   `mcp.md`:
+        *   Clarified project server loading in `-p`/SDK/bypass mode.
+        *   OAuth callback port fix (v2.1.229 vs v2.1.231 localhost vs 127.0.0.1 issue).
+        *   `headersHelper` trust behavior clarification (runs in `-p` like hooks).
+    *   `memory.md`: Clarified trust behavior for `memoryStorageLocation`.
+    *   `monitoring-usage.md`: Added `&#34;peer&#34;` mention type for cross-session messaging.
+    *   `plugin-marketplaces.md`: Clarified installation workflow (adds after trust, no separate prompt).
+    *   `plugins-reference.md`: Clarified plugin loading scope and trust gates.
+    *   `settings.md`: (Snippet only visible in diff, mostly looks like formatting or description updates, but context implies alignment with trust/precedence themes).
+    *   `skills.md`: **Crucial Change.** `allowed-tools` in project skills does *not* require workspace trust to take effect. It runs even in `-p` on untrusted folders. This is a security nuance.
+    *   `slash-commands.md`: Same as `skills.md`.
+    *   `statusline.md`: Clarified `disableAllHooks` precedence and trust behavior.
+    *   `sub-agents.md`:
+        *   Clarified `background` field behavior.
+        *   Refined logic on when subagents run in foreground vs. background (env var, fork mode, etc.).
+        *   Clarified frontmatter hook trust rules (stricter than settings hooks).
+
+3.  **Synthesize Key Themes:**
+
+    *   **Theme 1: Workspace Trust &amp; Security Model Consistency.** This is the dominant theme. The docs are rigorously defining what runs *before* a user trusts a folder, specifically differentiating between:
+        *   Interactive sessions (dialog required).
+        *   Print mode (`-p`) / SDK (treated as trusted).
+        *   Settings-file hooks (run in `-p`).
+        *   Skill/subagent hooks (stricter rules).
+    *   **Theme 2: Settings Precedence &amp; Overrides.** How project settings override user settings (e.g., `disableAllHooks: false` in project overrides `true` in user).
+    *   **Theme 3: New Features (Cross-Session Messaging).** Mentioning other sessions via `@` and monitoring events (`&#34;peer&#34;`).
+    *   **Theme 4: Bug Fixes/Version Nuances.** OAuth `localhost` vs `127.0.0.1` fix in v2.1.231. Session naming conflict handling.
+
+4.  **Draft the Analysis (in Chinese):**
+
+    *   *Overall Summary:* 这次更新主要集中在重申和细化“工作区信任”的安全边界，明确了不同模式下（交互式 vs. `-p` 打印模式/SDK）配置文件的执行规则，同时补充了跨会话消息传递的新功能描述及部分版本的 Bug 修复说明。
+
+    *   *Key Themes:*
+        *   **工作区信任模型的精确化:** 详细区分了 Hooks、Skills、MCP 服务器等组件在未信任文件夹中的运行行为。特别是明确了 `-p` 模式下被视为“已信任”，会执行项目设置中的 Hooks 和 MCP 服务器，而 Skills 中的 `allowed-tools` 也会生效（存在安全风险）。
+        *   **配置层级与覆盖规则:** 澄清了 `disableAllHooks` 等设置的优先级逻辑，项目设置可以覆盖用户设置。
+        *   **跨会话交互:** 新增了通过 `@` 提及其他会话的功能以及对应的监控事件类型。
+        *   **Bug 修复与版本细节:** 记录了 OAuth 回调地址在 v2.1.229/231 之间的修复（localhost vs 127.0.0.1）。
+
+    *   *Impact Level:* **Medium (中)**.
+        *   *Reasoning:* 虽然没有破坏性 API 变更，但对安全模型的重述至关重要。开发者需要意识到在 CI/CD 脚本（`-p` 模式）中使用不受信任的代码仓库时，可能会自动执行仓库中定义的 Hooks 或加载危险的 MCP 服务器。
+
+    *   *Action Items:*
+        *   审查 CI 脚本（`-p` 模式）中使用的第三方仓库，特别是 `.claude/settings.json` 中的 Hooks 和 `.mcp.json` 中的服务器配置。
+        *   如果不希望运行项目配置，在使用 `claude -p` 时考虑使用 `--bare` 标志。
+        *   更新监控或分析代码以处理新的 `&#34;peer&#34;` 提及类型。
+        *   检查 OAuth MCP 服务器的配置，确保升级到 v2.1.231+ 或处理 `127.0.0.1` 的回调兼容性。
+
+5.  **Refine and Polish (Self-Correction):**
+    *   *Check:* Did I catch the nuance about Skills `allowed-tools`? Yes, that&#39;s a specific security warning.
+    *   *Check:* Did I mention the background subagent logic changes? It&#39;s minor compared to the trust changes but worth a mention if space permits, but the trust model is the big one. I&#39;ll focus on trust.
+    *   *Check:* The prompt asks for &#34;concise, insightful analysis&#34;.
+
+6.  **Final Output Generation (translating thoughts to the final response structure):**
+
+    *   *Summary:* Focus on Trust Model and Cross-Session.
+    *   *Themes:* Trust Boundaries (`-p` vs Interactive), Settings Precedence, New Features.
+    *   *Impact:* Medium. Security awareness is key.
+    *   *Actions:* Audit repo configs for CI/CD, use `--bare` for safety, upgrade for OAuth fix.
+
+7.  (Drafting the markdown content - matches the provided output below).
+
+    *   *Note on specific detail:* The docs now explicitly link to &#34;What runs before you trust a folder&#34; repeatedly. This signals a concerted documentation effort to clarify security boundaries.
+
+8.  **Final Review against constraints:**
+    *   Markdown? Yes.
+    *   Chinese? Yes.
+    *   Concise? Yes.
+    *   Developer focused? Yes.
+
+    *Ready.*</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/cli-reference.html" class="page-link">cli-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/discover-plugins.html" class="page-link">discover-plugins.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/google-vertex-ai.html" class="page-link">google-vertex-ai.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/headless.html" class="page-link">headless.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/interactive-mode.html" class="page-link">interactive-mode.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            <span class="removed">-7</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/memory.html" class="page-link">memory.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugin-marketplaces.html" class="page-link">plugin-marketplaces.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+138</span>
+                            <span class="removed">-142</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/statusline.html" class="page-link">statusline.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+21</span>
+                            <span class="removed">-16</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">19:35 EST</div>
