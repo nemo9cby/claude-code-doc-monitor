@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026-08-16 - Documentation Changes</title>
+    <style>
+        :root {
+            --bg-color: #1a1a2e;
+            --card-bg: #16213e;
+            --text-color: #eee;
+            --accent: #0f3460;
+            --add-text: #4ade80;
+            --del-text: #f87171;
+            --time-color: #60a5fa;
+        }
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg-color: #f5f5f5;
+                --card-bg: #fff;
+                --text-color: #333;
+                --accent: #e0e0e0;
+                --add-text: #155724;
+                --del-text: #721c24;
+                --time-color: #2563eb;
+            }
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+        .container { max-width: 800px; margin: 0 auto; }
+        header { margin-bottom: 2rem; }
+        h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+        .meta { color: #888; }
+        .batch { margin-bottom: 2rem; }
+        .batch-header {
+            color: var(--time-color);
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--accent);
+        }
+        .page-list { list-style: none; }
+        .page-item {
+            background: var(--card-bg);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .page-item:hover { background: var(--accent); }
+        .page-link {
+            color: var(--text-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .page-summary { color: #888; font-size: 0.9rem; }
+        .added { color: var(--add-text); }
+        .removed { color: var(--del-text); }
+        a { color: #60a5fa; }
+        .back-link { margin-bottom: 1rem; display: inline-block; }
+        .page-item-content { flex: 1; }
+        .page-analysis {
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: 0.25rem;
+        }
+        .source-section {
+            margin-bottom: 1.5rem;
+        }
+        .source-header {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: #8b5cf6;
+        }
+        .batch-analysis {
+            background: var(--card-bg);
+            border-left: 3px solid #22c55e;
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            margin: 0.75rem 0 1rem 0;
+        }
+        .batch-analysis h4 {
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+        .batch-analysis-content {
+            white-space: pre-wrap;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        .reasoning-section {
+            margin-top: 1rem;
+            padding-top: 0.75rem;
+            border-top: 1px dashed var(--accent);
+            font-size: 0.85rem;
+            color: #888;
+        }
+        .reasoning-section summary {
+            cursor: pointer;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../../../index.html" class="back-link">&larr; All reports</a>
+
+        <header>
+            <h1>Changes on 2026-08-16</h1>
+            <p class="meta">3 total changes in 1 run</p>
+        </header>
+
+        
+        <div class="batch">
+            <div class="batch-header">11:15 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 概要总结
+此次更新主要澄清了 `Notification` 钩子（特别是 `permission_prompt`）的触发逻辑，明确区分了终端环境与 Agent SDK 托管环境（如 Claude Desktop/VS Code）中的不同计时行为，并补充了新功能与特定配置别名的版本要求说明。
+
+### 关键主题
+
+*   **环境行为差异化（核心变化）**：文档明确指出 `permission_prompt` 在终端会话中会因用户打字而重置计时器；但在通过 Agent SDK（Claude Desktop, VS Code 扩展等）托管的会话中，计时器**不会**因打字而重置，且固定在请求权限后约 6 秒触发。
+*   **新功能与环境变量**：新增了环境变量 `CLAUDE_CODE_DISABLE_PERMISSION_PROMPT_NOTIFY_HOOKS`，允许在 Agent SDK 会话中禁用 `permission_prompt` 钩子。
+*   **版本依赖说明**：
+    *   Agent SDK 环境下的 `permission_prompt` 行为仅存在于 v2.1.233 及更高版本。
+    *   设置项 `allowedMarketplaces` 别名需要 v2.1.232 或更高版本支持。
+*   **措辞精确化**：将 &#34;about 6 seconds&#34; 等描述统一为 &#34;about six seconds&#34;，并更准确地描述了 &#34;prompt has waited&#34; 的状态。
+
+### 影响等级
+**Medium**（中等）
+
+**理由**：虽然这不是破坏性的 API 变更，但 `permission_prompt` 钩子在不同宿主环境（终端 vs 桌面应用）下行为的显著差异（是否因打字重置计时器）会直接影响开发者的插件或自动化脚本的逻辑预期。
+
+### 开发者行动项
+
+*   **审查钩子逻辑**：如果你依赖 `permission_prompt`，请检查代码在 Claude Desktop 或 VS Code 中的行为，确保考虑到“不会因打字而重置计时”这一特性。
+*   **配置环境变量**：如果在桌面应用中不需要 `permission_prompt` 事件，建议设置 `CLAUDE_CODE_DISABLE_PERMISSION_PROMPT_NOTIFY_HOOKS=1` 以避免意外触发。
+*   **更新版本约束**：若使用 `allowedMarketplaces` 别名或依赖 Agent SDK 的通知行为，请确保运行环境升级至 v2.1.233+。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request**:
+    *   **Role**: World-class programmer with deep expertise in developer tools and documentation.
+    *   **Task**: Analyze documentation changes (3 pages: hooks.md, hooks-guide.md, settings.md) as a single batch.
+    *   **Output Format**: Concise batch analysis in Markdown.
+    *   **Language**: Chinese.
+    *   **Sections**: Overall Summary, Key Themes, Impact Level, Action Items.
+
+2.  **Analyze the Changes**:
+
+    *   **Page: hooks.md** (+12 / -7):
+        *   *Change 1*: Clarified the wording for `permission_prompt` notification timing. Changed &#34;about 6 seconds without terminal input&#34; to &#34;after the prompt has waited about six seconds&#34;.
+        *   *Change 2*: Updated the `Notification` matcher table. Similar wording updates for `permission_prompt`, `elicitation_dialog`, and `elicitation_url_dialog` (6 seconds -&gt; six seconds).
+        *   *Change 3*: Updated the `&lt;Note&gt;` section regarding notification timing. Clarified that these share timing with desktop notifications. Changed &#34;when you appear to be away from the terminal&#34; to &#34;in terminal sessions you only see them when you appear to be away from the terminal&#34;.
+        *   *Change 4*: Added a new paragraph describing different behavior for `permission_prompt` in sessions using Agent SDK (like Claude Desktop/VS Code). It states it fires 6s after asking for permission, *not* deferred by typing (unlike terminal). It also mentions a new env var `CLAUDE_CODE_DISABLE_PERMISSION_PROMPT_NOTIFY_HOOKS` and notes that this functionality didn&#39;t exist before v2.1.233.
+
+    *   **Page: hooks-guide.md** (+4 / -3):
+        *   *Change 1*: Updated the Notification matcher table to match the changes in hooks.md (wording: &#34;prompt has waited about six seconds&#34;).
+        *   *Change 2*: Added a paragraph pointing out that `permission_prompt` behaves differently in terminals vs. Desktop/VS Code, referring to hooks.md for details.
+
+    *   **Page: settings.md** (+9 / -1):
+        *   *Change 1*: Updated the description for `strictKnownMarketplaces`. Added a note about the `allowedMarketplaces` alias requiring v2.1.232 or later.
+
+3.  **Synthesize and Structure the Output**:
+
+    *   **Overall Summary**: These changes refine documentation regarding notification hook timing, specifically distinguishing behavior between terminal sessions and Agent SDK hosts (Desktop/VS Code), and update version requirements for specific settings.
+        *   *Draft (CN)*: 此次更新主要澄清了 `permission_prompt` 和相关通知钩子的触发时机，特别是区分了终端会话与 Agent SDK 环境（如 Claude Desktop/VS Code）的不同行为，并补充了特定配置项的版本要求说明。
+
+    *   **Key Themes**:
+        *   **Behavioral Clarification of `permission_prompt`**: Distinction between terminal sessions (timer resets on typing) and Agent SDK hosts (timer does *not* reset on typing).
+        *   **Feature Availability/Versioning**: Added info about `permission_prompt` in Agent SDK sessions being new in v2.1.233 and `allowedMarketplaces` alias needing v2.1.232.
+        *   **New Environment Variable**: Introduction of `CLAUDE_CODE_DISABLE_PERMISSION_PROMPT_NOTIFY_HOOKS`.
+        *   **Documentation Precision**: Consistent wording updates (&#34;six seconds&#34; vs &#34;6 seconds&#34;).
+
+    *   **Impact Level**:
+        *   *Assessment*: This is mostly clarification and bugfix documentation (feature that didn&#39;t exist before is now documented). No breaking changes to existing code, but understanding the difference in timing is crucial for developers relying on these hooks in different environments.
+        *   *Rating*: Medium. It changes how developers might expect hooks to behave in Desktop/VS Code vs. Terminal.
+
+    *   **Action Items**:
+        *   Review hook logic if you rely on `permission_prompt` in Claude Desktop/VS Code.
+        *   Check environment variable usage if you need to disable these specific hooks in Agent SDK hosts.
+        *   Ensure you are on v2.1.232+ if using the `allowedMarketplaces` alias.
+        *   Be aware of the version bump (v2.1.233) for `permission_prompt` support in non-terminal environments.
+
+4.  **Refine the Output (Chinese)**:
+
+    *   *Summary*: 此次更新主要澄清了通知钩子（特别是 `permission_prompt`）的触发逻辑，明确区分了终端环境与 Agent SDK 托管环境（如 Desktop/VS Code）中的不同计时行为，并补充了新功能的版本要求说明。
+    *   *Themes*:
+        *   **环境行为差异化**: 明确指出 `permission_prompt` 在终端会话中会因用户打字而重置计时器，但在 Desktop/VS Code 等 Agent SDK 环境中不会重置。
+        *   **新功能与版本依赖**: 新增了 `CLAUDE_CODE_DISABLE_PERMISSION_PROMPT_NOTIFY_HOOKS` 环境变量，并指出 `allowedMarketplaces` 别名需 v2.1.232+ 版本支持，Agent SDK 中的 `permission_prompt` 行为需 v2.1.233+。
+        *   **文档措辞统一**: 统一将时间描述调整为 &#34;six seconds&#34;，并细化了等待机制的解释。
+    *   *Impact*: **Medium**。虽然主要是澄清，但改变了开发者对钩子在非终端环境下触发的预期。依赖此行为的开发者需要调整代码逻辑以适应不同环境的差异。
+    *   *Action Items*:
+        *   检查你的 `permission_prompt` 钩子逻辑，确认其在 Claude Desktop 或 VS Code 扩展中的行为是否符合预期（6秒后必定触发，不因打字重置）。
+        *   如果不希望在 Agent SDK 环境中触发 `permission_prompt`，请配置环境变量 `CLAUDE_CODE_DISABLE_PERMISSION_PROMPT_NOTIFY_HOOKS=1`。
+        *   使用 `allowedMarketplaces` 别名时，确保升级至 v2.1.232 或更高版本。
+
+5.  **Final Review**: Does it meet the constraints? Yes, markdown, concise, Chinese, specific sections.
+
+6.  **Construct Final Output**. (Proceeding to generate response).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+12</span>
+                            <span class="removed">-7</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+9</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
+        
+    </div>
+</body>
+</html>
