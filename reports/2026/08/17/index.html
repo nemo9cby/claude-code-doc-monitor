@@ -118,9 +118,217 @@
 
         <header>
             <h1>Changes on 2026-08-17</h1>
-            <p class="meta">5 total changes in 1 run</p>
+            <p class="meta">12 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">16:19 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">1. **Overall Summary**
+本次文档更新主要集中在**权限逻辑说明的集中化**与**子代理加载机制的澄清**。多处重复列举的权限例外情况（如 MCP 工具、关键路径删除等）被统一引用至新的“actions no mode auto-approves”章节，同时明确了通过 `--add-dir` 添加目录时子代理的加载与重载规则。
+
+2. **Key Themes**
+*   **权限文档重构 (DRY原则)**：在 `desktop.md`, `headless.md`, `hooks.md`, `sandboxing.md` 和 `sub-agents.md` 中，原本冗长的“即使绕过权限仍需确认”的列表被替换为指向统一章节的链接 [actions no mode auto-approves](/docs/en/permission-modes#actions-no-mode-auto-approves)。
+*   **子代理发现与重载**：明确 `--add-dir` 会自动加载目标目录下的 `.claude/agents/`，但**不支持热重载**；修改该目录下的子代理或命令文件后必须重启会话才能生效。
+*   **Hook 行为澄清**：在 `hooks.md` 中增加说明，`PreToolUse` hook 若要在非交互模式下批准 `AskUserQuestion` 等工具，必须配合使用 `updatedInput` 字段，仅返回 `allow` 是不够的。
+
+3. **Impact Level**
+**Low** (低)
+此次变更主要是文档层面的整理和术语统一，旨在消除冗余并提高准确性。除了对 Hook 处理 `AskUserQuestion` 的细节澄清外，未涉及 API 签名或工具核心行为的破坏性变更。
+
+4. **Action items for developers**
+*   **查阅新章节**：若你依赖 `bypassPermissions` 或 `--dangerously-skip-permissions`，请查看新的 [actions no mode auto-approves](/docs/en/permission-modes#actions-no-mode-auto-approves) 章节，了解哪些操作在任何模式下仍需人工确认。
+*   **适配 Hook 逻辑**：如果你编写了处理 `AskUserQuestion` 或 `ExitPlanMode` 的 `PreToolUse` hook，请确保在非交互模式下，返回 `allow` 时正确填充了 `updatedInput`。
+*   **注意重启要求**：当使用 `--add-dir` 添加包含子代理的目录时，记住对该目录内代理文件的修改需要重启会话，不会自动热加载。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer, expert in developer tools/documentation.
+    *   **Input:** Diff of 7 documentation pages (desktop.md, headless.md, hooks.md, sandboxing.md, skills.md, slash-commands.md, sub-agents.md).
+    *   **Task:** Analyze the batch of changes as a whole. Summarize what changed and why it matters.
+    *   **Format:** Markdown. Concise. Insightful.
+    *   **Language:** Chinese.
+    *   **Structure:**
+        1.  Overall Summary (1-2 sentences).
+        2.  Key Themes (bullets).
+        3.  Impact Level (Low/Medium/High/Breaking) with reasoning.
+        4.  Action Items (bullets, max 5).
+
+2.  **Analyze the Changes (Page by Page):**
+
+    *   **desktop.md:**
+        *   *Change:* The table describing &#34;Mode&#34; and &#34;Behavior&#34; is cut off in the diff.
+        *   *Context:* The `Bypass permissions` row in the previous table likely listed explicit exceptions (ask rules, connector tools, MCP tools, root removals, etc.).
+        *   *Inference:* Based on other pages, this specific long list of exceptions in `desktop.md` was likely replaced with a reference link (or shortened to a summary) pointing to a centralized definition of &#34;actions no mode auto-approves&#34;.
+
+    *   **headless.md:**
+        *   *Change:* Updated description of `acceptEdits` mode.
+        *   *Old:* Listed specific filesystem commands (`mkdir`, `touch`, `mv`, `cp`) and mentioned &#34;read-only command set&#34;.
+        *   *New:* &#34;The [actions no mode auto-approves](/docs/en/permission-modes#actions-no-mode-auto-approves) still apply.&#34; This replaces the specific listing with a centralized reference.
+        *   *Implication:* Centralization of permission logic documentation.
+
+    *   **hooks.md:**
+        *   *Change:* Updated `PreToolUse` hook description.
+        *   *Old:* Listed exceptions: &#34;tools that require user interaction&#34; and &#34;connector tools your organization set to ask&#34;.
+        *   *New:* References &#34;actions no mode auto-approves&#34;. Also adds a specific note about `AskUserQuestion` and `ExitPlanMode` needing `updatedInput` paired with `allow` in non-interactive mode.
+        *   *Implication:* Centralization of rules, plus clarification on how to handle interactive tools in hooks.
+
+    *   **sandboxing.md:**
+        *   *Change 1:* In the list of things that apply even in auto-allow mode, &#34;target `/`, your home directory...&#34; was changed to &#34;target a [critical path](...)&#34;.
+        *   *Change 2:* In the comparison table between `/sandbox` and permission modes, the description of `--dangerously-skip-permissions` was shortened. It used to list specific exceptions (ask rules, connector tools, MCP tools, root/home removals, cross-session safeguards). Now it simply says: &#34;the [actions no mode auto-approves](...) still apply&#34;.
+        *   *Implication:* Terminology consolidation (using &#34;critical path&#34;) and centralizing the list of always-prompt actions.
+
+    *   **skills.md:**
+        *   *Change:* Updated text about loading from additional directories (`--add-dir`).
+        *   *Old:* Said `permissions.additionalDirectories` doesn&#39;t load skills or commands.
+        *   *New:* Says it doesn&#39;t load &#34;skills, commands, or subagents&#34;. Adds explicit text that &#34;Subagents follow the same exception&#34;. Adds a warning that `.claude/agents/` inside added directories isn&#39;t watched for live changes; a restart is needed.
+        *   *Implication:* Clarifying scope of `--add-dir` regarding subagents and live reloading.
+
+    *   **slash-commands.md:**
+        *   *Change:* Identical to `skills.md` changes (loading from additional directories, subagents, restart warning).
+        *   *Implication:* Consistency across documentation sections.
+
+    *   **sub-agents.md:**
+        *   *Change 1:* Text about `--add-dir` scanning. Confirms `.claude/agents/` loads from added dirs.
+        *   *Change 2:* Updated the &#34;Note&#34; about file watching. Changed &#34;Two cases still need a restart&#34; to &#34;Three cases&#34;. Added the case: &#34;Claude Code doesn&#39;t watch `.claude/agents/` inside directories added with `--add-dir`&#34;.
+        *   *Change 3:* Updated the `Warning` about `bypassPermissions`. Replaced the bullet list of exceptions (ask rules, connector tools, root removals, etc.) with a reference to &#34;actions no mode auto-approves&#34;.
+        *   *Implication:* Clarification on subagent loading from additional directories and restart requirements. Centralization of bypass permission rules.
+
+3.  **Synthesize Key Themes:**
+
+    *   **Centralization of Permission/Security Logic:** The most significant change is the replacement of repetitive bullet points listing exceptions to permission modes (Bypass, Auto-allow, etc.) with a reference to a new centralized documentation section: &#34;actions no mode auto-approves&#34;. This applies to `headless.md`, `hooks.md`, `sandboxing.md`, and `sub-agents.md`. `desktop.md` likely had the same table change.
+    *   **Subagent Discovery &amp; Reloading:** Clarifications on how `--add-dir` interacts with subagents (it works, but requires restart for changes).
+    *   **Refined Terminology:** Introduction of terms like &#34;critical paths&#34;.
+
+4.  **Determine Impact Level:**
+
+    *   **Level:** Low to Medium.
+    *   **Reasoning:** This is primarily a documentation refactoring (DRY - Don&#39;t Repeat Yourself). It doesn&#39;t change the API or the actual behavior of the tool itself (except clarifying a specific hook behavior for `AskUserQuestion`). However, for developers relying on specific permission behaviors, the new centralized location is crucial to understand what is actually protected.
+
+5.  **Draft Action Items:**
+
+    *   Update local knowledge base/search logic to point to the new &#34;actions no mode auto-approves&#34; section.
+    *   Review hook implementations if using `PreToolUse` with `AskUserQuestion` to ensure `updatedInput` is handled correctly in non-interactive mode.
+    *   Be aware that changes to subagents in `--add-dir` folders require a session restart (no hot-reload).
+
+6.  **Drafting the Response (in Chinese):**
+
+    *   *Summary:* The update centralizes the documentation of permission mode exceptions (replacing repetitive lists with a reference to &#34;actions no mode auto-approves&#34;) and clarifies the loading and hot-reloading behavior of subagents in additional directories.
+    *   *Themes:* Centralization of security logic, Subagent discovery and reloading, Hook clarification.
+    *   *Impact:* Low (Documentation cleanup, but essential for accuracy).
+    *   *Action Items:* Check hook logic for `AskUserQuestion`, note restart requirement for subagents in added dirs, update internal docs references.
+
+7.  **Refining the Content:**
+
+    *   *Theme 1:* The phrase &#34;actions no mode auto-approves&#34; appears multiple times. This is the anchor.
+    *   *Theme 2:* The change in `hooks.md` regarding `AskUserQuestion` + `updatedInput` is a specific behavioral clarification that developers using hooks might miss if they only skim the text.
+    *   *Theme 3:* The subagent &#34;restart needed&#34; clarification prevents confusion about why a new subagent isn&#39;t appearing.
+
+8.  **Final Polish (Markdown formatting):** Ensure headers, bolding, and lists are clean. (Self-correction: Make sure to emphasize that this is mostly a doc refactor to reduce redundancy).
+
+    *   *Translation check:*
+        *   &#34;actions no mode auto-approves&#34; -&gt; 没有任何模式会自动批准的操作
+        *   &#34;centralized&#34; -&gt; 集中化 / 统一
+        *   &#34;subagents&#34; -&gt; 子代理
+        *   &#34;hot-reload&#34; -&gt; 热重载
+
+9.  **Final Output Generation:** (Proceed to generate output based on these thoughts).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/desktop.html" class="page-link">desktop.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            <span class="removed">-7</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/headless.html" class="page-link">headless.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sandboxing.html" class="page-link">sandboxing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-9</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">13:21 EST</div>
