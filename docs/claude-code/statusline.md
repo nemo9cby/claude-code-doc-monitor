@@ -1096,7 +1096,7 @@ Community projects like [ccstatusline](https://github.com/sirmalloc/ccstatusline
 
 **Workspace trust required**
 
-* Because `statusLine` executes a shell command, Claude Code runs it under the same [workspace trust rule as hooks in settings files](/docs/en/permissions#what-runs-before-you-trust-a-folder). Accepting the dialog for the folder or one of its parent directories is enough.
+* Because `statusLine` executes a shell command, Claude Code runs it under the same [workspace trust rule as hooks in settings files](/docs/en/permissions#what-runs-before-you-trust-a-folder). Accepting the dialog for the folder, or for a parent directory whose trust extends to it, is enough.
 * Until then, the status line stays blank, and `claude --debug` logs `Status line command skipped: workspace trust not accepted`. Restart Claude Code and accept the trust dialog to enable it.
 
 **Script errors or hangs**

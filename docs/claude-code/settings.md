@@ -63,13 +63,13 @@ For example, if your user settings set `spinnerTipsEnabled` to `true` and projec
 
 Scopes apply to many Claude Code features:
 
-| Feature         | User location             | Project location                   | Local location                 |
-| :-------------- | :------------------------ | :--------------------------------- | :----------------------------- |
-| **Settings**    | `~/.claude/settings.json` | `.claude/settings.json`            | `.claude/settings.local.json`  |
-| **Subagents**   | `~/.claude/agents/`       | `.claude/agents/`                  | None                           |
-| **MCP servers** | `~/.claude.json`          | `.mcp.json`                        | `~/.claude.json` (per-project) |
-| **Plugins**     | `~/.claude/settings.json` | `.claude/settings.json`            | `.claude/settings.local.json`  |
-| **CLAUDE.md**   | `~/.claude/CLAUDE.md`     | `CLAUDE.md` or `.claude/CLAUDE.md` | `CLAUDE.local.md`              |
+| Feature         | User location             | Project location                   | Local location                                                     |
+| :-------------- | :------------------------ | :--------------------------------- | :----------------------------------------------------------------- |
+| **Settings**    | `~/.claude/settings.json` | `.claude/settings.json`            | `.claude/settings.local.json`                                      |
+| **Subagents**   | `~/.claude/agents/`       | `.claude/agents/`                  | None                                                               |
+| **MCP servers** | `~/.claude.json`          | `.mcp.json`                        | `~/.claude.json`, under the [project's entry](/docs/en/mcp#local-scope) |
+| **Plugins**     | `~/.claude/settings.json` | `.claude/settings.json`            | `.claude/settings.local.json`                                      |
+| **CLAUDE.md**   | `~/.claude/CLAUDE.md`     | `CLAUDE.md` or `.claude/CLAUDE.md` | `CLAUDE.local.md`                                                  |
 
 On Windows, paths shown as `~/.claude` resolve to `%USERPROFILE%\.claude`.
 

@@ -118,9 +118,303 @@
 
         <header>
             <h1>Changes on 2026-08-17</h1>
-            <p class="meta">17 total changes in 4 runs</p>
+            <p class="meta">29 total changes in 5 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">20:54 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 文档变更分析摘要
+
+#### 1. 总体概述
+本次文档更新主要集中在增强**工作区信任模型**的安全性透明度、改进**插件与 Git 托管服务**的兼容性逻辑，以及规范云服务商配置的**输入验证与回退机制**。此外，新增了关于**技能（Skills）生命周期管理**的完整说明，填补了移除技能的文档空白。
+
+#### 2. 关键主题
+
+*   **工作区信任与权限继承**
+    *   多个页面（`hooks.md`, `mcp.md`, `statusline.md`）明确了信任的继承机制：接受父目录的信任对话框后，该信任会延伸至子目录。
+    *   修正了 v2.1.207 之前的行为，明确了在未受信任的文件夹中，未跟踪的 `settings.local.json` 不会立即生效，防止潜在的安全风险。
+
+*   **插件市场与 Git 托管规则细化**
+    *   详细规定了从不同 Git 主机添加插件时的 URL 格式要求（如 GitHub/GitLab 对 `.git` 后缀的灵活处理，Azure DevOps 需省略后缀）。
+    *   增强了市场阻断逻辑：现在克隆型的 URL 也会被 `blockedMarketplaces` 检查，且比对时会忽略 `.git` 后缀和 ref 引用。
+
+*   **云配置输入验证与回退**
+    *   `amazon-bedrock.md` 和 `google-vertex-ai.md` 增加了验证逻辑：如果区域变量包含斜杠、点或空格等非法字符，将被视为未设置并触发回退机制。
+    *   明确了 Google Vertex AI 的区域回退顺序（特定变量 -&gt; `CLOUD_ML_REGION` -&gt; `us-east5`）。
+
+*   **技能（Skills）生命周期管理**
+    *   新增“移除技能”章节，覆盖了个人、项目、企业、插件、同步及内置技能等不同来源的具体移除方法。
+
+*   **网络配置更新**
+    *   新增 `*.frame.claudeusercontent.com` 域名用于 Artifacts 内容读取，并区分了 CLI 与 Desktop 应用的网络需求。
+
+#### 3. 影响等级：中等
+**理由**：虽然主要是文档澄清，但涉及了重要的行为变更和安全性逻辑。特别是工作区信任继承规则的明确，可能会影响企业环境下的权限控制预期；插件 URL 处理的修复解决了用户在添加非 GitHub 源时的摩擦；云配置验证的文档化有助于排查因环境变量格式错误导致的连接问题。
+
+#### 4. 开发者行动项
+
+*   **检查网络防火墙规则**：若使用 Artifacts 功能，需在允许列表中新增 `*.frame.claudeusercontent.com`。
+*   **审查环境变量格式**：检查 AWS (`AWS_REGION`) 和 Google Cloud (`VERTEX_REGION_CLAUDE_*`) 相关的环境变量，确保不包含路径分隔符或空格，以免被系统忽略。
+*   **更新插件管理策略**：如果使用了受管设置来阻断插件市场，需确认新规则（v2.1.232+）是否符合您的安全意图，特别是对直接克隆 URL 的拦截。
+*   **清理与维护技能**：参考新增的移除指南，清理不再需要的个人或项目技能，或通过配置禁用特定的内置技能。
+*   **验证信任模型假设**：在涉及 Hooks、MCP 服务器或状态行脚本的自动化项目中，确认对父目录信任的继承是否符合当前的安全模型。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Understand the Goal**: The user wants a concise, insightful analysis of 12 documentation pages. I need to summarize changes, identify themes, determine impact, and list action items, all in Chinese, acting as a world-class programmer.
+
+2.  **Analyze the Changes (Page by Page)**:
+
+    *   **`amazon-bedrock.md`**:
+        *   *Changes*: Clarified AWS region resolution logic. Added validation that malformed values (with slashes, dots, spaces) are treated as unset. Clarified `/status` output notes the source of the region. Fixed typo/version note.
+        *   *Theme*: AWS config parsing improvements/clarifications.
+
+    *   **`discover-plugins.md`**:
+        *   *Changes*: Updated plugin installation from Git hosts.
+            *   Specific rules for `github.com`/`gitlab.com` (`.git` suffix is optional/flexible depending on version).
+            *   Azure DevOps rules (omit `.git`).
+            *   Other hosts (include `.git`).
+            *   Clarified marketplace refresh behavior before installing a named plugin (ignores auto-update toggle, v2.1.232+ behavior). Added managed settings blocking logic.
+        *   *Theme*: Plugin marketplace/Git host compatibility improvements.
+
+    *   **`google-vertex-ai.md`**:
+        *   *Changes*: Similar to Bedrock, added logic for treating invalid region values (slashes, dots, spaces) as unset. Added fallback hierarchy (`VERTEX_REGION_CLAUDE_*` -&gt; `CLOUD_ML_REGION` -&gt; `us-east5`).
+        *   *Theme*: Google Cloud region parsing/validation consistency.
+
+    *   **`hooks.md`**:
+        *   *Changes*: Clarified workspace trust logic for interactive sessions. Trust extends from parent directories to child folders.
+        *   *Theme*: Workspace trust/Permissions clarification.
+
+    *   **`mcp.md`**:
+        *   *Changes*: Clarified trust requirements for applying approvals from `.claude/settings.local.json`. Git checks only run in trusted folders. v2.1.207+ behavior fix (applies approvals only after trust, unlike before).
+        *   *Theme*: MCP server security/trust model fix.
+
+    *   **`network-config.md`**:
+        *   *Changes*: Added `*.frame.claudeusercontent.com` for Artifacts content reads. Clarified CLI vs Desktop/claude.ai network hosts regarding artifacts.
+        *   *Theme*: Network requirements updates (Artifacts).
+
+    *   **`plugin-marketplaces.md`**:
+        *   *Changes*: Updated blocking logic for marketplace URLs. Now checks against `url` entries in `blockedMarketplaces` when cloning (v2.1.232+). Improved allowlist exact matching explanation.
+        *   *Theme*: Marketplace security/blocking logic refinement.
+
+    *   **`sandboxing.md`**:
+        *   *Changes*: Added cross-reference to &#34;Common setups&#34; table in permission modes docs.
+        *   *Theme*: Documentation cross-linking/navigational improvement.
+
+    *   **`settings.md`**:
+        *   *Changes*: Updated the &#34;Scopes apply to many Claude Code features&#34; table. Specifically for MCP servers in &#34;Local location&#34;, clarified it refers to the project&#39;s entry.
+        *   *Theme*: Configuration scoping clarification.
+
+    *   **`skills.md`**:
+        *   *Changes*: Added a new section &#34;Remove a skill&#34;. Detailed how to remove skills from various sources (Personal, Project, Enterprise, Plugin, Synced, Bundled) and how to disable invocation without removal.
+        *   *Theme*: Skills lifecycle management (addition of removal instructions).
+
+    *   **`slash-commands.md`**:
+        *   *Changes*: Identical diff to `skills.md`. Added &#34;Remove a skill&#34; section.
+        *   *Theme*: Skills lifecycle management (duplicate update).
+
+    *   **`statusline.md`**:
+        *   *Changes*: Clarified workspace trust logic for status line commands (trust inherits from parent directories).
+        *   *Theme*: Workspace trust consistency.
+
+3.  **Synthesize Themes**:
+    *   **Security &amp; Trust Model**: Multiple pages (`hooks.md`, `mcp.md`, `statusline.md`) clarify how trust propagates from parent to child directories and what requires trust before execution (git checks, approvals, shell commands).
+    *   **Input Validation &amp; Parsing**: Cloud provider docs (`amazon-bedrock.md`, `google-vertex-ai.md`) explicitly defined how invalid region strings (e.g., containing slashes) are handled (ignored/fallback).
+    *   **Plugin &amp; Marketplace Logic**: Significant updates on how plugins are added from various Git hosts (`.git` suffix rules) and how blocking/allowlisting works for marketplace URLs.
+    *   **Skills Lifecycle**: Added explicit documentation on how to *remove* skills, covering all origin types.
+
+4.  **Determine Impact**:
+    *   *Level*: Medium to High (depending on context).
+    *   *Reasoning*: The trust model changes clarify security boundaries, which is critical for corporate/managed environments. The plugin/Git host changes fix bugs or friction points in installation. The region validation explains behavior that might have seemed buggy before (ignoring bad env vars). The skills removal instructions fill a documentation gap.
+
+5.  **Draft Action Items**:
+    *   Check network allowlists for new Artifact host.
+    *   Review plugin marketplace blocking rules if using strict management.
+    *   Verify region environment variables don&#39;t contain invalid characters.
+    *   Update documentation for teams on how workspace trust now propagates.
+    *   Use new instructions to clean up unused skills/plugins.
+
+6.  **Drafting the Response (in Chinese)**:
+
+    *   *Overall Summary*: Focus on security/permission clarity (trust), improved Git/Plugin handling, and input validation robustness.
+    *   *Key Themes*:
+        *   Workspace Trust inheritance.
+        *   Plugin Marketplace/Source handling (URLs, suffixes).
+        *   Cloud provider config validation (regions).
+        *   Skills lifecycle management.
+        *   Network requirements.
+    *   *Impact*: Medium. While mostly documentation clarifications and bug fixes, the trust and permission updates affect security behavior in managed environments.
+    *   *Action Items*:
+        *   Update network configs.
+        *   Review managed settings for plugins.
+        *   Check Env Vars.
+        *   Clean up skills.
+
+7.  **Refining the Output**:
+    *   Ensure markdown format.
+    *   Keep it &#34;world-class programmer&#34; tone (concise, precise).
+    *   Translate technical concepts accurately (e.g., &#34;workspace trust&#34; -&gt; 工作区信任).
+
+    *(Self-Correction during drafting)*: The `skills.md` and `slash-commands.md` changes are identical. I should mention the &#34;Remove a skill&#34; section as the key takeaway there. The `amazon-bedrock.md` and `google-vertex-ai.md` changes are almost identical patterns regarding region validation.
+
+    *Final Polish of Chinese text*:
+    *   Summary: 本次更新主要增强了权限与安全模型的透明度，明确了插件市场与 Git 托管服务的兼容性规则，并规范了云服务商配置的输入验证逻辑。
+    *   Themes: 信任继承, 插件/市场处理, 输入验证, 技能生命周期, 网络配置.
+    *   Impact: Medium (中等).
+    *   Action items: Update firewall rules, check env vars, review managed settings, clean up skills, verify trust assumptions.
+
+8.  **Final Output Generation**. (Proceed to generate the markdown response).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/amazon-bedrock.html" class="page-link">amazon-bedrock.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/discover-plugins.html" class="page-link">discover-plugins.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+10</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/google-vertex-ai.html" class="page-link">google-vertex-ai.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/network-config.html" class="page-link">network-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugin-marketplaces.html" class="page-link">plugin-marketplaces.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sandboxing.html" class="page-link">sandboxing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            <span class="removed">-7</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/statusline.html" class="page-link">statusline.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">19:17 EST</div>
