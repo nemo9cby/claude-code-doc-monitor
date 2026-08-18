@@ -118,9 +118,112 @@
 
         <header>
             <h1>Changes on 2026-08-18</h1>
-            <p class="meta">9 total changes in 4 runs</p>
+            <p class="meta">10 total changes in 5 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">19:16 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### Overall Summary
+文档更新了关于 `subagent_type` 参数的严格行为说明，明确指出当会话中移除“通用”子代理时，Agent 工具调用必须显式指定 `subagent_type`，否则将直接报错，不再依赖默认回退。
+
+### Key Themes
+*   **参数校验严格化**：明确了在无默认子代理时省略 `subagent_type` 会导致运行时错误。
+*   **回退机制澄清**：修正了关于默认子代理获取的描述，强调了只有在会话仍包含该类型时才能作为默认值。
+*   **实例生命周期措辞优化**：微调了关于子代理实例创建的描述，更清晰地表明每次调用都是新实例而非延续旧实例。
+
+### Impact level
+**Medium** (中等)
+
+**Reasoning**:
+这是一个潜在的行为变更。如果开发者按照文档之前的建议禁用了内置代理（特别是通用代理）或使用 SDK 自定义配置，依赖隐式调用 Agent 工具（即不指定 `subagent_type`）的代码或 Prompt 将开始抛出 `subagent_type is required` 错误，而不是静默回退或使用默认代理。
+
+### Action items for developers
+*   **审查 Agent 工具调用**：检查代码或配置中是否存在未指定 `subagent_type` 的 Agent 工具调用。
+*   **更新配置逻辑**：如果使用了 `CLAUDE_CODE_DISABLE_EXPLORE_PLAN_AGENTS` 或 `CLAUDE_AGENT_SDK_DISABLE_BUILTIN_AGENTS` 等环境变量移除了内置代理，请确保在调用 Agent 时显式提供有效的 `subagent_type`。
+*   **增强错误处理**：在集成代码中增加对 `subagent_type is required` 错误的捕获和处理逻辑。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">用户希望分析文档更改。具体来说，是对单个文件 `sub-agents.md` 的更改。
+我需要扮演一名世界级程序员的角色，并提供一份简明扼要、富有洞察力的中文分析。
+
+**1. 分析输入数据：**
+*   **文件：** `sub-agents.md`
+*   **变更统计：** +3 行 / -2 行
+*   **变更详情：**
+    *   **变更 1（新增）：** 在关于禁用子代理的列表中添加了一条新规则：“当会话没有 `general-purpose`（通用）子代理作为后备时，省略 `subagent_type` 的 Agent 工具调用将失败并报错 `subagent_type is required`。”这指明了在没有默认类型的情况下省略 `subagent_type` 的行为。
+    *   **变更 2（编辑）：** 将“每次子代理调用都会创建一个具有全新上下文的新实例。”重述为“每次子代理调用都会创建一个新实例，而不是继续前一个实例。”这澄清了语义，强调缺乏连续性，虽然实际含义大致相同（为什么要重新开始？）。
+    *   **变更 3（编辑）：** 修改了关于 fork 模式的要点。“当 Claude 不请求类型时，它会获得通用子代理……”改为“当 Claude 不请求类型时，它会获得通用子代理，*如果该会话仍然拥有该类型*。”这增加了条件 `if the session still has that type`（如果会话仍然拥有该类型），这对应于变更 1（即如果没有通用类型会发生什么）。
+
+**2. 确定关键主题：**
+*   **严格性/要求：** 对 `subagent_type` 参数的要求更加严格。如果默认的“通用”代理缺失，则显式指定 `subagent_type` 是强制性的。
+*   **行为澄清：** 阐明了默认回退（通用子代理）存在的依赖关系。
+*   **上下文隔离：** 重申子代理默认情况下是无状态的/隔离的（除非恢复）。
+
+**3. 确定影响级别：**
+*   **级别：** 中
+*   **推理：** 这对依赖 `Agent` 工具调用的代码具有潜在的中断性（破坏性）。如果开发者按照第一段提到的说明移除了内置代理（尤其是通用的），而他们的代码/提示依赖隐式的代理调用（即省略 `subagent_type`），这些调用现在将会失败，而不是静默回退到通用代理。这改变了对特定配置的 API 行为要求。
+
+**4. 起草开发者行动项：**
+*   审查对 `Agent` 工具的调用。
+*   如果禁用了内置代理，请确保指定 `subagent_type`。
+*   处理新的错误情况 `subagent_type is required`。
+
+**5. 翻译成中文并格式化：**
+
+*   **Overall Summary:** 文档阐明了 `subagent_type` 参数的严格性：如果 `general-purpose`（通用）子代理被禁用或缺失，省略 `subagent_type` 的 Agent 工具调用将会失败。
+*   **Key Themes:**
+    *   对 `subagent_type` 参数的严格验证。
+    *   阐明默认回退行为（依赖于通用子代理的存在）。
+    *   关于子代理实例生命周期（上下文隔离）的细微措辞更改。
+*   **Impact Level:** 中。移除默认通用代理会破坏隐式的代理调用，这是一个行为变更，可能会影响现有工作流或集成，这些工作流或集成依赖于即使在禁用其他特定内置代理的情况下仍然存在默认通用代理的假设。
+*   **Action Items:**
+    *   审查代码或提示，查看是否存在省略 `subagent_type` 的 `Agent` 工具调用。
+    *   如果使用环境变量移除内置代理，确保显式传递 `subagent_type` 或处理预期会出现的错误。
+    *   更新错误处理逻辑，以捕获 `subagent_type is required`。
+
+**6. 优化输出（自我修正）：**
+*   变更 2（重述）对功能的影响小于变更 1 和 3。我应该关注规则的变化。
+*   变更 1 和 3 是相关的。变更 1 声明了错误，变更 3 解释了回退条件。
+*   务必强调如果 `general-purpose` 消失，*原因*在于之前的配置（禁用代理）。
+
+**7. 最终润色（中文）：**
+*   Summary: 文档更新了对 `subagent_type` 参数的行为说明，明确指出当会话中不存在通用子代理作为后备时，省略该参数的 Agent 调用将直接报错。
+*   Themes: 参数强制校验, 默认回退机制变更.
+*   Impact: Medium. 逻辑变更可能导致原本依赖默认行为的调用失败。
+*   Actions: 检查代码, 显式指定类型, 处理报错.
+
+让我们基于这个结构生成最终的 markdown。</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">17:17 EST</div>
