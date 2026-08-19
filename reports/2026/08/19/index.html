@@ -118,9 +118,168 @@
 
         <header>
             <h1>Changes on 2026-08-19</h1>
-            <p class="meta">3 total changes in 3 runs</p>
+            <p class="meta">9 total changes in 4 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">12:24 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">1. **总体概述**
+本次更新重点扩展了 `FileChanged` hook 的文档，详细解释了其文件系统监听机制及与工具调用 hook 的区别，并提供了完整的实战示例。其余页面主要为措辞优化，旨在提升技术描述的精确性。
+
+2. **关键主题**
+- **FileChanged 机制增强**：明确指出该 hook 通过文件系统监听器而非工具调用检测变更，因此能捕获 `Bash` 命令或外部进程对文件的修改。
+- **Hook 选择指导**：在多处文档中对比了 `FileChanged` 与 `PreToolUse`/`PostToolUse` 的适用场景，指导开发者根据需要选择“无论谁写入都触发”还是“仅工具写入时触发”。
+- **实战示例补充**：新增了规范化 `data.csv` 行尾符的完整代码示例，展示了如何编写避免无限循环的 hook 脚本。
+- **动态监听路径**：解释了如何通过 `watchPaths` 动态更新文件监听列表，并说明了初始种子路径的必要性。
+- **Matcher 行为澄清**：特别指出在 `FileChanged` 中，`&#34;*&#34;` 会被视为字面文件名而非通配符，而省略 `matcher` 才能匹配所有文件。
+
+3. **影响级别**
+- **低**
+  - 本次均为文档层面的更新和澄清，未引入新的 API 变更或破坏性更改。
+  - 虽然对 `FileChanged` 的描述更加详细，但这主要是补充说明，未改变现有功能行为。
+
+4. **开发者行动项**
+- 检查现有的 `PreToolUse`/`PostToolUse` hook，如果需要捕获由脚本或外部工具引起的文件变更，考虑迁移至 `FileChanged`。
+- 编写 `FileChanged` hook 时，注意避免脚本在无实际修改时重写文件，以防触发无限循环（参考新增的 `grep` guard 模式）。
+- 若需动态监听文件，确保在配置中通过 `SessionStart`、`CwdChanged` 或初始 `FileChanged` 组提供种子路径。
+- 在 `FileChanged` hook 组中使用省略 `matcher` 的方式来匹配所有动态添加的监听文件，避免使用 `&#34;*&#34;`。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">用户希望我分析6个文档页面的变更，并以中文提供简洁的markdown格式分析。
+
+首先，让我逐页查看这些变更：
+
+1. **github-actions.md**: 
+   - 只有一行文本变更：&#34;access checks&#34; 改为 &#34;checks on who can trigger runs&#34;。
+   - 这是为了清晰度/措辞优化。
+
+2. **hooks.md**: 
+   - 在 PreToolUse 部分添加了关于 FileChanged 的新说明。
+   - 在 PostToolUse 部分添加了关于更广泛匹配的指导，特别是 FileChanged 的使用场景。
+   - 在 FileChanged 部分进行了大量扩展，包括：
+     - 详细说明如何工作（通过文件系统监视器检测）
+     - 添加了一个完整的示例（normalize-line-endings.sh）
+     - 解释了 watchPaths 的动态更新机制
+     - 关于 matcher 行为的重要说明（`*` 字面量 vs 全匹配）
+
+3. **hooks-guide.md**:
+   - 添加了关于使用 FileChanged 来重新格式化文件的说明。
+   - 更新了关于 shell 命令创建/修改文件的说明，添加了 FileChanged 链接。
+
+4. **model-config.md**:
+   - 更新了关于 &#34;too-long error&#34; 的措辞，使其更精确地指向特定的错误类型。
+
+5. **monitoring-usage.md**:
+   - 更新了 `user_temporary` 决策类型的描述，使其更清晰/更通用。
+
+6. **sub-agents.md**:
+   - 更新了关于持久权限选择的描述，使其更清晰。
+
+---
+
+**整体总结**：
+这次更新主要集中在改进 `FileChanged` hook 的文档，包括其工作原理、使用场景和详细示例。其余变更主要是文本措辞的微调，旨在提高文档的清晰度和精确度。
+
+**关键主题**：
+- `FileChanged` hook 得到显著扩展，强调它通过文件系统监视器检测变更，无论是什么操作触发了变更。
+- 添加了实用的代码示例，展示如何使用 `FileChanged` 来规范化行尾。
+- 文档更新澄清了 `FileChanged` 与 `PreToolUse`/`PostToolUse` 的区别，帮助开发者选择合适的 hook 类型。
+- 多处措辞优化，提升技术描述的准确性和一致性。
+
+**影响级别**：
+- **低**：这些变更主要是文档改进和澄清，没有引入新功能或破坏性变更。虽然 `FileChanged` 的文档更加详细，但这只是文档层面的更新，不影响现有代码的行为。
+
+**开发者行动项**：
+1. 如果依赖文件变更触发的 hook，请查阅新增的 `FileChanged` 文档，了解它与 `PreToolUse`/`PostToolUse` 的区别。
+2. 考虑使用 `FileChanged` 来捕获所有来源的文件变更（包括 Bash 命令或外部进程），而不仅仅是 `Edit` 或 `Write` 工具。
+3. 如果需要动态监视文件，参考新增的 `watchPaths` 输出机制。
+4. 注意 `FileChanged` 中 `matcher` 的行为：`&#34;*&#34;` 会被视为字面量文件名，而非通配符。</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/github-actions.html" class="page-link">github-actions.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+15</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/model-config.html" class="page-link">model-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">11:24 EST</div>
