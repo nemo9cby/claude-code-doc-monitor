@@ -118,9 +118,125 @@
 
         <header>
             <h1>Changes on 2026-08-19</h1>
-            <p class="meta">1 total change in 1 run</p>
+            <p class="meta">2 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">10:26 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 1. Overall Summary
+此次更新细化了 `git` 源类型中主机名（hostname）提取规则的文档，明确区分了带协议 URL、SSH 地址及无协议格式三种情况的处理逻辑，并指出了 v2.1.234 版本对 `strictKnownMarketplaces` 匹配行为的重要修正。
+
+### 2. Key Themes
+*   **主机名提取逻辑规范化**：详细定义了如何从标准的 `https://`/`ssh://` URL 以及 `user@host:path` 格式的 SSH 地址中提取主机名。
+*   **允许列表与阻止列表的差异**：阐明了 `strictKnownMarketplaces`（允许列表）对无协议格式不进行匹配，而 `blockedMarketplaces`（阻止列表）仍会覆盖更广泛的形式。
+*   **行为修正与安全收紧**：修复了 v2.1.234 之前的逻辑，即 `strictKnownMarketplaces` 错误地匹配了 Git 不视为 SSH 地址的某些非标准格式。
+
+### 3. Impact Level
+**Medium** (中等)
+*   **理由**：此变更涉及安全策略（`hostPattern`）的核心匹配逻辑。虽然主要是文档澄清，但明确指出了 v2.1.234 之前的行为被视为错误且已被修复。这意味着依赖旧版“宽松”匹配的 `strictKnownMarketplaces` 配置现在可能会失效，导致原本允许的源被拒绝，从而影响构建或运行时行为。
+
+### 4. Action items for developers
+*   **审查 Git URL 格式**：检查项目中使用的 Git 仓库 URL，特别是那些不带协议（scheme）的非标准形式。
+*   **更新严格允许列表配置**：如果在 v2.1.234 之前依赖 `strictKnownMarketplaces` 匹配无协议的 URL，需调整配置以使用符合 Git 标准的 URL 格式。
+*   **区分阻止列表逻辑**：注意 `blockedMarketplaces` 的匹配范围比允许列表更广，在配置拦截规则时需利用这一特性。
+*   **验证安全性边界**：确认升级到 v2.1.234+ 后，原有的访问控制策略是否按预期收紧，防止意外的访问拒绝。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request**:
+    *   **Role**: World-class programmer, expert in dev tools/docs.
+    *   **Task**: Analyze a specific documentation diff for `settings.md`.
+    *   **Content**: A diff describing how `git` source types extract hostnames for host pattern matching (specifically `strictKnownMarketplaces` and `blockedMarketplaces`).
+    *   **Output Format**: Markdown, Chinese response.
+    *   **Structure**:
+        1.  Overall Summary.
+        2.  Key Themes.
+        3.  Impact Level (Low/Medium/High/Breaking) with reasoning.
+        4.  Action Items (max 5).
+
+2.  **Analyze the Diff**:
+    *   **Context**: Host extraction by source type (`settings.md`).
+    *   **Change**: The definition of how `git` type extracts the hostname has been significantly expanded and clarified.
+    *   **Details**:
+        *   Before: Simply said &#34;extracts hostname from the URL (supports both HTTPS and SSH formats)&#34;.
+        *   After: Breaks it down by URL form:
+            1.  With scheme (`https://`, `ssh://`): use URL hostname.
+            2.  SSH address without scheme (`user@host:path`): extract host between `@` and `:`.
+            3.  **Crucial Change**: &#34;Any other form without a scheme&#34;: No host extracted. Therefore, `strictKnownMarketplaces` patterns won&#39;t match.
+        *   **Note on `blockedMarketplaces`**: It mentions that blocklists can still match forms without a scheme (uses a &#34;wider set&#34;).
+        *   **Bug Fix/Behavior Change**: &#34;Before v2.1.234, a `strictKnownMarketplaces` `hostPattern` also matched some forms that git doesn&#39;t treat as SSH addresses.&#34; This implies a behavioral correction/tightening.
+
+3.  **Synthesize Analysis (Drafting)**:
+
+    *   **Overall Summary**: The update refines the logic for hostname extraction from `git` URLs, specifically clarifying behavior for SSH-like addresses and forms without schemes. It corrects previous behavior regarding `strictKnownMarketplaces` matching.
+
+    *   **Key Themes**:
+        *   *Refined Host Extraction Logic*: Distinguishes clearly between URLs with schemes (HTTPS/SSH) and SCP-like syntax (`user@host:path`).
+        *   *Strict Allowlist vs. Blocklist*: Differentiates how `strictKnownMarketplaces` (allowlist) and `blockedMarketplaces` (blocklist) handle ambiguous URL forms.
+        *   *Behavioral Correction*: Fixes a bug where non-standard forms were incorrectly matched by allowlists before v2.1.234.
+
+    *   **Impact Level**: **Medium**.
+        *   *Reasoning*: It changes how marketplace security settings (`hostPattern`) are interpreted, specifically tightening the rules for `strictKnownMarketplaces`. If developers relied on the previous loose matching for allowlists, their setup might break. However, it&#39;s a bug fix/correction, so it mostly affects edge cases.
+
+    *   **Action Items**:
+        *   Review `git` URLs used in projects, specifically those without schemes (if any).
+        *   Update `strictKnownMarketplaces` configurations if you depended on the previous behavior matching non-standard forms.
+        *   Be aware that `blockedMarketplaces` is more permissive than allowlists regarding URL forms.
+
+4.  **Refine to Chinese (Translating concepts accurately)**:
+
+    *   *Summary*: 更新了 `git` 源类型提取主机名的逻辑文档，明确了不同 URL 格式（带协议、SSH 地址等）的处理方式，并修正了 v2.1.234 版本之前 `strictKnownMarketplaces` 的匹配行为。
+    *   *Themes*: 主机名提取逻辑细化; 允许列表与阻止列表的差异; 行为修正/安全收紧.
+    *   *Impact*: 中等 (Medium). 涉及安全配置匹配规则的变更。
+    *   *Actions*: 检查不带 scheme 的 git URL 配置; 审查 strictKnownMarketplaces 规则; 确保阻止列表配置意图.
+
+5.  **Final Polish (Markdown)**:
+
+    *   Structure check: 1, 2, 3, 4 sections present? Yes.
+    *   Tone: Professional, concise.
+
+6.  **Final Output Generation** (Simulating the provided output).
+
+    *   *Drafting the text*: See below.
+
+    (Self-Correction during drafting): Make sure to emphasize the version number mentioned (v2.1.234) as that is crucial for developers debugging why things stopped working.
+
+    *   *Revised Impact Reasoning*: Specifically mention that the behavior change affects `strictKnownMarketplaces` matching rules, which might tighten security permissions.
+
+    *   *Revised Actions*: Focus on verifying the `hostPattern` configurations.
+
+7.  **Final Result Construction**:
+    (Proceed to generate the response).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">01:23 EST</div>
