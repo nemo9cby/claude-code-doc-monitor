@@ -118,9 +118,185 @@
 
         <header>
             <h1>Changes on 2026-08-19</h1>
-            <p class="meta">10 total changes in 5 runs</p>
+            <p class="meta">13 total changes in 6 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">16:19 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">## 1. Overall Summary
+此次更新标志着 Files API 和 Skills API 的正式成熟，核心功能不再强制要求 Beta 请求头，同时引入了文件自动过期机制以优化生命周期管理。此外，Claude Code CLI 工具发布了版本 2.1.236，重点修复了渲染、沙箱规则及远程控制等方面的多项稳定性问题。
+
+## 2. Key Themes
+*   **API 去头化与稳定性：** Files API 和 Skills API 的核心功能已脱离 Beta 阶段。发送 `anthropic-beta` 请求头不再必需，但为了向后兼容，旧版请求头依然有效（尽管可能返回旧版响应格式，如旧的分页逻辑）。
+*   **文件生命周期管理增强：** Files API 新增 `expires_at` 字段和 `expires_in_seconds` 上传参数，允许文件在 1 小时至 90 天后自动过期。这有助于开发者自动清理临时数据，控制存储配额。
+*   **Files API 分页机制升级：** 标准 API 请求现在使用基于游标的分页（`next_page`），取代了之前的 `before_id`/`after_id` 逻辑，并新增了通过 `ids[]` 批量查询特定文件的能力。
+*   **Claude Code CLI 体验优化：** 大量修复涉及全屏渲染、macOS 沙箱通配符规则、跨会话消息通知以及 VS Code 扩展的屏幕阅读器支持，显著提升了开发工具的鲁棒性和可访问性。
+
+## 3. Impact Level
+**Medium**
+
+**Reasoning:**
+虽然文档明确指出保留旧的 Beta 请求头仍能工作（非破坏性变更），但 API 的默认行为已发生本质改变。特别是 Files API 的分页结构和新字段（如 `expires_at`）的引入，意味着开发者如果不更新代码以适配新模式，将无法利用新功能（如 `ids[]` 过滤或标准的游标分页），且长期依赖旧版 Header 可能阻碍未来的迁移。Skills API 的改动则主要是降低了集成门槛。
+
+## 4. Action Items for Developers
+1.  **移除请求头：** 检查代码库，从 Files API (`/v1/files`) 和 Skills API 调用中移除 `anthropic-beta` 请求头（如 `files-api-2025-04-14` 和 `skills-2025-10-02`），以启用标准响应格式。
+2.  **适配文件过期逻辑：** 在处理文件上传或列表响应时，适配新增的 `expires_at` 字段，并根据业务需求利用 `expires_in_seconds` 参数设置文件的自动过期时间。
+3.  **更新分页处理：** 如果 Files API 客户端移除了 Beta 请求头，请将分页逻辑从 `before_id`/`after_id` 迁移至新的 `next_page` 游标模式。
+4.  **升级 CLI 工具：** 将 Claude Code CLI 更新至 **v2.1.236**，以修复 macOS 沙箱规则、全屏渲染崩溃及远程控制断开等问题。
+5.  **利用批量查询：** 在需要检查特定文件状态时，改用新的 `ids[]` 查询参数（最多 100 个 ID），替代全量列表遍历以提高效率。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Input:** Diffs for 3 pages (`build-with-claude/files.md`, `agents-and-tools/agent-skills/overview.md`, `CHANGELOG.md.md`).
+    *   **Task:** Analyze as a single batch, summarize changes, and explain why they matter to developers.
+    *   **Format:** Markdown, concise, insightful.
+    *   **Language:** Chinese.
+    *   **Structure:** Overall Summary, Key Themes, Impact Level with Reasoning, Action Items (max 5).
+
+2.  **Analyze the Content:**
+
+    *   **Page 1: `build-with-claude/files.md` (+18 / -5)**
+        *   *Removal:* The &#34;Reach out through the feedback form&#34; note is gone.
+        *   *Header Changes:* Huge update on the `anthropic-beta: files-api-2025-04-14` header.
+            *   Files API endpoints (`/v1/files`) *don&#39;t* need the header anymore.
+            *   Messages requests referencing files *don&#39;t* need the header anymore.
+            *   Backward compatibility: Sending the header still works, but it might return the &#34;earlier response format&#34; (e.g., `before_id`/`after_id` pagination vs `next_page` cursor).
+        *   *New Features:*
+            *   `expires_at` field in file objects (null if no expiration).
+            *   File expiration: Can upload with `expires_in_seconds` (1h to 90 days).
+            *   Expiration behavior: Content becomes 404 at expiration; metadata persists for 30 days.
+        *   *API Behavior:*
+            *   List API pagination now uses `next_page` cursor (without header) instead of `before_id`/`after_id` (with header).
+            *   New `ids[]` parameter to list specific files (max 100).
+            *   `limit` max increased (implied by &#34;at most 1,000&#34;).
+
+    *   **Page 2: `agents-and-tools/agent-skills/overview.md` (+1 / -3)**
+        *   *Header Changes:* Removed the requirement for the `skills-2025-10-02` beta header.
+        *   *Clarification:* Neither Skills API nor `container.skills` requires a beta header anymore.
+        *   *Note:* The Files API header requirement mention is also gone/updated (syncs with Page 1).
+
+    *   **Page 3: `CHANGELOG.md.md` (+33 / -0)**
+        *   *Context:* This seems to be for the &#34;Claude Code&#34; CLI tool (based on content like `SendMessage`, `ANTHROPIC_DEFAULT_MODEL`, Sandbox rules, VSCode extension features).
+        *   *New Features:* `ANTHROPIC_DEFAULT_MODEL`, `notify_when_idle` for cross-session communication.
+        *   *Fixes/Improvements:* Sandbox wildcard rules on macOS, clipboard fixes, fullscreen renderer fallbacks, model picker rendering, various stability fixes.
+        *   *Auto Mode:* Improved classification (especially on Bedrock/Vertex), git status checks.
+        *   *UX:* `/goal` check-ins, `/usage` updates, screen reader support in VSCode.
+
+3.  **Synthesize Key Themes:**
+    *   *Deprecation of Beta Headers:* Both Files API and Skills API are now GA (Generally Available) or at least no longer require the specific beta headers for core functionality.
+    *   *Files API Lifecycle:* Introduction of automatic file expiration.
+    *   *Files API Pagination:* Shift from `before_id`/`after_id` to `next_page` cursor for standard requests.
+    *   *CLI/Tool Stability:* Significant improvements to the Claude Code CLI, specifically around UI, sandboxing, and remote control.
+
+4.  **Determine Impact Level:**
+    *   *Reasoning:* The removal of beta headers and the change in pagination logic for the Files API are significant. While backward compatibility is maintained (sending the old header works), developers need to know that the API is changing fundamentally (new fields like `expires_at`, new pagination). The Skills API header removal lowers the barrier to entry.
+    *   *Rating:* Medium (It&#39;s not &#34;breaking&#34; in the sense that code stops working immediately if they keep using the old header, but it&#39;s a major API maturity milestone with new defaults).
+
+5.  **Draft Action Items:**
+    *   Review Files API calls regarding beta headers (can remove them).
+    *   Adopt new `expires_at` logic for file management if auto-cleanup is needed.
+    *   Update pagination logic if switching to the non-beta version of Files API.
+    *   Remove `skills-2025-10-02` header from Skills API calls.
+    *   Update Claude Code CLI to version 2.1.236 for bug fixes.
+
+6.  **Drafting the Response (in Chinese):**
+
+    *   *Summary:* 此次更新标志着 Files API 和 Skills API 的正式成熟，移除了 Beta 请求头要求，并引入了文件自动过期功能。同时，Claude Code CLI 获得大量稳定性和功能增强。
+    *   *Themes:* API 去头化, Files API 生命周期增强, CLI 工具修复与增强.
+    *   *Impact:* Medium.
+    *   *Action Items:*
+        1. 移除 Files API 和 Skills API 中的 `anthropic-beta` 请求头。
+        2. 如果依赖旧版分页（`before_id`/`after_id`），注意 Files API 新版默认使用 `next_page` 游标。
+        3. 利用新的 `expires_in_seconds` 参数在文件上传时设置自动过期。
+        4. 更新 Claude Code CLI 至 2.1.236 版本以获取修复。
+        5. 检查处理 Files API 返回字段时是否兼容新增的 `expires_at` 字段。
+
+7.  **Refining the Output:**
+    *   Ensure the distinction between the Files API changes (backend API) and the Changelog (CLI tool) is clear but synthesized.
+    *   Make sure the specific pagination change detail is accurate in the summary.
+
+    *(Self-Correction during drafting)*: The prompt asks for &#34;what changed and why it matters&#34;.
+    *   Files API: No longer beta means it&#39;s stable. New `expires_at` helps with storage/cost management.
+    *   Skills: No longer beta header means easier integration.
+    *   CLI: Better UX and stability.
+
+    Let&#39;s polish the Chinese.
+
+    *Theme 1: Production Readiness (APIs).*
+    *Theme 2: Lifecycle Management (Files).*
+    *Theme 3: Developer Experience (CLI).*
+
+    *Impact:* Medium. Because while backward compat exists, the &#34;default&#34; behavior changes if you strip headers, and new fields appear.
+
+    *Action Items:*
+    1. Remove headers.
+    2. Implement `expires_at`.
+    3. Handle new pagination.
+    4. Update CLI.
+    5. (Optional) Check `ids[]` for batch retrieval.
+
+8.  **Final Output Generation:** (Matches the thought process above).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/files.html" class="page-link">build-with-claude/files.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+18</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/agent-skills/overview.html" class="page-link">agents-and-tools/agent-skills/overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+33</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">13:21 EST</div>
