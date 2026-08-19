@@ -118,9 +118,260 @@
 
         <header>
             <h1>Changes on 2026-08-19</h1>
-            <p class="meta">13 total changes in 6 runs</p>
+            <p class="meta">23 total changes in 7 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">18:18 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 整体摘要
+核心变更是 **Files API** 和 **Skills API** 已正式从 Beta 阶段毕业，升级为正式版（GA）。文档更新明确了这两个功能的可用性，同时将特定的 Beta 请求头改为可选（尽管用于启用新的分页行为），并澄清了 Files API 拥有独立的速率限制。
+
+### 关键主题
+*   **API 正式化**：Files API 和 Skills API 在 Claude API 上已正式发布（GA），移除了 Beta 标签。仅在 AWS (Bedrock) 和 Microsoft Foundry 部分保留 Beta 状态。
+*   **请求头灵活性**：`anthropic-beta: files-api-2025-04-14` 请求头不再强制要求。如果不发送该头部，API 将使用旧版分页（`page` 参数）；发送该头部则启用新版游标分页（`after_id`/`before_id`）。
+*   **限流独立化**：明确 Files API 拥有独立的每组织速率限制，与 Messages API 的限制分离，需单独监控。
+*   **Managed Agents 行为澄清**：在 Web Search 和 Web Fetch 工具文档中，明确区分了直接调用 API 与 Claude Managed Agents 在配置域名过滤和地理位置时的差异。
+
+### 影响级别
+**Medium (中等)**
+
+**理由**：此次变更主要是关于稳定性的声明和文档的清晰化。虽然移除了“强制”Beta 请求头的要求，但这并非破坏性变更（向后兼容）。开发者现在可以更放心地在生产环境使用 Files API，且无需担心头部报错，但需要注意速率限制的分离计算。
+
+### 开发者行动项
+*   **审查代码中的请求头**：如果不需要 Files API 的新版游标分页（`after_id`/`before_id`），可以考虑移除 `anthropic-beta: files-api-2025-04-14` 头部以简化代码；如需新版分页，请保留该头部。
+*   **更新速率限制监控**：确认你的监控工具将 Files API 的调用与 Messages API 分开统计，因为它们现在有独立的配额。
+*   **关注 Managed Agents 配置**：如果你在 Claude Managed Agents 中使用 Web Search 或 Web Fetch，请查阅文档更新，确保域名过滤和地理位置设置是在 Agent 工具集层面配置的，而非依赖全局组织设置。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Understand the Goal:** The user wants a concise, insightful analysis of documentation changes in markdown format, focusing on what matters to developers, written in Chinese. The changes are from 10 different pages related to an API (likely Anthropic Claude API based on context clues like &#34;Claude&#34;, &#34;Skills&#34;, &#34;Files API&#34;).
+
+2.  **Analyze the Input (Diffs):**
+
+    *   **Page: `api/overview.md`**
+        *   *Change:* Moved &#34;Files API&#34; and &#34;Skills API&#34; from the &#34;Beta&#34; section to the main bullet list (alongside Messages, Batches, Token Counting, Models).
+        *   *Change:* Updated the pagination note regarding Files API. It mentions a new behavior with the `files-api-2025-04-14` header vs without it.
+        *   *Significance:* Files API and Skills API are graduating from Beta to GA (General Availability). Pagination details are getting complex/clarified.
+
+    *   **Page: `api/rate-limits.md`**
+        *   *Change:* Added a &#34;Files API&#34; section stating it has its own per-organization limit, separate from Messages API.
+        *   *Significance:* Important for production planning. Developers need to know this isn&#39;t just lumped in with Messages anymore (or never was, but now explicitly documented).
+
+    *   **Page: `build-with-claude/overview.md` &amp; `build-with-claude/text-generation.md`**
+        *   *Change:* Updated the &#34;Agent Skills&#34; availability from `claudeApiBeta` to `claudeApi`.
+        *   *Change:* Updated &#34;Files API&#34; availability from `claudeApiBeta` to `claudeApi` (kept the AWS/Azure beta status).
+        *   *Significance:* Confirmation of GA status for Claude API.
+
+    *   **Page: `build-with-claude/pdf-support.md`**
+        *   *Change:* Removed explicit &#34;(beta)&#34; label for Files API. Added note that examples send the `files-api-2025-04-14` header but it&#39;s not required.
+        *   *Significance:* Further confirmation of GA and header deprecation/optionality.
+
+    *   **Page: `build-with-claude/citations.md`**
+        *   *Change:* Updated notes for Files API examples. Removed &#34;beta&#34; wording. Added note about `files-api-2025-04-14` header being accepted but not required.
+        *   *Significance:* Consistency in removing &#34;beta&#34; labels.
+
+    *   **Page: `build-with-claude/files.md`**
+        *   *Change:* Removed &#34;Status: Beta&#34; and &#34;Beta header&#34; section. Changed availability from &#34;Claude API (beta)&#34; to &#34;Claude API&#34;.
+        *   *Significance:* The core file for Files API now declares it as GA, removing the requirement for the specific beta header (or at least treating it as standard now).
+
+    *   **Page: `agents-and-tools/tool-use/web-search-tool.md`**
+        *   *Change:* Clarified organization-level settings vs. Claude Managed Agents toolset settings.
+        *   *Significance:* Distinguishing behavior between direct API usage and Managed Agents.
+
+    *   **Page: `agents-and-tools/tool-use/web-fetch-tool.md`**
+        *   *Change:* Added specific notes about how settings (`allowed_domains`, `max_content_tokens`) apply to Claude Managed Agents vs API.
+        *   *Significance:* Clarification for Managed Agent users.
+
+    *   **Page: `agents-and-tools/tool-use/code-execution-tool.md`**
+        *   *Change:* Updated note regarding the Files API header. States it doesn&#39;t *require* the beta header anymore.
+        *   *Significance:* Removes a friction point (headers) for developers.
+
+3.  **Synthesize Findings:**
+
+    *   **Major Theme:** Files API and Skills API are now Generally Available (GA) on the Claude API.
+    *   **Secondary Theme:** Header requirements (`anthropic-beta: files-api-2025-04-14`) are now optional/unnecessary for standard usage, though accepted for backward compatibility or specific behavior (pagination).
+    *   **Minor Theme:** Clarifications on rate limits (separate for Files) and distinctions between direct API usage vs. Claude Managed Agents for web tools.
+
+4.  **Draft the Analysis (Internal Monologue/Drafting):**
+
+    *   *Summary:* Files API and Skills API graduated from Beta to GA. Beta headers are no longer strictly required.
+    *   *Themes:* GA promotion for Files/Skills, optional beta headers, rate limit separation, Managed Agents vs API behavior clarification.
+    *   *Impact:* Medium/High. Moving to GA implies stability and that devs can rely on it. Removing beta headers simplifies code.
+    *   *Action Items:* Review code to see if beta headers can be removed (keep them if you want new pagination behavior maybe?), check rate limits as they are separate now.
+
+5.  **Refine for &#34;World-class programmer&#34; persona &amp; Chinese language:**
+
+    *   *Summary:* 核心变更是 Files API 和 Skills API 已正式转正（GA），不再处于 Beta 阶段，且不再强制要求 Beta 请求头。
+    *   *Themes:*
+        *   API 正式化: Files API 和 Skills API 退出 Beta，状态更新为正式版。
+        *   请求头变更: `anthropic-beta: files-api-2025-04-14` 头部变为可选，非必需。
+        *   速率限制澄清: Files API 拥有独立于 Messages API 的速率限制。
+        *   行为区分: 阐明了直接调用 API 与 Claude Managed Agents 在配置上的差异。
+    *   *Impact:* Medium (Functional change, but mostly cleanup and stability). Or High if the user was waiting for GA. Let&#39;s go with **Medium-High** because moving APIs out of beta is significant for production trust.
+    *   *Action Items:*
+        *   Remove specific beta headers if not using specific features.
+        *   Monitor Files API specific rate limits.
+        *   Update docs/comments regarding API stability.
+
+6.  **Final Polish (Markdown Structure):**
+
+    *   **Overall Summary:** Files API 和 Skills API 已正式从 Beta 版毕业为正式版（GA），同时相关文档明确了请求头的可选性以及独立的速率限制。
+    *   **Key Themes:**
+        *   **API 正式发布:** Files API 和 Skills API 不再标记为 Beta。
+        *   **请求头简化:** `files-api-2025-04-14` 头部变为可选（API 接受但不要求），表明核心功能已稳定。
+        *   **限流独立化:** 明确 Files API 拥有独立的每组织速率限制，不再与 Messages API 共享。
+        *   **行为细化:** 澄清了 Web 搜索/获取工具在直接 API 调用与 Claude Managed Agents 环境下的配置差异。
+    *   **Impact:** **Medium (影响中等)**。虽然功能已存在，但转正意味着稳定性承诺。请求头变为可选降低了集成复杂度，但旧的实现方式仍兼容，故非破坏性变更。
+    *   **Action Items:**
+        *   审查代码，确认是否可以移除 `anthropic-beta: files-api-2025-04-14` 头部（除非依赖新的分页方案）。
+        *   检查速率限制监控，因为 Files API 现在有独立配额。
+        *   如果使用 Web Search/Fetch 工具配合 Managed Agents，需更新配置逻辑以匹配文档说明的独立性。
+
+7.  **Check against specific diff details (Self-Correction):**
+    *   Looking at `api/overview.md`: &#34;Files API ... also uses that scheme when a request includes the `files-api-2025-04-14` beta header&#34;. So, the header *changes behavior* (pagination scheme) but isn&#39;t required for the API to work. This is a crucial nuance.
+    *   Correction: The header controls the cursor scheme (`after_id/before_id` vs `page`). Developers need to know if they want the new pagination, they should keep the header.
+    *   Re-evaluating Action Item 1: &#34;Keep the header if you want the new cursor-based pagination.&#34; -&gt; This is important.
+
+8.  **Final Output Generation** (Matches the requested format).
+
+    *   Translate &#34;Breaking&#34; impact context: It&#39;s not breaking, but it&#39;s a status change.
+    *   Translate &#34;Pagination&#34;: Cursor vs Page.
+
+**(Self-Correction during drafting Chinese response):**
+Make sure to mention the nuance in `api/overview.md` regarding the header controlling pagination.
+
+*Revised Action Item 1:* The beta header `files-api-2025-04-14` is now optional *but* if you want the new cursor-based pagination (`after_id`/`before_id`), you still need to send it. If you omit it, you get the old `page` parameter scheme.
+
+Let&#39;s write the final response.</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/overview.html" class="page-link">api/overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/rate-limits.html" class="page-link">api/rate-limits.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/overview.html" class="page-link">build-with-claude/overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/text-generation.html" class="page-link">build-with-claude/text-generation.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/pdf-support.html" class="page-link">build-with-claude/pdf-support.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/citations.html" class="page-link">build-with-claude/citations.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/files.html" class="page-link">build-with-claude/files.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/web-search-tool.html" class="page-link">agents-and-tools/tool-use/web-search-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/web-fetch-tool.html" class="page-link">agents-and-tools/tool-use/web-fetch-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/code-execution-tool.html" class="page-link">agents-and-tools/tool-use/code-execution-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">16:19 EST</div>
