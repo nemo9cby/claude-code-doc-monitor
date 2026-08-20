@@ -118,9 +118,618 @@
 
         <header>
             <h1>Changes on 2026-08-20</h1>
-            <p class="meta">30 total changes in 2 runs</p>
+            <p class="meta">70 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">15:25 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 1. Overall Summary (总体摘要)
+此次文档更新重点引入了 Claude Opus 5 的新工具集（`computer_toolset_20260801` 和 `browser use`）及其定价细节，明确了 Files API 已标准化（移除 Beta 说明），并澄清了沙盒规则、Hooks 行为以及 Vision API 对超限截图的严格处理逻辑。
+
+### 2. Key Themes (核心主题)
+*   **新工具集与成本影响**: Claude Opus 5 现支持通用的 `computer_toolset_20260801` 和全新的 `browser use` 工具，文档详细列出了两者显著的系统 Prompt 开销（约 4,500 和 6,600 tokens），这对成本预估至关重要。
+*   **API 稳定化与文档清理**: 大量移除了 Files API、Skills 等功能的 Beta 头部说明和旧版本（如 `v2.1.145`）依赖提示，表明这些功能已趋于稳定或成为默认标准。
+*   **行为澄清与细微变更**: 明确了沙盒通配符 deny 规则优先级、Worktree 下 Hooks 的 `cwd` 行为，以及 Vision API 对 `tool_result` 超限图片不再自动缩放而是直接报错。
+*   **无障碍功能**: VS Code 扩展新增了详细的屏幕阅读器支持文档。
+
+### 3. Impact Level (影响级别)
+**Medium (中)**
+
+**Reasoning (理由)**:
+尽管多数为文档润色，但新的工具集带来了显著的额外 Token 成本，Vision API 的验证逻辑变更（从自动缩放变为报错）可能破坏现有的自动化脚本，且 Files API 去除 Beta 标签标志着生产环境可用性的变化，这些对开发者的成本计算和代码健壮性有实质性影响。
+
+### 4. Action Items for Developers (开发者行动建议)
+*   **审查新工具成本**: 在使用 Opus 5 的 `computer_toolset_20260801` 或 `browser_toolset_20260801` 前，务必计算约 4,500 和 6,600 tokens 的额外开销，以免产生意外账单。
+*   **修复 Vision API 处理逻辑**: 如果你的应用通过 `tool_result` 返回截图给计算机或浏览器工具，必须修改代码以在图片超过模型限制时捕获 `invalid_request_error`，而不是依赖 API 自动缩放。
+*   **检查平台兼容性**: 注意新的工具集目前在 Amazon Bedrock 上不可用，若依赖该平台需暂缓升级。
+*   **更新沙盒配置**: 参考新增的 `~/**/.env` 示例，确保你的 `denyRead` 通配符规则能正确屏蔽所有子目录中的敏感文件。
+*   **使用 CLI 验证工具**: 在开发插件时，使用 `claude plugin validate` 在会话开始前检查 `agents` 或 `skills` 目录的语法，以避免运行时错误。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer/developer tools expert.
+    *   **Task:** Analyze a batch of documentation changes (40 pages provided, but diffs shown for ~16 pages). The diffs are mostly text updates.
+    *   **Output Format:** Markdown.
+    *   **Language:** Chinese.
+    *   **Structure:**
+        1.  Overall Summary (1-2 sentences).
+        2.  Key Themes (bullets).
+        3.  Impact Level (Low/Medium/High/Breaking + reasoning).
+        4.  Action Items (max 5 bullets).
+
+2.  **Analyze the Input Diffs (Page by Page):**
+
+    *   **`amazon-bedrock.md`**: Clarifications on model selection logic (background tasks using `ANTHROPIC_DEFAULT_MODEL`). Clarified phrasing for pinned models (&#34;for example with...&#34;). *Action: Noting behavior logic.*
+    *   **`costs.md`**: Added a new bullet point for costs: &#34;Goal check-ins&#34; (background work evaluation). Added an env var `CLAUDE_CODE_GOAL_CHECKIN_MINUTES` to control this. *Action: Performance/cost optimization.*
+    *   **`google-vertex-ai.md`**: Same text changes as `amazon-bedrock.md` (model selection logic). *Action: Noting behavior logic.*
+    *   **`hooks.md`**:
+        *   Clarified `${CLAUDE_PROJECT_DIR}` vs `cwd` in worktrees. Added a note block explaining worktree behavior specifically.
+        *   Removed version requirements (`available in Claude Code v2.1.145 or later`) for `background_tasks` and `session_crons` in SubagentStop/Stop hooks, implying these are now standard or the docs are being cleaned up to assume current versions. *Action: Worktree awareness, version cleanup.*
+    *   **`interactive-mode.md`**: Table format change (Markdown table rendering tweak). No semantic content change visible in the snippet (it cuts off the table). *Action: Formatting, likely low priority.*
+    *   **`plugin-marketplaces.md`**: Major restructuring of the `claude plugin validate` section.
+        *   Added subsections for &#34;Pick the directory&#34;, &#34;Check plugin whose skill is root SKILL.md&#34;, &#34;Check files behind symlinks&#34;, &#34;Read the validation results&#34;.
+        *   Clarified symlink handling behaviors.
+        *   Moved warning about `CLAUDE.md` to the end. *Action: Improved clarity on CLI tool usage.*
+    *   **`sandboxing.md`**: Added an example to the overlap table (`&#34;allowRead&#34;: [&#34;~/&#34;]` with `&#34;denyRead&#34;: [&#34;~/**/.env&#34;]`). This clarifies wildcard behavior in sandbox rules. *Action: Security configuration.*
+    *   **`settings.md`**: Updated description of `filesystem.allowRead` to reference the new overlap table example in `sandboxing.md`. *Action: Security configuration consistency.*
+    *   **`skills.md`**: Removed specific version requirement note (`requires Claude Code v2.1.145 or later`). *Action: Doc cleanup.*
+    *   **`slash-commands.md`**: Removed specific version requirement note (`requires Claude Code v2.1.145 or later`). *Action: Doc cleanup.*
+    *   **`sub-agents.md`**:
+        *   Clarified debug log viewing.
+        *   Added a new subsection &#34;Check an agents directory before a session&#34; recommending `claude plugin validate`.
+        *   Added version requirement `v2.1.233 or later` for the validate command. *Action: Tooling recommendations.*
+    *   **`terminal-config.md`**: Added a condition to `CLAUDE_CODE_NO_FLICKER` usage note (unless fullscreen start fails). *Action: UX nuance.*
+    *   **`vs-code.md`**: Added a new section &#34;Use a screen reader&#34;. Describes accessibility features (v2.1.236+). *Action: Accessibility update.*
+    *   **`about-claude/models/migration-guide.md`**: Added details about Claude Opus 5 supporting `computer_toolset_20260801` and `browser use tool`. *Action: New feature documentation.*
+    *   **`about-claude/pricing.md`**:
+        *   Updated &#34;Computer use&#34; pricing section to reflect the new `computer_toolset_20260801` (4,500 tokens overhead) vs older versions.
+        *   Added new &#34;Browser use tool&#34; pricing section (`browser_toolset_20260801`, ~6,600 tokens overhead). *Action: Critical cost info.*
+    *   **`api/overview.md`**: Removed specific cursor scheme details for Skills API and Files API beta headers from the pagination note (simplified the note). *Action: Doc cleanup/simplification.*
+    *   **`build-with-claude/overview.md`**: Added &#34;Browser use&#34; feature to the client-side tools table. *Action: Feature availability.*
+    *   **`build-with-claude/text-generation.md`**: Added &#34;Browser use&#34; feature to the table. *Action: Feature availability.*
+    *   **`build-with-claude/vision.md`**:
+        *   Added PHP SDK notes regarding beta namespace.
+        *   Clarified &#34;many-image requests&#34; logic (nested `tool_result` images count).
+        *   Added exception for computer/browser use tool screenshots (validation error instead of downscaling). *Action: API behavior changes.*
+    *   **`build-with-claude/pdf-support.md`**: Added PHP SDK notes regarding beta namespace. *Action: SDK documentation.*
+    *   **`build-with-claude/citations.md`**: Removed redundant notes about beta headers. Added PHP SDK notes. *Action: Doc cleanup.*
+    *   **`build-with-claude/search-results.md`**: Changed icon for &#34;Web search tool&#34; card. *Action: UI polish.*
+    *   **`build-with-claude/files.md`**:
+        *   Removed the large note about beta headers and pagination formats (presumably because Files API is now GA/standardized or the beta header note is obsolete/simplified).
+        *   Added PHP SDK notes.
+        *   Removed a paragraph about `page` parameter vs beta header. *Action: Doc simplification/GA status.*
+    *   **`build-with-claude/working-with-messages.md`**: Added &#34;Browser use tool&#34; card. *Action: Feature navigation.*
+    *   **`build-with-claude/claude-on-amazon-bedrock.md`**: Added note that `computer_toolset_20260801` and `browser_toolset_20260801` are *not* currently available on Bedrock. *Action: Platform limitation.*
+
+3.  **Synthesize and Categorize:**
+
+    *   **Theme 1: New Tools &amp; Features (Computer/Browser Use).**
+        *   Opus 5 supports `computer_toolset_20260801` and `browser use tool`.
+        *   Pricing docs updated for these new toolsets (high token overhead: 4.5k and 6.6k).
+        *   Platform availability notes (API yes, Bedrock no).
+    *   **Theme 2: Documentation Cleanup &amp; Standardization.**
+        *   Removing version checks like &#34;v2.1.145&#34; (features are likely baseline now).
+        *   Removing complex notes about beta headers for the Files API (implying it&#39;s stable).
+        *   Removing redundant notes about &#34;no beta header required&#34;.
+        *   Adding PHP SDK specific notes (beta namespace).
+    *   **Theme 3: Refinements &amp; Clarifications.**
+        *   Sandbox wildcard behavior (`~/**/.env`).
+        *   Worktree behavior in hooks (`CLAUDE_PROJECT_DIR` vs `cwd`).
+        *   Model selection logic for background tasks.
+        *   Goal check-in costs (`CLAUDE_CODE_GOAL_CHECKIN_MINUTES`).
+        *   Vision API strictness on screenshots (validation errors vs downscaling).
+    *   **Theme 4: Accessibility.**
+        *   VS Code screen reader support (v2.1.236).
+
+4.  **Determine Impact Level:**
+
+    *   **Impact:** Medium.
+    *   **Reasoning:** While mostly documentation refinements, there are significant mentions of *new* toolsets (`browser use`, updated `computer use`) with specific pricing overheads and availability caveats. There&#39;s also a change in API behavior regarding vision constraints (validation errors vs downscaling). The removal of beta header notes suggests a stabilization of the Files API, which is important for developers to know regarding supported features. The accessibility update is also a non-trivial addition.
+
+5.  **Draft Action Items:**
+
+    *   *Check Pricing:* Review new token overheads for `computer_toolset_20260801` and `browser_toolset_20260801`.
+    *   *Vision API:* Be aware that `tool_result` images now throw validation errors if they exceed limits (instead of auto-downscaling).
+    *   *Platform Limits:* Note that new toolsets are unavailable on Bedrock currently.
+    *   *CLI Tools:* Use `claude plugin validate` for pre-session checks.
+    *   *Sandbox:* Review sandbox rules if using wildcards like `~/**/.env`.
+
+6.  **Translate to Chinese &amp; Format:**
+
+    *   *Summary:* 此次更新主要引入了新的工具集（计算机使用、浏览器使用）及其定价细节，澄清了沙盒和 Worktree 的行为，并清理了大量关于 Beta 版本和旧版本依赖的文档。
+    *   *Themes:* 新工具集与定价、文档标准化与清理、功能细节澄清、无障碍支持。
+    *   *Impact:* Medium.
+    *   *Action Items:* Review pricing, Update Vision API handling, Check platform availability, Update Sandbox rules, Use new CLI validation tool.
+
+7.  **Final Review against &#34;Concise, insightful analysis&#34;:**
+    *   The diff on `files.md` removing the beta header note is a strong signal that Files API is effectively GA or standardized.
+    *   The pricing diff is critical for cost-conscious devs.
+    *   The Vision change (validation error vs downscale) is a potential breaking change for automation scripts.
+
+    Let&#39;s refine the Chinese wording for maximum clarity.
+
+    *   *Summary:* 此次文档更新重点引入了 Opus 5 的新工具集（`computer_toolset_20260801` 和 `browser use`）及其定价，明确了 Files API 的标准化状态（移除 Beta 说明），并修正了沙盒规则和 Vision API 的严格处理逻辑。
+    *   *Themes:*
+        1.  **新工具集与成本**: Opus 5 支持新的计算机和浏览器工具集，文档增加了显著的 Token 开销说明。
+        2.  **API 稳定化**: 移除了 Files API 相关的 Beta 头部说明和旧版本限制，标志着相关功能已趋于稳定。
+        3.  **行为变更与澄清**: 澄清了沙盒通配符行为、Worktree 下的钩子变量、以及 Vision API 对超限截图不再自动缩放而是报错。
+        4.  **无障碍支持**: VS Code 扩展新增了屏幕阅读器支持说明。
+    *   *Impact:* **Medium** (中). 虽然主要是文档更新，但包含了显著的 Token 定价变更、API 行为变更（Vision 验证）以及 Files API 的标准化信号，对成本控制和生产环境部署有实质性影响。
+    *   *Action Items:*
+        1.  **审查成本**: 评估新工具集 `computer_toolset_20260801` (~4,500 tokens) 和 `browser_toolset_20260801` (~6,600 tokens) 的 Token 开销。
+        2.  **修复 Vision 处理逻辑**: 针对 `tool_result` 中的截图，修改代码以在超过模型限制时处理验证错误，而非依赖自动缩放。
+        3.  **检查平台可用性**: 注意新的工具集目前不支持 Amazon Bedrock。
+        4.  **优化沙盒配置**: 确认利用新增的通配符示例（如 `~/**/.env`）正确配置 `denyRead` 规则。
+        5.  **利用 CLI 验证**: 使用 `claude plugin validate` 在会话前检查插件目录。
+
+    This looks solid. Ready to output.</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/amazon-bedrock.html" class="page-link">amazon-bedrock.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/costs.html" class="page-link">costs.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/google-vertex-ai.html" class="page-link">google-vertex-ai.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/interactive-mode.html" class="page-link">interactive-mode.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+23</span>
+                            <span class="removed">-22</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugin-marketplaces.html" class="page-link">plugin-marketplaces.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+17</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sandboxing.html" class="page-link">sandboxing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/terminal-config.html" class="page-link">terminal-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/vs-code.html" class="page-link">vs-code.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+10</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/about-claude/models/migration-guide.html" class="page-link">about-claude/models/migration-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/about-claude/pricing.html" class="page-link">about-claude/pricing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+10</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/overview.html" class="page-link">api/overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/overview.html" class="page-link">build-with-claude/overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/text-generation.html" class="page-link">build-with-claude/text-generation.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/vision.html" class="page-link">build-with-claude/vision.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/pdf-support.html" class="page-link">build-with-claude/pdf-support.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/citations.html" class="page-link">build-with-claude/citations.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/search-results.html" class="page-link">build-with-claude/search-results.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/files.html" class="page-link">build-with-claude/files.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/working-with-messages.html" class="page-link">build-with-claude/working-with-messages.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-on-amazon-bedrock.html" class="page-link">build-with-claude/claude-on-amazon-bedrock.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-on-vertex-ai.html" class="page-link">build-with-claude/claude-on-vertex-ai.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-in-microsoft-foundry.html" class="page-link">build-with-claude/claude-in-microsoft-foundry.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/prompting-tools.html" class="page-link">build-with-claude/prompt-engineering/prompting-tools.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/claude-prompting-best-practices.html" class="page-link">build-with-claude/prompt-engineering/claude-prompting-best-practices.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/overview.html" class="page-link">agents-and-tools/tool-use/overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/implement-tool-use.html" class="page-link">agents-and-tools/tool-use/implement-tool-use.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/bash-tool.html" class="page-link">agents-and-tools/tool-use/bash-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/computer-use-tool.html" class="page-link">agents-and-tools/tool-use/computer-use-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+675</span>
+                            <span class="removed">-588</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/web-fetch-tool.html" class="page-link">agents-and-tools/tool-use/web-fetch-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/code-execution-tool.html" class="page-link">agents-and-tools/tool-use/code-execution-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/tool-search-tool.html" class="page-link">agents-and-tools/tool-use/tool-search-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/fine-grained-tool-streaming.html" class="page-link">agents-and-tools/tool-use/fine-grained-tool-streaming.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/programmatic-tool-calling.html" class="page-link">agents-and-tools/tool-use/programmatic-tool-calling.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/agent-skills/overview.html" class="page-link">agents-and-tools/agent-skills/overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/mcp-connector.html" class="page-link">agents-and-tools/mcp-connector.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">14:30 EST</div>
