@@ -118,9 +118,201 @@
 
         <header>
             <h1>Changes on 2026-08-19</h1>
-            <p class="meta">25 total changes in 8 runs</p>
+            <p class="meta">31 total changes in 9 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">22:14 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 1. Overall Summary
+此次更新主要引入了 `ANTHROPIC_DEFAULT_MODEL` 环境变量以增强模型默认行为的灵活性，并大幅完善了插件和子代理的验证逻辑及错误处理文档。此外，还新增了 &#34;Concise&#34; 输出样式并修复了针对自定义网关的提示词缓存问题。
+
+### 2. Key Themes
+*   **模型配置精细化 (Model Config)**: 新增 `ANTHROPIC_DEFAULT_MODEL` 环境变量，详细定义了其与命令行参数、设置文件及会话恢复功能之间的复杂优先级关系，并更新了 `default` 别名的定义。
+*   **插件与子代理验证 (Validation)**: 澄清了 `claude plugin validate` 的作用范围，区分了“市场包目录”与“单个插件目录”的验证差异，并新增了对子代理文件（缺少 `name` 或 YAML 解析错误）被静默跳过机制的说明。
+*   **文档一致性 (Consistency)**: 更新了 `settings.md` 和 `plugins-reference.md` 以确保关于模型限制和插件验证的描述与新逻辑保持一致。
+
+### 3. Impact level
+**Medium** (中等)
+*   **Reasoning**: 模型选择的优先级逻辑变得更为复杂，依赖 `availableModels` 限制或会话恢复功能的开发者需要重新评估配置行为。虽然新增功能（如 Concise 模式）是增强性的，但验证工具逻辑的变更可能导致现有 CI/CD 中的检查脚本需要调整。
+
+### 4. Action items for developers
+*   **审查模型默认行为**：如果你使用 `availableModels` 限制模型选择，请务必查看 &#34;Default model behavior&#34; 章节，了解默认选项解析方式的变化。
+*   **验证子代理配置**：运行 `claude plugin validate` 检查你的 `.claude/agents` 或 `~/.claude/agents` 目录，确保没有因 frontmatter 缺失或格式错误而被静默跳过的文件。
+*   **利用新变量控制会话**：尝试设置 `ANTHROPIC_DEFAULT_MODEL` 环境变量，以便在不修改设置文件的情况下为新会话指定默认模型。
+*   **更新调试习惯**：在排查子代理加载问题时，使用 `--debug` 标志查看日志中关于文件跳过的具体原因。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Input:** 6 pages of diffs (`model-config.md`, `plugin-marketplaces.md`, `plugins-reference.md`, `settings.md`, `sub-agents.md`, `CHANGELOG.md.md`).
+    *   **Output Format:** Markdown, concise, insightful analysis.
+    *   **Language:** Chinese (requested in the prompt: &#34;请用中文回复&#34;).
+    *   **Key Sections Required:**
+        1.  Overall Summary (1-2 sentences).
+        2.  Key Themes (bullets).
+        3.  Impact Level (Low/Medium/High/Breaking) + Reasoning.
+        4.  Action Items (max 5 bullets).
+
+2.  **Analyze the Diffs:**
+
+    *   **Page 1: `model-config.md` (+33 / -16)**
+        *   *Change:* Updated the `default` alias definition to point to &#34;runtime default for your account&#34; instead of &#34;recommended model... or organization default&#34;.
+        *   *Change:* Added `ANTHROPIC_DEFAULT_MODEL` environment variable documentation.
+        *   *Change:* Detailed precedence rules for `ANTHROPIC_DEFAULT_MODEL` (e.g., overrides resume behavior unless other flags are set).
+        *   *Change:* Updated `availableModels` description to include `ANTHROPIC_DEFAULT_MODEL` in the allowlist check.
+        *   *Theme:* Model selection precedence, new env var for defaults.
+
+    *   **Page 2: `plugin-marketplaces.md` (+27 / -10)**
+        *   *Change:* Refined validation instructions. Clarified that `validate .` on a marketplace directory doesn&#39;t open individual plugin files.
+        *   *Change:* Added a new section &#34;Validate a plugin or a directory without a manifest&#34;.
+        *   *Change:* Updated error message table to reflect behavior changes (e.g., &#34;No manifest found&#34;).
+        *   *Theme:* Plugin validation tooling improvements, clearer error reporting.
+
+    *   **Page 3: `plugins-reference.md` (+8 / -8)**
+        *   *Change:* Updated the &#34;Plugin not loading&#34; solution to point to the new validation section in `plugin-marketplaces.md` for checking frontmatter syntax.
+        *   *Theme:* Consistency in plugin validation guidance.
+
+    *   **Page 4: `settings.md` (+2 / -2)**
+        *   *Change:* Updated `availableModels` description. Removed note about `enforceAvailableModels` being needed for the &#34;Default&#34; option, referencing new &#34;Default model behavior&#34; instead.
+        *   *Theme:* Settings consistency with model config changes.
+
+    *   **Page 5: `sub-agents.md` (+8 / -0)**
+        *   *Change:* Added &#34;Subagent files Claude Code skips&#34; section.
+        *   *Change:* Explained specific conditions where agent files are skipped (no `name`, invalid `name` format, no `description`, YAML parse errors).
+        *   *Change:* Linked to the plugin validation command for checking agents directories.
+        *   *Theme:* Robustness in subagent loading, silent failure handling/debugging advice.
+
+    *   **Page 6: `CHANGELOG.md.md` (+3 / -0)**
+        *   *Change:* Version 2.1.237 notes:
+            *   Fixed prompt caching for LLM gateway/custom base URL.
+            *   Added &#34;Concise&#34; output style.
+        *   *Theme:* Bug fixes, new features (concise mode).
+
+3.  **Synthesize Findings (Internal Draft):**
+
+    *   *Overall Summary:* This batch primarily focuses on refining model selection logic—specifically introducing a new `ANTHROPIC_DEFAULT_MODEL` environment variable—and improving the robustness and validation of plugins and sub-agents. It also highlights a new &#34;Concise&#34; output style.
+    *   *Key Themes:*
+        *   **Model Configuration Overhaul:** New environment variable (`ANTHROPIC_DEFAULT_MODEL`) allows fine-grained control over session defaults, with complex precedence rules relative to resuming sessions and existing config.
+        *   **Plugin &amp; Sub-agent Validation:** Enhanced documentation on how `claude plugin validate` works, clarifying scope (marketplace vs. individual plugins) and adding specific rules for skipping malformed sub-agent files.
+        *   **Debugging &amp; Robustness:** Better explanations for why files are silently skipped (e.g., missing `name` in subagents) and how to debug them.
+    *   *Impact Level:* Medium. While nothing seems breaking, the model precedence logic is complex and affects session launches. The plugin validation changes improve DX but require re-reading docs if users rely on specific validation behaviors.
+    *   *Action Items:*
+        *   Review/Update environment variables if you manage Claude Code settings programmatically.
+        *   Use `claude plugin validate` on `agents` directories to catch silent YAML errors.
+        *   Check &#34;Default model behavior&#34; if you use `availableModels` restrictions.
+
+4.  **Translate and Refine into Chinese (Target Language):**
+
+    *   *Overall Summary:* 此次更新主要引入了 `ANTHROPIC_DEFAULT_MODEL` 环境变量以增强模型选择的灵活性，并大幅完善了插件和子代理的验证逻辑及错误处理文档。此外，还引入了 &#34;Concise&#34; 输出模式并修复了提示词缓存问题。
+    *   *Key Themes:*
+        *   **模型配置精细化**: 新增 `ANTHROPIC_DEFAULT_MODEL` 环境变量，明确了新会话、恢复会话及组织默认设置之间的优先级规则。
+        *   **插件与子代理验证**: 澄清了 `claude plugin validate` 的作用范围（市场包 vs 单个插件），并详细说明了子代理文件因 frontmatter 缺失或格式错误而被静默跳过的场景。
+        *   **开发者体验优化**: 改进了错误排查指引，特别是针对 YAML 解析错误和插件加载失败的情况。
+    *   *Impact Level:* Medium (中等). 模型优先级逻辑的变更可能会影响依赖 `availableModels` 或 `resume` 行为的用户，且验证工具的调整需要开发者适应新的用法。
+    *   *Action Items:*
+        *   利用 `--debug` 模式或 `claude plugin validate` 检查 `agents` 目录中是否存在因 frontmatter 缺失而被跳过的文件。
+        *   若使用了 `availableModels` 限制，需重新阅读 &#34;Default model behavior&#34; 以确认默认选项的解析方式。
+        *   测试新的 `ANTHROPIC_DEFAULT_MODEL` 变量是否符合预期的新会话启动行为。
+
+5.  **Final Polish:** Ensure markdown format and tone are professional and concise. (Self-correction: Ensure the specific version numbers from the changelog are mentioned or implied if relevant to &#34;Impact&#34;).
+
+    *   *Refining Action Items:* Keep them practical.
+    *   *Refining Impact:* Explain *why* it&#39;s Medium (config logic complexity).
+
+6.  **Final Output Generation** (matching the provided response structure).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/model-config.html" class="page-link">model-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+33</span>
+                            <span class="removed">-16</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugin-marketplaces.html" class="page-link">plugin-marketplaces.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+27</span>
+                            <span class="removed">-10</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-8</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">20:54 EST</div>
