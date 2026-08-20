@@ -118,9 +118,140 @@
 
         <header>
             <h1>Changes on 2026-08-19</h1>
-            <p class="meta">23 total changes in 7 runs</p>
+            <p class="meta">25 total changes in 8 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">20:54 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">```markdown
+# 文档变更分析
+
+## 总体概览
+此次更新引入了新的环境变量 `CLAUDE_CODE_PROJECT_DIR_NAME`，赋予开发者手动覆盖项目目录命名规则的能力，从而控制 Memory（自动记忆）的存储位置；同时明确了该变量必须从启动环境读取，不能通过配置文件注入。
+
+## 核心主题
+*   **项目识别自定义**：新增通过 `CLAUDE_CODE_PROJECT_DIR_NAME` 手动指定项目目录名称的功能，覆盖了默认基于 Git 仓库路径的自动检测机制。
+*   **Memory 存储策略**：当与共享的 `CLAUDE_CONFIG_DIR` 配合使用时，此变量允许强制不同的仓库共享同一个自动内存目录，改变了以往基于仓库隔离的存储逻辑。
+*   **配置环境隔离**：明确将 `CLAUDE_CODE_PROJECT_DIR_NAME` 列入 `settings.json` 中 `env` 字段的忽略名单，确保此标识符仅受启动时的 Shell 环境控制，防止配置文件冲突或意外覆盖。
+
+## 影响程度：中等
+*   **理由**：这是一个新增功能（要求 v2.1.234+），不会破坏现有的默认行为。但对于需要精细化管理多仓库 Memory 或在非 Git 环境下工作的开发者来说，这提供了重要的控制力。此外，配置规则的明确化消除了关于“在哪里设置项目名称”的潜在歧义。
+
+## 开发者行动项
+*   **更新启动脚本**：如果您希望自定义项目名称或跨项目共享 Memory，请在外部 Shell 环境中设置 `CLAUDE_CODE_PROJECT_DIR_NAME`，然后再启动 Claude Code。
+*   **检查配置文件**：请勿尝试在 `.claude/settings.json` 的 `env` 字段中设置 `CLAUDE_CODE_PROJECT_DIR_NAME`，该操作将被系统忽略。
+*   **评估内存共享风险**：在使用此变量时，请注意若配置目录共享，不同项目可能会读写同一块 Memory 数据，请根据需要评估这种副作用。
+```</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Input:** Documentation changes for `memory.md` and `settings.md`.
+    *   **Format:** Concise, insightful analysis in markdown. Chinese language requested.
+    *   **Structure Required:**
+        1.  Overall Summary (1-2 sentences)
+        2.  Key Themes (bullets)
+        3.  Impact Level (Low/Medium/High/Breaking) with reasoning
+        4.  Action Items (bullets, max 5)
+
+2.  **Analyze the Changes:**
+
+    *   **File 1: `memory.md`**
+        *   *Change:* Added a paragraph describing the behavior of `CLAUDE_CODE_PROJECT_DIR_NAME` environment variable when set alongside `CLAUDE_CONFIG_DIR`.
+        *   *Detail:* If set, it overrides the default git-repo-based project naming. It forces all projects using that config dir to share *one* auto memory directory.
+        *   *Version Note:* Requires v2.1.234+.
+        *   *Implication:* This is a configuration mechanism to share memory across different repositories if desired, or explicitly control the project identification logic.
+
+    *   **File 2: `settings.md`**
+        *   *Change:* Updated the description for the `env` setting key.
+        *   *Detail 1:* Clarified that env vars are set in sessions and passed to processes (Bash, hooks).
+        *   *Detail 2:* Clarified behavior of setting a var to `&#34;&#34;` (empty string) to override shell exports.
+        *   *Detail 3:* Added `CLAUDE_CODE_PROJECT_DIR_NAME` to the list of variables that Claude Code *ignores* if set via the `env` setting in `settings.json`. It specifically says this variable is read from the *launch environment only*.
+        *   *Version Note:* Ignoring this specific variable requires v2.1.234+.
+
+3.  **Synthesize and Correlate:**
+
+    *   *Connection:* Both changes revolve around the new environment variable `CLAUDE_CODE_PROJECT_DIR_NAME`.
+    *   *Logic:*
+        *   `memory.md` tells you *what* the variable does (it overrides project path for memory storage).
+        *   `settings.md` tells you *where* to set it (launch environment, NOT inside `settings.json` under the `env` key).
+    *   *Core Functionality:* This variable allows developers to manually define the project directory name, which impacts how &#34;Auto Memory&#34; is organized. This is particularly useful for non-git scenarios or forcing specific memory sharing behavior.
+
+4.  **Drafting the Response (Iterative Refinement in Chinese):**
+
+    *   *Overall Summary:* The update introduces a new environment variable `CLAUDE_CODE_PROJECT_DIR_NAME` that allows manual control over project naming for memory storage, while clarifying that this variable must be set in the launch environment rather than the settings file.
+        *   *Chinese:* 此次更新引入了新的环境变量 `CLAUDE_CODE_PROJECT_DIR_NAME`，允许开发者手动控制用于存储 Memory 的项目目录命名，同时明确了该变量必须在启动环境中设置，不能通过 `settings.json` 注入。
+
+    *   *Key Themes:*
+        *   Project Identification Control: Overrides git-based detection.
+        *   Memory Management: Controls where auto-memory lives (specifically allowing sharing across repos if config is shared).
+        *   Security/Config Separation: `CLAUDE_CODE_PROJECT_DIR_NAME` is explicitly excluded from the `settings.json` `env` block, ensuring it comes from the execution context.
+        *   *Chinese:*
+            *   项目识别控制：新增通过环境变量手动指定项目目录名称的能力，覆盖默认的 Git 仓库检测。
+            *   内存 管理增强：允许强制共享自动内存目录，适用于特定的工作流配置。
+            *   配置隔离：明确禁止在 `settings.json` 的 `env` 字段中设置 `CLAUDE_CODE_PROJECT_DIR_NAME`，确保其仅从启动环境读取，增强了配置的确定性。
+
+    *   *Impact Level:*
+        *   *Assessment:* Medium. It&#39;s a new feature (v2.1.234) that changes behavior *if* the variable is used. It doesn&#39;t break existing behavior unless someone was trying to set this specific variable in `settings.json` (which likely didn&#39;t work or now explicitly won&#39;t work). It offers significant control for power users managing multiple repos or specific memory layouts.
+        *   *Chinese:* Medium (中等)。这是一个新功能（v2.1.234），不会破坏现有工作流，但为需要自定义项目路径或跨项目共享 Memory 的开发者提供了重要的控制能力。
+
+    *   *Action Items:*
+        *   If you want to control the project directory name for memory, use `CLAUDE_CODE_PROJECT_DIR_NAME` in your shell/env before launching.
+        *   Don&#39;t try to put this variable in `settings.json` `env` block; update your launch scripts instead.
+        *   Be aware that using this variable with a shared `CLAUDE_CONFIG_DIR` forces memory sharing.
+        *   *Chinese:*
+            *   如需自定义项目目录名称或跨仓库共享 Memory，请在启动 Claude Code 的 Shell 环境中设置 `CLAUDE_CODE_PROJECT_DIR_NAME`。
+            *   避免在 `settings.json` 的 `env` 字段中尝试配置此变量，它会被忽略。
+            *   在使用此变量与共享配置目录配合时，请注意不同仓库将共用同一个自动内存目录。
+
+5.  **Final Review:** Check against constraints (concise, insightful, markdown, Chinese).
+    *   The analysis correctly links the two files (one defining the feature, one defining the configuration constraints).
+    *   The tone is professional.
+    *   Formatting is correct.
+
+6.  **Final Output Generation** (Proceeding to generate the markdown response).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/memory.html" class="page-link">memory.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">18:18 EST</div>
