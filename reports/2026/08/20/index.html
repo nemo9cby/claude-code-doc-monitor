@@ -118,9 +118,190 @@
 
         <header>
             <h1>Changes on 2026-08-20</h1>
-            <p class="meta">79 total changes in 7 runs</p>
+            <p class="meta">83 total changes in 8 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">22:24 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 1. Overall Summary
+本次文档更新主要引入了基于 MCP SDK 2.0 的 v2 运行时，明确了 CLI `--bare` 模式现在会排除更多组件（如自定义命令和子代理），并优化了脚本环境下的信号处理与 MCP 动态更新机制。
+
+### 2. Key Themes
+*   **MCP 运行时升级**: 引入 v2 runtime（基于 SDK 2.0），默认启用新协议修订版（2026-07-28），但该协议目前不支持 `Channels` 推送消息功能。
+*   **Bare 模式更严谨**: `--bare` 模式现在明确跳过 &#34;custom commands&#34; 和 &#34;subagents&#34;，仅允许通过 `--add-dir` 加载特定目录的技能。
+*   **信号处理细化**: 改进了 `SIGTERM` 处理逻辑，明确区分了 SDK 关闭与系统信号的行为，确保 Bash 进程树被正确终止。
+*   **连接稳定性增强**: 为 MCP v2 运行时的通知流增加了重连限制（如频繁断开会停止重连，长期断开有频率限制），以防止资源耗尽。
+
+### 3. Impact Level
+**Medium** (中等影响)
+
+**Reasoning**: 虽然大部分改动是对现有功能的澄清和增强，但 MCP v2 运行时的引入具有潜在的破坏性。如果开发者依赖 MCP 的 `Channels`（推送消息）功能，且服务器协商使用了新协议，该功能将失效，必须显式配置回退到旧协议。此外，`--bare` 模式的行为变化可能会影响依赖自定义命令的自动化脚本。
+
+### 4. Action Items
+*   **修复 Channels 功能**: 如果您的 MCP 服务器使用了 `Channels` 推送消息功能，务必设置环境变量 `MCP_PROTOCOL_NEGOTIATION=legacy`，以避免 v2 协议导致该功能不可用。
+*   **审查 CI/CD 脚本**: 检查使用 `--bare` 模式的脚本，确认它们不依赖“自定义命令”或“子代理”，或者更新脚本以适应这些组件被跳过的新行为。
+*   **显式加载技能**: 如需在极简模式下使用特定技能，请更新脚本使用 `--add-dir` 参数显式加载目录。
+*   **更新信号处理代码**: 调整管理 `claude -p` 进程的代码，理解 SIGTERM 现在会清理 Bash 进程树并退出，但不会记录部分完成的 Turn 结果。
+*   **监控 MCP 连接**: 检查 v2 运行时下 MCP 服务器的连接日志，确保 `list_changed` 通知流的重连策略符合预期。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Input:** Four changed pages (`cli-reference.md`, `desktop.md`, `headless.md`, `mcp.md`) with diffs.
+    *   **Output Format:** Markdown, concise, insightful, focusing on what matters to developers.
+    *   **Language:** Chinese.
+    *   **Structure:**
+        1.  Overall Summary (1-2 sentences).
+        2.  Key Themes (bullets).
+        3.  Impact Level (Low/Medium/High/Breaking) with reasoning.
+        4.  Action Items (bullets, max 5).
+
+2.  **Analyze the Diffs:**
+
+    *   **`cli-reference.md`:**
+        *   *Change:* Updated `--bare` flag description.
+        *   *Details:* Added &#34;custom commands&#34; and &#34;subagents&#34; to the list of things skipped. Added a note that skills from `--add-dir` *do* still load.
+        *   *Meaning:* Bare mode is stricter now (skipping more things by default), but offers an explicit way to load specific skills via `--add-dir`.
+
+    *   **`desktop.md`:**
+        *   *Change:* Clarified cross-session messaging behavior regarding inbound controls.
+        *   *Details:* Refined the sentence about checking inbound controls. Added that Claude Code reports the refusal to the desktop app if `crossSessionInbound` is `refuse`. Mentioned that checks run even if the receiving session doesn&#39;t have cross-session messaging enabled.
+        *   *Meaning:* Better error reporting/visibility for message blocking. Behavior is more robust/predictable across session types.
+
+    *   **`headless.md`:**
+        *   *Change 1:* Updated &#34;bare mode&#34; section (similar to CLI reference). Added &#34;custom commands&#34;, &#34;subagents&#34; to skip list. Clarified `--add-dir` behavior (loads skills, skips commands/agents).
+        *   *Change 2:* New section &#34;Stop a run with SIGTERM&#34;. Refined behavior: previously it aborted the turn. Now, it says it *doesn&#39;t* interrupt the in-progress turn (it just stops *new* things, kills running bash). It details how SDK hosts handle this (close input first).
+        *   *Meaning:* Better signal handling in scripts/CI. Bare mode is more specific about what it excludes.
+
+    *   **`mcp.md`:**
+        *   *Change 1:* Added &#34;MCP client runtimes&#34; section. Introduces v1 (SDK 1.x) and v2 (SDK 2.0, protocol 2026-07-28).
+        *   *Details:* v2.1.232+ uses v2 by default. Lists conditions where v1 is used (AWS, etc.). Describes v2 behaviors (negotiates newer revision, handles `list_changed` differently, no channels on v2 protocol, OAuth issuer checks).
+        *   *Change 2:* Added &#34;Notification streams on the v2 runtime&#34; section. Explains reconnection logic for streams (limits on rapid reconnects vs. slow disconnects).
+        *   *Change 3:* Updated &#34;Push messages with channels&#34;. Notes that v2 runtime (new protocol) can&#39;t deliver channel messages. Suggests using `MCP_PROTOCOL_NEGOTIATION=legacy` if channels are needed.
+        *   *Meaning:* Major update to MCP infrastructure. Introduction of v2 runtime might break existing MCP servers relying on specific behaviors (like Channels) if they upgrade to the new protocol, or require config changes (`legacy` flag) to maintain functionality.
+
+3.  **Synthesize and Translate to Chinese:**
+
+    *   *Overall Summary:* 主要更新涵盖了 `--bare` 模式的行为细化、SIGTERM 信号处理的改进，以及引入了基于 MCP SDK 2.0 的新运行时（v2 runtime），这影响了 MCP 服务器的连接、动态更新和消息传递能力。.
+
+    *   *Key Themes:*
+        *   **MCP 架构升级:** 引入 v2 runtime (SDK 2.0, Protocol 2026-07-28)。
+        *   **Bare 模式细化:** 明确排除更多类型（自定义命令、子代理），但允许通过 `--add-dir` 加载特定技能。
+        *   **信号处理与容错:** 优化了 `SIGTERM` 处理和 MCP 消息流的重连策略。
+        *   **跨会话消息:** 增强了消息被拒绝时的报告机制。
+
+    *   *Impact Level:* **Medium** (中等).
+        *   *Reasoning:* Most changes are additive or clarifying. However, the switch to MCP v2 runtime is significant. If developers rely on &#34;Channels&#34; (push messages) with servers that negotiate the new protocol, they will break unless they use the `legacy` flag. The `--bare` change affects script consistency if they expected custom commands to run.
+
+    *   *Action Items:*
+        *   检查 MCP 服务器是否依赖 &#34;Channels&#34; 功能，如果升级到 v2 协议可能导致该功能失效，需设置 `MCP_PROTOCOL_NEGOTIATION=legacy`。
+        *   审查使用 `--bare` 模式的 CI/CD 脚本，确保了解现在默认会跳过 &#34;自定义命令&#34; 和 &#34;子代理&#34;。
+        *   如需在 bare 模式下加载特定技能，需改用 `--add-dir` 显式指定目录。
+        *   更新处理 `SIGTERM` 的脚本逻辑，了解新的退出行为（不再直接中断正在进行的 Turn，而是终止 Bash 并退出）。
+        *   如果在特定平台（如 AWS Bedrock）上运行，注意默认仍使用 MCP v1 runtime，除非手动配置。
+
+4.  **Drafting the Response (in Chinese):**
+
+    *   *Summary:* 本次更新重点引入了 MCP SDK 2.0 运行时，优化了 CLI 的 `--bare` 模式行为，并改进了脚本环境下的信号处理和 MCP 消息流的重连机制。
+    *   *Themes:*
+        *   **MCP 协议升级**: 引入 v2 runtime（基于 SDK 2.0），默认启用新协议（2026-07-28），但与 Channels 功能存在兼容性冲突。
+        *   **Bare 模式更严谨**: 默认跳过更多扩展（自定义命令、子代理），明确 `--add-dir` 仅加载技能。
+        *   **脚本与信号处理**: 细化了 SIGTERM 处理逻辑，区分了 SDK 关闭与系统信号的行为差异。
+        *   **容错与反馈**: 增强了 MCP 流重连策略及跨会话消息拒绝时的用户反馈。
+    *   *Impact:* Medium. MCP v2 的引入对 Channels 功能有潜在破坏性，需注意配置。
+    *   *Action Items:* List the points derived in step 3.
+
+5.  **Refining the Output:**
+    *   Make it punchy.
+    *   Ensure terminology (Channels, Subagents, Bare mode) is used correctly in Chinese context.
+
+    *(Self-Correction during drafting)*: The `desktop.md` change is minor relative to `mcp.md`, but worth noting under cross-session messaging. The `headless.md` SIGTERM change is important for reliability. The MCP v2 breaking change regarding Channels is the most critical technical detail.
+
+6.  **Final Polish (Chinese):**
+
+    1.  **Overall Summary**: 本次文档更新主要引入了基于 MCP SDK 2.0 的 v2 运行时，明确了 CLI `--bare` 模式排除更多组件，并优化了脚本环境下的信号处理和 MCP 动态更新机制。
+
+    2.  **Key Themes**:
+        *   **MCP 运行时升级 (v2 Runtime)**: 默认切换至 MCP SDK 2.0，支持新协议修订版，但对 Channels 推送消息功能存在限制。
+        *   **Bare 模式行为变更**: 现在默认跳过&#34;自定义命令&#34;和&#34;子代理&#34;，仅通过 `--add-dir` 加载特定目录的技能。
+        *   **信号处理改进**: 细化了 `SIGTERM` 处理流程，明确 SDK 关闭与系统信号的差异，确保 Bash 进程树被正确清理。
+        *   **连接稳定性**: 为 MCP v2 运行时增加了通知流的重连限制与策略，防止无限重连风暴。
+
+    3.  **Impact Level**: **Medium** (中等影响)
+        *   **Reasoning**: 虽然大多数改动是增强性功能，但 MCP v2 运行时的引入具有潜在的破坏性。如果您的 MCP 服务器依赖 `Channels` 功能且协商使用新协议，该功能将失效，除非显式配置为 legacy 模式。此外，`--bare` 模式的变化可能影响现有 CI/CD 脚本的执行结果。
+
+    4.  **Action Items**:
+        *   **检查 MCP Channels 兼性**: 如果您使用 MCP 的 `Channels` 推送消息功能，请设置环境变量 `MCP_PROTOCOL_NEGOTIATION=legacy` 以保持在 v1 协议下运行，否则 v2 协议将导致该功能不可用。
+        *   **审查 Bare 模式脚本**: 检查依赖 `--bare` 的自动化脚本，确认它们不再依赖&#34;自定义命令&#34;或&#34;子代理&#34;，或调整逻辑以适应这些组件被跳过的新行为。
+        *   **调整技能加载策略**: 如需在极简模式下使用特定技能，请更新脚本使用 `--add-dir` 参数显式加载，而非依赖全局配置。
+        *   **更新信号处理逻辑**: 修改处理 `claude -p` 进程退出的代码，确保理解 SIGTERM 现在是先停止新任务并清理 Bash 树，而非直接中断模型的推理过程。
+        *   **验证 MCP 服务器行为**: 测试 MCP 服务器在 v2 运行时下的表现，特别是动态工具更新（`list_changed`）是否通过新的流机制正常工作。
+
+7.  **Final Output Generation**. (Matches the drafted points).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/cli-reference.html" class="page-link">cli-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/desktop.html" class="page-link">desktop.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/headless.html" class="page-link">headless.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+19</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">20:58 EST</div>
