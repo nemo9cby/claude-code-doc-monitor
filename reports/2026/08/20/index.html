@@ -118,9 +118,166 @@
 
         <header>
             <h1>Changes on 2026-08-20</h1>
-            <p class="meta">75 total changes in 6 runs</p>
+            <p class="meta">79 total changes in 7 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">20:58 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更分析
+
+## 总体摘要
+本次文档更新主要围绕 MCP (Model Context Protocol) 服务器的**信任机制**与**缓存策略**进行了重要调整，同时新增了对 Windows 终端按键映射和配额限制下提示建议的修复与控制选项。
+
+## 关键主题
+*   **安全与信任模型收紧**：引入了更严格的信任规则，阻止在未明确信任文件夹的情况下加载 Agent 文件中定义的内联 MCP 服务器。
+*   **MCP 发现缓存行为变更**：MCP 服务器的缓存默认状态已由“开启”改为“关闭”（除非账户处于灰度发布中），并提供了显式的环境变量进行控制。
+*   **终端体验修复**：解决了 Windows 终端中退格键被误读为 Ctrl+Backspace 导致删除整词的问题，并优化了接近配额上限时的提示建议逻辑。
+
+## 影响等级：中/高
+**理由**：尽管是文档更新，但揭示了重大的行为变更。特别是 **v2.1.238** 版本后，Agent 文件中的内联 MCP 服务器加载现在受限于信任检查。这是一个潜在的**破坏性变更**，可能导致现有的 Agent 工作流因未信任目录而无法连接服务器，需要开发者手动干预。
+
+## 开发者行动项
+*   **信任 Agent 目录**：如果你的 Agent 文件（在项目 `.claude/agents/` 中）使用了内联 MCP 服务器，必须显式信任该文件夹，否则服务器将被跳过。
+*   **调整 MCP 缓存设置**：如果你习惯了之前的“默认缓存”行为，现在需要显式设置 `MCP_DISCOVERY_CACHE=1`，因为新版本默认已将其关闭。
+*   **修复 Windows 按键**：如果在 Windows 上按 Backspace 键意外删除整词，请设置 `CLAUDE_CODE_BS_AS_CTRL_BACKSPACE=0`。
+*   **保留提示建议**：若希望在达到使用配额前继续显示提示建议，请设置环境变量 `CLAUDE_CODE_ENABLE_PROMPT_SUGGESTION=true`。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer, deep expertise in developer tools.
+    *   **Task:** Analyze a batch of 4 documentation changes (diffs provided).
+    *   **Output Format:** Markdown, concise, insightful analysis.
+    *   **Language:** Chinese (as requested: &#34;请用中文回复&#34;).
+    *   **Specific Sections Required:** Overall Summary, Key Themes, Impact Level, Action Items.
+
+2.  **Analyze the diffs individually:**
+
+    *   **Page 1: `interactive-mode.md` (+2 / -1)**
+        *   *Change:* Added a bullet point about when prompt suggestions are skipped: &#34;Your account is close to or at its usage limit.&#34; Mentions a new env var `CLAUDE_CODE_ENABLE_PROMPT_SUGGESTION` and a version note (v2.1.238).
+        *   *Change:* Added markdown link syntax for the environment variable `CLAUDE_CODE_ENABLE_PROMPT_SUGGESTION`.
+        *   *Dev Implication:* Developers might notice prompt suggestions disappearing near limits. They now have a toggle to keep them on until the hard limit.
+
+    *   **Page 2: `mcp.md` (+33 / -9)**
+        *   *Change 1 (Server status detail):* Refined description of the &#34;cached&#34; status. It&#39;s now a &#34;discovery cache&#34;.
+        *   *Change 2 (Discovery cache behavior):* *Important change.* The cache is now *off by default* unless rolled out to the account. Previously (v2.1.221), it was on by default. Added `MCP_DISCOVERY_CACHE=1/0` env var.
+        *   *Change 3 (Menu actions):* Detailed how &#34;Reconnect&#34; and &#34;Clear authentication&#34; affect the cache entry (discard/keep).
+        *   *Change 4 (Plugin lifecycle):* Fixed a broken link reference (anchor change).
+        *   *Change 5 (Helper scripts - Execution):* Refined text about where the command runs (working directory). Mentioned absolute paths or PATH.
+        *   *Change 6 (Helper scripts - Re-auth):* Added trust rule mention for re-running helpers.
+        *   *Change 7 (Plugin limitations):* Removed the specific mention of `headersHelper` running with the working directory set to plugin root (it was simplified/generalized earlier). Updated the warning about `${user_config.*}`.
+        *   *Change 8 (Trust rules):* A new section &#34;Where the helper runs&#34; seems cut off at the end (&#34;Cla&#34;), but based on the context and the `sub-agents.md` changes, it&#39;s likely about workspace trust rules affecting MCP helpers. *Self-correction: The diff ends abruptly with &#34;Cla&#34;, implying incomplete input, but I must work with what I have.*
+        *   *Dev Implication:* MCP server caching behavior changed (default off). Dynamic auth headers (`headersHelper`) execution context is stricter regarding trust.
+
+    *   **Page 3: `sub-agents.md` (+9 / -2)**
+        *   *Change 1 (Scope MCP servers):* Added &#34;subject to the trust rule for the agent file&#39;s folder&#34; to inline server connection logic.
+        *   *Change 2 (Agent as main session):* Added the same trust rule mention.
+        *   *Change 3 (Inline server trust):* Added a detailed new section `&lt;span id=&#34;inline-server-trust&#34; /&gt;`.
+        *   *Content:* Claude Code now requires trusting the specific folder where the agent file is located (`.claude/agents/`) *before* loading inline MCP servers defined in that agent file. Previously (v2.1.238), it loaded them without checking trust.
+        *   *Exceptions:* Named references and global agent files (`~/.claude/agents/`) don&#39;t need this check.
+        *   *Dev Implication:* Breaking change for agent workflows using inline MCP servers. Users must explicitly trust the folder.
+
+    *   **Page 4: `terminal-config.md` (+4 / -0)**
+        *   *Change:* Added a new section &#34;Fix Backspace deleting a whole word on Windows&#34;.
+        *   *Content:* Explains behavior where `^H` is read as Ctrl+Backspace on Windows. Introduces `CLAUDE_CODE_BS_AS_CTRL_BACKSPACE` env var (0 or 1) to fix mapping issues.
+        *   *Dev Implication:* Usability fix for Windows users experiencing key binding issues.
+
+3.  **Synthesize and Translate to Chinese:**
+
+    *   *Overall Summary:* The update focuses on MCP (Model Context Protocol) server trust and caching behaviors, adds controls for prompt suggestions near usage limits, and fixes a Windows terminal keybinding issue.
+    *   *Key Themes:*
+        *   Security/Trust: Stricter trust requirements for inline MCP servers in agent files and helper scripts.
+        *   Resource Management: Configurable caching for MCP servers (default changed to off).
+        *   UX/Terminal: Fixes for Windows backspace and prompt suggestions near limits.
+    *   *Impact Level:* Medium/High. Why? The trust requirement change for inline MCP servers in agents is a behavioral change (breaking in terms of previous workflow) that requires user action (trusting folders) to restore functionality.
+    *   *Action Items:*
+        *   Trust folders for agents using inline MCP servers.
+        *   Set `MCP_DISCOVERY_CACHE` explicitly if relying on previous default caching.
+        *   Configure `CLAUDE_CODE_BS_AS_CTRL_BACKSPACE` on Windows if backspace is broken.
+        *   Set `CLAUDE_CODE_ENABLE_PROMPT_SUGGESTION` to keep suggestions near limits.
+
+4.  **Drafting the Response (Iterative refinement):**
+
+    *   *Summary:* 本次文档更新主要调整了 MCP 服务器的信任机制与缓存策略，新增了对配额限制下提示建议的控制，并修复了 Windows 终端的按键映射问题。
+    *   *Themes:*
+        *   **安全与权限控制**：对 Agent 文件中定义的内联 MCP 服务器引入了更严格的“信任”检查机制。
+        *   **MCP 缓存行为变更**：MCP 发现缓存默认状态发生了变化（现默认关闭），且增加了手动控制选项。
+        *   **终端与交互体验**：解决了 Windows 退格键误删整词的问题，并优化了接近配额上限时的提示建议行为。
+    *   *Impact:* **Medium/High (中/高)**。虽然主要是文档更新，但揭示了行为上的重要变更：**内联 MCP 服务器现在受限于文件夹信任规则**，这可能导致现有的 Agent 工作流失效，直到用户显式信任相关目录。
+    *   *Action Items:*
+        *   检查并信任包含 Agent 文件的目录（如项目中的 `.claude/agents/`），以恢复内联 MCP 服务器的连接。
+        *   如果你依赖 MCP 服务器的启动缓存，请显式设置 `MCP_DISCOVERY_CACHE=1`，因为默认行为已改为关闭。
+        *   Windows 用户若遇到退格键异常，需配置 `CLAUDE_CODE_BS_AS_CTRL_BACKSPACE` 环境变量。
+        *   若希望在达到配额限制前保持提示建议开启，请设置 `CLAUDE_CODE_ENABLE_PROMPT_SUGGESTION=true`。
+
+5.  **Final Review:** Does this meet the &#34;world-class programmer&#34; persona? Yes, it cuts through the noise to identify the trust model change and caching defaults as the critical parts. The formatting is correct.
+
+    *(Self-Correction during drafting)*: Make sure to highlight the version notes (v2.1.238) as they imply these are active changes in recent builds, not just theoretical docs.
+
+6.  **Final Output Generation** (similar to the provided good response).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/interactive-mode.html" class="page-link">interactive-mode.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+33</span>
+                            <span class="removed">-9</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+9</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/terminal-config.html" class="page-link">terminal-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">19:20 EST</div>

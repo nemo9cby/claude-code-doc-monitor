@@ -357,6 +357,7 @@ Claude Code also skips individual suggestions in several situations, including:
 * After the first turn of a conversation, in some sessions
 * The previous response ended in an error
 * While you're in plan mode
+* Your account is close to or at its usage limit. To keep suggestions on until you reach the limit, set [`CLAUDE_CODE_ENABLE_PROMPT_SUGGESTION`](/docs/en/env-vars) to `true`. Before v2.1.238, Claude Code skipped them near the limit even with the variable set to `true`
 * In an [agent team](/docs/en/agent-teams), in teammates' sessions by default. The lead's session shows suggestions
 
 In print mode, Claude Code doesn't generate suggestions by default. Pass [`--prompt-suggestions`](/docs/en/cli-reference#cli-flags) with `-p "<prompt>" --output-format stream-json --verbose` to have Claude Code emit a `prompt_suggestion` message after each turn that generates one. The generator skips very short conversations and cold prompt caches here too, so a single short `-p` query can emit none.
@@ -367,7 +368,7 @@ To disable prompt suggestions entirely, use any of the following:
 
 * Turn off **Prompt suggestions** in `/config`
 * Set [`promptSuggestionEnabled`](/docs/en/settings#available-settings) to `false` in your settings file
-* Set the `CLAUDE_CODE_ENABLE_PROMPT_SUGGESTION` environment variable to `false`, which takes precedence over the setting:
+* Set the [`CLAUDE_CODE_ENABLE_PROMPT_SUGGESTION`](/docs/en/env-vars) environment variable to `false`, which takes precedence over the setting:
   ```bash theme={null}
   export CLAUDE_CODE_ENABLE_PROMPT_SUGGESTION=false
   ```
