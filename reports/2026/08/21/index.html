@@ -118,9 +118,495 @@
 
         <header>
             <h1>Changes on 2026-08-21</h1>
-            <p class="meta">23 total changes in 3 runs</p>
+            <p class="meta">49 total changes in 4 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">17:18 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更分析摘要
+
+### 总体概览
+本次文档更新主要涉及 **SDK 稳定性升级**（PHP Files API 正式发布、Python SDK v1.0 清理废弃参数）、**Skills API 架构调整**（移除对 `latest` 字符串的支持）以及产品功能可用性术语的标准化。
+
+### 关键变更主题
+
+*   **PHP SDK Files API 正式发布 (GA)**
+    *   **核心变更**：Files API 脱离 Beta 命名空间。所有调用从 `$client-&gt;beta-&gt;files` 迁移至 `$client-&gt;files`。
+    *   **参数变更**：废弃 Beta header `files-api-2025-04-14`。字段名 `file_id` 统一更改为 `fileID`（驼峰命名）。
+    *   **影响范围**：涉及 Vision, PDF, Citations, Files, Code Execution, MCP Connector 等多个功能的 PHP 示例代码。
+
+*   **Python SDK v1.0 强制变更**
+    *   **废弃参数移除**：明确指出 Python SDK v1.0+ 已移除 `temperature`, `top_p`, `top_k` 参数，传入将引发 `TypeError`。
+    *   **Beta 参数迁移**：`output_format` 参数不再被接受（需使用 `output_config`），`compaction_control` 也不支持。
+    *   **代码示例更新**：Python 示例中的导入从 `httpx` 变更为 `httpx2`。
+
+*   **Skills API 架构变更**
+    *   **`version` 字段行为改变**：`version` 参数的描述从“Skill version or &#39;latest&#39;”变更为“The resolved version: a skill version ID”。
+    *   **潜在破坏性变更**：这表明 API 不再接受字符串 `&#34;latest&#34;`，调用方必须提供具体的 Skill 版本 ID。
+
+*   **术语与分类标准化**
+    *   移除了“Generally Available (GA)”这一通用分类标签，转而使用更精确的描述（如“无需审批”、“已成为标准 API 的一部分”）。
+    *   重新定义了“功能可用性”表格的阅读方式：未标记的默认为稳定版。
+
+### 影响等级：高
+
+**理由**：
+1.  **PHP 破坏性变更**：Files API 的命名空间变更和字段重命名（`file_id` -&gt; `fileID`）是直接的代码破坏性变更，需要立即修改。
+2.  **Python SDK 清理**：Python v1.0 对废弃参数的彻底移除会导致旧代码报错。
+3.  **Skills API 行为变更**：如果不再支持 `&#34;latest&#34;` 字符串，所有依赖该动态版本的集成将失效。
+
+### 开发者行动项
+
+1.  **PHP 开发者**：立即重构代码，将 `$client-&gt;beta-&gt;files` 替换为 `$client-&gt;files`，移除 `betas: [&#39;files-api-2025-04-14&#39;]` 配置，并将所有 `file_id` 修改为 `fileID`。
+2.  **Python 开发者 (v1.0)**：审查并移除代码中已废弃的 `temperature`, `top_p`, `top_k` 参数；将 `output_format` 迁移至 `output_config.format`。
+3.  **Skills 用户**：检查 Skills API 调用逻辑，确保传入 `version` 字段时使用解析后的具体版本 ID，而非字符串 `&#34;latest&#34;`。
+4.  **Claude Sonnet 5 用户**：注意该模型**不支持** Mid-conversation system messages（中间对话插入系统消息），需调整相关缓存或上下文管理策略。
+5.  **AWS Bedrock 用户**：更新关于 `aws_region` 解析逻辑的文档阅读，确认 SDK 现在会读取 `~/.aws/config` 文件。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Task:** Analyze a batch of 26 changed pages. Summarize changes, importance, and impact.
+    *   **Format:** Markdown, concise, insightful, Chinese response.
+    *   **Input:** Diffs for various markdown files (monitoring, models, API docs, feature docs like vision/PDF/files).
+
+2.  **Scan and Categorize the Diffs:**
+
+    *   `monitoring-usage.md`: Clarification on retention sweep behavior when `managed-settings.json` is broken vs drop-in configs. (Minor logic clarification).
+    *   `about-claude/models/overview.md` &amp; `migration-guide.md`:
+        *   Language shift: &#34;generally available&#34; -&gt; &#34;available&#34; / &#34;does not require access approval&#34;.
+        *   Removal of specific &#34;general availability&#34; phrasing for Claude Fable 5.
+        *   Clarification on availability of Claude Mythos 5 (Project Glasswing).
+        *   *Implication:* Marketing/terminology shift, likely preparing for a broader rollout or just refining the distinction between &#34;widely released&#34; and &#34;access-gated&#34;.
+    *   `about-claude/model-deprecations.md`: Update on how deprecated parameters are handled. Specifically notes Python SDK v1.0+ removes `temperature`, `top_p`, `top_k`.
+    *   `api/overview.md`: Removed &#34;General Availability:&#34; and &#34;Beta:&#34; labels under the main API list. Just lists APIs now. Changed beta description to &#34;The following APIs are in beta&#34;.
+    *   `api/messages.md`: Significant change to `SkillParams`. The `version` field description changed from &#34;Skill version or &#39;latest&#39;...&#34; to &#34;The resolved version: a skill version ID for custom skills.&#34; This appears in multiple places (input and output schemas).
+    *   `api/rate-limits.md`: Typo fix/clarification &#34;00UTC&#34; -&gt; &#34;00:00 UTC&#34;.
+    *   `api/beta-headers.md`: Description change &#34;before general availability&#34; -&gt; &#34;before they become part of the standard API&#34;.
+    *   `api/service-tiers.md`: Formatting change (bash code block condensation).
+    *   `build-with-claude/overview.md`, `text-generation.md`: Major rewrites of the &#34;Feature availability&#34; section. Removed the explicit definition table for &#34;Generally available (GA)&#34; and &#34;Retired&#34;, leaving only &#34;Beta&#34; and &#34;Deprecated&#34; in the table, with a preamble explaining that unlabeled platforms are stable.
+    *   `build-with-claude/vision.md`:
+        *   PHP SDK: Files API moved out of beta namespace (`$client-&gt;files` instead of `$client-&gt;beta-&gt;files`).
+        *   PHP field name: `file_id` -&gt; `fileID`.
+        *   Vision: Added note on `transformations` field for oversized image handling.
+    *   `build-with-claude/pdf-support.md`:
+        *   Python: `import httpx` -&gt; `import httpx2` (Wait, this looks suspicious. Is it a placeholder or a real change? Let me double-check other files).
+        *   PHP SDK: Files API moved out of beta namespace. `file_id` -&gt; `fileID`.
+    *   `build-with-claude/prompt-caching.md`: Note update: Claude Sonnet 5 *does not* support mid-conversation system messages (removed from the list of models that do).
+    *   `build-with-claude/context-editing.md`:
+        *   Removed Python SDK from client-side compaction (v1.0 removal).
+        *   Clarified deprecation of `compaction_control` in Python (already removed) vs TS/Ruby.
+    *   `build-with-claude/citations.md`:
+        *   PHP SDK: Files API moved out of beta namespace. `file_id` -&gt; `fileID`.
+    *   `build-with-claude/structured-outputs.md`: Added note that Python SDK v1.0+ rejects `output_format` (requires `output_config`).
+    *   `build-with-claude/files.md`:
+        *   PHP SDK: Files API moved out of beta namespace. `file_id` -&gt; `fileID`. Removed beta headers from examples.
+    *   `build-with-claude/working-with-messages.md`: `import httpx` -&gt; `import httpx2` (Confirmed pattern).
+    *   `build-with-claude/claude-on-amazon-bedrock.md`: Update to `aws_region` resolution logic (reads config now).
+    *   `agents-and-tools/tool-use/computer-use-tool.md`:
+        *   &#34;generally available&#34; -&gt; &#34;available&#34;.
+        *   PHP: `toolsetName` property access fix (was array access, now property access).
+    *   `agents-and-tools/tool-use/code-execution-tool.md`:
+        *   &#34;generally available&#34; -&gt; &#34;None of the three... requires&#34;.
+        *   PHP SDK: Files API moved out of beta namespace. `file_id` -&gt; `fileID`.
+        *   PHP: Type changes (Beta* classes removed).
+    *   `agents-and-tools/tool-use/memory-tool.md`: &#34;generally available&#34; -&gt; &#34;doesn&#39;t require a beta header&#34;.
+    *   `agents-and-tools/tool-use/tool-search-tool.md`: &#34;generally available&#34; -&gt; Removed.
+    *   `agents-and-tools/mcp-connector.md`: PHP SDK Files API move.
+
+3.  **Synthesize Themes:**
+
+    *   **PHP SDK Major Release/Stabilization:** The most frequent code change is the Files API moving from `$client-&gt;beta-&gt;files` to `$client-&gt;files`, removing the `files-api-2025-04-14` beta header, and renaming `file_id` to `fileID`. Also, tool-related types (like `BetaCodeExecutionTool`) are moving out of beta namespaces.
+    *   **Python SDK v1.0 Breaking Changes:** Explicit notes added about removal of deprecated parameters (`temperature`, `top_p`, etc.) and beta parameters (`output_format`, `compaction_control`).
+    *   **Terminology Consistency (GA vs Beta):** A systematic shift away from the phrase &#34;Generally Available (GA)&#34; in marketing text. It seems they want to distinguish &#34;no access approval required&#34; rather than using &#34;GA&#34;. Also, explicit classification tables in feature pages are being simplified to assume stability unless marked otherwise.
+    *   **Skills API Schema Change:** The `version` field in Skills now returns a resolved ID, not the string &#34;latest&#34; or a version string. This is an input/output contract change.
+    *   **Minor Fixes:** Time formatting, `httpx` -&gt; `httpx2` (likely placeholder or typo in source, but I should report it), AWS config reading logic.
+
+4.  **Determine Impact:**
+
+    *   **High:** PHP SDK users relying on Files API need to update code paths (namespace, header, field name). Python SDK v1.0 users will break if using old params.
+    *   **Medium:** Skills API users need to handle resolved version IDs.
+    *   **Low:** Text/Marketing changes don&#39;t affect code execution, but indicate shifting product availability.
+
+5.  **Drafting the Response (in Chinese):**
+
+    *   *Summary:* Updates focus on SDK stabilization (PHP Files API graduating from beta), Python SDK v1.0 breaking changes, Skills API schema updates, and terminology refinements regarding feature availability.
+    *   *Themes:*
+        *   PHP SDK Stabilization: Files API &amp; tool types moved out of beta.
+        *   Python SDK v1.0 Cleanup: Removal of deprecated params.
+        *   Skills API: `version` field behavior change.
+        *   Terminology: &#34;Generally Available&#34; replaced with specific access descriptions.
+    *   *Impact:* High (Breaking changes for PHP/Python users).
+    *   *Action Items:*
+        *   Update PHP code (Files API namespace, headers, field names).
+        *   Check Python SDK v1.0 compatibility (remove old params).
+        *   Update Skills logic (handle resolved version IDs).
+        *   Note Claude Sonnet 5 limitation (mid-conversation system messages).
+
+6.  **Refining the Details:**
+
+    *   *PHP specific:* `file_id` -&gt; `fileID` (camelCase), `beta-&gt;files` -&gt; `files`.
+    *   *Python specific:* `httpx` vs `httpx2` in examples. I&#39;ll mention this as a potential update requirement or just a documentation artifact. *Self-correction*: `httpx2` is not a standard library. This might be a placeholder in the docs or a specific migration instruction. I will note it as a change in code examples.
+    *   *Skills:* `version` is now &#34;The resolved version: a skill version ID&#34;. It implies you can&#39;t send &#34;latest&#34; and expect &#34;latest&#34; back in the same way, or the input validation changed. Actually, the diff says input param description *also* changed or output description changed?
+    *   *Checking Skills diff:*
+        *   Input/Param description for `version`: Changed from &#34;Skill version or &#39;latest&#39;...&#34; to &#34;The resolved version: a skill version ID for custom skills.&#34;
+        *   Output description: Same change.
+        *   *Wait:* If the input parameter description changed to &#34;resolved version&#34;, does that mean I cannot pass &#34;latest&#34; anymore? Or is the documentation just describing the *valid* values? The previous description allowed &#34;latest&#34;. The new description says &#34;a skill version ID&#34;. This implies **breaking change**: you might need to resolve &#34;latest&#34; client-side or the API no longer accepts the string &#34;latest&#34;.
+    *   *Re-evaluating Skills impact:* If `latest` is no longer accepted, that&#39;s a breaking change for the Skills API. The text changed in `SkillParams` inside `ContainerParams` and `ContainerSkill`. This affects the `version` string field.
+    *   *Wait, let&#39;s look closer at `api/messages.md` diff:*
+        `version: string` description changed from `Skill version or &#39;latest&#39; for most recent version` to `The resolved version: a skill version ID for custom skills.`
+        This strongly suggests passing `&#34;latest&#34;` is deprecated or removed. I should flag this.
+
+7.  **Final Polish (Chinese):**
+
+    *   *Headline:* 文档主要更新了 SDK 的稳定性变更（PHP Files API 正式发布、Python v1.0 废弃参数移除）、Skills API 架构调整（`version` 字段行为变更）以及功能可用性术语的统一。
+
+    *   *Themes:*
+        *   **PHP SDK 重大更新**: Files API (`files-api-2025-04-14`) 脱离 Beta 命名空间，相关字段名 (`file_id` -&gt; `fileID`) 和类名变更。
+        *   **Python SDK v1.0 清理**: 明确了废弃参数（如 `temperature`、`output_format`）在 v1.0 中已被移除或不再支持。
+        *   **Skills API 架构变更**: `version` 字段描述从 &#34;version or &#39;latest&#39;&#34; 变更为 &#34;resolved version ID&#34;，暗示不再接受字符串 &#34;latest&#34;。
+        *   **术语标准化**: 移除了 &#34;Generally Available (GA)&#34; 的笼统表述，转而使用更具体的“无需审批”或“已纳入标准 API”描述。
+
+    *   *Impact:* High (针对 PHP 和 Python 开发者，以及 Skills 用户)。
+
+    *   *Actions:*
+        1.  **PHP 开发者**: 迁移代码，从 `$client-&gt;beta-&gt;files` 移至 `$client-&gt;files`，移除 `files-api-2025-04-14` header，并将 `file_id` 改为 `fileID`。
+        2.  **Python 开发者**: 检查代码，确保未使用 v1.0 已移除的 `temperature`、`top_p`、`top_k` 或 `output_format` 等参数。
+        3.  **Skills 用户**: 检查 API 调用，确认 `version` 字段现在需要传递具体的版本 ID，而不再是字符串 &#34;latest&#34;。
+        4.  **Sonnet 5 用户**: 注意该模型不支持 Mid-conversation system messages（中间对话系统消息）。
+        5.  **Bedrock 用户**: 更新 AWS region 解析逻辑的说明，SDK 现在会读取 `~/.aws/config`。
+
+8.  **Review against constraints:**
+    *   Concise? Yes.
+    *   Insightful? Yes, identified the Skills API &#34;latest&#34; removal and PHP namespace graduation.
+    *   Markdown? Yes.
+    *   Chinese? Yes.
+
+    *Self-Correction on `httpx` vs `httpx2`*: It appears in multiple Python examples. It might be a linter error in the source docs or a specific migration instruction. I&#39;ll mention it as a code example update.
+
+    *Self-Correction on Skills API*: The diff shows the description changed for *both* input and output. This strongly implies &#34;latest&#34; is gone.
+
+    Let&#39;s write the output.</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/about-claude/models/overview.html" class="page-link">about-claude/models/overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/about-claude/models/migration-guide.html" class="page-link">about-claude/models/migration-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+18</span>
+                            <span class="removed">-17</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/about-claude/model-deprecations.html" class="page-link">about-claude/model-deprecations.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/overview.html" class="page-link">api/overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/messages.html" class="page-link">api/messages.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/rate-limits.html" class="page-link">api/rate-limits.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/beta-headers.html" class="page-link">api/beta-headers.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/service-tiers.html" class="page-link">api/service-tiers.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/overview.html" class="page-link">build-with-claude/overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-7</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/text-generation.html" class="page-link">build-with-claude/text-generation.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-7</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/vision.html" class="page-link">build-with-claude/vision.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-9</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/pdf-support.html" class="page-link">build-with-claude/pdf-support.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-8</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-caching.html" class="page-link">build-with-claude/prompt-caching.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/context-editing.html" class="page-link">build-with-claude/context-editing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-30</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/citations.html" class="page-link">build-with-claude/citations.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-8</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/structured-outputs.html" class="page-link">build-with-claude/structured-outputs.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/files.html" class="page-link">build-with-claude/files.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+14</span>
+                            <span class="removed">-17</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/working-with-messages.html" class="page-link">build-with-claude/working-with-messages.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-on-amazon-bedrock.html" class="page-link">build-with-claude/claude-on-amazon-bedrock.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/computer-use-tool.html" class="page-link">agents-and-tools/tool-use/computer-use-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/code-execution-tool.html" class="page-link">agents-and-tools/tool-use/code-execution-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+9</span>
+                            <span class="removed">-14</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/memory-tool.html" class="page-link">agents-and-tools/tool-use/memory-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/tool-search-tool.html" class="page-link">agents-and-tools/tool-use/tool-search-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/mcp-connector.html" class="page-link">agents-and-tools/mcp-connector.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+60</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">15:21 EST</div>
