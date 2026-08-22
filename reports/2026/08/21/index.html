@@ -118,9 +118,287 @@
 
         <header>
             <h1>Changes on 2026-08-21</h1>
-            <p class="meta">89 total changes in 6 runs</p>
+            <p class="meta">100 total changes in 7 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">23:36 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更分析
+
+## 总体摘要
+本次更新重点改进了终端交互体验，引入并扩展了 Readline 风格的按键绑定支持（新增 `Alt+D`），同时修正了 JetBrains 插件中关于诊断信息获取机制的技术描述。此外，对插件路径解析、环境初始化及 Slack 路由模式进行了澄清，以确保文档与实际行为一致。
+
+## 关键变更主题
+*   **终端编辑体验增强**：显著扩展了 `keybindingFlavor: &#34;readline&#34;` 的功能，新增 `Alt+D`（删除下一个单词），并细化了 `Ctrl+W`、`Alt+F` 和 `Ctrl+Y` 在不同模式下的行为差异（需 v2.1.239+）。
+*   **IDE 集成行为修正**：明确 JetBrains 插件不再在编辑后自动拉取诊断信息，而是由 Claude 主动调用 `getDiagnostics` 工具来读取，这改变了错误的呈现逻辑。
+*   **配置与路径解析**：澄清了插件市场中 `metadata.pluginRoot` 字段的作用，现在它支持解析“裸名称”插件路径；简化了 `CLAUDE.md` 的加载描述。
+*   **工作流细节澄清**：修正了云端环境创建的触发条件（仅在无环境时创建）、PR 链接的时机描述以及 Slack 集成中不同路由模式的行为差异。
+
+## 影响级别：**中等**
+**理由**：大部分修改为澄清性文字，不影响现有功能。但 `interactive-mode.md` 中关于 Readline 模式的更新改变了终端编辑行为，且 JetBrains 诊断机制的描述修正解决了潜在的误解，这对提升开发体验和调试效率有实质性帮助。
+
+## 开发者行动项
+*   **终端用户**：尝试在设置中将 `keybindingFlavor` 设为 `&#34;readline&#34;`，以使用 Bash 风格的快捷键（如 `Alt+D` 删除单词）。
+*   **JetBrains 用户**：注意诊断信息（如 Lint 错误）现在由 Claude 按需通过工具获取，而非自动推送，需根据此调整调试预期。
+*   **插件开发者**：若使用 `metadata.pluginRoot`，请更新至 v2.1.239+ 以利用其解析“裸名称”插件源的新特性。
+*   **Slack 用户**：检查并确认当前使用的是“Code + Chat”还是“Code only”路由模式，以确保 @Claude 的响应符合预期。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Input:** A batch of 11 diff snippets from markdown files.
+    *   **Output Format:** Markdown.
+    *   **Content Requirements:** Overall Summary, Key Themes, Impact Level, Action Items.
+    *   **Language:** Chinese.
+    *   **Focus:** What matters to developers.
+
+2.  **Analyze the Diffs (Page by Page):**
+
+    *   **`claude-code-on-the-web.md`**:
+        *   *Change:* &#34;Claude Code sets up a **Default** environment&#34; -&gt; &#34;If you don&#39;t have an environment yet when you onboard, Claude Code sets up a **Default** environment&#34;.
+        *   *Significance:* Clarification of edge case behavior (onboarding without an existing environment). Avoids confusion about default environment creation logic.
+
+    *   **`common-workflows.md`**:
+        *   *Change:* Reordered sentences about linking PRs. &#34;Claude Code links the session...&#34; moved after the &#34;To find the session later...&#34; instruction. Added &#34;when Claude creates it...&#34; to be more precise.
+        *   *Significance:* Improved flow/grammar. Developers need to know how to *find* sessions first; the &#34;why&#34; (linking) is secondary context. Clarification on *when* linking happens.
+
+    *   **`headless.md`**:
+        *   *Change:* Reworded explanation of what runs without `--bare` in a `-p` session. &#34;Claude Code runs the hooks... even in a folder...&#34; -&gt; &#34;a `-p` session runs the hooks... even in a folder...&#34;. Explicitly mentions no approval prompt is shown.
+        *   *Significance:* clearer attribution of actions to the session type (`-p`) rather than the tool generally. Emphasizes security implications (no prompts).
+
+    *   **`interactive-mode.md`**:
+        *   *Change 1:* Added `Alt+D` to the list of macOS Option key shortcuts.
+        *   *Change 2:* Updated `Ctrl+Y` paste description to include `Alt+D`.
+        *   *Change 3:* Added `Alt+D` (Delete next word) to the shortcut table.
+        *   *Change 4:* Changed `Alt+F` description to mention &#34;start of next word&#34; vs &#34;end of current word&#34; based on `keybindingFlavor`.
+        *   *Change 5:* Renamed section &#34;Make Ctrl+W delete back to whitespace&#34; -&gt; &#34;Make editing keys follow readline conventions&#34;. Expanded description significantly. It now details how `keybindingFlavor: &#34;readline&#34;` affects `Ctrl+W`, `Alt+F`, `Alt+D`, and `Ctrl+Y`. Mentions version v2.1.239.
+        *   *Significance:* **High.** Major feature update/clarification regarding readline keybindings. Introduces `Alt+D` and refines word deletion behavior for readline mode. Improves terminal editing experience.
+
+    *   **`jetbrains.md`**:
+        *   *Change 1:* &#34;Diagnostic sharing&#34; section rewritten. Old: &#34;pulls the IDE&#39;s new diagnostics... into the conversation&#34;. New: &#34;Claude reads the IDE&#39;s inspection diagnostics... by calling the `getDiagnostics` tool; Claude Code doesn&#39;t request diagnostics from the plugin on its own after edits&#34;.
+        *   *Change 2:* &#34;Built-in IDE MCP server&#34; section. &#34;pulls inspection diagnostics into the conversation&#34; -&gt; &#34;lets Claude read inspection diagnostics&#34;.
+        *   *Significance:* Important technical correction/clarification. It shifts the responsibility of diagnostics fetching from &#34;automatic pull after edit&#34; to &#34;Claude decides to call the tool&#34;. Developers might wonder why errors aren&#39;t appearing automatically; this explains it&#39;s tool-driven, not event-driven.
+
+    *   **`mcp.md`**:
+        *   *Change:* Re-worded token refresh failure instructions. &#34;The connected server&#39;s menu there offers Re-authenticate&#34; -&gt; &#34;Open `/mcp` and select Re-authenticate...&#34;.
+        *   *Significance:* clearer, actionable instructions for re-authentication flow.
+
+    *   **`memory.md`**:
+        *   *Change:* Simplified explanation of how `CLAUDE.md` files load. &#34;Claude Code reads... by walking up...&#34; -&gt; &#34;Claude Code loads... from your current working directory and every directory above it.&#34;
+        *   *Significance:* Easier to read, less jargon (&#34;walking up&#34;).
+
+    *   **`network-config.md`**:
+        *   *Change:* Updated description for `storage.googleapis.com`. Removed mention of &#34;Signed artifact uploads try this host first...&#34;.
+        *   *Significance:* Likely reflects a backend change where artifact upload logic has moved or the documentation was over-specified/incorrect. Removes outdated info.
+
+    *   **`plugin-marketplaces.md`**:
+        *   *Change 1:* `metadata.pluginRoot` description updated. &#34;Base directory prepended...&#34; -&gt; &#34;Directory that Claude Code resolves bare plugin source names under.&#34; Added version requirement (v2.1.239).
+        *   *Change 2:* Source table updated for &#34;Relative path&#34;. Added note about bare names under `metadata.pluginRoot`.
+        *   *Significance:* Feature update/correction for plugin developers. Clarifies path resolution for plugins, specifically how `pluginRoot` works with relative paths or bare names. Requires specific version.
+
+    *   **`slack.md`**:
+        *   *Change:* &#34;Automatic detection&#34; section rewritten. Added context about &#34;Code + Chat routing mode&#34; vs &#34;Code only mode&#34;.
+        *   *Significance:* Important clarification for Slack integration users. Explains behavior differences based on configuration modes.
+
+    *   **`statusline.md`**:
+        *   *Change:* Simplified sentence structure. &#34;runs your script and pipes... via stdin&#34; -&gt; &#34;runs your script with... on stdin&#34;.
+        *   *Significance:* Minor stylistic change.
+
+3.  **Synthesize and Structure:**
+
+    *   **Overall Summary:** The changes primarily focus on clarifying existing behaviors (diagnostics, environment setup, path resolution) and documenting new keyboard shortcut features related to &#34;readline&#34; mode. The updates improve precision and user experience for terminal interactions and plugin development.
+
+    *   **Key Themes:**
+        *   *Keyboard &amp; Terminal Experience:* Significant expansion of readline keybinding support (`Alt+D`, improved word navigation).
+        *   *Plugin &amp; Configuration:* Clarified path resolution for plugins (`metadata.pluginRoot`) and network endpoint descriptions.
+        *   *Workflow Clarifications:* Refined explanations of diagnostics fetching, PR linking, and environment creation to align with actual tool behavior.
+        *   *Integration Specifics:* Updated Slack routing mode descriptions and IDE plugin diagnostic behavior.
+
+    *   **Impact Level:** **Medium**.
+        *   *Reasoning:* Most changes are clarifications. However, the `interactive-mode.md` changes introduce/newly document `Alt+D` and specific readline behaviors (v2.1.239) which changes how users interact with the CLI. The JetBrains diagnostic change corrects a potential misconception about automatic error detection.
+
+    *   **Action Items:**
+        *   Update custom keybinding scripts or habits if you use `Alt` key shortcuts on macOS (new `Alt+D` available).
+        *   Review `keybindingFlavor` setting if you prefer Bash-like readline behavior for word deletion and navigation.
+        *   Plugin developers: Check `metadata.pluginRoot` usage if managing multi-plugin marketplaces (requires v2.1.239).
+        *   JetBrains users: Note that diagnostics are now explicitly tool-driven (`getDiagnostics`) rather than auto-pulled after edits.
+        *   Slack users: Verify which routing mode (Code + Chat vs Code only) matches your team&#39;s needs.
+
+4.  **Drafting the Response (in Chinese):**
+
+    *   *Translation check:*
+        *   &#34;Readline conventions&#34; -&gt; Readline 惯例.
+        *   &#34;KeybindingFlavor&#34; -&gt; 按键绑定风格.
+        *   &#34;Diagnostics&#34; -&gt; 诊断信息.
+        *   &#34;Marketplace&#34; -&gt; 市场/插件市场.
+        *   &#34;Bare mode&#34; -&gt; 裸模式.
+
+5.  **Refining the Output:**
+
+    *   *Summary:* 本次更新主要聚焦于终端交互体验的提升（特别是 Readline 模式的按键绑定）、对 IDE 集成诊断行为的修正说明，以及对插件路径解析和网络配置的澄清。
+    *   *Themes:*
+        1.  **终端与快捷键增强**：扩展了对 `keybindingFlavor: &#34;readline&#34;` 的支持，新增 `Alt+D` 删除下一个单词，并优化了单词导航逻辑。
+        2.  **行为精确性与修正**：修正了 JetBrains 插件关于诊断信息获取方式的描述（改为 Claude 主动调用工具），并明确了 Slack 路由模式的行为。
+        3.  **配置与开发细节**：澄清了插件市场中 `metadata.pluginRoot` 的路径解析规则，并简化了 CLAUDE.md 加载逻辑的描述。
+    *   *Impact:* Medium. 虽然多为文档澄清，但 Readline 模式的行为变化和诊断逻辑的修正对日常开发体验有实质影响。
+    *   *Actions:*
+        1.  尝试启用 `keybindingFlavor: &#34;readline&#34;` 以获得类似 Bash 的编辑体验（含 `Alt+D` 删除功能）。
+        2.  如果你是 JetBrains 用户，需了解诊断信息现在由 Claude 主动通过工具获取，而非编辑后自动拉取。
+        3.  插件开发者需更新对 `metadata.pluginRoot` 的认知，它现在支持解析裸插件名称（需 v2.1.239）。
+        4.  检查 Slack 集成配置，确认当前处于“Code + Chat”还是“Code only”路由模式。
+
+6.  **Final Review against constraints:**
+    *   Markdown format? Yes.
+    *   Chinese language? Yes.
+    *   Concise? Yes.
+    *   Action items max 5? Yes.
+
+7.  **Final Polish (Self-Correction during drafting):**
+    *   Make sure to mention the version number for the plugin feature (v2.1.239) as it&#39;s a dependency.
+    *   Ensure the JetBrains distinction (automatic vs tool-driven) is clear.
+
+    (Proceed to generate output based on these steps.)</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/claude-code-on-the-web.html" class="page-link">claude-code-on-the-web.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/common-workflows.html" class="page-link">common-workflows.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/headless.html" class="page-link">headless.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/interactive-mode.html" class="page-link">interactive-mode.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+9</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/jetbrains.html" class="page-link">jetbrains.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/memory.html" class="page-link">memory.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/network-config.html" class="page-link">network-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugin-marketplaces.html" class="page-link">plugin-marketplaces.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+12</span>
+                            <span class="removed">-10</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slack.html" class="page-link">slack.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/statusline.html" class="page-link">statusline.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">20:55 EST</div>
