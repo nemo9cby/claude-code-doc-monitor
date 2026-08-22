@@ -575,7 +575,13 @@ Claude Code's system prompt isn't published. To give Claude standing instruction
 
 ### Use the /config menu
 
-Run `/config` inside Claude Code and open the **Config** tab. It lists a short set of personal options such as theme, editor mode, and verbose output, not every settings key. Select an option to change it; Claude Code saves it for you, to `~/.claude/settings.json` for most options and to `~/.claude.json` for the [global config options](/docs/en/settings-reference#global-config-settings). To set one option without the menu, pass `key=value`, such as `/config verbose=true`.
+Run `/config` inside Claude Code and open the **Config** tab. It lists a short set of personal options such as theme, editor mode, and verbose output, not every settings key. Select an option to change it; Claude Code saves it for you:
+
+* **Most options**: `~/.claude/settings.json`
+* **A few options, such as Show tips**: `.claude/settings.local.json`
+* **The [global config options](/docs/en/settings-reference#global-config-settings)**: `~/.claude.json`
+
+To set one option without the menu, pass `key=value`, such as `/config verbose=true`.
 
 <Note>
   `/config` is part of the terminal interface. The [VS Code](/docs/en/vs-code) chat panel and the [desktop app](/docs/en/desktop) don't open it; change settings there by editing a settings file or through those apps' own settings.
