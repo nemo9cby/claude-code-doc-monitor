@@ -118,9 +118,314 @@
 
         <header>
             <h1>Changes on 2026-08-24</h1>
-            <p class="meta">19 total changes in 4 runs</p>
+            <p class="meta">35 total changes in 5 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">18:19 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### Overall Summary
+此次更新主要引入了**使用配额自动恢复机制**（自动等待并继续任务），并大幅增强了**插件市场的安全性**（支持私有仓库认证）。同时，修正了企业级 GitHub 防火墙配置要求，并对 API 文档进行了标准化重构。
+
+### Key Themes
+*   **配额管理自动化**：新增自动等待使用限制重置并继续任务的功能（默认开启），提升长任务运行的体验。
+*   **插件私有化与安全加固**：通过 `headersHelper` 支持从私有认证源下载插件，并收紧了受限环境下的插件命令执行权限。
+*   **企业级网络配置修正**：明确 GitHub Enterprise Cloud 必须同时启用 IP 继承并手动添加 Anthropic 出站 IP，不再仅依赖继承。
+*   **文档标准化与结构优化**：API 文档统一了格式规范（如大小写、Schema 约束），提高了可读性和一致性。
+*   **模型回退逻辑细化**：明确“组织策略拒绝”错误不会触发模型回退。
+
+### Impact Level
+**Medium**
+
+**Reasoning:**
+*   **行为变更**：自动配额恢复功能默认开启，改变了任务中断后的交互模式，直接影响开发者的工作流体验。
+*   **新能力**：插件私有认证支持解锁了企业内部插件分发的新场景，但需要版本配合（v2.1.238+）。
+*   **合规性风险**：GitHub 防火墙配置要求的变更对 Enterprise 用户至关重要，未及时更新可能导致连接问题。
+*   **文档重构**：API 文档的格式变更虽大，但主要是展示层面的优化，不影响实际调用逻辑。
+
+### Action Items
+1.  **配置配额自动恢复**：检查并确认新引入的 `autoContinueAtUsageLimit` 设置是否符合你的预期行为（特别是 CI/CD 或无人值守场景）。
+2.  **更新 GitHub 防火墙规则**：如果你使用 GitHub Enterprise Cloud，请务必按文档要求添加 Anthropic 的出站 IP 地址到白名单。
+3.  **利用私有插件源**：如需从私有 Registry 分发插件，更新插件市场配置以使用 `headersHelper` 进行认证。
+4.  **监控配额事件**：若你在 Hooks 中自动化流程，注意新增的 `quota_auto_resume_fired` 和 `quota_auto_resume_stale` 匹配器。
+5.  **审查模型回退策略**：确认你的错误处理逻辑考虑到了“组织策略拒绝”不会触发模型回退这一情况。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer, deep expertise in dev tools/docs.
+    *   **Task:** Analyze documentation changes (16 pages) as a single batch.
+    *   **Output Format:** Markdown, concise, insightful.
+    *   **Language:** Chinese (requested: &#34;请用中文回复&#34;).
+    *   **Structure:**
+        1.  Overall Summary (1-2 sentences).
+        2.  Key Themes.
+        3.  Impact Level with reasoning.
+        4.  Action Items (max 5).
+
+2.  **Analyze the Diffs (Page by Page):**
+
+    *   **costs.md:** Added details about usage limits. Specifically, improved handling of &#34;You&#39;ve hit your session/weekly limit&#34; vs. model-specific limits (Opus/Sonnet). Added a new feature: &#34;wait and continue&#34; automatically after a usage limit resets (v2.1.234+), controllable via `autoContinueAtUsageLimit`.
+    *   **discover-plugins.md:** Added a note about `headersHelper` in marketplace entries causing the auto-update to skip running the command/downloading the archive for that specific plugin.
+    *   **hooks.md:** Updated the section on `allowManagedHooksOnly`. Added that it blocks marketplace `headersHelper` commands unless `disableCommandPluginSources` is false.
+    *   **hooks-guide.md:** Updated the table for `Notification` event matchers. Added two new matchers: `quota_auto_resume_fired` and `quota_auto_resume_stale` (related to the new usage limit wait-and-resume feature).
+    *   **interactive-mode.md:** *Major Addition.* New section &#34;Wait for a usage limit to reset&#34;. Explains the automatic continuation feature (default on). Covers scenarios (reset, sleep, early resume via credits/model switch), cancelling, starting manually, and configuration (`autoContinueAtUsageLimit`).
+    *   **model-config.md:** Updated fallback model logic. Added &#34;denial by your organization&#39;s policy check&#34; to the list of errors that do *not* trigger a fallback.
+    *   **network-config.md:** Refined GitHub allow list and firewall documentation. Now specifies that for GitHub Enterprise Cloud, one must *both* enable IP allow list inheritance *and* add an allow list entry for Anthropic&#39;s outbound IPs. Updated links to &#34;outbound IP addresses&#34;.
+    *   **plugin-marketplaces.md:** *Major Addition.* Added support for `headers` and `headersHelper` fields in plugin entries (v2.1.238+). Allows authenticating archive downloads (e.g., from private registries) by setting static headers or a command to generate dynamic headers. Detailed security/review steps for `headersHelper`.
+    *   **plugins-reference.md:** Updated `plugin install` command help. Added note that `-y` now accepts `headersHelper` commands (v2.1.238+).
+    *   **sandboxing.md:** Updated domain restriction docs. Clarified that `WebFetch(domain:...)` rules now honor wildcards `*.example.com` and bare `*` (v2.1.186+). Minor text corrections.
+    *   **settings.md:** Added specific exception for `autoContinueAtUsageLimit`. It *can* be turned off by a repository settings file even though it&#39;s generally a &#34;User, local, or managed&#34; scope key.
+    *   **api/messages.md, api/messages/count_tokens.md, api/messages/batches/create.md, api/models/list.md, api/beta/files/upload.md:** *Format/Schema Updates.*
+        *   Moved frontmatter titles into headers.
+        *   Changed `post`/`get` to **POST**/GET**.
+        *   Restructured &#34;Header Parameters&#34; to &#34;Headers&#34; and &#34;Body Parameters&#34; to &#34;Body parameters&#34;.
+        *   Added JSON schema-like constraints (e.g., `minLength`, `maxLength`, `format`, `pattern`) to the object descriptions.
+        *   Moved &#34;Example&#34; sections to the end.
+        *   Generally, this looks like a documentation reformatting and schema enrichment effort, rather than logic changes.
+
+3.  **Synthesize Key Themes:**
+    *   **Usage Limit Automation:** A significant new feature for better UX when hitting rate limits. Auto-wait and resume after reset.
+    *   **Plugin Security &amp; Private Registries:** New mechanisms (`headersHelper`, `headers`) to allow plugin installation from private/authenticated sources. Strong security constraints (managed hooks blocking these commands).
+    *   **Documentation Standardization:** API docs are getting a facelift with clearer headers, constraints, and structure.
+    *   **Network/Infrastructure Updates:** GitHub integration IP allowlisting requirements clarified; fallback model behavior refined.
+
+4.  **Determine Impact Level:**
+    *   **Reasoning:**
+        *   The &#34;Wait for usage limit reset&#34; feature changes default behavior for interactive sessions (default on). This is a UX improvement but changes how the tool handles interruptions.
+        *   The `headersHelper` feature enables new workflows (private registries) but requires specific version support (v2.1.238).
+        *   The GitHub allowlist change is critical for enterprise users behind firewalls (if they don&#39;t update config, access might break or be insecure depending on previous interpretation).
+        *   API docs formatting is internal/doc-side, mostly low impact for developers using the API (logic hasn&#39;t changed, just presentation).
+    *   **Verdict:** **Medium**. The new usage limit behavior and plugin authentication capabilities are functional changes, while the network/firewall instructions are critical for enterprise setups.
+
+5.  **Formulate Action Items:**
+    *   Check out the new &#34;auto continue at usage limit&#34; feature (`autoContinueAtUsageLimit`).
+    *   If using private plugin registries, review the new `headersHelper` and `headers` fields.
+    *   Update GitHub Enterprise firewall configs to include Anthropic&#39;s *outbound* IP addresses explicitly (not just inheritance).
+    *   Review the new `quota_auto_resume` hooks if automating workflows based on limit events.
+    *   Be aware of the fallback model exclusion for &#34;policy check&#34; denials.
+
+6.  **Draft the Response (in Chinese):**
+
+    *   *Summary:* 此次更新引入了针对使用配额的自动恢复功能，并增强了插件生态系统的安全性（支持私有仓库认证）。同时，API 文档结构进行了标准化，网络配置说明也更为严格。
+    *   *Themes:* 配额管理自动化、插件私有化与安全加固、文档格式标准化、企业级网络配置修正。
+    *   *Impact:* Medium. (Reasoning: New auto-resume behavior improves UX but changes execution flow; plugin auth opens new use cases; GitHub allowlist changes affect enterprise security posture).
+    *   *Action Items:*
+        1.  了解新特性 `autoContinueAtUsageLimit` 及其在命中限制时的自动恢复行为。
+        2.  若使用私有插件市场，查看 `headersHelper` 和 `headers` 配置以支持认证下载。
+        3.  Enterprise 用户需更新 GitHub 防火墙配置，明确添加 Anthropic 的出站 IP 地址。
+        4.  关注 Hooks 中新增的 `quota_auto_resume` 事件以监控配额恢复。
+        5.  注意模型回退逻辑变更：组织策略拒绝不会触发回退。
+
+7.  **Refine Language:** Ensure professional, concise Chinese suitable for a &#34;world-class programmer&#34;.
+
+    *   *Self-Correction on GitHub allowlist:* The diff says &#34;enable... AND also add an allow list entry&#34;. This is a configuration requirement for specific setups.
+    *   *Self-Correction on API docs:* It&#39;s mostly formatting. Don&#39;t overhype it in the summary.
+
+8.  **Final Polish:** Check against the requested markdown structure.
+
+    (Drafting response...)</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/costs.html" class="page-link">costs.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/discover-plugins.html" class="page-link">discover-plugins.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+37</span>
+                            <span class="removed">-31</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+34</span>
+                            <span class="removed">-30</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/interactive-mode.html" class="page-link">interactive-mode.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+31</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/model-config.html" class="page-link">model-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/network-config.html" class="page-link">network-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugin-marketplaces.html" class="page-link">plugin-marketplaces.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+60</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+11</span>
+                            <span class="removed">-11</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sandboxing.html" class="page-link">sandboxing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/messages.html" class="page-link">api/messages.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1295</span>
+                            <span class="removed">-1389</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/messages/count_tokens.html" class="page-link">api/messages/count_tokens.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+126</span>
+                            <span class="removed">-186</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/messages/batches/create.html" class="page-link">api/messages/batches/create.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+142</span>
+                            <span class="removed">-190</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/models/list.html" class="page-link">api/models/list.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+11</span>
+                            <span class="removed">-12</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/beta/files/upload.html" class="page-link">api/beta/files/upload.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+17</span>
+                            <span class="removed">-13</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">17:22 EST</div>
