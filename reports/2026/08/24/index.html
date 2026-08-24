@@ -118,9 +118,140 @@
 
         <header>
             <h1>Changes on 2026-08-24</h1>
-            <p class="meta">1 total change in 1 run</p>
+            <p class="meta">4 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">15:24 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 整体摘要
+本次更新主要针对企业级和自托管场景进行了文档补全，明确了钩子执行逻辑及插件分发渠道在多用户组环境下的配置细节，同时修复了快速入门文档中的代码格式冗余。
+
+### 关键主题
+*   **自托管环境的钩子来源**：详细说明了在自托管环境中，Claude Code 如何从 Runner 主机种子文件和运行镜像的管理设置文件中读取钩子，以及这些文件被读取的优先级条件。
+*   **插件渠道的精细化分发**：澄清了如何通过“端点托管设置”或“Claude Apps Gateway 策略”为不同用户组分配不同的插件发布渠道（如 Stable vs Latest），并明确指出**服务器托管设置**不适用于按组分发。
+*   **配置优先级与合并规则**：强调了在多种配置源共存时的行为，例如网关策略会替换而非合并市场列表，只有最高排名的托管源会生效。
+
+### 影响级别
+**中等**
+**理由**：虽然不涉及 API 接口破坏性变更，但对于维护企业级部署或自托管环境的开发者来说，这些文档修正解决了配置模糊地带。特别是关于插件分发的限制（服务器托管设置无法按组分发）和钩子读取顺序，直接关系到系统配置是否符合预期。
+
+### 开发者行动项
+*   **审查插件分发策略**：如果您计划通过 Admin Console 的服务器托管设置来为不同组分配插件渠道，**必须停止**并改用端点托管设置或网关策略，因为前者目前不支持按用户组分配。
+*   **验证自托管钩子配置**：在自托管环境中部署钩子时，请确认您已理解钩子来源的优先级，特别是当缺乏服务器托管设置或 MDM 策略时的回退逻辑。
+*   **检查网关策略定义**：在使用网关策略管理插件市场时，确保在组策略中列出该组所需的*所有*市场，因为组策略会完全覆盖而非合并默认策略。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Input:** A batch of 3 documentation changes (`hooks.md`, `plugin-marketplaces.md`, `quickstart.md`).
+    *   **Output Format:** Markdown.
+    *   **Language:** Chinese (as per instruction &#34;请用中文回复&#34;).
+    *   **Structure:**
+        1.  Overall Summary (1-2 sentences).
+        2.  Key Themes (bullets).
+        3.  Impact Level (Low/Medium/High/Breaking) with reasoning.
+        4.  Action Items (bullets, max 5).
+
+2.  **Analyze Page 1: `hooks.md`**
+    *   **Change:** Expanded a paragraph about hooks in Cloud sessions.
+    *   **Details:** Added specific behavior for **self-hosted environments**. It clarifies that Claude Code runs hooks seeded from the runner host&#39;s `~/.claude/` and hooks in the runner image&#39;s managed settings file (if no server-managed settings or MDM policy exists). It adds links to self-hosted environment config and settings precedence.
+    *   **Dev Relevance:** Crucial for developers working in self-hosted or runner-image setups to understand exactly where hooks are coming from and the precedence hierarchy.
+
+3.  **Analyze Page 2: `plugin-marketplaces.md`**
+    *   **Change:** Refined instructions on &#34;Set up release channels&#34; and &#34;Assign channels to user groups&#34;.
+    *   **Details:**
+        *   Clarifies *how* to assign markets to groups via managed settings.
+        *   Option A: Separate endpoint-managed settings (file/MDM) per device (highest-ranked source applies).
+        *   Option B: Claude apps gateway policy (one per group, ordered match rules, replaces rather than merges map).
+        *   Important Note: Server-managed settings (admin console) *cannot* be used for per-group assignments because they apply to everyone.
+        *   Updated the &#34;Assign channels...&#34; section to refer back to the new methods.
+    *   **Dev Relevance:** Important for administrators/developers managing plugin distribution across different teams (e.g., stable vs. beta channels). Corrects potential confusion about server-managed settings limitations.
+
+4.  **Analyze Page 3: `quickstart.md`**
+    *   **Change:** Cleaned up code blocks for installation commands.
+    *   **Details:** Removed repetitive `theme={null}` attributes from markdown code fences (bash, powershell, batch).
+    *   **Dev Relevance:** Cosmetic change. No functional impact on the tool itself, just cleaner documentation source code.
+
+5.  **Synthesize Key Themes:**
+    *   *Self-hosted/Managed Environment Clarity:* Better documentation on how settings, hooks, and plugin channels work in complex managed/self-hosted setups.
+    *   *Precedence Hierarchy:* Clarifying *which* configuration source wins when there are conflicts (hooks in self-hosted, policies in gateway).
+    *   *Distribution &amp; Deployment:* Specifics on rolling out plugins to different groups.
+
+6.  **Draft Overall Summary (Chinese):**
+    *   本次更新主要优化了在托管和自托管环境下的配置逻辑，明确了钩子和插件分发渠道的优先级与行为，并清理了快速入门文档中的冗余代码标记。
+
+7.  **Draft Key Themes (Chinese):**
+    *   **自托管环境钩子行为**：增加了关于自托管环境中钩子来源（Runner 主机 vs 运行镜像）的详细说明。
+    *   **插件发布渠道管理**：细化了针对不同用户组分配插件市场（如 stable/latest）的具体实施方法，特别是区分了网关策略和端点托管设置的区别。
+    *   **配置优先级**：多处强调了在存在多个配置源时的覆盖规则（例如网关策略的替换而非合并，最高排名托管源的生效）。
+
+8.  **Determine Impact Level:**
+    *   *Reasoning:* The changes in `hooks.md` and `plugin-marketplaces.md` fix or clarify critical behaviors for enterprise/advanced users (self-hosting, distribution groups). Misunderstanding these could lead to configurations not working as expected. `quickstart.md` is cosmetic.
+    *   *Level:* **Medium**. It&#39;s not breaking code, but it&#39;s vital for configuration correctness in enterprise contexts.
+
+9.  **Draft Action Items (Chinese):**
+    *   如果您正在配置**自托管环境**，请仔细阅读 `hooks.md` 中的新增内容，确认钩子来源是否符合预期。
+    *   如果您需要为不同用户组分配**不同的插件发布渠道**，请更新配置策略（使用网关策略或端点设置），避免使用服务器托管设置（Admin Console）进行分组，因为其不支持此功能。
+    *   无需更改现有代码，文档修复主要是说明性。
+
+10. **Review and Refine:**
+    *   Check against constraints: Concise? Yes. Insightful? Yes. Chinese? Yes. Markdown? Yes.
+    *   *Self-correction on Action Items:* Ensure the distinction about server-managed settings is highlighted, as it was a specific constraint mentioned (&#34;Server-managed settings... can&#39;t carry a per-group assignment&#34;).
+
+11. **Final Output Generation** (translating thoughts to final output).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugin-marketplaces.html" class="page-link">plugin-marketplaces.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/quickstart.html" class="page-link">quickstart.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">14:31 EST</div>
