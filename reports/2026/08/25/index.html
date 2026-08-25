@@ -118,9 +118,136 @@
 
         <header>
             <h1>Changes on 2026-08-25</h1>
-            <p class="meta">10 total changes in 4 runs</p>
+            <p class="meta">11 total changes in 5 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">16:21 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 1. Overall Summary
+此次文档更新主要阐明了状态行配置的即时生效机制，修正了关于工作树和成本重置的技术描述，旨在让开发者更清楚地理解脚本的触发逻辑和行为边界。
+
+### 2. Key Themes
+*   **即时生效机制**：状态行脚本配置现在明确为在保存文件时立即运行，而不再需要等待下一次与 Claude Code 的交互。
+*   **特殊触发逻辑**：修改 `command` 设置会跳过标准的 300ms 防抖延迟，确保新命令立即执行。
+*   **技术细节澄清**：细化了 `workspace.git_worktree` 的作用域说明，并补充了 `cost.total_cost_usd` 在旧版本（v2.1.211 之前）中关于 `/clear` 后行为差异的说明。
+
+### 3. Impact level
+**Medium**
+**理由**：虽然这只是文档更改，但它描述的行为变化（从“被动等待交互”变为“保存时主动运行”）显著改变了开发者测试和调试状态行脚本的工作流，直接影响开发效率。
+
+### 4. Action items for developers
+*   利用新的“保存即运行”特性，加快状态行脚本的迭代测试速度。
+*   注意更改 `statusLine` 设置中的 `command` 会触发立即执行，无需等待防抖结束。
+*   查阅 `cost.total_cost_usd` 的更新说明，若使用旧版本需注意 `/clear` 后成本可能不会重置。
+*   参考 `workspace.git_worktree` 的详细描述，以区分通用 Git worktree 与特定 worktree 会话的数据差异。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **分析请求：**
+    *   **角色：** 世界级程序员，擅长开发工具和文档。
+    *   **输入：** 对单个页面（`statusline.md`）的文档更改。
+    *   **格式：** Markdown 批量分析。
+    *   **约束：** 简洁、深刻，专注于开发者的重要事项。
+    *   **语言：** 中文。
+
+2.  **分析输入数据（`statusline.md` 的 Diff）：**
+
+    *   **更改 1（设置重新加载逻辑）：**
+        *   *旧：* “Settings reload automatically, but changes won&#39;t appear until your next interaction with Claude Code.”（设置会自动重新加载，但在你下一次与 Claude Code 交互之前，更改不会显示。）
+        *   *新：* “Claude Code reloads settings automatically and runs your script as soon as you save the file.”（Claude Code 会自动重新加载设置，并在你保存文件后立即运行你的脚本。）
+        *   *含义：* 行为发生了重大变化。从“等待交互”变为“保存时立即运行”。
+
+    *   **更改 2（触发器列表）：**
+        *   新增：`* You change the command in your statusLine settings`（你更改了 statusLine 设置中的 command）。
+        *   *含义：* 这阐明了更改 `command` 字段会触发状态行更新。
+
+    *   **更改 3（防抖/重新加载逻辑）：**
+        *   *旧：* “If a edit your script, the changes appear the next time an update trigger re-runs it.”（如果你编辑脚本，更改会在下一次更新触发重新运行它时出现。）（实际上，这里似乎没有显示*逐字*更改，但查看上下文...等等，让我仔细看看 diff）。
+        *   *新文本：* “A change to the command itself skips the debounce: Claude Code runs the new command right away.”（command 本身的更改会跳过防抖：Claude Code 会立即运行新 command。）
+        *   *含义：* 与其他事件相比，这给予命令配置更改更高的优先级/即时响应。
+
+    *   **更改 4（`workspace.git_worktree` 描述）：**
+        *   *旧：* “...unlike `worktree.*` which applies only to `--worktree` sessions”（...不同于仅适用于 `--worktree` 会话的 `worktree.*`）
+        *   *新：* “...unlike `worktree.*`, which is present only while the session is in a [worktree session](/docs/en/worktrees)”（...不同于 `worktree.*`，它仅当会话处于 [worktree session](/docs/en/worktrees) 时才会存在）
+        *   *含义：* 澄清/术语一致性。添加了一个链接。主要是文档完善。
+
+    *   **更改 5（`cost.total_cost_usd` 描述）：**
+        *   *旧：* “Resets to $0 when `/clear` starts a new session”
+        *   *新：* “Resets to $0 when `/clear` starts a new session. Before v2.1.211, the total carried over after `/clear`”
+        *   *含义：* 修复版本中关于 `/clear` 期间历史行为与当前行为的潜在混淆。如果用户运行旧版本，这对调试问题很重要。
+
+3.  **综合分析（起草回复结构）：**
+
+    *   **1. Overall Summary (1-2 sentences):**
+        文档更新阐明了状态行的配置行为，具体来说就是更改在保存时立即应用，而不是等待用户交互。它还完善了与工作树和成本计算相关的描述。
+
+    *   **2. Key Themes across pages (bullets):**
+        *   **即时反馈：** 状态行脚本配置现在会在保存时立即触发执行，而不是等待下一次交互。
+        *   **特殊命令处理：** 更改 `command` 设置会绕过标准的 300ms 防抖延迟以立即运行。
+        *   **技术精确度：** 关于 Git worktrees 和 `/clear` 后成本重置历史的解释更加明确。
+
+    *   **3. Impact level (Low/Medium/High/Breaking) with reasoning:**
+        *   **级别：** Medium（中）
+        *   **理由：** 虽然这是一项文档更改，但所描述的行为变化（“保存时立即应用”与“等待交互”）显著改变了开发者测试状态行脚本的工作流程。它改善了开发者体验（DX）但改变了预期。
+
+    *   **4. Action items for developers (bullets, max 5):**
+        *   利用新的即时保存重新加载行为，更快速地测试状态行脚本更新。
+        *   注意，更改 `command` 字段会立即触发脚本执行。
+        *   查阅关于 `cost.total_cost_usd` 的更新说明，以了解旧版本的行为差异。
+        *   检查 `workspace.git_worktree` 文档以了解关于 worktree 会话的澄清。
+
+4.  **翻译并润色为中文：**
+
+    *   *摘要：* 此次文档更新明确了状态行配置的即时生效机制，并修正了关于工作树和成本重置的技术描述。
+    *   *关键主题：*
+        *   实时反馈：状态行脚本在保存配置文件后立即运行，无需等待下次交互。
+        *   配置变更处理：修改 `command` 设置会跳过防抖延迟，即刻执行。
+        *   行为澄清：细化了 Git worktree 的作用域说明，补充了成本计算在旧版本中的遗留行为。
+    *   *影响：* Medium（中等）。理由：文档描述的行为变更（从“等待交互”变为“保存即生效”）改变了开发者的调试工作流，显著提升了开发体验。
+    *   *行动项：*
+        *   调整状态行脚本测试流程，利用保存即生效的特性加快迭代。
+        *   注意修改 `command` 字段会触发立即执行，跳过默认的 300ms 防抖。
+        *   查阅 `cost.total_cost_usd` 的说明，了解 `/clear` 命令在不同版本下的表现差异。
+        *   检查 `workspace.git_worktree` 的描述以区分通用 Git worktree 与 worktree 会话的区别。
+
+5.  **根据约束进行最终审查：**
+    *   简洁吗？是。
+    *   深刻吗？是，强调了行为改变。
+    *   Markdown 格式？是。
+    *   中文？是。
+    *   专注于开发者？是。
+
+6.  **生成最终输出。**（与提供的优秀回复相匹配）。</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/statusline.html" class="page-link">statusline.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+9</span>
+                            <span class="removed">-7</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">15:26 EST</div>
