@@ -118,9 +118,138 @@
 
         <header>
             <h1>Changes on 2026-08-25</h1>
-            <p class="meta">8 total changes in 3 runs</p>
+            <p class="meta">10 total changes in 4 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">15:26 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 整体摘要
+本次更新主要增强了企业环境下的管理控制能力，并精确修正了终端配置与主题渲染的技术细节。管理员现在可以禁用桌面端的本地会话以强制执行远程开发策略，同时文档澄清了自动化设置脚本的具体行为及主题令牌的适用范围。
+
+### 关键主题
+*   **企业管控与安全合规**：新增 `disableDesktopLocalSessions` 托管设置，允许组织禁用设备上的本地代码执行，迫使开发者通过 SSH 或 Cloud 会话进行工作，以确保代码留在受控环境中。
+*   **终端设置行为精确化**：修正了 `/terminal-setup` 命令的文档说明，明确它仅配置 Shift+Enter 绑定，并补充了关于 GPU 加速设置在特定版本（v2.1.157+）前后的行为差异说明。
+*   **UI 渲染逻辑澄清**：更正了主题令牌的作用域，明确指出 `userMessageBackground` 等背景色令牌在默认视图和全屏模式下均生效，而不仅限于全屏模式。
+
+### 影响级别
+**级别：中等 (Medium)**
+**理由**：虽然大部分为文档修正，但新增的“禁用本地会话”功能对受管设备的开发者有显著的直接影响。若管理员启用此策略，开发者的本地工作流将被阻断，必须转向 SSH 或云端环境。对于普通用户或未受管设备，影响较小。
+
+### 行动建议
+*   **管理员**：如需限制敏感代码在本地落地，建议立即部署 `disableDesktopLocalSessions` 设置，并配置预置的 `sshConfigs` 以确保开发连续性。
+*   **受管设备用户**：若发现桌面应用的 &#34;Local&#34; 选项变为灰色且不可选，请知晓这是 IT 策略限制，请按照提示切换至 SSH 或 Cloud 环境，或联系 IT 部门。
+*   **主题开发者**：检查您的自定义主题配置，注意 `bashMessageBackgroundColor` 等令牌现在会同时影响标准视图和全屏模式的显示效果。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">用户希望我分析两份文档（`desktop.md` 和 `terminal-config.md`）的变更，并提供一份简洁的中文摘要。
+
+**变更分析：**
+
+**1. `desktop.md` 变更：**
+*   **新增内容：** 一个名为“托管设备上的本地会话”的新小节。
+*   **功能：** 管理员现在可以使用新的托管设置 `disableDesktopLocalSessions` 来禁用桌面应用中的本地会话。
+*   **行为：** 如果被禁用，“本地”选项将显示为灰色且带有工具提示。WSL 条目也会受到影响。
+*   **回退：** 如果有配置，新会话默认使用 SSH 连接。
+*   **托管设置表：** 添加了 `disableDesktopLocalSessions` 的描述。
+*   **SSH 会话部分：** 更新了说明，即桌面应用从本地机器的托管设置中读取 `disableDesktopLocalSessions`，与 `sshConfigs` 和 `sshHostAllowlist` 类似。
+
+**2. `terminal-config.md` 变更：**
+*   **终端设置：**
+    *   澄清 `/terminal-setup` 将 *一个* Shift+Enter 键绑定写入配置文件（此前写的是“键绑定”，复数暗示了更多内容，尽管这也可能是语法澄清）。等等，对比一下：
+        *   旧版：“writes Shift+Enter and other keybindings”
+        *   新版：“writes a Shift+Enter keybinding”
+    *   新增说明：在 v2.1.157 之前，`/terminal-setup` *没有* 更改 GPU 加速设置。
+*   **主题配置：**
+    *   更新了示例描述，将“fullscreen message background”改为“message background”。
+    *   更新了全屏模式的描述，以阐明特定令牌（`userMessageBackground`, `bashMessageBackgroundColor`, `memoryBackgroundColor`）在 *两种* 渲染器（默认和全屏）中都绘制，而其他令牌（`userMessageBackgroundHover`, `selectionBg`）仅在全屏模式下使用。
+
+**综合分析：**
+
+*   **整体摘要：** 变更主要集中于对企业/托管环境的管理控制（在托管设备上禁用本地会话）以及关于终端设置和主题渲染的技术文档澄清。
+*   **关键主题：**
+    *   **管理控制：** 管理员现在可以阻止桌面环境中的本地代码执行，强制使用远程/云执行。
+    *   **文档清晰度/准确性：** 澄清了 CLI 设置脚本写入的内容、版本行为变更以及主题令牌在渲染模式中的确切应用范围。
+*   **影响级别：**
+    *   对于普通用户：低。
+    *   对于管理员：中/高（他们获得了控制本地代码执行的新杠杆）。
+    *   总体：低/中。这些主要是文档更新或用于管理员的配置选项，而非开发者需要立即修复的破坏性 API 变更。不过，“禁用本地会话”是一项显著的功能变更。
+    *   *自我修正*：提示要求“面向开发者的分析”。在企业中使用 Claude Code 的开发者可能突然无法在本地运行代码。这是对其工作流的影响。我将此标记为“中”，因为它不会破坏 API，但会改变可用性。
+
+*   **行动项：**
+    *   管理员应查看 `disableDesktopLocalSessions` 以加强安全合规性。
+    *   开发者需要知道，如果本地会话被禁用，他们必须配置 SSH 或云会话。
+    *   自定义主题的开发者应注意，某些背景令牌现在适用于标准视图，而不仅仅适用于全屏。
+
+**起草中文回复：**
+
+1.  **整体摘要:**
+    文档更新主要集中在管理控制权限与细节澄清。管理员现在可以禁用托管设备上的本地会话，同时文档对终端设置脚本的行为和主题令牌的渲染范围进行了精确修正。
+
+2.  **关键主题:**
+    *   **企业级管控增强:** 新增 `disableDesktopLocalSessions` 托管设置，允许管理员禁用桌面应用的本地代码执行环境，强制用户使用 SSH 或云端会话。
+    *   **配置脚本行为澄清:** 明确了 `/terminal-setup` 仅安装 Shift+Enter 绑定，并指出了 GPU 加速设置在不同版本下的行为差异。
+    *   **主题渲染范围修正:** 澄清了特定主题令牌（如 `userMessageBackground`）在默认和全屏模式下均生效，而不仅仅是在全屏模式。
+
+3.  **影响级别:**
+    *   **级别:** **中等 (Medium)**
+    *   **理由:** 虽然大部分是文档修正，但新增的禁用本地会话功能直接影响企业开发者的工作流，可能导致其无法在本地运行代码，需转向远程环境。
+
+4.  **行动建议:**
+    *   **管理员:** 如果需要强制代码在隔离环境运行，请评估配置 `disableDesktopLocalSettings` 为 `true`。
+    *   **开发者:** 如果桌面应用的 &#34;Local&#34; 选项变灰，请检查 IT 策略，并配置 SSH 连接或切换至 Cloud 会话。
+    *   **主题定制者:** 更新自定义主题时，请注意背景色令牌（`bashMessageBackgroundColor` 等）现在会影响普通视图，而不仅仅是全屏视图。
+
+审查要求：“世界级程序员”，“简洁”，“有见地”，“Markdown”，“中文”。
+
+看起来不错。我将对文本进行润色以确保语气专业。
+
+关于 `desktop.md` 的一个小细节：变更提到 `disableDesktopLocalSessions` 被从“本地机器的托管设置”中读取。这意味着如果管理员的策略禁止它，该策略将强制在本地 UI 层面禁用本地会话按钮。
+
+关于 `terminal-config.md` 的一个小细节：变更删除了“other keybindings”（其他键绑定），暗示它现在只做那一件事，或者以前做得更多但现在文档更准确了。此外，v2.1.157 的 GPU 加速注释也是向后兼容性的有用信息。
+
+让我们以此构建最终输出。</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/desktop.html" class="page-link">desktop.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/terminal-config.html" class="page-link">terminal-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">11:36 EST</div>
