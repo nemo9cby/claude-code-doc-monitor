@@ -694,9 +694,10 @@ For a few security-sensitive keys, Claude Code honors a stricter value from a lo
 
 ### Lists merge instead of overriding
 
-When you set the same list key, such as `permissions.allow`, in more than one file, Claude Code combines the lists instead of picking one, so each file can add entries without removing another file's. Two list keys follow their own rules:
+When you set the same list key, such as `permissions.allow`, in more than one file, Claude Code combines the lists instead of picking one, so each file can add entries without removing another file's. Three keys that hold model lists follow their own rules:
 
 * [`fallbackModel`](/docs/en/settings-reference#fallbackmodel) is an ordered chain where position carries meaning, so Claude Code takes the whole value from the highest-precedence file that defines it.
+* [`modelPicker`](/docs/en/settings-reference#modelpicker) holds one ordered list of rows plus a replace flag, so Claude Code never merges rows from two sources. It takes the whole value from the highest of managed settings, `--settings`, and user settings that defines it, and ignores the key in project and local settings. Requires Claude Code v2.1.242 or later.
 * [`availableModels`](/docs/en/settings-reference#availablemodels): when the [highest-precedence managed source](/docs/en/managed-settings#precedence-within-the-managed-tier) defines it, Claude Code applies that list as-is and ignores entries you add in user, project, or local settings, unless an app that embeds Claude Code supplies its own model list; see [Exceptions to managed settings precedence](#exceptions-to-managed-settings-precedence). Across non-managed scopes Claude Code merges the arrays as usual.
 
 <span id="examples" />

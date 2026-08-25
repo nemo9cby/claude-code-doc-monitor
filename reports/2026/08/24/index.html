@@ -118,9 +118,330 @@
 
         <header>
             <h1>Changes on 2026-08-24</h1>
-            <p class="meta">35 total changes in 5 runs</p>
+            <p class="meta">47 total changes in 6 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">20:57 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更分析
+
+### 1. Overall Summary (总体摘要)
+本次文档更新对应 **Claude Code v2.1.243** 版本发布。核心变更包括：引入了细粒度的 Prompt 缓存 TTL 控制（允许主对话与子代理设置不同的缓存时间），新增了自定义模型选择器 (`modelPicker`)，并显著加强了通过组织设置分发插件的安全限制（禁止顶层 `bin/` 目录）。此外，还增强了使用量监控（`/loop` 任务追踪）并优化了性能。
+
+### 2. Key Themes (关键主题)
+
+*   **细粒度的缓存成本控制**:
+    *   新增 `promptCacheTtl` 和 `subagentPromptCacheTtl` 设置。
+    *   允许 API Key 或云厂商用户为主对话设置 1 小时缓存，同时让子代理保持 5 分钟默认值，以优化成本。
+*   **插件分发安全增强**:
+    *   **重要变更**: 通过 &#34;Organization Settings&#34; 分发的插件**严禁包含顶层 `bin/` 目录**。
+    *   可执行文件需移至 `scripts/` 等其他目录，否则同步或上传将被拒绝。
+*   **模型管理定制化**:
+    *   新增 `modelPicker` 设置，允许开发者定制 `/model` 选择器的列表和标签。
+    *   明确了 `modelPicker` 不遵循合并规则，而是采用最高优先级覆盖策略。
+*   **可观测性与性能提升**:
+    *   `/usage` 命令新增 &#34;Loops&#34; 统计，详细展示 `/loop` 任务的消耗情况。
+    *   二进制文件体积大幅压缩（Linux x64 下从 340MB 降至约 75MB），并优化了内存占用和启动速度。
+
+### 3. Impact Level (影响等级)
+**High** (高)
+
+*   **理由**: 此次更新包含**破坏性变更**。如果您的团队通过 Organization Settings 分发插件且包含顶层 `bin/` 目录，插件同步将立即失败。此外，Prompt 缓存的细粒度控制对使用 API 的大用户在成本控制上至关重要。
+
+### 4. Action Items for Developers (开发者行动项)
+
+*   **重构插件结构**: 如果通过组织设置分发插件，请立即将 `bin/` 目录下的可执行文件移动到 `scripts/` 或其他位置，并更新引用路径，以避免同步错误。
+*   **配置缓存策略**: 利用新增的 `promptCacheTtl` 和 `subagentPromptCacheTtl` 环境变量或设置，为主对话和子代理分别配置最经济的缓存策略。
+*   **检查设置合并逻辑**: 审查您的 `settings.json` 配置，特别是 `modelPicker` 的层级关系。因为它不进行列表合并，需确保配置位于正确的优先级文件（如用户级而非项目级）中。
+*   **升级版本**: 更新至 v2.1.243 以利用新的 `/usage` 统计功能监控 `/loop` 任务，并获得显著的性能与内存优化。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request**:
+    *   **Role**: World-class programmer analyzing documentation changes.
+    *   **Input**: Diff output for 12 documentation pages.
+    *   **Output**: Concise, insightful markdown analysis in Chinese.
+    *   **Focus**: What matters to developers.
+    *   **Structure**: Overall Summary, Key Themes, Impact Level, Action Items.
+
+2.  **Analyze the Diffs**:
+
+    *   **Page: `amazon-bedrock.md`**:
+        *   Change: Added link to &#34;choose the TTL yourself&#34; regarding prompt caching TTL differences between main conversation and subagents.
+        *   Context: Prompt caching configuration.
+
+    *   **Page: `costs.md`**:
+        *   Change 1: Added &#34;Loops&#34; section to usage breakdown (requires v2.1.242). Tracks `/loop` tasks.
+        *   Change 2: Clarified VS Code extension behavior regarding &#34;Loops&#34; (not shown there).
+        *   Change 3: Changed link text from `ENABLE_PROMPT_CACHING_1H=1` to &#34;choose the TTL yourself&#34;.
+        *   Theme: Usage tracking, prompt caching configuration.
+
+    *   **Page: `google-vertex-ai.md`**:
+        *   Change: Added link to &#34;choose the TTL yourself&#34; for prompt caching.
+        *   Theme: Prompt caching configuration.
+
+    *   **Page: `hooks.md`**:
+        *   Change: Added reference link to `disableAllHooks` setting details.
+        *   Theme: Documentation cross-referencing.
+
+    *   **Page: `hooks-guide.md`**:
+        *   Change: Added reference link to `disableAllHooks` setting details.
+        *   Theme: Documentation cross-referencing.
+
+    *   **Page: `microsoft-foundry.md`**:
+        *   Change: Added link to &#34;choose the TTL yourself&#34; for prompt caching.
+        *   Theme: Prompt caching configuration.
+
+    *   **Page: `model-config.md`**:
+        *   Change 1: Clarified `modelPicker` interaction with custom model IDs in the picker.
+        *   Change 2: Added info on `modelPicker` setting for listing multiple models.
+        *   Change 3: Changed link text regarding cache TTL selection.
+        *   Theme: Model picker customization, prompt caching.
+
+    *   **Page: `plugin-marketplaces.md`**:
+        *   Change 1: Moved and expanded &#34;Distribute through organization settings&#34; into its own section.
+        *   Change 2: Added specific rules for source types and relative paths.
+        *   Change 3: **Important**: Added warning about `bin/` directory prohibition for organization-distributed plugins (security risk).
+        *   Theme: Plugin distribution security, marketplace rules.
+
+    *   **Page: `plugins.md`**:
+        *   Change: Updated table for `bin/` directory purpose, adding a note that it cannot be included in org-distributed plugins.
+        *   Theme: Plugin structure security.
+
+    *   **Page: `plugins-reference.md`**:
+        *   Change: Updated table for `bin/` directory purpose, adding a note that it cannot be included in org-distributed plugins.
+        *   Theme: Plugin structure security.
+
+    *   **Page: `settings.md`**:
+        *   Change: Added `modelPicker` to the list of keys that do not merge but override completely. Specific precedence rules mentioned.
+        *   Theme: Settings configuration and merging rules.
+
+    *   **Page: `CHANGELOG.md.md`**:
+        *   **Major Release: 2.1.243**
+        *   *Added*: Loops breakdown in `/usage`.
+        *   *Added*: `modelPicker` setting (curate `/model` picker).
+        *   *Added*: `promptCacheTtl` and `subagentPromptCacheTtl` settings (granular control over cache).
+        *   *Added*: `modelPricing` managed setting.
+        *   *Added*: Keyless sign-in option in `/login`.
+        *   *Fixed*: Various bugs (MCP reconnect, `/model` picker Ultracode, `/resume`, cross-session messaging, spellcheck, startup time).
+        *   *Improved*: Performance (startup time, binary size, memory usage).
+
+3.  **Synthesize Themes**:
+    *   **Prompt Caching Granularity**: Multiple pages updated to reflect new settings (`promptCacheTtl`, `subagentPromptCacheTtl`) allowing separate TTL configuration for main chat vs. subagents.
+    *   **Usage &amp; Cost Tracking**: New `/usage` features for Loops, improved `modelPricing` support.
+    *   **Model Customization**: New `modelPicker` setting to customize the `/model` menu.
+    *   **Plugin Security**: Restrictions on `bin/` directory for organization-distributed plugins.
+    *   **Performance &amp; Stability**: Numerous bug fixes and performance improvements (binary size, memory, startup time).
+
+4.  **Determine Impact**:
+    *   **Level**: Medium (leaning towards High for specific users).
+    *   **Reasoning**: The new prompt caching settings give developers cost-control capabilities which is significant for API users. The plugin `bin/` restriction is a breaking change for orgs distributing plugins with executables. Performance improvements are always good. The `modelPicker` change affects how settings merge.
+
+5.  **Draft Action Items**:
+    *   Review prompt caching settings if you use subagents or cloud providers to optimize costs.
+    *   Update plugin structure if you distribute via organization settings and currently use a top-level `bin/` folder.
+    *   Check `settings.json` merging behavior if you use `modelPicker` or `availableModels`.
+    *   Update to v2.1.243 for the new usage tracking (`Loops`) and performance gains.
+
+6.  **Translate to Chinese**:
+    *   Summary: 2.1.243 版本发布，主要引入了细粒度的 Prompt 缓存 TTL 控制、自定义模型选择器以及组织级插件安全限制。
+    *   Themes: 细粒度缓存控制, 插件分发安全增强, 定制化与成本监控, 性能与稳定性.
+    *   Impact: High/High-Medium (due to plugin breaking change and significant cost control features).
+    *   Actions: Check `bin/` dir, update env vars/settings, update version.
+
+7.  **Refine Output**:
+    *   *Self-Correction during drafting*: The prompt asks for &#34;concise&#34;. I shouldn&#39;t list every bug fix in the summary, just the categories. The `bin/` directory prohibition is a **Breaking Change** for specific workflows, so I must highlight that.
+
+    *   *Structure*:
+        *   **Overall Summary**: Focus on v2.1.243 release features (granular caching, model picker, plugin security).
+        *   **Key Themes**:
+            1.  **Prompt Caching Granularity**: New settings `promptCacheTtl` / `subagentPromptCacheTtl`.
+            2.  **Plugin Distribution Security**: Ban on `bin/` dir for org plugins.
+            3.  **Model Customization**: `modelPicker` setting.
+            4.  **Observability**: `/usage` tracks Loops.
+        *   **Impact**: High (Breaking change for plugins, significant cost/performance improvements).
+        *   **Action Items**: Update plugins, configure cache, check settings merging.
+
+8.  **Final Polish (Markdown &amp; Chinese)**:
+    *   Ensure tone is professional and insightful.
+
+    *(Self-Correction)*: Wait, looking at `plugin-marketplaces.md`, it says &#34;Don&#39;t include a top-level bin/ directory&#34;. It rejects the plugin. That is definitely a breaking change for existing org-distributed plugins.
+
+    Let&#39;s write the response.
+
+    *   **Summary**: This batch updates the documentation for **Claude Code v2.1.243**. The highlight is the introduction of granular control over prompt caching (separating main conversation and subagent TTLs) and stricter security rules for plugins distributed via organization settings (banning top-level `bin/` directories). It also adds a customizable model picker and enhanced usage tracking.
+    *   **Themes**:
+        *   **Granular Prompt Caching**: New settings allow developers to set different cache TTLs for the main conversation versus subagent requests, offering better cost control for API/cloud users.
+        *   **Plugin Security**: Plugins distributed through Organization Settings can no longer contain a top-level `bin/` directory; executables must be moved elsewhere.
+        *   **Model Management**: Introduction of the `modelPicker` setting to curate the `/model` command list, with specific precedence rules (no merging).
+        *   **Performance &amp; Observability**: Enhanced `/usage` tracking for `/loop` tasks and significant reductions in binary size/memory usage.
+    *   **Impact**: **High**.
+        *   **Reasoning**: The restriction on the `bin/` directory is a **breaking change** for teams distributing plugins via organization settings. The new prompt caching controls are highly valuable for API users managing costs.
+    *   **Action Items**:
+        *   **Audit Plugins**: If you distribute plugins via Organization Settings, move any executables out of `bin/` (e.g., to `scripts/`) to avoid sync failures.
+        *   **Optimize Caching**: Review `promptCacheTtl` and `subagentPromptCacheTtl` settings to balance cost and performance for your specific workload.
+        *   **Check Settings Precedence**: Note that `modelPicker` settings do not merge across files; ensure your configuration logic accounts for this &#34;highest precedence wins&#34; behavior.
+        *   **Update**: Upgrade to v2.1.243 to benefit from the new `/usage` breakdown (Loops) and performance improvements.
+
+    Looks good. Proceeding to generate output.</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/amazon-bedrock.html" class="page-link">amazon-bedrock.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/costs.html" class="page-link">costs.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/google-vertex-ai.html" class="page-link">google-vertex-ai.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/microsoft-foundry.html" class="page-link">microsoft-foundry.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/model-config.html" class="page-link">model-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugin-marketplaces.html" class="page-link">plugin-marketplaces.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+20</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins.html" class="page-link">plugins.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+12</span>
+                            <span class="removed">-12</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+15</span>
+                            <span class="removed">-15</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+61</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">18:19 EST</div>
