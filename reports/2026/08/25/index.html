@@ -118,9 +118,148 @@
 
         <header>
             <h1>Changes on 2026-08-25</h1>
-            <p class="meta">15 total changes in 7 runs</p>
+            <p class="meta">17 total changes in 8 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">20:58 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 总体摘要
+本次文档更新主要针对 **v2.1.246** 版本的行为变更。核心变化包括：为防止成本失控，引入了后台目标检查的硬性上限；同时优化了插件遥测数据的分类精度（新增“社区”范围和“管理员安装”来源）及哈希计算逻辑，以提升监控的准确性。
+
+### 关键主题
+*   **成本控制机制增强**：在 `costs.md` 中，明确了后台目标在用户空闲期间的检查次数上限为 **3 次**。在 v2.1.246 之前，此检查是无限制的，这可能导致意外的 Token 消耗。
+*   **遥测属性细化**：在 `monitoring-usage.md` 中，插件来源 `plugin.scope` 增加了 `&#34;community&#34;` 选项，安装来源 `enabled_via` 增加了 `&#34;admin-install&#34;` 选项（区分组织策略强制安装与用户手动安装）。
+*   **版本行为界定**：文档明确指出了 v2.1.246 版本在插件哈希计算和日志记录上的行为差异，特别是 `plugin_id_hash` 现在会包含市场名称，改变了原有的哈希值生成规则。
+
+### 影响等级：**中等**
+**理由**：
+1.  **正面影响**：成本上限机制直接防止了空闲会话中的潜在资源浪费，对开发者有利。
+2.  **需关注影响**：`plugin_id_hash` 计算逻辑的变更意味着升级到 v2.1.246 后，同一插件的哈希值可能会发生变化。如果依赖该字段进行日志聚合或计费统计，需要更新数据处理逻辑以匹配新的哈希值。
+
+### 开发者行动项
+1.  **更新日志解析器**：确保监控系统能识别并正确处理新增的 `plugin.scope` 值 (`&#34;community&#34;`) 和 `enabled_via` 值 (`&#34;admin-install&#34;`)。
+2.  **警惕哈希值断裂**：升级至 v2.1.246 后，注意 `plugin_id_hash` 对于同步插件（synced plugins）的值会发生变化（因为引入了 marketplace 名称），这将影响基于该字段的趋势分析和去重统计。
+3.  **验证成本预期**：了解新的“3次检查上限”规则，在评估长时间运行的后台任务成本时，可预期更可控的 Token 消耗。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer with deep expertise in developer tools and documentation.
+    *   **Task:** Analyze a batch of documentation changes (2 pages) and summarize changes and their importance to developers.
+    *   **Language:** Chinese.
+    *   **Format:** Markdown (Overall Summary, Key Themes, Impact Level, Action Items).
+
+2.  **Analyze the Changes (Page by Page):**
+
+    *   **Page 1: `costs.md`**
+        *   *Change:* Modified the bullet point about &#34;Goal check-ins&#34;.
+        *   *Old Text:* Mentioned setting `CLAUDE_CODE_GOAL_CHECKIN_MINUTES` to `0` to turn off check-ins and noted the requirement for v2.1.236+.
+        *   *New Text:* Added a cap: &#34;Claude Code starts at most three idle check-ins per goal between your prompts.&#34; Added a version note: &#34;Before v2.1.246, idle check-ins were uncapped.&#34;
+        *   *Implication:* Cost control. Previously, idle goals could theoretically trigger infinite (or very frequent) check-ins while waiting. Now it&#39;s capped at 3 per goal between user prompts. This is a feature improvement to prevent runaway token costs during idle time.
+
+    *   **Page 2: `monitoring-usage.md`**
+        *   *Change 1 (Plugin Server Connected Event):* Clarified how `plugin_id_hash` is computed (references the &#34;plugin loaded event&#34; section).
+        *   *Change 2 (Plugin Loaded Event - `plugin.scope`):* Added `&#34;community&#34;` as a new possible value for the scope.
+        *   *Change 3 (Plugin Loaded Event - `enabled_via`):* Added `&#34;admin-install&#34;` as a possible value (replaces &#34;user-install&#34; or &#34;seed-mount&#34; for org-required plugins in v2.1.246+). Clarified the change in behavior for versions before/after v2.1.246.
+        *   *Change 4 (Plugin Loaded Event - `plugin_id_hash`):* Updated logic for synced plugins. Now hashes with the marketplace name reported by claude.ai (or `&#34;synced&#34;`). Added version note about the change in behavior before v2.1.246.
+        *   *Change 5 (Hook triggered event):* Clarified `plugin_id_hash` computation (references &#34;plugin loaded event&#34;).
+        *   *Implication:* Observability and Plugin management. Version 2.1.246 brings significant changes to how plugins are identified and categorized in logs (new scope type, new install source, better hashing consistency).
+
+3.  **Synthesize Key Themes:**
+    *   **Version Control/Deprecation:** Both pages explicitly mention behavior changes relative to version `v2.1.246`. This is a specific release that introduces these changes.
+    *   **Cost Control &amp; Efficiency:** The `costs.md` change introduces a hard limit (3 checks) to prevent unnecessary token burn.
+    *   **Observability Precision:** The `monitoring-usage.md` changes refine telemetry data (new scopes, better install source attribution, consistent hashing), giving developers better insight into how plugins are distributed and used.
+
+4.  **Draft the Summary (in Chinese):**
+    *   *Overall Summary:* These changes focus on version 2.1.246 improvements, introducing a hard limit on idle goal check-ins to control costs and refining plugin telemetry attributes (scopes, installation sources, and hashing logic) for better observability.
+    *   (Translation): 本次文档更新主要针对版本 v2.1.246 的改进，核心在于为后台目标检查引入了上限以控制成本，并优化了插件遥测属性（范围、安装来源及哈希逻辑）以提升可观测性。
+
+5.  **Draft Key Themes (in Chinese):**
+    *   *Cost Optimization:* Capping idle goal check-ins.
+    *   *Telemetry Enhancements:* New plugin scope (&#34;community&#34;) and installation source (&#34;admin-install&#34;).
+    *   *Version-Specific Behavior:* Clear demarcation of changes introduced in v2.1.246.
+
+6.  **Determine Impact Level:**
+    *   *Reasoning:* The cost change is a direct improvement (saves money) and non-breaking. The telemetry changes affect log parsing/monitoring logic but are additive (new values) or corrections. It&#39;s not a breaking API change, but important for ops/monitoring.
+    *   *Level:* Medium.
+
+7.  **Draft Action Items (in Chinese):**
+    *   Update cost expectations (knowing idle goals are capped).
+    *   Update monitoring/logging parsers to handle `&#34;community&#34;` and `&#34;admin-install&#34;`.
+    *   Be aware that `plugin_id_hash` for synced plugins might change after upgrading to v2.1.246.
+
+8.  **Refine and Polish (Self-Correction during drafting):**
+    *   Make sure to highlight the specific version number `v2.1.246` as it appears in both diffs.
+    *   Ensure the distinction between &#34;cost&#34; (page 1) and &#34;monitoring&#34; (page 2) is clear but linked under the theme of &#34;v2.1.246 updates&#34;.
+
+9.  **Final Output Generation (matching the requested format):**
+
+    *   *Summary:* 聚焦于 v2.1.246 版本的更新，主要为后台目标检查引入了Token消耗上限以防止成本失控，并细化了插件遥测数据的分类（新增“社区”范围和“管理员安装”来源）及哈希计算逻辑。
+    *   *Themes:*
+        *   **成本控制优化**: 限制了后台目标在用户空闲期间的检查次数（最多3次）。
+        *   **遥测数据精度提升**: 引入新的插件来源标记（`admin-install`）和范围（`community`）。
+        *   **版本行为界定**: 明确区分了 v2.1.246 版本前后的日志输出差异。
+    *   *Impact:* Medium. (Reasoning: Cost saving is beneficial; telemetry changes might require updates to log parsers).
+    *   *Action Items:*
+        *   更新日志解析器以支持新的 `plugin.scope` (`&#34;community&#34;`) 和 `enabled_via` (`&#34;admin-install&#34;`) 值。
+        *   注意 `plugin_id_hash` 对于同步插件的计算逻辑在 v2.1.246 中已变更，可能会影响历史数据对比。
+        *   了解并利用新的成本上限机制（每个目标最多3次空闲检查）来优化预算规划。
+
+10. **Final Review against constraints:**
+    *   Concise? Yes.
+    *   Insightful? Yes, connects the version dots.
+    *   Markdown? Yes.
+    *   Chinese? Yes.
+
+    (Self-Correction on `plugin_id_hash` impact): The hash change is significant for anyone grouping by hash. I should emphasize that in Action Items.
+
+    *Revised Action Items:*
+    1. 更新日志分析工具以处理新增的 `plugin.scope` (&#34;community&#34;) 和 `enabled_via` (&#34;admin-install&#34;) 属性。
+    2. **注意**: 升级至 v2.1.246 后，`plugin_id_hash` 对同步插件的计算方式将包含市场名称，导致哈希值变化，影响基于该字段的聚合统计。
+    3. 验证后台任务的 Token 消耗是否符合新的上限机制（每目标最多 3 次空闲检查）。
+
+    Looks good. Proceed to generate.</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/costs.html" class="page-link">costs.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">19:19 EST</div>
