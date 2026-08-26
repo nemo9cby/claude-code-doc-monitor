@@ -118,9 +118,232 @@
 
         <header>
             <h1>Changes on 2026-08-26</h1>
-            <p class="meta">6 total changes in 1 run</p>
+            <p class="meta">13 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">14:53 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 总体摘要
+本次更新主要细化了钩子机制，明确区分了“工具使用权限”与“沙箱网络请求权限”的处理逻辑，并新增了 7 个 API Beta 功能头部，扩展了结构化输出和计算机使用等能力。
+
+### 核心变更点
+
+*   **钩子机制精细化 (Hooks &amp; Hooks Guide)**
+    *   明确 `PermissionRequest` 钩子**不会**针对沙箱命令的 [网络请求](/docs/en/sandboxing#network-isolation) 触发。
+    *   若需监控沙箱网络请求，必须改用 `Notification` 钩子中的 `permission_prompt` 类型。
+    *   在终端会话中，支持 `permission_prompt` 监控沙箱网络请求需要 Claude Code v2.1.246 或更高版本。
+
+*   **API 能力扩展 (Models List &amp; Files Upload)**
+    *   新增 7 个 Beta API headers：`compact-2026-01-12`、`computer-use-2025-11-24`、`mcp-tunnels-2026-06-22`、`structured-outputs-2025-11-13`、`task-budgets-2026-03-13`、`thinking-display-updates-2026-08-18` 和 `ce-user-management-2026-07-13`。
+
+*   **网络故障处理描述 (Network Config)**
+    *   细化了看门狗中止流后的处理逻辑，明确区分了重试、报错结束或正常结束的情况，并补充了非交互会话中的提示行为。
+
+*   **文档示例修正 (Skills &amp; Slash Commands)**
+    *   将“组件框架迁移”的示例描述和参数更改为“语言迁移”（如从 JavaScript 到 TypeScript），以体现通用性。
+
+### 影响等级
+**中等**
+
+**理由**：虽然主要是文档层面的澄清，但 `PermissionRequest` 钩子行为的明确界定意味着依赖此钩子进行全权限自动化控制的开发者需要调整代码逻辑，以覆盖沙箱网络请求场景。同时，新增的 API Beta 头部为开发者提供了新的实验性功能入口。
+
+### 开发者行动项
+
+1.  **检查钩子逻辑**：如果您使用 `PermissionRequest` 钩子来自动批准操作，请确认是否需要补充 `permission_prompt` 监听来处理沙箱内的网络请求。
+2.  **验证版本兼容性**：确保终端环境升级至 v2.1.246+，以支持最新的沙箱网络请求钩子功能。
+3.  **评估新 API 功能**：查阅新增的 Beta headers（特别是 `structured-outputs` 和 `computer-use`），评估其能否优化现有的 API 集成。
+4.  **更新错误处理代码**：参考文档中关于网络超时/中止的详细描述，确保客户端的流式传输错误处理逻辑覆盖所有可能的恢复场景。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Understand the Goal:** The user wants a concise, insightful analysis of documentation changes for developers, provided in Chinese. The analysis needs to cover a batch of 7 pages with specific diffs.
+
+2.  **Analyze the Diffs Page by Page:**
+
+    *   **Page 1: `hooks.md`**
+        *   *Change 1 (PermissionRequest):* Added &#34;to use a tool&#34; to clarify when the hook runs. Added a new paragraph: &#34;Claude Code doesn&#39;t run PermissionRequest hooks for a sandboxed command&#39;s network request...&#34;. It tells developers to use `permission_prompt` notification type instead for that specific case.
+        *   *Change 2 (Notification table):* Updated `permission_prompt` description to include &#34;or a sandboxed command&#39;s network request&#34;.
+        *   *Change 3 (Version note):* Added note requiring v2.1.246 or later for `permission_prompt` regarding sandboxed network requests in terminal sessions.
+        *   *Change 4 (Note block):* Refined wording about `permission_prompt` vs `PermissionRequest` hook. Clarified that `PermissionRequest` is for &#34;tool&#34; permissions specifically.
+        *   *Impact:* Clarifies behavior regarding hooks and sandboxing. Developers need to know that `PermissionRequest` *won&#39;t* fire for network requests in sandboxes.
+
+    *   **Page 2: `hooks-guide.md`**
+        *   *Change 1 (Notification table):* Same as Page 1 (added network request to description).
+        *   *Change 2 (Version note):* Same as Page 1 (v2.1.246 requirement).
+        *   *Change 3 (Example context):* Changed &#34;every permission prompt&#34; to &#34;every tool permission prompt&#34; to be precise.
+        *   *Impact:* Consistent with Page 1.
+
+    *   **Page 3: `network-config.md`**
+        *   *Change 1 (Watchdog behavior):* Refined the description of what happens when a watchdog aborts a stalled stream. Changed &#34;handles it like any other mid-stream failure&#34; to a more detailed explanation: retries, ends turn with error, or ends turn normally. Added mention of non-interactive sessions prompting Claude to continue.
+        *   *Impact:* Clarifies error handling and retry logic for network timeouts.
+
+    *   **Page 4 &amp; 5: `skills.md` &amp; `slash-commands.md`**
+        *   *Change 1 (Example update):* In the example code, changed &#34;Migrate a component from one framework to another&#34; to &#34;from one language to another&#34;.
+        *   *Change 2 (Example values):* Changed example arguments from &#34;React&#34;, &#34;Vue&#34; to &#34;JavaScript&#34;, &#34;TypeScript&#34;.
+        *   *Impact:* Minor documentation example update to reflect general-purpose usage rather than just frameworks. Not a functional change to the tool.
+
+    *   **Page 6 &amp; 7: `api/models/list.md` &amp; `api/beta/files/upload.md`**
+        *   *Change 1 (API Beta headers):* Expanded the list of supported Beta headers. Count went from &#34;31 more&#34; to &#34;38 more&#34;.
+        *   *New Headers Added:* `&#34;compact-2026-01-12&#34;`, `&#34;computer-use-2025-11-24&#34;`, `&#34;mcp-tunnels-2026-06-22&#34;`, `&#34;structured-outputs-2025-11-13&#34;`, `&#34;task-budgets-2026-03-13&#34;`, `&#34;thinking-display-updates-2026-08-18&#34;`, `&#34;ce-user-management-2026-07-13&#34;`.
+        *   *Impact:* New capabilities/betas are available via API headers. This is significant for API users.
+
+3.  **Synthesize and Structure the Analysis:**
+
+    *   **Overall Summary:** The update primarily refines hook behavior regarding sandbox network requests and adds new API beta capabilities.
+    *   **Key Themes:**
+        *   **Hook Granularity:** Distinguishing between &#34;tool&#34; permissions and &#34;sandbox network&#34; permissions in hooks.
+        *   **Network Reliability:** Clarifying timeout/watchdog behavior.
+        *   **New API Features:** Introduction of several new beta headers (computer use, structured outputs, etc.).
+    *   **Impact Level:** **Medium**. While mostly documentation refinements, the new API beta headers represent new capabilities, and the hook changes might break existing logic if developers assumed `PermissionRequest` covered sandbox network calls.
+    *   **Action Items:**
+        *   Update hook logic if you rely on `PermissionRequest` for sandbox network access (switch to `Notification`).
+        *   Check version compatibility (v2.1.246+) for the specific hook behavior.
+        *   Explore new API beta headers for relevant features (structured outputs, computer use, etc.).
+        *   Review error handling logic if building custom network integrations.
+
+4.  **Drafting the Content (in Chinese):**
+
+    *   *Summary:* 本次更新主要细化了钩子机制中关于“工具权限”与“沙箱网络请求”的区别，并引入了多项新的 API Beta 功能。
+    *   *Themes:*
+        *   **钩子机制精细化:** 明确 `PermissionRequest` 钩子不处理沙箱命令的网络请求，需改用 `Notification` 钩子。
+        *   **网络超时处理:** 详细阐述了看门狗机制中止流时的行为，包括重试逻辑。
+        *   **API 能力扩展:** 新增了 7 个 Beta API 头部，涉及结构化输出、计算机使用和任务预算等功能。
+    *   *Impact:* **Medium**. 主要涉及行为澄清和功能扩展。依赖旧钩子行为监控沙箱网络的开发者可能需要调整代码。
+    *   *Action Items:*
+        *   检查并更新依赖 `PermissionRequest` 钩子的代码，确保沙箱网络请求监控逻辑正确。
+        *   确认 Claude Code 版本 &gt;= v2.1.246 以支持新的钩子行为。
+        *   调研新增的 API Beta headers（如 `structured-outputs`, `computer-use`）是否适用于当前项目。
+        *   更新技能/命令示例文档中的描述（无需代码变更）。
+
+5.  **Refining and Polishing:** Ensure the tone is professional (&#34;world-class programmer&#34;). The &#34;skills.md&#34; and &#34;slash-commands.md&#34; changes are trivial examples, so I&#39;ll downplay them in the summary but acknowledge them as minor updates. The API headers are the most &#34;feature-rich&#34; change.
+
+    *   *Self-Correction during drafting:* Make sure to emphasize *why* the hook change matters—it prevents developers from wondering why their auto-approve logic isn&#39;t working for sandboxed network calls.
+
+6.  **Final Output Generation** (matching the markdown format requested).
+
+    *   *Overall Summary:* 本次文档更新重点阐明了 `PermissionRequest` 钩子在沙箱网络请求上的行为差异，并引入了多项新的 API Beta 能力。
+    *   *Themes:*
+        1.  **钩子行为修正**: 明确 `PermissionRequest` 不再触发沙箱命令的网络请求权限，需改用 `permission_prompt` 通知类型。
+        2.  **网络故障处理细化**: 重新描述了看门狗中止流后的具体处理流程（重试、错误或正常结束）。
+        3.  **API 功能扩展**: 新增 7 个 API Beta headers，支持结构化输出、任务预算等新特性。
+        4.  **示例更新**: 将代码示例中的“框架迁移”描述调整为更通用的“语言迁移”。
+    *   *Impact:* **Medium**. 新增 API 功能带来了扩展机会，但钩子机制的澄清意味着部分现有的自动化权限逻辑可能需要调整以覆盖沙箱网络请求。
+    *   *Action Items:*
+        *   **适配钩子逻辑**: 如果您的代码依赖 `PermissionRequest` 自动批准权限，请注意它不再涵盖沙箱网络请求，需补充 `permission_prompt` 监听。
+        *   **版本检查**: 确保环境升级至 Claude Code v2.1.246+ 以支持最新的沙箱网络请求钩子行为。
+        *   **探索新特性**: 审查新增的 API Beta headers（如 `structured-outputs-2025-11-13` 和 `computer-use-2025-11-24`），评估是否可用于增强功能。
+        *   **网络错误处理**: 更新网络超时错误处理逻辑，以匹配文档中关于重试和提示的详细描述。
+
+7.  **Final Review against constraints:**
+    *   Markdown format? Yes.
+    *   Chinese reply? Yes.
+    *   Concise? Yes.
+    *   Developer focus? Yes.
+
+    (Proceed to output)</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/network-config.html" class="page-link">network-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/models/list.html" class="page-link">api/models/list.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/beta/files/upload.html" class="page-link">api/beta/files/upload.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">12:13 EST</div>
