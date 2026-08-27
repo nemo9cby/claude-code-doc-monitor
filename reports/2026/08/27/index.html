@@ -118,9 +118,339 @@
 
         <header>
             <h1>Changes on 2026-08-27</h1>
-            <p class="meta">2 total changes in 1 run</p>
+            <p class="meta">20 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">19:29 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### Overall Summary (总体摘要)
+此次更新主要引入了用于安全评估环境的 `--restricted` 模式，细化了沙箱隔离与配置合并的作用域规则，并澄清了 MCP 服务器的自动重连逻辑。
+
+### Key Themes (关键主题)
+
+*   **安全与隔离**: 新增 `--restricted` 模式，专为在共享机器上由评估工具驱动的场景设计，移除敏感工具并严格限制文件访问和权限模式。
+*   **配置作用域与加载逻辑**: 深化了配置源（用户、项目、托管设置）合并与排除的逻辑。明确了在使用 `--setting-sources` 排除源时，沙箱凭证规则和 `--add-dir` 中的资源加载行为。
+*   **插件与代理开发**: 增强了插件代理的容错性（即使 frontmatter 解析失败也能加载），并新增 `claude plugin validate` 命令用于检测无效配置。
+*   **可靠性说明**: 重构了 MCP 自动重连的文档，清晰区分了会话中掉线、首次连接失败及发现请求失败的处理方式。
+*   **文档规范化**: 清理了代码块中的冗余属性，移除了文档中特定的产品名称示例（如 Prometheus, Zscaler），保持通用性。
+
+### Impact Level (影响程度)
+**Medium (中等)**
+此次更新引入了重要的安全特性 (`--restricted`) 和配置行为变更，主要影响 CI/CD 自动化、高级沙箱配置以及插件开发者。虽然核心开发流程未受破坏，但在受限环境和多源配置场景下的行为发生了关键变化。
+
+### Action Items for Developers (开发者行动项)
+
+*   **应用安全模式**: 在 CI/CD 或共享评估环境中使用 `--restricted` 标志，以防止意外执行命令或读取敏感设置。
+*   **检查沙箱配置**: 如果你使用了 `--setting-sources` 排除配置源，请重新检查沙箱的 `mask` 和 `deny` 规则是否按预期生效（特别是环境变量掩码）。
+*   **优化代理描述**: 检查自定义代理的 `description` 字段长度，避免超过 15k token 限制，并在触发警告时将详细内容移至系统提示词中。
+*   **验证插件健康性**: 在插件开发流程中使用新增的 `claude plugin validate` 命令，提前发现 frontmatter 语法错误。
+*   **注意 MCP 重连行为**: 若遇到 MCP 连接不稳定，参考更新后的文档理解不同协议和场景下的重试策略。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Input:** A batch of 18 documentation pages with diffs.
+    *   **Output:** Concise, insightful markdown analysis (Chinese).
+    *   **Focus:** What matters to developers.
+    *   **Structure:**
+        1.  Overall Summary (1-2 sentences).
+        2.  Key Themes (bullets).
+        3.  Impact Level (Low/Medium/High/Breaking) with reasoning.
+        4.  Action Items (max 5).
+
+2.  **Analyze the Diffs (Page by Page):**
+
+    *   `cli-reference.md`: Added `--restricted` flag. This is a security/sandboxing feature for evaluation harnesses. Disables command/code tools, restricts file access to working dirs, and blocks `bypassPermissions`.
+    *   `costs.md`: Added details about `/usage` showing usage-credits spend for Pro, Max, Team, and Enterprise plans.
+    *   `hooks.md`: Updated note regarding `bypassPermissions` not working if started in `restricted` mode.
+    *   `hooks-guide.md`: Same as `hooks.md`.
+    *   `interactive-mode.md`: Updated `Ctrl+O` (transcript viewer) description to mention expanding collapsed lines like cross-session messages.
+    *   `mcp.md`: Significantly restructured the &#34;Automatic reconnection&#34; section. Clarifies behavior for HTTP/SSE vs. Stdio servers, mid-session drops vs. first connection failures, and how Claude reports failures (via ToolSearch).
+    *   `monitoring-usage.md`: Minor cleanup. Removed specific examples (Prometheus, ClickHouse) from backend descriptions, keeping generic terms.
+    *   `network-config.md`: Minor text change. Removed specific names &#34;CrowdStrike Falcon and Zscaler&#34; from the CA certificate store section, kept generic &#34;Enterprise TLS-inspection proxies&#34;.
+    *   `output-styles.md`: Clarified that output styles are added to the system prompt. Clarified when reminders are triggered (only when non-default is selected).
+    *   `overview.md`: Cleanup. Removed repeated `theme={null}` attributes from code blocks.
+    *   `plugin-marketplaces.md`: Removed version requirement (`v2.1.152`) for `relevance`. Clarified `allowlist` URL matching.
+    *   `plugins-reference.md`: Added logic for loading plugin agents without valid frontmatter (names them after file). Added command `claude plugin validate` to find bad frontmatter.
+    *   `quickstart.md`: Cleanup. Removed repeated `theme={null}` attributes.
+    *   `sandboxing.md`: Significant updates on merging scopes and excluding settings sources (`--setting-sources`). Details on how `mask` and `deny` entries behave when sources are excluded.
+    *   `skills.md`: Updated section on &#34;Skills from additional directories&#34;. Added conditions regarding `project` setting source, `--safe-mode`, `strictPluginOnlyCustomization`, and bare mode. Clarified argument handling (literal text insertion vs expansion).
+    *   `slash-commands.md`: Duplicate of the changes in `skills.md` (seems like shared content).
+    *   `sub-agents.md`: Added warning for agent description token limits (&gt;15k). Updated `maxTurns` description to mention partial output marking and resumption. Updated best practices (&#34;specific&#34; instead of &#34;detailed&#34;).
+    *   `CHANGELOG.md.md`: Confirms version 2.1.248. Highlights: `--restricted` flag, `experimental.cacheTtl`, `/usage-credits`, various bug fixes (MCP reconnection, hooks, agents), cleanup of generic examples.
+
+3.  **Synthesize Key Themes:**
+
+    *   **Security &amp; Isolation:** The new `--restricted` mode is the biggest feature addition. It&#39;s explicitly for safe evaluation environments.
+    *   **Configuration &amp; Scoping:** Deep dive into how settings from different scopes (user, project, managed) interact, specifically regarding exclusions (`--setting-sources`), sandbox rules (`mask`/`deny`), and loading resources (skills/agents) from added directories.
+    *   **Observability &amp; Operations:** Updates to usage tracking (`/usage`), MCP connection reliability/behavior details, and monitoring documentation cleanup.
+    *   **Refinement &amp; Polish:** Removal of specific product names (Zscaler, ClickHouse) in docs, cleanup of code block attributes, and clarifications on agent/skill behavior (token limits, argument expansion).
+
+4.  **Determine Impact Level:**
+    *   **Impact:** Medium.
+    *   **Reasoning:** While `--restricted` is a significant new feature for CI/CD and automated evaluation harnesses, most general developer workflows remain unchanged. The changes to sandboxing and settings merging are nuanced refinements. There are no breaking changes to existing CLI commands or core workflows, but there are important behavioral clarifications regarding &#34;restricted mode&#34; and settings merging.
+
+5.  **Draft Action Items:**
+    *   *Action 1:* Use `--restricted` in CI/CD or shared machine evaluations to enforce safety.
+    *   *Action 2:* Review sandboxing config if using `--setting-sources` to ensure security rules apply as expected.
+    *   *Action 3:* Check agent descriptions if hitting token limits.
+    *   *Action 4:* Validate plugin frontmatters using the new command if developing plugins.
+    *   *Action 5:* Update scripts relying on specific docs examples if they referenced removed generic product names (low priority, mostly readability).
+
+6.  **Drafting the Content (in Chinese):**
+
+    *   *Summary:* This update primarily introduces a security-focused `--restricted` mode for evaluation environments, refines sandboxing and settings scoping rules, and clarifies MCP reconnection behavior.
+    *   *Themes:*
+        *   Security: New restricted mode for safe automation.
+        *   Configuration: Deepened control over settings scopes and sandbox rules.
+        *   Reliability: Improved documentation on MCP reconnection logic.
+        *   Polish: Cleanup of documentation code blocks and examples.
+    *   *Impact:* Medium. New flags and logic changes affect advanced usage but don&#39;t break core features.
+    *   *Action Items:*
+        1.  Try `--restricted` for CI/CD.
+        2.  Verify sandbox configs with `--setting-sources`.
+        3.  Check agent description lengths.
+        4.  Run `claude plugin validate` during plugin dev.
+
+7.  **Refining the Output:**
+    *   Make sure the distinction between `skills.md` and `slash-commands.md` changes is understood (shared content).
+    *   Highlight the specific behavior of `bypassPermissions` being ignored in restricted mode.
+    *   Note the `claude plugin validate` addition.
+
+8.  **Final Review against Constraints:**
+    *   Markdown format? Yes.
+    *   Chinese? Yes.
+    *   Concise? Yes.
+    *   Focus on developers? Yes.
+
+    *(Self-Correction during drafting)*: The `sandboxing.md` changes about `mask` and `deny` entries being ignored or kept when excluding sources are quite technical and important for security. I should emphasize that. Also, the MCP changes are clarifications, not new features, but important for debugging connection issues.
+
+9.  **Final Output Generation.** (Proceed to generate markdown).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/cli-reference.html" class="page-link">cli-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/costs.html" class="page-link">costs.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/interactive-mode.html" class="page-link">interactive-mode.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+16</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-8</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/network-config.html" class="page-link">network-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/output-styles.html" class="page-link">output-styles.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/overview.html" class="page-link">overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugin-marketplaces.html" class="page-link">plugin-marketplaces.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/quickstart.html" class="page-link">quickstart.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sandboxing.html" class="page-link">sandboxing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+10</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+12</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+12</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+50</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">09:37 EST</div>
