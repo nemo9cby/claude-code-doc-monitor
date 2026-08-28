@@ -118,9 +118,286 @@
 
         <header>
             <h1>Changes on 2026-08-28</h1>
-            <p class="meta">30 total changes in 1 run</p>
+            <p class="meta">39 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">16:37 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 整体摘要
+
+本次文档更新重点增强了企业级成本追踪能力，允许开发者查看基于合约费率而非标价的实时成本；同时引入了文件 API 的过期机制，并包含多项针对符号链接（symlink）的重要安全修复及模型版本的更新。
+
+### 关键变更主题
+
+*   **企业级成本透明化**：新增 `modelPricing` 配置支持。通过管理设置配置合约价格后，`/usage` 命令和状态栏将显示符合企业账单的实际估算成本，而非列表价。
+*   **API 功能增强**：文件上传 API 新增 `expires_in_seconds` 参数（1小时至90天），允许开发者设置文件过期时间，并在响应中返回 `expires_at` 字段。
+*   **安全加固**：Changelog 提及多项关键安全修复，特别是针对文件工具（Read/Write/Edit）、Grep 和 Workflow 工具的符号链接路径遍历漏洞，防止未授权读写工作区外的文件。
+*   **模型与版本迭代**：文档示例全面更新为 Claude Opus 5；移除了部分功能（如浏览器选择、插件默认启用）的旧版本号限制，表明这些功能已进入稳定期。
+*   **开发者体验 (DX) 优化**：新增 `PreModelSwitch`/`PostModelSwitch` 钩子，改进了子代理的流式传输，并增强了状态栏数据（如提示词缓存统计）。
+
+### 影响级别：**高**
+
+**理由**：
+1.  **企业关键**：`modelPricing` 功能解决了企业开发者长期面临的“界面显示费用与实际账单不符”的痛点。
+2.  **安全漏洞**：Changelog 中提到的符号链接修复属于关键安全补丁，直接影响到工具的隔离性和安全性。
+3.  **API 变更**：文件 API 新增参数虽为可选，但涉及文件生命周期管理，对存储依赖型应用影响较大。
+
+### 开发者行动清单
+
+*   **（管理员/企业用户）**：检查并部署 `modelPricing` 托管设置，以确保团队成员在 `/usage` 和状态栏中看到的成本数据与实际合同费率一致。
+*   **（API 开发者）**：更新文件上传逻辑，利用 `expires_in_seconds` 参数实现文件的自动过期清理，并处理响应中的 `expires_at` 字段。
+*   **（通用开发者）**：将代码及文档中的旧模型名称（如 `claude-opus-4-8`）更新为 `claude-opus-5`，以利用最新模型性能。
+*   **（安全审查）**：如果在项目中大量使用符号链接进行复杂的文件结构跳转，请务必升级至 v2.1.251 以防止路径遍历风险。
+*   **（插件开发者）**：注意 `defaultEnabled` 字段现已完全稳定，无需再担心版本兼容性问题。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Format:** Markdown.
+    *   **Scope:** Batch analysis of 9 pages.
+    *   **Language:** Chinese.
+    *   **Focus:** What changed and why it matters to developers.
+
+2.  **Analyze the Diff Changes (Page by Page):**
+
+    *   **Page: `chrome.md`**
+        *   *Change:* Removed &#34;Browser selection requires Claude Code v2.1.154 or later.&#34;
+        *   *Implication:* The feature is now standard/stable, likely dropping backward compatibility concerns or just cleaning up the doc as the version requirement is met by the current baseline.
+
+    *   **Page: `costs.md`**
+        *   *Change:* Updated the explanation of cost calculation. Added details about `modelPricing` managed setting.
+        *   *New Content:* Section &#34;Report spend at your contracted rates&#34;. Steps to configure `modelPricing`. Notes about where the note `at your organization&#39;s configured rates` appears (`/usage`).
+        *   *Implication:* Enterprise users can now see accurate costs based on their specific contract rates in `/usage` and status lines, not just list prices. Requires `modelPricing` config.
+
+    *   **Page: `plugin-marketplaces.md`**
+        *   *Change:* Removed &#34;Requires Claude Code v2.1.154 or later&#34; from `defaultEnabled` field description.
+        *   *Implication:* Feature stabilization/version cleanup.
+
+    *   **Page: `plugins-reference.md`**
+        *   *Change:* Removed &#34;Requires Claude Code v2.1.154 or later&#34; from `defaultEnabled` field description and the description text.
+        *   *Implication:* Feature stabilization/version cleanup.
+
+    *   **Page: `statusline.md`**
+        *   *Change:* Updated `cost.total_cost_usd` description to include mention of `modelPricing` (contracted rates) vs list price.
+        *   *Implication:* Consistent with `costs.md`. Shows developers that status line costs might be accurate to their org&#39;s billing now.
+
+    *   **Page: `about-claude/models/overview.md`**
+        *   *Change:* Updated model links. &#34;Migrating to Claude Opus 5&#34; link changed.
+        *   *Implication:* Documentation polish, ensuring links point to the correct migration guides or overviews. Update to &#34;Opus 5&#34; terminology.
+
+    *   **Page: `api/beta/files/upload.md`**
+        *   *Change:* Added `expires_in_seconds` parameter (1h to 90 days). Added `expires_at` return field. Removed a specific `anthropic-beta` header from example (implies it might be GA or default). Added example `expires_at` field in response.
+        *   *Implication:* Files API now supports expiration. Developers can set TTL on uploaded files.
+
+    *   **Page: `build-with-claude/structured-outputs.md`**
+        *   *Change:* Updated example model names from `claude-opus-4-8` to `claude-opus-5`.
+        *   *Implication:* Examples updated to reflect the latest generation models.
+
+    *   **Page: `CHANGELOG.md.md`**
+        *   *Change:* Added version `2.1.251`.
+        *   *Highlights:*
+            *   Hooks: `PreModelSwitch`, `PostModelSwitch`.
+            *   Remote Control: Live streaming of subagent tool calls.
+            *   Cost/Usage: `modelPricing` support (matches docs), spend limit bar, prompt-cache metrics.
+            *   Security Fixes: Symlink path traversal fixes (Read/Write/Edit, Grep, Workflow scriptPath). File tools following swapped symlinks.
+            *   Agent Teams: Fixing communication between teammates/leads.
+            *   Cloud/Gateway fixes: Handling profiles, retries.
+            *   General fixes: TUI lag, `--input-format`, background sessions, terminal rendering.
+        *   *Implication:* Major feature additions (hooks, pricing) and significant security hardening regarding symlinks.
+
+3.  **Synthesize Key Themes:**
+    *   **Pricing Transparency:** Huge focus on `modelPricing`. Docs updated to explain how orgs can see contracted rates in the CLI (`/usage`, status line).
+    *   **Model Updates:** References moving to Opus 5/Fable 5. Examples updated.
+    *   **API Enhancements:** Files API now supports expiration (`expires_in_seconds`).
+    *   **Security &amp; Hardening:** Changelog mentions multiple path traversal/symlink fixes. This is critical.
+    *   **Feature Stability:** Removal of specific version requirement text (v2.1.154) indicates these features are now standard.
+    *   **Developer Experience (DX):** New hooks, better status line fields, prompt-cache metrics.
+
+4.  **Determine Impact Level:**
+    *   *High* for Enterprise/Orgs (Pricing changes).
+    *   *High* for Security (Symlink fixes in changelog, though docs don&#39;t explicitly detail the vulnerabilities, the fixes imply severity).
+    *   *Medium* for API users (Files API update).
+    *   *Reasoning:* The ability to display contracted costs is a major QoL improvement for enterprise devs. The API change is additive but important for file management. Security fixes are always high priority to note.
+
+5.  **Draft Action Items:**
+    *   **Admins:** Configure `modelPricing` if you want accurate cost tracking.
+    *   **API Users:** Update Files API implementation to handle `expires_at` and optional `expires_in_seconds`.
+    *   **Developers:** Update model references to use Opus 5.
+    *   **Security:** Review symlink usage if using complex file structures.
+    *   **Plugin Devs:** Note that `defaultEnabled` is now fully stable (though version check removal is minor).
+
+6.  **Translate to Chinese &amp; Format (Iterative refinement):**
+
+    *   *Summary:* 本次更新主要涉及企业级成本追踪能力的增强（支持合约价格）、API 功能扩展（文件过期设置）以及安全性加固（符号链接漏洞修复）。
+    *   *Themes:*
+        *   Enterprise Cost Reporting (`modelPricing`).
+        *   API Updates (Files API expiration).
+        *   Security Fixes (Symlinks).
+        *   Version Updates (Opus 5).
+        *   DX Improvements (Hooks, Status line).
+    *   *Impact:* High. Because of the security fixes and enterprise pricing features.
+    *   *Actions:*
+        1. Admins configure `modelPricing`.
+        2. API devs check file upload logic.
+        3. Update model names to Opus 5.
+        4. (Self-correction: Action items should be actionable for the developer reading this).
+
+7.  **Final Polish (Markdown Structure):**
+
+    *   **Overall Summary**: Focus on cost accuracy, API updates, and security.
+    *   **Key Themes**:
+        *   *企业级成本透明化*: Use `modelPricing` to see real costs.
+        *   *API 功能增强*: Files API supports TTL.
+        *   *安全加固*: Symlink fixes.
+        *   *文档与模型更新*: Opus 5 examples.
+    *   **Impact Level**: High. (Reasoning: New pricing capability + Security fixes).
+    *   **Action Items**:
+        *   Check `modelPricing` setup.
+        *   Update code for Files API.
+        *   Update model names.
+        *   Review security notes.
+
+    *(Self-Correction during drafting)*: Make sure to explicitly link the `costs.md` change to the `statusline.md` change as they relate to the same feature. Note the changelog version `2.1.251` corresponds to these changes.
+
+    *Refining the &#34;Why it matters&#34;:*
+    *   `costs.md`: Stops devs from seeing fake (list) prices if their org pays less.
+    *   `api`: Allows temporary file uploads without manual cleanup.
+    *   `changelog`: Security fixes prevent reading/writing files outside the allowed workspace via symlink tricks.
+
+8.  **Final Output Generation** (Matches the requested Chinese response).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/chrome.html" class="page-link">chrome.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/costs.html" class="page-link">costs.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+13</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugin-marketplaces.html" class="page-link">plugin-marketplaces.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/statusline.html" class="page-link">statusline.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/about-claude/models/overview.html" class="page-link">about-claude/models/overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/beta/files/upload.html" class="page-link">api/beta/files/upload.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/structured-outputs.html" class="page-link">build-with-claude/structured-outputs.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+72</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">04:37 EST</div>
