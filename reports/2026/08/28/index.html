@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026-08-28 - Documentation Changes</title>
+    <style>
+        :root {
+            --bg-color: #1a1a2e;
+            --card-bg: #16213e;
+            --text-color: #eee;
+            --accent: #0f3460;
+            --add-text: #4ade80;
+            --del-text: #f87171;
+            --time-color: #60a5fa;
+        }
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg-color: #f5f5f5;
+                --card-bg: #fff;
+                --text-color: #333;
+                --accent: #e0e0e0;
+                --add-text: #155724;
+                --del-text: #721c24;
+                --time-color: #2563eb;
+            }
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+        .container { max-width: 800px; margin: 0 auto; }
+        header { margin-bottom: 2rem; }
+        h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+        .meta { color: #888; }
+        .batch { margin-bottom: 2rem; }
+        .batch-header {
+            color: var(--time-color);
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--accent);
+        }
+        .page-list { list-style: none; }
+        .page-item {
+            background: var(--card-bg);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .page-item:hover { background: var(--accent); }
+        .page-link {
+            color: var(--text-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .page-summary { color: #888; font-size: 0.9rem; }
+        .added { color: var(--add-text); }
+        .removed { color: var(--del-text); }
+        a { color: #60a5fa; }
+        .back-link { margin-bottom: 1rem; display: inline-block; }
+        .page-item-content { flex: 1; }
+        .page-analysis {
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: 0.25rem;
+        }
+        .source-section {
+            margin-bottom: 1.5rem;
+        }
+        .source-header {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: #8b5cf6;
+        }
+        .batch-analysis {
+            background: var(--card-bg);
+            border-left: 3px solid #22c55e;
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            margin: 0.75rem 0 1rem 0;
+        }
+        .batch-analysis h4 {
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+        .batch-analysis-content {
+            white-space: pre-wrap;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        .reasoning-section {
+            margin-top: 1rem;
+            padding-top: 0.75rem;
+            border-top: 1px dashed var(--accent);
+            font-size: 0.85rem;
+            color: #888;
+        }
+        .reasoning-section summary {
+            cursor: pointer;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../../../index.html" class="back-link">&larr; All reports</a>
+
+        <header>
+            <h1>Changes on 2026-08-28</h1>
+            <p class="meta">30 total changes in 1 run</p>
+        </header>
+
+        
+        <div class="batch">
+            <div class="batch-header">04:37 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 总体摘要
+
+本次文档更新涉及 CLI 行为的重大变更、Files API 的正式转正（脱离 Beta），以及对工作区、管理设置和权限作用域的详细澄清。
+
+### 关键主题
+
+*   **CLI 行为变更 (`--cloud`)**：从终端向云端会话发送消息的机制发生变更。`--cloud` 标志不再支持直接附加到现有会话进行交互，现在必须配合 `-p` 参数将消息排队到会话中。
+*   **Files API 稳定化**：Files API 正式发布，不再需要 Beta 标头 (`files-api-2025-04-14`)。分页响应结构和 SDK 命名空间有相应调整。
+*   **权限与设置的作用域细化**：大幅澄清了“工作区”、“主工作目录”以及管理设置在云端会话、Cowork 会话和本地会话中的具体应用逻辑和隔离边界。
+*   **版本依赖更新**：多项新功能（如 Vim 模式的 `Ctrl+[`、计划模式恢复、`/cd` 移动会话后的配置加载）明确依赖新的 Claude Code 版本（如 v2.1.246, v2.1.242）。
+*   **安全与隔离警告**：强化了关于文件上传、连接器（Connectors）和插件访问控制的安全警告，特别是关于多租户环境下的工作区隔离。
+
+### 影响等级：高
+
+**理由**：
+1.  **Breaking Change**：`--cloud` 标志的行为改变直接影响了依赖从终端“附加”到云端会话的自动化脚本或用户工作流。
+2.  **API 迁移**：Files API 移出 Beta 要求开发者主动迁移代码以移除 Beta 标头并适配新的分页结构。
+3.  **合规与配置**：管理设置和权限作用域的详细澄清对企业级部署和合规配置有重要影响。
+
+### 开发者行动项
+
+1.  **更新 CLI 脚本**：检查并修改所有使用 `claude --cloud &lt;session-id&gt;` 的代码或脚本，确保添加 `-p` 参数以使用新的消息排队机制。
+2.  **迁移 Files API**：移除 `anthropic-beta: files-api-2025-04-14` 请求头，更新代码以适配新的 `next_page` 分页结构，并升级 SDK 到指定版本。
+3.  **审查工作区隔离**：如果使用 Files API 构建多租户应用，请重新评估 API 密钥和工作区的隔离策略，确保不同租户的数据严格隔离。
+4.  **检查管理设置交付**：确认企业级部署中，针对 Cloud 和 Cowork 会话的策略配置（如 `managed-settings.json` 或 Server-managed settings）符合新的作用域规则。
+5.  **更新 Java 依赖**：将 Java SDK 从 2.57.0 升级至 2.58.0 以获取最新支持。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Input:** 30 pages of documentation changes (diffs provided).
+    *   **Role:** World-class programmer analyzing docs.
+    *   **Output:** Concise, insightful markdown summary.
+    *   **Language:** Chinese.
+    *   **Structure:** Overall Summary, Key Themes, Impact Level, Action Items.
+
+2.  **Scan and Analyze the Diffs (Batch Processing):**
+
+    *   *Page 1: `claude-code-on-the-web.md`*:
+        *   Updated TOC (added &#34;permission modes&#34;).
+        *   Refine cloud environment descriptions (organization-level environments, self-hosted).
+        *   Updated GitHub auth flow descriptions for routines.
+        *   **Significant CLI behavior change:** `--cloud` flag usage clarified. &#34;Interactive attach&#34; seems to be removed or rephrased as &#34;queue-and-exit&#34; only (`-p` is now the primary way to send follow-ups). The text &#34;Without `-p`, `claude --cloud &lt;session-id&gt;` attaches your terminal...&#34; is deleted.
+    *   *Page 2: `cli-reference.md`*:
+        *   Confirms `--cloud` behavior change. Now emphasizes queuing messages *with* `-p`. Removes mention of attaching without `-p`.
+    *   *Page 3: `desktop.md`*:
+        *   Added version requirement for `disableDesktopLocalSessions` (v1.37937.0).
+        *   Clarified managed settings for Cloud sessions and Cowork sessions.
+        *   Added external host domains for Artifacts (CDNs).
+        *   Clarified that local/SSH sessions deliver connectors directly; managed MCP settings don&#39;t reach connectors.
+    *   *Page 4: `hooks.md`*:
+        *   Clarified managed settings fallback logic.
+        *   Added version requirement for `disableCommandPluginSources` (v2.1.229).
+        *   Updated table formatting.
+    *   *Page 5: `hooks-guide.md`*:
+        *   Refined `elicitation_complete` description.
+        *   Updated permission decision logic descriptions regarding connectors/MCP tools.
+    *   *Page 6: `interactive-mode.md`*:
+        *   Added `Ctrl+[` for NORMAL mode entry (with version req v2.1.242).
+        *   Added new Vim commands `df{char}` and `dt{char}`.
+    *   *Page 7: `mcp.md`*:
+        *   Clarified `headersHelper` working directory rules, especially regarding `/cd` and `primary working directory`.
+        *   Updated trust dialog logic.
+        *   Added version requirements (v2.1.195+, v2.1.238+).
+        *   Clarified MCP server lifecycle when moving sessions with `/cd` (v2.1.246).
+    *   *Page 8: `model-config.md`*:
+        *   Clarified how managed settings apply to Cloud and Cowork sessions.
+    *   *Page 9: `monitoring-usage.md`*:
+        *   Minor text refinements regarding &#34;managed tier&#34;.
+    *   *Page 10: `network-config.md`*:
+        *   Minor table formatting updates.
+    *   *Page 11: `plugin-marketplaces.md`*:
+        *   Updated naming rules (kebab-case, no spaces, control chars, bidirectional chars).
+    *   *Page 12: `plugins.md`*:
+        *   Added link for testing dependencies.
+    *   *Page 13: `plugins-reference.md`*:
+        *   Updated project-scope plugin loading logic (primary working directory).
+        *   Clarified synced plugins visibility.
+        *   Updated naming rules.
+    *   *Page 14: `settings.md`*:
+        *   Clarified `.claude` folder locations and &#34;primary working directory&#34;.
+        *   Updated behavior of `.claude/settings.local.json` in git repos (root vs start dir).
+        *   Added version requirements (v2.1.211+, v2.1.242+).
+    *   *Page 15 &amp; 16 (`skills.md`, `slash-commands.md`)*:
+        *   Updated project skills loading logic (primary working directory).
+        *   Added version req for `/cd` loading skills (v2.1.246).
+        *   Minor text refinements.
+    *   *Page 17: `statusline.md`*:
+        *   Added rate-limit reset logic for status line refreshes.
+        *   Clarified `rate_limits` object lifecycle.
+    *   *Page 18: `sub-agents.md`*:
+        *   Minor formatting change (space in agent name).
+        *   Updated connector/MCP tool permission descriptions.
+    *   *Page 19: `terminal-config.md`*:
+        *   Added behavior for deleting placeholders (Ctrl+W, etc.).
+    *   *Page 20: `vs-code.md`*:
+        *   Added version req for restoring plan mode (v2.1.246).
+    *   *Page 21: `get-started.md`*:
+        *   Updated Java SDK version from 2.57.0 to 2.58.0.
+    *   *Page 22: `api/overview.md`*:
+        *   **API Change:** Added `anthropic-workspace-id` header documentation.
+        *   Clarified Key types and workspace usage.
+    *   *Page 23: `build-with-claude/batch-processing.md`*:
+        *   Minor text refinements on workspace scoping.
+    *   *Page 24: `build-with-claude/files.md`*:
+        *   **Major Update:** Files API is out of beta. Migration guide from `files-api-2025-04-14` provided.
+        *   Updated list response shapes (`next_page` vs cursors).
+        *   SDK beta namespace updates.
+    *   *Page 25: `build-with-claude/claude-on-amazon-bedrock.md`*:
+        *   Updated Java SDK version to 2.58.0.
+
+3.  **Synthesize Key Themes:**
+    *   **CLI Behavior Change (`--cloud`):** The &#34;attach&#34; functionality for cloud sessions seems removed or deprecated in favor of explicit message queuing (`-p`). This is a significant workflow change for terminal-to-web interaction.
+    *   **Workspace Scoping &amp; Managed Settings:** Heavy emphasis on how settings, files, and permissions are scoped to &#34;workspaces&#34; or &#34;primary working directories&#34;. Refinements on how Cowork and Cloud sessions handle managed settings.
+    *   **Files API Graduation:** The Files API is now stable (out of beta), requiring migration from the beta header.
+    *   **Specific Version Requirements:** Multiple features (vim mode `Ctrl+[`, plan mode restore, `/cd` behavior) explicitly reference new Claude Code versions (v2.1.211, v2.1.242, v2.1.246, etc.).
+    *   **Directory &amp; Path Logic:** Clarifications on where files/settings are read from (start dir vs. repo root vs. primary working directory), especially after using `/cd`.
+
+4.  **Determine Impact Level:**
+    *   **High:** The `--cloud` CLI flag change breaks existing workflows if users relied on attaching without `-p`. The Files API migration is a necessary step for stability.
+    *   **Medium:** The detailed scoping changes for managed settings/workspaces are important for enterprise/admins but might be transparent to casual users. Version requirements indicate new features are gated.
+
+5.  **Draft Action Items:**
+    *   Update CLI scripts using `--cloud` to use the new queuing syntax (`-p`).
+    *   Review and migrate code using the Files API beta header to the stable version.
+    *   Check API keys/workspace isolation for file uploads based on new warnings.
+    *   Update documentation or internal tooling regarding managed settings delivery to Cowork/Cloud sessions.
+
+6.  **Translate to Chinese and Format:**
+
+    *   *Summary:* 聚焦于 CLI 行为变更（`--cloud` 标志不再支持直接附加，仅支持消息排队）、Files API 正式转正（移除 beta 标头）、以及对工作区和管理设置的细粒度作用域说明。
+    *   *Themes:* CLI 行为变更, API 稳定化, 权限与作用域细化, 版本依赖更新.
+    *   *Impact:* High (Breaking change in CLI workflow, API migration required).
+    *   *Action Items:* Migrate `--cloud` usage, Migrate Files API, Review workspace scoping.
+
+7.  **Refine Content (Self-Correction during drafting):**
+    *   *Check:* Did `--cloud` *really* break? The diff shows &#34;Interactive attach is rolling out gradually...&#34; was removed, and now it says &#34;The command posts one message and exits&#34; and the `--cloud` reference explicitly mentions &#34;-p&#34;. Yes, the &#34;attach&#34; mode seems removed or rebranded, making the behavior change distinct.
+    *   *Check:* Files API. The diff clearly shows a &#34;Migrate from...&#34; section. This is a standard breaking change cycle.
+    *   *Check:* SDKs. Java SDK bumped to 2.58.0.
+
+8.  **Final Output Generation** (Proceeding to generate response in the requested format).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/claude-code-on-the-web.html" class="page-link">claude-code-on-the-web.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+9</span>
+                            <span class="removed">-8</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/cli-reference.html" class="page-link">cli-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/desktop.html" class="page-link">desktop.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+42</span>
+                            <span class="removed">-48</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/interactive-mode.html" class="page-link">interactive-mode.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+35</span>
+                            <span class="removed">-34</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+28</span>
+                            <span class="removed">-10</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/model-config.html" class="page-link">model-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+11</span>
+                            <span class="removed">-10</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/network-config.html" class="page-link">network-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+19</span>
+                            <span class="removed">-18</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugin-marketplaces.html" class="page-link">plugin-marketplaces.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+19</span>
+                            <span class="removed">-17</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins.html" class="page-link">plugins.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-8</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+20</span>
+                            <span class="removed">-16</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/statusline.html" class="page-link">statusline.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+12</span>
+                            <span class="removed">-11</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/terminal-config.html" class="page-link">terminal-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/vs-code.html" class="page-link">vs-code.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/get-started.html" class="page-link">get-started.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/overview.html" class="page-link">api/overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+10</span>
+                            <span class="removed">-9</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/batch-processing.html" class="page-link">build-with-claude/batch-processing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/files.html" class="page-link">build-with-claude/files.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+17</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-on-amazon-bedrock.html" class="page-link">build-with-claude/claude-on-amazon-bedrock.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-on-vertex-ai.html" class="page-link">build-with-claude/claude-on-vertex-ai.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-in-microsoft-foundry.html" class="page-link">build-with-claude/claude-in-microsoft-foundry.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/code-execution-tool.html" class="page-link">agents-and-tools/tool-use/code-execution-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/mcp-connector.html" class="page-link">agents-and-tools/mcp-connector.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
+        
+    </div>
+</body>
+</html>
