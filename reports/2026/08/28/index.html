@@ -118,9 +118,406 @@
 
         <header>
             <h1>Changes on 2026-08-28</h1>
-            <p class="meta">39 total changes in 2 runs</p>
+            <p class="meta">60 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">23:00 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 整体摘要
+此次更新主要集中在增强系统的可观测性和运行稳定性，包括新增详细的 Prompt Cache 统计数据和成本透明度调整（数据驻留定价），同时优化了网络超时机制、MCP 认证重试逻辑以及插件和沙箱的安全限制。
+
+### 关键变更主题
+
+*   **增强可观测性与成本追踪**
+    *   在 `costs.md` 和 `statusline.md` 中新增了详细的 Prompt Cache 统计字段（如缓存命中率、冷热状态、TTL），帮助开发者监控缓存效率。
+    *   成本计算现已纳入 1.1 倍的数据驻留费率，确保账单估算更准确；状态栏脚本新增 `spend_limit` 和 `prompt_cache` 对象支持。
+*   **提升网络连接与可靠性**
+    *   `network-config.md` 引入了“首字节截止时间” 监控，防止请求在收到响应头前无限期挂起。
+    *   MCP 服务器的认证重试逻辑得到改进，特别是使用 `headersHelper` 的场景，且连接超时计算规则更加明确。
+*   **强化安全边界与验证**
+    *   `plugins-reference.md` 和 `plugin-marketplaces.md` 强制执行路径遍历保护，拒绝引用插件目录外的文件。
+    *   `sandboxing.md` 更新了沙箱写入范围的描述，明确包含通过 `--add-dir` 添加的目录；CLI 的 `--agents` 参数现在会在启动时进行验证。
+*   **模型行为与配置微调**
+    *   `model-config.md` 和 `desktop.md` 进一步阐明了扩展思考、自适应推理与特定模型（如 Opus 5）之间的交互行为，修正了部分状态描述。
+
+### 影响等级：中等
+
+**理由**：虽然引入了成本计算和网络监控的改进，但这些主要是透明度和稳定性的提升，并未破坏现有的核心工作流。开发者可能需要调整状态栏脚本以利用新数据，或重新审视基于旧成本估算的预算设置。
+
+### 开发者行动项
+
+*   **审查成本脚本**：如果您的脚本依赖 `--max-budget-usd` 或解析成本数据，请留意新增的 1.1 倍数据驻留费率计算。
+*   **更新状态栏配置**：检查您的 `statusline` 脚本，利用新增的 `prompt_cache` 和 `spend_limit` 字段来提升监控能力。
+*   **检查 MCP 连接**：如果您使用 `headersHelper` 进行 MCP 认证，更新后的重试逻辑将有助于提高连接稳定性，建议验证相关配置。
+*   **验证插件路径**：确保您的插件配置没有引用插件根目录之外的文件，否则可能会被拒绝加载。
+*   **审查沙箱权限**：如果您使用了 `--add-dir`，请注意沙箱现在允许写入这些额外目录，请根据需要调整 `allowWrite` 策略。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Input:** A single batch of documentation diffs (21 pages).
+    *   **Output Format:** Concise, insightful analysis in Markdown.
+    *   **Language:** Chinese.
+    *   **Structure:**
+        1.  Overall Summary (1-2 sentences).
+        2.  Key Themes across pages (bullets).
+        3.  Impact level (Low/Medium/High/Breaking) with reasoning.
+        4.  Action items for developers (bullets, max 5).
+
+2.  **Analyze the Diffs (Page by Page):**
+
+    *   *amazon-bedrock.md*: Minor wording changes. &#34;picks up your region&#34; -&gt; &#34;asks for your region&#34;. Clarification on 1M context window for &#34;Invoke API&#34; models vs Mantle.
+        *   *Theme*: Clarification of Bedrock integration behavior.
+
+    *   *claude-code-on-the-web.md*: Clarification of error handling for `--teleport` without session ID when auth fails/stale.
+        *   *Theme*: Error handling/user experience clarity.
+
+    *   *cli-reference.md*: Updated `--agents` flag docs to mention validation at startup and error handling.
+        *   *Theme*: CLI reliability/validation.
+
+    *   *costs.md*: **Major Addition**. Added Data Residency pricing (1.1x multiplier). Added detailed Prompt Cache statistics (hits, misses, warm/cold state). Fixed a Bash hook example script syntax (using `jq` correctly).
+        *   *Theme*: Cost visibility/transparency, Prompt caching.
+
+    *   *desktop.md*: Cross-session messaging update (Claude can reply). Extended thinking behavior update with specific model details (Opus 5).
+        *   *Theme*: Desktop features, model behavior.
+
+    *   *devcontainer.md*: Firewall script description changed from &#34;blocks all... except&#34; to &#34;limits outbound traffic to...&#34;. Minor accuracy update.
+        *   *Theme*: Security/Networking accuracy.
+
+    *   *hooks.md*: Hooks definition updated to include &#34;subagents&#34;. Updated directory fallback logic if current dir is deleted. Bash matching logic update (expanded table).
+        *   *Theme*: Hooks robustness, matching logic.
+
+    *   *hooks-guide.md*: Clarification on exit codes and JSON validation/parse errors. Updated troubleshooting for &#34;JSON parse message&#34;.
+        *   *Theme*: Hooks debugging.
+
+    *   *interactive-mode.md*: Behavior of queued commands (`/model`, `/effort`, `/fast`). Clarification on when prompt suggestions are disabled.
+        *   *Theme*: Interactive UX.
+
+    *   *mcp.md*: Retry logic for authentication errors with `headersHelper`. Timeout calculation clarification. URL length cap in URL mode. Prompt naming convention change (`/servername:promptname` vs `/mcp__servername__promptname`).
+        *   *Theme*: MCP reliability, auth, UX.
+
+    *   *model-config.md*: Effort level interaction with Extended Thinking. Clarification on `MAX_THINKING_TOKENS` behavior (Opus 5 specifics).
+        *   *Theme*: Model configuration.
+
+    *   *network-config.md*: **Major Update**. Introduction of &#34;First-byte deadline&#34; watchdog. Detailed table of timers.
+        *   *Theme*: Network reliability/timeouts.
+
+    *   *plugin-marketplaces.md*: Path traversal restriction enforcement. Error handling for paths outside plugin root.
+        *   *Theme*: Security/Plugin safety.
+
+    *   *plugins-reference.md*: Path traversal limitations explained. Security restriction enforcement.
+        *   *Theme*: Security/Plugin safety.
+
+    *   *sandboxing.md*: Sandbox write scope now includes `--add-dir` directories. Unsandboxed retry escape hatch clarity. `injectHosts` warning command update (`claude doctor`).
+        *   *Theme*: Sandbox behavior, security.
+
+    *   *setup.md*: Code blocks had duplicate `theme={null}` attributes (cleanup, likely).
+        *   *Theme*: Documentation formatting (no functional change).
+
+    *   *skills.md*: Feature-specific skills availability. Frontmatter parsing rules (`---` must be first line). Removed `npm --version` from example.
+        *   *Theme*: Skills definition.
+
+    *   *slash-commands.md*: Same changes as skills.md (feature-specific skills, frontmatter rules).
+        *   *Theme*: Commands definition.
+
+    *   *statusline.md*: **Major Update**. Added `prompt_cache` fields (warm, ttl, hit ratio, etc.). Added `spend_limit` fields. Trigger updates on cache expiry.
+        *   *Theme*: Observability/Statusline.
+
+    *   *sub-agents.md*: `--agents` validation details. Experimental options for `cacheTtl`. Frontmatter parsing rules. Background subagent notification updates.
+        *   *Theme*: Sub-agent configuration.
+
+    *   *terminal-config.md*: Theme token updates. Added `effortUltra` token. Clarified `diffAddedDimmed` context.
+        *   *Theme*: UI customization.
+
+3.  **Synthesize Themes:**
+    *   **Observability &amp; Cost Tracking:** Significant additions to `costs.md` and `statusline.md` regarding prompt cache stats and data residency pricing.
+    *   **Reliability &amp; Robustness:** MCP auth retries, network watchdogs (first-byte deadline), hooks path fallback, sandbox write scope including added dirs, plugin path traversal security.
+    *   **Model &amp; Behavior Specifics:** Interactions between extended thinking, effort levels, and specific models (Opus 5, Sonnet 5).
+    *   **Configuration &amp; Validation:** `--agents` validation, frontmatter parsing rules, `injectHosts` warnings.
+
+4.  **Determine Impact Level:**
+    *   **High?** No breaking changes for core workflows.
+    *   **Medium?** Yes. There are significant behavioral clarifications (network timeouts, prompt cache reporting) and feature additions (statusline fields, cost tracking) that affect how developers monitor and configure Claude Code.
+    *   *Decision:* **Medium**. The changes improve transparency (costs/cache) and robustness (network/security) without breaking existing workflows.
+
+5.  **Draft Action Items (Chinese):**
+    *   Review cost tracking updates (Data Residency pricing).
+    *   Check network timeout configurations if experiencing connection hangs.
+    *   Verify MCP authentication flows if using `headersHelper`.
+    *   Update statusline scripts to utilize new `prompt_cache` data.
+    *   Review sandbox permissions if using `--add-dir`.
+
+6.  **Draft the Response (Iterative refinement for tone and conciseness):**
+
+    *   *Summary:* This update focuses on enhancing operational visibility (prompt caching, cost tracking) and system robustness (network timeouts, security enforcement, MCP authentication).
+    *   *Themes:*
+        *   **增强可观测性**: Added detailed prompt cache statistics and data residency pricing in costs/statusline.
+        *   **提升稳定性与安全性**: Introduced &#34;first-byte deadline&#34; network watchdogs, plugin path traversal enforcement, and MCP auth retry logic.
+        *   **明确行为**: Clarified interactions between extended thinking, effort levels, and specific models (Opus 5).
+    *   *Impact:* Medium.
+    *   *Action Items:*
+        *   Review the new cost tracking logic for 1.1x data residency rates.
+        *   Update statusline configurations to leverage the new `prompt_cache` object.
+        *   Audit MCP servers using `headersHelper` to benefit from improved auth retry logic.
+        *   Check sandbox configurations as write scope now includes `--add-dir` paths.
+        *   Verify plugin paths to ensure they don&#39;t reference outside the plugin root.
+
+7.  **Final Polish (Chinese):** Ensure technical terms are handled correctly (e.g., &#34;Prompt Cache&#34;, &#34;Data Residency&#34;, &#34;Watchdog&#34;).
+
+    *   *Self-Correction during drafting:* The setup.md change looks like a formatting glitch (multiple `theme={null}`). I will ignore it in the &#34;meaningful&#34; themes but ensure the overall summary focuses on the functional changes.
+
+8.  **Final Output Generation:** (Matches the structured markdown format).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/amazon-bedrock.html" class="page-link">amazon-bedrock.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/claude-code-on-the-web.html" class="page-link">claude-code-on-the-web.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/cli-reference.html" class="page-link">cli-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/costs.html" class="page-link">costs.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+13</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/desktop.html" class="page-link">desktop.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/devcontainer.html" class="page-link">devcontainer.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+27</span>
+                            <span class="removed">-21</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/interactive-mode.html" class="page-link">interactive-mode.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+11</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/model-config.html" class="page-link">model-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-8</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/network-config.html" class="page-link">network-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+12</span>
+                            <span class="removed">-9</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugin-marketplaces.html" class="page-link">plugin-marketplaces.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sandboxing.html" class="page-link">sandboxing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+10</span>
+                            <span class="removed">-9</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/setup.html" class="page-link">setup.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/statusline.html" class="page-link">statusline.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+44</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+10</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/terminal-config.html" class="page-link">terminal-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+17</span>
+                            <span class="removed">-16</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">16:37 EST</div>
