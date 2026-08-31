@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026-08-31 - Documentation Changes</title>
+    <style>
+        :root {
+            --bg-color: #1a1a2e;
+            --card-bg: #16213e;
+            --text-color: #eee;
+            --accent: #0f3460;
+            --add-text: #4ade80;
+            --del-text: #f87171;
+            --time-color: #60a5fa;
+        }
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg-color: #f5f5f5;
+                --card-bg: #fff;
+                --text-color: #333;
+                --accent: #e0e0e0;
+                --add-text: #155724;
+                --del-text: #721c24;
+                --time-color: #2563eb;
+            }
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+        .container { max-width: 800px; margin: 0 auto; }
+        header { margin-bottom: 2rem; }
+        h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+        .meta { color: #888; }
+        .batch { margin-bottom: 2rem; }
+        .batch-header {
+            color: var(--time-color);
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--accent);
+        }
+        .page-list { list-style: none; }
+        .page-item {
+            background: var(--card-bg);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .page-item:hover { background: var(--accent); }
+        .page-link {
+            color: var(--text-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .page-summary { color: #888; font-size: 0.9rem; }
+        .added { color: var(--add-text); }
+        .removed { color: var(--del-text); }
+        a { color: #60a5fa; }
+        .back-link { margin-bottom: 1rem; display: inline-block; }
+        .page-item-content { flex: 1; }
+        .page-analysis {
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: 0.25rem;
+        }
+        .source-section {
+            margin-bottom: 1.5rem;
+        }
+        .source-header {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: #8b5cf6;
+        }
+        .batch-analysis {
+            background: var(--card-bg);
+            border-left: 3px solid #22c55e;
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            margin: 0.75rem 0 1rem 0;
+        }
+        .batch-analysis h4 {
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+        .batch-analysis-content {
+            white-space: pre-wrap;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        .reasoning-section {
+            margin-top: 1rem;
+            padding-top: 0.75rem;
+            border-top: 1px dashed var(--accent);
+            font-size: 0.85rem;
+            color: #888;
+        }
+        .reasoning-section summary {
+            cursor: pointer;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../../../index.html" class="back-link">&larr; All reports</a>
+
+        <header>
+            <h1>Changes on 2026-08-31</h1>
+            <p class="meta">15 total changes in 1 run</p>
+        </header>
+
+        
+        <div class="batch">
+            <div class="batch-header">06:22 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 整体摘要
+
+本次文档更新主要增强了认证机制的灵活性（支持无 API Key 登录及 Keychain 回退），明确了配置项（`modelSettings` 与 `effortLevel`）的合并逻辑，并修正了 Hooks 和符号链接处理中的若干行为细节。
+
+### 关键主题
+
+*   **认证与凭证管理：** 新增基于 OAuth 的控制台无 Key 登录功能；修复了在 SSH 会话等场景下 macOS Keychain 锁定时的凭证降级存储逻辑（回退至本地 JSON 文件）。
+*   **配置与模型行为：** 阐明了 `modelSettings` 和 `effortLevel` 的覆盖与合并规则，以及子代理模型选择的优先级顺序（环境变量 &gt; 主会话模型）。
+*   **Hooks 与权限逻辑：** `PreToolUse` hook 中的 `updatedInput` 现在明确指出，权限规则和Bash自动后台检查将基于**修改后**的输入执行，而非原始输入。
+*   **规则排除与交互细节：** 改进了通过符号链接引用的规则文件的 `claudeMdExcludes` 匹配行为；微调了终端粘贴内容的折叠阈值。
+
+### 影响级别
+
+**中**
+
+**理由：** 虽然大部分更新为文档澄清，但 `PreToolUse` hook 中权限检查逻辑的变更（从检查原始输入变为检查修改后输入）属于行为变更，可能影响现有的安全钩子逻辑。此外，Keychain 的降级存储逻辑也会影响特定环境下的凭证持久化方式。
+
+### 开发者行动项
+
+*   **审查 Hooks 逻辑：** 检查自定义 `PreToolUse` hooks，确保安全策略能正确处理基于 `updatedInput` 修改后的参数，而非原始参数。
+*   **关注凭证存储：** 若在锁定了 Keychain 的 SSH 环境下运行，需注意凭证将存储在 `~/.claude/.credentials.json` 中，而非 Keychain。
+*   **更新排除规则：** 如果使用符号链接共享规则文件，请调整 `claudeMdExcludes` 模式，确保覆盖链接路径或目标路径。
+*   **调整遥测配置位置：** 将 `OTEL_LOG_RAW_API_BODIES` 等遥测变量移至用户或托管设置层，因为其在项目/本地设置层将被忽略。
+*   **验证 Effort 持久化：** 注意 `/effort` 命令现在会按模型将配置保存到 `modelSettings` 中，而非单一的全局 `effortLevel`。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">用户希望我分析一份文档变更集，涉及 15 个页面，并以 Markdown 格式提供简洁的中文分析。
+我需要涵盖：
+1. 整体摘要（1-2 句话）
+2. 关键主题（要点）
+3. 影响级别（低/中/高/破坏性）及其理由
+4. 开发者行动项（要点，最多 5 条）
+
+让我们通读这些变更，看看发生了什么。
+
+**变更分析：**
+
+1.  **cli-reference.md:** `--effort` 标志现在覆盖 `modelSettings` 和 `effortLevel`。以前仅覆盖 `effortLevel`。这是一个小的逻辑澄清/变更。
+
+2.  **headless.md:** 401/403 错误上的 API 重试行为。对于使用 `apiKeyHelper` 的情况，它会使前两次重试保持静默，然后开始发出事件。行为略有变更。
+
+3.  **hooks.md:** `updatedInput` 钩子字段澄清。它指出对返回的输入评估权限规则和 Bash 自动后台资格，而不是 Claude 发送的输入。这是一个至关重要的澄清，可能会影响基于旧逻辑编写的钩子逻辑。
+
+4.  **iam.md:**
+    *   在未创建 API 密钥的情况下登录：添加了一节关于使用 OAuth 轮廓文件而不是静态 API 密钥登录控制台的新功能。这需要 v2.1.242。
+    *   如果设置了 `forceLoginOrgUUID`，将回退到创建密钥。
+    *   macOS Keychain 行为：如果写入被拒绝（例如 SSH 会话中锁定的 Keychain），则回退到 `~/.claude/.credentials.json`。
+    *   对 `forceLoginOrgUUID` 的小文本调整。
+
+5.  **mcp.md:**
+    *   移除了提到“未收到远程配置的部署”作为无效输入架构排除触发条件的描述。现在似乎只是普遍进行排除（除非功能标志已关闭？）。
+    *   实际上，稍后它说“Claude Code 通过从 Anthropic 获取的功能标志来开启此排除功能。在……标志获取被关闭的部署中……它仍运行检查但发送工具架构”。所以，对于离线/气隙机器的行为变更/澄清。
+    *   关于离线部署行为的显著澄清。
+
+6.  **memory.md:** 排除通过符号链接访问的规则文件的 `claudeMdExcludes` 行为变更。以前，你需要匹配链接目标。现在匹配任一路径即可排除文件。这修复了符号链接的一个小 Bug/遗漏。
+
+7.  **model-config.md:**
+    *   `default` 模型解析：提及“Enterprise pay-as-you-go”被合并到通用的“Enterprise”中。
+    *   努力级别（effort level）解析：关于默认模型与持久化设置与模型默认值的优先级顺序的显著澄清。解释了 `modelSettings` 如何与 `effortLevel` 交互。
+    *   说明 Opus 5 不像旧版模型那样有“保持”行为。
+
+8.  **monitoring-usage.md:**
+    *   Beta 追踪端点（`BETA_TRACING_ENDPOINT`）：如果管理设置锁定了收集器，开发者设置的变量现在会被移除。
+    *   `OTEL_LOG_RAW_API_BODIES`：澄清它应该设置在 shell/用户/托管设置中（忽略项目/本地设置）。对其工作方式的详细分解。
+
+9.  **plugins-reference.md:** macOS Keychain 存储行为的澄清。如果 Keychain 拒绝写入（如锁定的 Keychain），它会回退到文件存储。与 `iam.md` 中的更改相匹配。
+
+10. **settings.md:**
+    *   `--effort` 覆盖 `modelSettings` 和 `effortLevel`。
+    *   `/effort` 为模型保存级别。
+    *   澄清 `modelSettings` 合并逻辑：逐个模型解析。它是一个覆盖标准列表合并的“特殊”键。
+
+11. **skills.md / slash-commands.md:**
+    *   非交互式会话中的命名空间修复。如果插件前缀在名称中，它不再重复添加。
+
+12. **sub-agents.md:**
+    *   子代理模型选择逻辑更新。澄清了层级：`CLAUDE_CODE_SUBAGENT_MODEL` -&gt; 主对话模型。
+    *   通用代理表更新以反映此逻辑。
+
+13. **terminal-config.md:**
+    *   粘贴行为变更：&gt; 3 行而不是 &gt; 2 行触发折叠。较短终端（&lt; 12 行）的阈值也有调整。
+
+14. **third-party-integrations.md:**
+    *   更新了表头，指出 Microsoft Foundry 支持“无密钥控制台登录”。
+
+**综合：**
+
+*   **主题：**
+    1.  **认证/安全性：** 在没有 API 密钥的情况下登录（OAuth），处理锁定的 Keychains，401/403 上的静默重试。
+    2.  **配置/设置：** `modelSettings` 逻辑，努力级别优先级，排除符号链接规则，受限（项目/本地）设置中的遥测变量。
+    3.  **代理/钩子：** 子代理模型选择，`updatedInput` 逻辑检查修改后的输入，插件技能命名空间。
+    4.  **UI/UX：** 终端中的粘贴阈值。
+
+*   **影响级别：** **中**。
+    *   大多数是澄清或轻微行为调整（终端粘贴，前缀去重）。
+    *   *然而*，一些更改是功能性的：
+        *   Keychain 回退是一个重要的边缘情况修复。
+        *   `updatedInput` 钩子逻辑变更是一个破坏性变更，如果有人依赖对原始输入的检查。
+        *   符号链接排除修复是一个行为变更。
+        *   OAuth 登录是一项新功能，但通常向后兼容。
+    *   由于 `updatedInput` 钩子逻辑和 Keychain 行为，这不仅仅是文档清理。我将评估为“中”。
+
+*   **行动项：**
+    1.  如果 Keychain 被 SSH 会话锁定，请检查凭证存储位置。
+    2.  如果使用符号链接，请审查 `claudeMdExcludes` 模式。
+    3.  如果修改工具输入，请更新钩子逻辑以预期权限检查会针对*修改后的*输入运行。
+    4.  更新脚本/设置，将遥测日志变量放在用户/托管级别，而非项目级别。
+    5.  检查 `modelSettings` 中的努力级别持久化逻辑。
+
+**起草中文回复：**
+
+*   *整体摘要：* 文档更新主要集中在认证机制的无 API Key 登录支持、配置项（特别是 `modelSettings` 与 `effortLevel`）的优先级澄清，以及部分钩子和终端交互的行为微调。
+*   *关键主题：*
+    *   **认证与安全：** 新增无 API Key 的控制台登录（基于 OAuth），修复了 macOS Keychain 不可写时的降级存储逻辑。
+    *   **配置与模型：** 明确了 `modelSettings` 与 `effortLevel` 的合并与覆盖逻辑，以及子代理模型的选择顺序。
+    *   **Hook 行为变更：** `PreToolUse` hook 中的 `updatedInput` 现在会基于修改后的输入进行权限检查，而非原始输入。
+    *   **排除规则与交互：** 修复了符号链接文件的排除逻辑，调整了终端粘贴内容的折叠阈值。
+*   *影响级别：* **中**。虽然主要是文档澄清，但 `updatedInput` 的权限检查逻辑变更和 Keychain 的存储回退机制涉及实际运行时的行为变化，可能影响现有脚本的预期结果。
+*   *开发者行动项：*
+    *   检查自定义 Hooks 逻辑，特别是依赖原始输入进行权限判断的 `PreToolUse` 钩子，需适配修改后输入的检查机制。
+    *   若通过 SSH 远程使用且 Keychain 锁定，需了解凭证会回退存储到 `~/.claude/.credentials.json`。
+    *   调整 `claudeMdExcludes` 规则以适配符号链接路径的匹配逻辑。
+    *   遥测配置（如 `OTEL_LOG_RAW_API_BODIES`）应设置在用户或托管设置层，项目层设置将被忽略。
+    *   注意 `/effort` 现在会针对特定模型保存设置到 `modelSettings` 中。
+
+让我们把内容完善得简洁而深刻。
+
+对于 `cli-reference.md`，它增加了 `modelSettings` 作为被覆盖的对象。
+对于 `hooks.md`，变更“Claude Code 针对你的 hook 返回的输入评估权限规则”是关键点。
+对于 `iam.md`，Keychain 回退对于 SSH 至关重要。
+对于 `terminal-config.md`，粘贴阈值是 UX 调整。
+
+最终润色。</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/cli-reference.html" class="page-link">cli-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/headless.html" class="page-link">headless.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/iam.html" class="page-link">iam.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+24</span>
+                            <span class="removed">-7</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/memory.html" class="page-link">memory.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/model-config.html" class="page-link">model-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+25</span>
+                            <span class="removed">-18</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+12</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+18</span>
+                            <span class="removed">-15</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/terminal-config.html" class="page-link">terminal-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/third-party-integrations.html" class="page-link">third-party-integrations.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
+        
+    </div>
+</body>
+</html>
