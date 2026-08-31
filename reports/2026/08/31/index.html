@@ -118,9 +118,166 @@
 
         <header>
             <h1>Changes on 2026-08-31</h1>
-            <p class="meta">15 total changes in 1 run</p>
+            <p class="meta">19 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">13:47 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 文档变更分析
+
+#### 1. Overall Summary
+本次文档更新主要集中在环境变量行为的澄清与修正，特别是针对 Hook 进程的环境清理机制和子代理的模型选择逻辑。此外，包含部分 Markdown 格式清理和对 Beta 追踪配置的补充说明。
+
+#### 2. Key Themes across pages
+*   **Hook 环境变量清理机制**：在 `hooks.md` 中新增了对 `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB` 环境变量的说明，指出了它在子进程环境清理中的作用。
+*   **子代理模型选择逻辑变更**：在 `sub-agents.md` 中修改了子代理模型选择的描述，移除了对 `CLAUDE_CODE_SUBAGENT_MODEL` 环境变量作为默认后备机制的明确引用，转而引用内部的“子代理模型顺序”逻辑。
+*   **Beta 追踪配置影响**：在 `monitoring-usage.md` 中明确指出，启用详细 Beta 追踪不仅激活功能，还会改变日志和追踪数据的发送目标。
+*   **文档格式清理**：在 `quickstart.md` 中移除了代码块中冗余的 `theme={null}` 属性，仅做格式优化。
+
+#### 3. Impact level
+**Medium (中等)**
+
+**Reasoning**:
+尽管大部分更改是澄清性的，但 `sub-agents.md` 中关于模型选择逻辑的变更暗示了行为上的重大调整（即 `CLAUDE_CODE_SUBAGENT_MODEL` 可能不再直接控制省略模型字段时的默认行为）。`hooks.md` 的更新引入了新的配置能力。这两点都可能影响开发者的现有配置和预期行为。
+
+#### 4. Action items for developers
+*   **审查子代理模型配置**：检查现有的子代理配置，确认当前依赖 `CLAUDE_CODE_SUBAGENT_MODEL` 环境变量的默认行为是否符合新的“模型顺序”逻辑，以避免意外的模型切换。
+*   **评估 Hook 安全性**：如果在 Hook 中处理敏感环境变量，请了解并考虑设置 `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1` 以增强环境隔离。
+*   **注意遥测数据流向**：在使用 Beta 追踪功能（`ENABLE_BETA_TRACING_DETAILED`）时，请注意你的日志和追踪数据可能会被发送到与标准配置不同的端点。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **理解目标**：用户希望对 4 个文档页面（`hooks.md`、`monitoring-usage.md`、`quickstart.md`、`sub-agents.md`）的更改提供简洁、富有洞察力的分析。输出必须是 markdown 格式，用中文撰写，重点关注对开发人员的影响。
+
+2.  **分析更改**：
+
+    *   **Page 1: `hooks.md`**
+        *   *更改*：关于环境变量继承的句子被修改了。
+        *   *旧*：挂钩进程继承父进程环境，移除了 `OTEL_*`。
+        *   *新*：挂钩进程继承父进程环境，移除了 `OTEL_*`，*并且*当设置 `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1` 时，移除特定变量。
+        *   *含义*：引入了对新环境变量 `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB` 的行为描述，该变量允许额外清理子进程/挂钩的环境。这对于需要控制安全或敏感信息泄露到挂钩的开发人员很重要。
+
+    *   **Page 2: `monitoring-usage.md`**
+        *   *更改*：更新了关于 `claude_code.hook` 的段落。
+        *   *旧*：提到了 `ENABLE_BETA_TRACING_DETAILED=1` 和 `BETA_TRACING_ENDPOINT`。
+        *   *新*：添加了一个短语，提到该对变量也“改变了日志和踪迹的去向”（带有一个链接）。
+        *   *含义*：澄清性更改。它警告开发人员，设置这些特定的 Beta 跟踪变量不仅会*启用*详细跟踪，还会改变遥测数据的*目标*端点。这是一个关键的配置细节。
+
+    *   **Page 3: `quickstart.md`**
+        *   *更改*：代码块 markdown（如 ```bash theme={null} theme={null}...）有冗余的 `theme={null}` 属性被移除。
+        *   *含义*：这纯粹是文档清理/格式化。对功能没有影响，使 markdown 更整洁。
+
+    *   **Page 4: `sub-agents.md`**
+        *   *更改*：更新了 `model` 字段的表格描述和列表项。
+        *   *旧 (表格)*：如果省略，它使用 `CLAUDE_CODE_SUBAGENT_MODEL` 或主对话的模型。
+        *   *新 (表格)*：如果省略，Claude Code 根据“子代理模型顺序”挑选模型。
+        *   *旧 (列表)*：“Omitted（省略）：使用来自 `CLAUDE_CODE_SUBAGENT_MODEL` 的模型...”
+        *   *新 (列表)*：移除了“Omitted（省略）”这一点。保留了“Inherit（继承）”这一点。
+        *   *含义*：行为变更（或文档澄清）。它移除了明确提及 `CLAUDE_CODE_SUBAGENT_MODEL` 作为子代理模型配置的后备/设置，转而支持隐式的“子代理模型顺序”逻辑。这表明子代理模型的解析逻辑正在更改或简化，可能会弃用特定于子代理的模型环境变量，或者将其隐藏在更具描述性的“顺序”逻辑之后。对于配置 `CLAUDE_CODE_SUBAGENT_MODEL` 的开发人员来说，这可能是一种破坏或重大行为变更。
+
+3.  **综合分析**：
+
+    *   *总体摘要*：文档更新主要集中在环境变量行为（挂钩和子代理）和清理任务上。最显著的变化是对 `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB` 的澄清以及子代理模型选择逻辑的改变。
+    *   *关键主题*：
+        *   环境变量控制（挂钩和遥测）。
+        *   子代理配置逻辑（模型选择）。
+        *   文档清理（代码块）。
+    *   *影响级别*：Medium（中等）。
+        *   *理由*：`hooks.md` 的更改解释了一个新功能/变量。`sub-agents.md` 的更改暗示了模型选择逻辑的变更（移除了对特定环境变量的显式支持，这可能会破坏现有的配置）。`monitoring-usage.md` 是澄清性的。`quickstart.md` 可以忽略不计。
+    *   *行动项*：
+        *   检查挂钩配置是否需要 `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB`。
+        *   验证子代理模型配置，因为 `CLAUDE_CODE_SUBAGENT_MODEL` 的处理方式似乎发生了变化。
+        *   注意设置 Beta 跟踪变量会更改日志目标。
+
+4.  **起草回复（中文）**：
+
+    *   *Summary*: 文档更新主要涉及环境变量的继承逻辑、子代理模型选择规则的变更，以及 Markdown 格式的清理。
+    *   *Themes*:
+        *   Hook 和子进程的环境变量控制（新增 `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB` 说明）。
+        *   子代理模型配置逻辑变更（移除对 `CLAUDE_CODE_SUBAGENT_MODEL` 的显式依赖）。
+        *   Beta 追踪配置的警告（说明该配置会改变日志目标）。
+    *   *Impact*: Medium（中等）。主要因为子代理模型选择逻辑的文档变更可能暗示行为改变，对现有配置有潜在影响。
+    *   *Action Items*:
+        *   检查 Hook 配置：了解如何利用 `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB` 清理敏感环境变量。
+        *   审查子代理模型配置：关注子代理模型选择逻辑的变化，特别是关于 `CLAUDE_CODE_SUBAGENT_MODEL` 环境变量的处理。
+        *   注意 Beta 追踪配置：知晓启用 `ENABLE_BETA_TRACING_DETAILED` 会改变日志发送目标。
+
+5.  **根据限制进行审查**：
+    *   Markdown 格式？是。
+    *   中文？是。
+    *   简洁？是。
+    *   包含 4 个部分？是。
+
+6.  **最终润色**：确保关于 `sub-agents.md` 的语言精确。它从“省略时使用 X”变为“省略时使用模型顺序”。这意味着显式回退变量逻辑已被移除/更改。
+
+    *   *完善 Impact*：这是破坏性更改吗？如果用户依赖 `CLAUDE_CODE_SUBAGENT_MODEL`，而文档说它不再用于后备机制，那对于文档读者来说实际上是一个破坏性更改。Medium 是合适的。
+
+    *   *完善 Action Items*：使其具有可操作性。
+
+    让我们生成输出。</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/quickstart.html" class="page-link">quickstart.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">06:22 EST</div>
