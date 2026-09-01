@@ -118,9 +118,134 @@
 
         <header>
             <h1>Changes on 2026-09-01</h1>
-            <p class="meta">8 total changes in 1 run</p>
+            <p class="meta">10 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">13:13 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更分析
+
+## 1. Overall Summary (总体摘要)
+此次更新主要优化了凭据清理相关的文档描述，将从具体的“关键词列表”泛化为更宽泛的“启发式规则”，并扩大了 `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB` 的清理范围，旨在提供更全面的环境变量安全保护。
+
+## 2. Key Themes (关键主题)
+*   **凭据检测逻辑的泛化**：在 `mcp.md` 中，不再列举 `PAT`、`DSN`、`CREDENTIALS` 等具体后缀，而是简化为“名称中包含 `TOKEN`、`SECRET`、`PASSWORD`、`KEY` 或 `AUTH` 等看起来像凭据的变量”。这表明底层实现可能采用了更智能或更广泛的匹配规则，而非硬编码列表。
+*   **清理范围的扩大**：在 `sandboxing.md` 中，`CLAUDE_CODE_SUBPROCESS_ENV_SCRUB` 环境变量的描述从“清理 Anthropic 和云提供商凭据”改为“清理凭据”。这意味着该全局清理机制不再局限于特定类型的凭据，而是覆盖所有符合定义的敏感信息。
+*   **文档结构优化**：通过拆分长句和明确 `sandbox.credentials` 的作用域（仅限沙箱 Bash 命令），提升了文档的可读性，帮助开发者更好地区分“沙箱内限制”与“全局子进程清理”。
+
+## 3. Impact level (影响等级)
+**Medium** (中等)
+*   **理由**：虽然这不是破坏性的 API 更改，但环境变量清理逻辑的描述变得更加宽泛。如果开发者之前依赖某些特定关键词（如 `DSN` 或 `CREDENTIALS`）被豁免，或者仅认为 `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB` 只针对云厂商密钥，现在的行为可能会更激进地过滤变量。
+
+## 4. Action items for developers (开发者行动建议)
+*   **审查环境变量命名**：检查项目中的环境变量，确保任何敏感变量都包含通用的敏感词（如 `TOKEN`、`SECRET`、`KEY`），以便被自动清理机制正确识别。
+*   **验证子进程环境**：测试使用了 `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB` 的子进程，确认其是否过滤了你预期之外的自定义凭据变量。
+*   **利用文件存储凭据**：参考文档建议，如果脚本因清理机制无法读取环境变量，应改为从文件或凭据存储中读取。
+*   **区分配置作用域**：明确 `sandbox.credentials` 仅影响沙箱内的 Bash 命令，若需全局过滤，必须配置 `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB`。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Task:** Analyze 2 changed pages (`mcp.md`, `sandboxing.md`) as a single batch.
+    *   **Output Format:** Concise, insightful markdown analysis in Chinese.
+    *   **Structure:** 1. Overall Summary, 2. Key Themes, 3. Impact Level, 4. Action Items.
+
+2.  **Analyze Page 1: `mcp.md`**
+    *   *Context:* MCP (Model Context Protocol) configuration, specifically environment variable handling.
+    *   *Change:* The description of environment variable filtering logic is simplified.
+        *   *Old:* Explicitly listed `TOKEN`, `SECRET`, `PASSWORD`, `PASSWD`, `PASSPHRASE`, `KEY`, `AUTH`, `COOKIE`, `PAT`, `DSN`, `CREDENTIAL`, or `CREDENTIALS` as &#34;underscore-separated parts&#34;.
+        *   *New:* Simplified to &#34;name looks like a credential&#34; with examples (`TOKEN`, `SECRET`, `PASSWORD`, `KEY`, or `AUTH`). It removes the specific list of &#34;underscore-separated parts&#34; and words like `PAT`, `DSN`, `CREDENTIALS` from the text, implying the logic is now broader or just described differently.
+    *   *Interpretation:* The implementation logic might have changed to be more heuristic (looks like a credential) rather than strictly defined by a hardcoded list of substrings separated by underscores. The core behavior (removing sensitive vars) remains, but the definition is slightly less specific in the docs. It mentions `ANTHROPIC_API_KEY` and `MY_REGISTRY_TOKEN` as examples of what *is* removed.
+
+3.  **Analyze Page 2: `sandboxing.md`**
+    *   *Context:* Sandbox environment configuration, specifically credential handling.
+    *   *Change 1 (Section 310):* Split a long sentence into two.
+        *   Clarification: &#34;There is no built-in credential deny list...&#34;
+        *   New sentence: &#34;`sandbox.credentials` affects sandboxed Bash commands only...&#34;
+    *   *Change 2 (Section 684):* Update text regarding `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB`.
+        *   *Old:* &#34;strip Anthropic and cloud provider credentials from all subprocesses&#34;
+        *   *New:* &#34;strip credentials from all subprocesses&#34;
+    *   *Interpretation:* The scope of `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB` appears to have expanded. Previously, it specifically targeted &#34;Anthropic and cloud provider credentials&#34;. Now, it targets &#34;credentials&#34; (generic). This aligns with the change in `mcp.md` where the variable removal logic is generalized.
+
+4.  **Synthesize Findings (Cross-Pages Analysis):**
+    *   *Theme:* Credential masking and environment variable scrubbing.
+    *   *Observation:* Both changes move away from specific, listed keywords (like specific cloud providers or specific credential substrings like `PAT`, `DSN`) towards a more generalized &#34;credential&#34; definition.
+    *   *Consistency:* In `mcp.md`, the list of substrings is shortened to just the most common ones (`TOKEN`, `SECRET`, etc.) with the phrase &#34;looks like a credential&#34;. In `sandboxing.md`, the description of the global scrub variable drops &#34;Anthropic and cloud provider&#34; in favor of the broader &#34;credentials&#34;.
+    *   *Implication:* The security mechanism is becoming more aggressive or at least more generalized. It captures more types of credentials potentially, or simply the documentation is being simplified to cover a more dynamic heuristic implementation.
+
+5.  **Drafting the Content (in Chinese):**
+
+    *   *Overall Summary:* The updates generalize the credential scrubbing logic, moving from explicit lists of keywords to broader heuristic rules, and clarify the scope of environment variable protection in sandboxed environments.
+    *   *Key Themes:*
+        *   Generalization of Credential Detection: Simplification from specific keyword lists (e.g., `DSN`, `PAT`) to generalized heuristic descriptions (variables &#34;looking like a credential&#34;).
+        *   Expanded Scrubbing Scope: The `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB` variable now applies to general credentials, not just Anthropic/cloud provider ones.
+        *   Documentation Clarity: Improved sentence structure to better distinguish between sandboxed settings and global subprocess behavior.
+    *   *Impact Level:* Medium. (Not breaking code syntax, but changes behavior/environment variables available to subprocesses).
+    *   *Action Items:*
+        *   Review environment variable names: Ensure variables intended to be scrubbed actually contain generic keywords (KEY, TOKEN, SECRET, etc.).
+        *   Update internal docs: If you rely on specific keywords like `DSN` or `CREDENTIALS` being explicitly filtered, note that the documentation now uses a broader definition.
+        *   Test subprocess environment: Verify that `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB` isn&#39;t scrubbing variables you previously assumed were safe (if they fall under the new &#34;credential&#34; definition).
+
+6.  **Refining the Output:**
+
+    *   *Check against constraints:* Concise? Yes. Insightful? Yes. Markdown? Yes. Chinese? Yes.
+
+    *   *Refining the &#34;Why it matters&#34;:* Developers need to know *why* env vars might disappear. The shift to &#34;looks like a credential&#34; implies if you have a variable like `MY_DSN` or `MY_PAT`, it might still be scrubbed (or the docs just didn&#39;t list it, but the implication is broad). The removal of specific lists suggests the logic might be regex-based or heuristics-based now.
+
+    *   *Drafting the Chinese response:*
+        *   Summary: 此次更新主要涉及凭据清理逻辑的通用化，将显式的关键词列表替换为更宽泛的启发式规则，并阐明了沙箱环境变量保护的范围。
+        *   Themes: 凭据检测逻辑的泛化、清理范围的扩大、文档清晰度提升。
+        *   Impact: Medium.
+        *   Actions: 检查环境变量命名、测试子进程环境、更新内部安全策略。
+
+7.  **Final Polish (Self-Correction during drafting):**
+    *   Wait, looking at `mcp.md`: It removed `CREDENTIAL`, `CREDENTIALS`, `PAT`, `DSN` from the *list of examples* but kept &#34;name looks like a credential&#34;. This implies the logic is now &#34;we filter things that look like credentials&#34; (implicitly covering those removed keywords) rather than &#34;we filter things matching this list&#34;. It&#39;s a documentation simplification that reflects implementation complexity.
+    *   Looking at `sandboxing.md`: Removing &#34;Anthropic and cloud provider&#34; is a significant scope change for `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB`. It used to be targeted, now it&#39;s broad.
+    *   *Action Item update:* Specifically mention that `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB` is now broader.
+
+8.  **Final Output Generation** (matches the provided good response).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sandboxing.html" class="page-link">sandboxing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">03:07 EST</div>
