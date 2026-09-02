@@ -118,9 +118,127 @@
 
         <header>
             <h1>Changes on 2026-09-02</h1>
-            <p class="meta">12 total changes in 3 runs</p>
+            <p class="meta">13 total changes in 4 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">19:47 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">1. **Overall Summary**
+此次版本更新主要侧重于提升系统的稳定性、安全性及企业级管理能力。重点修复了并发会话导致的状态丢失和配置冲突问题，强化了 MCP 服务器与 Bash 的权限控制逻辑，并新增了针对无头环境和 GitLab 的支持。
+
+2. **Key Themes across pages**
+*   **稳定性与并发修复**：解决了多会话运行时 `~/.claude.json` 配置互相覆盖及 MCP 状态丢失的关键 Bug。
+*   **权限与安全策略**：新增 `managedMcpServers` 设置，调整了 `allowedMcpServers` 的过滤行为（不再过滤受管服务器），并收紧了 Bash `Read()` 权限以覆盖更多文件传递场景。
+*   **无头/企业环境支持**：增加了 `--permission-prompts none` 用于无人值守运行，并强制执行受管设置的解析（解析失败将拒绝启动）。
+*   **开发体验优化**：改进了 GitLab MR 的识别与 UI 显示，优化了终端渲染性能及工作流结果的展示方式。
+
+3. **Impact level**
+**High**
+**Reasoning**：
+*   **关键稳定性修复**：解决了并发会话导致的数据丢失问题，这对重度用户至关重要。
+*   **策略行为变更**：`allowedMcpServers` 的逻辑变更属于功能性调整，可能影响现有的服务器过滤预期。
+*   **安全增强**：Bash 权限规则的收紧和受管设置的强制执行提升了系统的安全性，但也可能需要调整现有配置。
+
+4. **Action items for developers**
+*   **审查 MCP 配置**：若您依赖 `allowedMcpServers` 来屏蔽由 `managed-mcp.json` 定义的服务器，请务必添加到 `deniedMcpServers` 中，因为升级后受管服务器将默认加载。
+*   **更新 CI 脚本**：在无头环境中运行时，考虑添加 `--permission-prompts none` 参数以自动拒绝需要提示的请求。
+*   **检查 Bash 调用**：检查涉及文件选项参数（如 `@file`、`--file=...`）或复合命令的脚本，确认是否符合新的文件读取权限规则。
+*   **验证工作流状态**：如果您使用工作流或后台代理，请测试“停止”功能，确保其能正确终止并保持可视状态。
+*   **关注模型 ID 设置**：检查自定义命令或技能中的 frontmatter `model:` 设置，确保其在交互式会话中按预期工作。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Understand the Goal**: The user wants a concise, insightful analysis of the provided documentation change (a changelog for version 2.1.259). I need to act as a world-class programmer, focusing on what matters to developers, and output the result in Chinese within a specific markdown structure.
+
+2.  **Analyze the Input**:
+    *   **Source**: `CHANGELOG.md.md` (Version 2.1.259).
+    *   **Content**: A long list of bug fixes, new features, and improvements.
+    *   **Key Additions**:
+        *   `managedMcpServers` setting.
+        *   `--permission-prompts none` for headless hosts.
+        *   GitLab MR recognition.
+        *   `--json` for `claude plugin validate`.
+    *   **Key Fixes (High Impact/Stability)**:
+        *   Concurrent sessions breaking `~/.claude.json` and losing MCP state (Major stability fix).
+        *   Bash `Read()` permission rules (Security/Correctness fix).
+        *   Auto mode model selection issues.
+        *   Context tokens for Vertex models.
+        *   Managed settings enforcement (Security/Admin fix).
+        *   Workflow/Agent stopping issues.
+    *   **Key Improvements**:
+        *   Performance (terminal resize).
+        *   UX (workflow details).
+        *   Breaking/Notable Change: `allowedMcpServers` behavior change (now only user-added, managed ones are ignored if not explicitly denied).
+
+3.  **Draft the Analysis (Iterative Process)**:
+
+    *   *Overall Summary*: This release focuses heavily on stability, security, and enterprise management. It addresses critical concurrency issues, refines permission handling (especially for MCP and Bash), and introduces new features for GitLab integration and headless environments.
+
+    *   *Key Themes*:
+        *   **Stability &amp; Concurrency**: Fixing race conditions where multiple sessions clobbered settings.
+        *   **Security &amp; Permissions**: Refined `managedMcpServers`, `allowedMcpServers` behavior, and stricter Bash read rules.
+        *   **Enterprise/Headless**: New flags for unattended hosts and strict managed settings enforcement.
+        *   **Git &amp; Workflows**: Better GitLab MR support and improved workflow agent handling/UX.
+
+    *   *Impact Level*: **High**.
+        *   *Reasoning*: The fix for concurrent sessions losing MCP state is a major stability win for power users. The changes to `allowedMcpServers` and managed settings enforce stricter security policies (breaking existing implicit behavior). The permission fixes are critical for secure headless operation.
+
+    *   *Action Items*:
+        *   Review `allowedMcpServers` configuration if you use managed settings (managed servers might load automatically now).
+        *   Update CI/Headless scripts to use `--permission-prompts none` if unattended operation is required.
+        *   Check Bash permission rules if you rely on complex argument passing or file operands that might have been silently blocked before.
+        *   Upgrade immediately if running multiple concurrent sessions to prevent state loss.
+
+4.  **Translate and Refine (Chinese)**:
+
+    *   *Summary*: 此版本主要侧重于提升稳定性、安全性及企业级管理能力。重点修复了并发会话导致的状态丢失问题，强化了 MCP 服务器管理和 Bash 权限控制，并新增了对 GitLab 的支持。
+    *   *Themes*:
+        *   稳定性与并发修复：解决了多会话竞争导致配置回滚和 MCP 状态丢失的关键问题。
+        *   安全与权限策略：新增 `managedMcpServers`，调整了 `allowedMcpServers` 的过滤逻辑，并收紧了 Bash 文件读取权限。
+        *   无头/企业环境：增加了 `--permission-prompts none` 以支持无人值守运行，强制执行受管设置解析。
+        *   开发体验优化：改进了 GitLab MR 显示、工作流详情展示及终端渲染性能。
+    *   *Impact*: High. 理由：修复了严重的并发状态丢失 Bug；MCP 允许列表策略变更属于功能性调整；权限规则变更可能影响现有脚本的安全性预期。
+    *   *Action Items*:
+        *   检查 `allowedMcpServers` 配置：受管 MCP 服务器行为已变，若需屏蔽请使用 `deniedMcpServers`。
+        *   更新 CI/CD 脚本：如需无人值守，可使用 `--permission-prompts none`。
+        *   审查 Bash 调用：检查脚本中涉及文件选项参数（如 `@file`）的部分，确认是否符合新的读取权限规则。
+        *   升级建议：若常开多个 Claude Code 会话，强烈建议升级以避免状态丢失。
+
+5.  **Final Polish**: Ensure the tone is professional and the markdown structure matches the user&#39;s request.
+
+    *   *Self-Correction during drafting*: The change regarding `allowedMcpServers` is subtle but important. It says &#34;managed servers... now loads on upgrade&#34;. This means if you relied on the allowlist to block a managed server, you need to update your config. I should highlight this.
+
+6.  **Final Output Generation** (Proceeding to generate the markdown response).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+38</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">17:31 EST</div>
