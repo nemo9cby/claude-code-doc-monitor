@@ -118,9 +118,130 @@
 
         <header>
             <h1>Changes on 2026-09-03</h1>
-            <p class="meta">6 total changes in 1 run</p>
+            <p class="meta">7 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">15:34 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 1. 总体摘要
+文档更新了 Message Batches API 的功能限制列表，移除了关于 Threads（`store`、`previous_thread_event_id`）、路由提示（`cache_hint`、`context_hint`）以及研究预览功能（`research_preview_2026_02`）的不支持说明。这暗示 Claude 的批处理 API 现在可能已支持这些原本受限的高级功能。
+
+### 2. 关键主题
+*   **功能兼容性扩展**：批处理 API 的限制显著减少，特别是不再明确排除状态管理相关的 Threads 参数和路由优化参数。
+*   **Threads 支持增强**：移除了“Threads are stateful; batch requests are not”的说明，表明批处理请求现在可能能够处理或利用 Threads 的上下文状态。
+*   **路由与调度优化**：移除 `cache_hint` 和 `context_hint` 的限制意味着开发者现在可以在批处理任务中使用这些提示来影响请求调度和缓存行为。
+
+### 3. 影响级别
+**Medium (中等)**
+虽然这不是破坏性变更，但这是一个重要的功能增强。它解锁了批处理 API 与其他高级功能（如 Threads 和自动评估 `store`）的协同工作能力，允许开发者构建更复杂、有状态的异步 AI 工作流。
+
+### 4. 开发者行动事项
+*   **尝试 Threads 集成**：检查 Message Batches API 是否现在支持 `previous_thread_event_id`，以便在批处理中维持对话上下文。
+*   **利用 `store` 参数**：尝试在批处理请求中启用 `store`，以利用自动评估和数据存储功能。
+*   **优化路由**：在批处理请求中添加 `cache_hint` 或 `context_hint`，以测试是否能改善缓存命中率或请求路由。
+*   **启用研究预览**：如果项目需要，可以在批处理 API 中测试 `research_preview_2026_02` 功能。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1. **理解目标**：用户希望以一名世界级程序员的身份，用中文分析文档的变更。我需要总结*发生了什么变化*以及*为何这对开发者重要*。分析需以 Markdown 格式呈现，包含四个特定部分：总体摘要、关键主题、影响级别和行动事项。背景是对 `build-with-claude/batch-processing.md` 文档的一次单独变更。
+
+2. **分析变更**：
+    *   **文件**：`build-with-claude/batch-processing.md`
+    *   **变更**：
+        *   从描述“哪些可以被批处理”的表格中移除了几行。
+        *   移除的内容：
+            *   `store` / `previous_thread_event_id`（Threads）：移除原因？也许这些功能现在*支持*批处理，或者不再相关/被废弃了。看 diff，原文称它们“不被支持”。现在它们从“不支持”列表中消失了。这暗示了它们现在可能*被支持*，或者列表仅关注剩余的关键不兼容项。
+            *   `cache_hint` / `context_hint`：移除原因？同样，原文称它们适用于同步请求调度。现在它们消失了。
+            *   `research_preview_2026_02: &#34;active&#34;`：移除原因？原文称其在批处理路径上不可用。现在消失了。
+        *   修改了 FAQ 部分：“我可以将 Message Batches API 与其他 API 功能一起使用吗？”
+            *   更新了不被支持的参数列表。它从明确列出的不兼容参数中移除了 `store`、`previous_thread_event_id`、`cache_hint`、`context_hint` 和 `research_preview_2026_02`。
+            *   剩余的不兼容项：`stream`、`speed`、`max_tokens: 0`。
+
+3. **解读“原因”（开发者的意义）**：
+    *   文档之前列出了多个不兼容的参数。
+    *   现在它删除了其中的许多，仅留下了核心的不兼容项（`stream`、`speed`、`max_tokens: 0`）。
+    *   *关键推断*：如果某项从“不被支持”列表中移除，通常意味着它**现在被支持了**。
+    *   因此，Claude 的 Message Batches API 现在可能支持：
+        *   Threads（状态管理）。
+        *   路由提示（`cache_hint`、`context_hint`）。
+        *   研究预览功能。
+    *   或者，文档得到了简化，因为（Threads 等的）架构已经成熟，这些功能是可用的，或者明确指出它们受限是不再必要的，但通常在 API 文档中，将某项从“限制”列表中移除是功能开启的信号。
+    *   *对“store”的优化*：`store` 通常与自动评估或缓存有关。如果已移除，也许批处理现在支持自动存储/评估。
+    *   *对“Threads”的优化*：批处理是无状态的（单条消息）。但在批处理上下文中支持 `previous_thread_event_id` 暗示了上下文传递或某种形式的状态回溯能力，或者批处理工具现在能更好地处理 Threads API 工作流。等等，看下旧的文本：“Threads are stateful; batch requests are not.”（Threads 是有状态的；批处理请求不是。）如果该行移除了，这表明 Message Batches API 可能已发展为处理 Threads，或者该限制被澄清/移除了。鉴于 `store` 也被移除，这感觉像是一个功能扩展更新，其中受限的功能已集成到批处理路径中。
+
+4. **起草分析（中文）**：
+
+    *   **总体摘要**：文档更新了 Message Batches API 的兼容性列表。它移除了 Threads（`store`、`previous_thread_event_id`）、路由提示（`cache_hint`、`context_hint`）和研究预览功能不被支持的限制。这表明这些功能现在可用于批处理。
+
+    *   **关键主题**：
+        *   **功能扩展**：Message Batches API 可能现在支持状态管理和高级路由。
+        *   **简化/清晰化**：文档重点转移到仅剩的核心限制（流式传输、速度、token 限制）。
+        *   **Threads 集成**：关于 Threads 不可用的限制已移除。
+
+    *   **影响级别**：**Medium**（中等）。这不是破坏性变更，但它为批处理工作流显著解锁了新能力（特别是 Threads 和路由提示）。开发者现在可以构建更复杂的批处理流水线。
+
+    *   **行动事项**：
+        *   更新批处理代码以尝试使用 `store` 或 Threads 相关参数。
+        *   如果使用自定义路由，利用 `cache_hint` / `context_hint` 进行批处理。
+        *   如适用，在新批处理中测试研究预览功能。
+
+5. **优化语言（中文）**：
+
+    *   *摘要*：文档更新了 Message Batches API 的功能兼容性列表，移除了关于 Threads、路由提示和研究预览功能的限制说明。这暗示这些功能现在可能已支持批处理。
+    *   *主题*：功能兼容性扩展, 限制条件简化, Threads 集成.
+    *   *影响*：Medium. 虽然不是破坏性变更，但解锁了新的批处理能力，特别是对状态管理和路由优化的支持。
+    *   *行动*：审查现有的批处理代码，探索在批处理中使用 `store` 参数或 Threads 功能。利用 `cache_hint`/`context_hint` 优化批处理调度。测试研究预览功能在批处理中的表现。
+
+6. **最终润色**：确保语气专业且对开发者有帮助。
+
+    *   *自我修正*：说它们*已支持*是否安全？从限制列表中移除是列出功能*现在可用*或之前完全受限的某些功能的*限制已移除*的最合逻辑的推断。我将表述为“暗示支持”或“移除限制”，这在技术上更加安全，但在功能上对开发者意味着同样的事情。
+
+    *   让我们检查删除的具体行：
+        *   `store` / `previous_thread_event_id` (Threads)
+        *   `cache_hint` / `context_hint`
+        *   `research_preview_2026_02: &#34;active&#34;`
+
+    这些原本在表格的“限制”部分。从那里移除强烈暗示 API 现在支持它们。
+
+    让我们构建最终输出。
+
+    **结构**：
+    ### 1. Overall Summary
+    ### 2. Key Themes
+    ### 3. Impact Level
+    ### 4. Action Items
+
+    （按要求翻译成中文）。</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/batch-processing.html" class="page-link">build-with-claude/batch-processing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">03:39 EST</div>
