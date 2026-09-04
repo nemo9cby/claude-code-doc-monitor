@@ -118,9 +118,245 @@
 
         <header>
             <h1>Changes on 2026-09-03</h1>
-            <p class="meta">7 total changes in 2 runs</p>
+            <p class="meta">18 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">20:38 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">```markdown
+# 文档变更分析
+
+## 总体概述
+本次更新重点引入了用于无人值守自动化场景的权限控制标志，更新了 API 认证方式的优先级，并详细阐明了子代理恢复机制及沙盒权限逻辑的细微调整。
+
+## 关键主题
+
+*   **增强的自动化支持**: 新增 `--permission-prompts none` 标志，允许在非交互式（Print/Headless）模式下完全禁用权限提示，防止因等待授权而挂起任务，这对 CI/CD 流程至关重要。
+*   **API 认证现代化**: 将 `Authorization: Bearer &lt;token&gt;` 设为首选认证头，原本的 `x-api-key` 现被标记为遗留备选方案。
+*   **权限与沙盒行为细化**: 文档移除了“自动模式下静默读取边界外路径”的描述，暗示权限校验更加严格或统一；同时 CHANGELOG 显示回滚了 v2.1.259 中关于 `Read()` 规则应用到 Bash 参数的变更，恢复了更符合直觉的权限判定。
+*   **子代理与错误恢复**: 明确了子代理在流式响应中断时的自动续传逻辑，以及手动停止后的自动恢复行为，提升了复杂任务链的鲁棒性。
+
+## 影响等级
+**High**
+*   **理由**: `--permission-prompts` 标志解决了长期以来的自动化阻塞痛点。API 认证头的变更要求直接调用 API 的开发者适配代码。权限逻辑的微调（尤其是正则表达式修复和特定规则的回滚）直接影响现有代码库的安全边界和执行结果。
+
+## 开发者行动项
+
+1.  **更新 CI/CD 配置**: 在无头模式脚本中添加 `--permission-prompts none`，确保任务在无人干预时能明确拒绝操作而非无限等待。
+2.  **适配 API 认证**: 修改直接调用 Claude API 的代码，优先使用 `Authorization` 头而非 `x-api-key`。
+3.  **升级至 v2.1.260**: 此版本修复了包含括号的路径规则被误判为无效、以及 Bash 沙盒权限检查中的关键 Bug。
+4.  **审查权限规则**: 检查现有的 `Edit`/`Write`/`Read` 规则，特别是包含正则表达式的规则，确保它们在修复后仍按预期工作。
+5.  **关注子代理交互**: 如果使用子代理或 Agent SDK，了解新的“响应截断后自动续传”机制，以应对网络不稳定场景。
+```</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Understand the Goal**: The user wants a concise, insightful analysis of documentation changes for a developer tool (specifically Claude Code). The analysis should be in markdown, in Chinese, focusing on what matters to developers. There are 11 changed pages provided.
+
+2.  **Analyze the Inputs**:
+    *   `cli-reference.md`: Added `--permission-prompts` flag. Allows setting `none` to deny prompts in print mode/hostless environments. Requires v2.1.259.
+    *   `headless.md`: New section &#34;Turn off permission prompts in unattended runs&#34;. Explains usage of `--permission-prompts none`. Explains behavior (denial instead of waiting), removal of user-facing tools (like `AskUserQuestion`), and behavior with hooks/MCP.
+    *   `hooks.md`: Clarified `PermissionRequest` hooks. The `permission_suggestions` array isn&#39;t an exact 1:1 with UI options. Removed text suggesting echoing suggestions is equivalent to UI selection (simplified/clarified).
+    *   `monitoring-usage.md`: Minor text cleanup regarding managed settings and retention sweeps. &#34;When `managed-settings.json` itself can&#39;t be read or parsed&#34; -&gt; &#34;When `managed-settings.json` itself can&#39;t be read&#34;.
+    *   `network-config.md`: Clarified watchdog behavior for stalled streams. Added context about subagents and non-interactive sessions regarding &#34;incomplete-response notices&#34;.
+    *   `sandboxing.md`: Clarified behavior in &#34;Auto-allow mode&#34; and &#34;Escape hatch&#34;. Removed mentions of auto-mode classifier fallback in specific edge cases, focusing on explicit permission flows. Added note about `permissions.blockReadsOutsideWorkingDirectories`.
+    *   `security.md`: Removed mention of auto-mode reading paths outside the working directory boundary without asking. Now implies consistent behavior (prompting) or refers to sandbox rules. This suggests a security tightening or clarification of behavior change.
+    *   `settings.md`: Updated error handling for managed settings. Added specific error reference for &#34;Managed settings document could not be parsed&#34;.
+    *   `sub-agents.md`: Clarified subagent recovery from mid-stream cutoffs. Clarified behavior when stopping subagents manually vs. programmatically.
+    *   `api/overview.md`: Updated authentication headers. `Authorization` is now preferred/primary. `x-api-key` is legacy. Benefits list updated.
+    *   `CHANGELOG.md.md`: Huge list of changes for version 2.1.260. Includes fixes for permissions, sandboxing, managed settings, subagents, UI improvements, Fable 5.1 support, etc. Reverted a specific permission change regarding `Read()` deny rules.
+
+3.  **Synthesize Key Themes**:
+    *   **Permissions &amp; Security**: New flag `--permission-prompts` for unattended runs. Sandbox and permission flow clarifications (tightening behavior or clarifying auto-mode vs manual-mode differences). The CHANGELOG mentions reverting a permission change and fixing path matching bugs.
+    *   **Subagents &amp; Resilience**: Improvements in how subagents handle errors, cutoffs, and resumption.
+    *   **API &amp; Auth**: Shift from `x-api-key` to `Authorization` header (Bearer token).
+    *   **Minor Doc/Text Updates**: Cleanup of descriptions for settings, errors, and network timeouts.
+
+4.  **Determine Impact Level**:
+    *   **High**: The introduction of `--permission-prompts none` is a significant feature for CI/CD and unattended automation. The API auth header change is structural. The permission/sandboxing clarifications might imply behavior changes developers need to be aware of (e.g., the CHANGELOG mentions reverting a specific 2.1.259 change, and docs removed auto-mode silent reads outside working directory).
+    *   *Decision*: Medium to High. The feature addition is high value for automation, but the churn in permission/sandbox docs suggests stability in how permissions work. Let&#39;s settle on **Medium/High** depending on the audience. For developers using the CLI/SDK, it&#39;s High. For casual users, it&#39;s Low. Given the prompt asks for developer focus, **High** is appropriate due to the new flag and auth changes. Actually, let&#39;s look at the CHANGELOG again. Reverting a permission change is significant. The Auth change is significant. Let&#39;s stick to **High**.
+
+5.  **Draft the Analysis (Internal Monologue/Rough Draft)**:
+    *   *Summary*: Added `--permission-prompts` flag for headless runs, updated API auth preferences, and clarified subagent and permission behaviors.
+    *   *Themes*: Automation permissions (unattended runs), API authentication shifts, Subagent error handling improvements, Sandbox/Security refinements.
+    *   *Impact*: High. New flag enables better CI/CD. Auth header change matters for API users. Changelog shows significant bug fixes.
+    *   *Action Items*: Use `--permission-prompts none` for CI. Update API clients to use `Authorization` header. Review sandbox/permission rules if using complex regex. Update to 2.1.260 for permission fixes.
+
+6.  **Refine and Translate to Chinese**:
+
+    *   *Summary*: 本次更新主要引入了非交互式运行的新权限控制标志，更新了 API 认证头的优先级，并优化了子代理和沙盒行为的相关文档。
+    *   *Themes*:
+        *   **非交互式自动化**: 引入 `--permission-prompts` 标志以在无人值守运行中完全禁用权限提示，防止任务挂起。
+        *   **API 认证变更**: 明确 `Authorization` 头为首选认证方式，`x-api-key` 降级为遗留方案。
+        *   **权限与沙盒细化**: 文档移除了关于自动模式下“静默读取”某些路径的描述，暗示安全行为更严格或一致性提升；CHANGELOG 中显示回滚了上一个版本的特定权限规则。
+        *   **子代理与错误处理**: 明确了子代理在响应被截断时的恢复逻辑以及手动停止后的自动恢复行为。
+    *   *Impact*: **High**.
+        *   Reason: `--permission-prompts none` 关键解决了 CI/CD 场景下的阻塞问题。API 认证方式调整影响直接调用 API 的开发者。权限逻辑的微调涉及核心安全行为。
+    *   *Action Items*:
+        *   在 CI/CD 脚本中使用 `--permission-prompts none` 以避免权限等待。
+        *   更新 API 客户端代码，优先使用 `Authorization: Bearer &lt;token&gt;` 头。
+        *   升级至 v2.1.260 以修复路径匹配中的正则表达式 Bug 及沙盒权限问题。
+
+7.  **Final Polish**: Ensure markdown formatting is clean and concise.
+
+    *   *Self-Correction on Themes*: The CHANGELOG shows `Reverted the 2.1.259 change applying Read() deny rules to Bash arguments`. This is crucial because the docs also changed around permission logic. I should mention stability/fixes.
+    *   *Self-Correction on Action Items*: Keep it to max 5.
+
+8.  **Final Output Generation** (matches the thought process).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/cli-reference.html" class="page-link">cli-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/headless.html" class="page-link">headless.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/network-config.html" class="page-link">network-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sandboxing.html" class="page-link">sandboxing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/security.html" class="page-link">security.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/overview.html" class="page-link">api/overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+67</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">15:34 EST</div>
