@@ -118,9 +118,183 @@
 
         <header>
             <h1>Changes on 2026-09-04</h1>
-            <p class="meta">7 total changes in 4 runs</p>
+            <p class="meta">11 total changes in 5 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">20:34 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 总体摘要
+本次文档更新显著增强了 **Prompt Caching（提示词缓存）的故障诊断能力**，引入了自动识别缓存失效原因的功能，并提供了针对沙盒环境下剪贴板命令失效的解决方案，同时优化了全屏交互模式的用户体验。
+
+### 关键主题
+
+*   **增强缓存可观测性 (v2.1.260+)**:
+    新增了对“缓存未命中”原因的深度分析。Claude Code 现在能自动识别并显示导致缓存失效的具体原因（如 `tools_changed`、`system_prompt_changed` 或 TTL 过期），并将这些数据暴露在 UI 和 Statusline API 中，帮助开发者更精准地优化成本与性能。
+*   **沙盒剪贴板互操作性修复**:
+    明确指出 `pbcopy`、`xclip` 和 `wl-copy` 等标准剪贴板工具在沙盒内无法正常工作的问题。文档推荐使用内置的 `/copy` 命令作为替代方案，该命令直接从 Claude Code 主进程写入剪贴板，不受沙盒限制。
+*   **全屏交互体验优化**:
+    新增了针对全屏渲染模式下鼠标滚轮滚动速度过慢（一次仅滚动一行）的故障排除指南，提供了 `/scroll-speed` 命令和环境变量配置等调整方法。
+
+### 影响等级: **Medium**
+
+**理由**:
+虽然这不是破坏性变更，但缓存诊断功能的提升对于控制 API 成本和调试 Prompt 性能的开发者来说价值较高（Medium）。剪贴板问题的解决直接提升了沙盒环境下的生产力。这些更新改善了现有工具的可观测性和易用性。
+
+### 开发者行动项
+
+1.  **升级版本查看缓存原因**: 将 Claude Code 更新至 **v2.1.260 或更高版本**，利用新的“缓存未命中原因”功能来诊断和减少 Token 消耗。
+2.  **调整沙盒下的复制工作流**: 在启用沙盒时，避免使用管道连接 `pbcopy`，改用 `/copy` 命令来复制代码或输出，或将其加入 `excludedCommands`。
+3.  **优化全屏滚动体验**: 如果在 TUI 全屏模式下遇到滚动不流畅的问题，运行 `/scroll-speed` 命令调整灵敏度或使用 `PgUp`/`PgDn` 快速翻页。
+4.  **利用 Statusline 数据**: 如果构建插件或监控工具，可读取 Statusline 中新增的 `last_miss_cause` 和 `miss_causes` 字段来实现自定义的缓存性能监控。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer, expert in developer tools/documentation.
+    *   **Input:** Documentation changes for 4 pages (`costs.md`, `sandboxing.md`, `statusline.md`, `troubleshooting.md`).
+    *   **Task:** Analyze as a single batch, summarize changes and their significance.
+    *   **Format:** Markdown, concise, insightful, Chinese.
+    *   **Structure:**
+        1.  Overall Summary (1-2 sentences).
+        2.  Key Themes (bullets).
+        3.  Impact Level (Low/Medium/High/Breaking) with reasoning.
+        4.  Action Items for developers (max 5 bullets).
+
+2.  **Analyze the Page Changes:**
+
+    *   **Page 1: `costs.md`**
+        *   *Change:* Updated the definition of &#34;Misses&#34; in the prompt caching section. Added details that Claude Code now identifies a likely cause for the last miss (e.g., &#34;tool definitions changed&#34;) and displays it. Requires v2.1.260 or later.
+        *   *Significance:* Improves visibility into *why* caching failed, helping developers optimize performance/costs.
+
+    *   **Page 2: `sandboxing.md`**
+        *   *Change:* Added a new troubleshooting bullet point for clipboard utilities (`pbcopy`, `xclip`, `wl-copy`). They fail inside the sandbox.
+        *   *Workarounds:* Use the `/copy` command (writes from Claude process) or add to `excludedCommands`.
+        *   *Significance:* Fixes a specific friction point when using sandboxing with common clipboard workflows.
+
+    *   **Page 3: `statusline.md`**
+        *   *Change:* Added JSON schema details for cache statistics (`last_miss_cause`, `miss_causes`). Added a new section &#34;Last miss cause&#34; explaining the structure (causes array, `tools_added`, `tools_removed`, `system_char_delta`).
+        *   *Significance:* Complements the `costs.md` update by exposing this data programmatically/API-wise (via statusline/usage data). Requires v2.1.260.
+
+    *   **Page 4: `troubleshooting.md`**
+        *   *Change 1:* Added section &#34;Mouse wheel scrolls one line at a time in fullscreen rendering&#34;. Solutions: `/scroll-speed`, `CLAUDE_CODE_SCROLL_SPEED`, `PgUp/PgDn`, or switch to default renderer.
+        *   *Change 2:* Added section &#34;Clipboard commands such as `pbcopy` fail inside the sandbox&#34;. Mirrors the `sandboxing.md` content. Workarounds: Use `/copy` command or exclude commands.
+        *   *Significance:* Addresses UX issues (scrolling speed) and reiterates the clipboard/sandbox fix.
+
+3.  **Synthesize and Group Themes:**
+
+    *   *Theme A: Prompt Caching Diagnostics.* (`costs.md`, `statusline.md`) New feature in v2.1.260 identifies *why* a cache miss occurred (tool changes, system prompt changes, etc.) and exposes this data both visually and in the statusline JSON.
+    *   *Theme B: Sandbox Clipboard Interoperability.* (`sandboxing.md`, `troubleshooting.md`) Clarifies that standard clipboard CLI tools fail in the sandbox. Offers the `/copy` command as the primary solution.
+    *   *Theme C: UI/UX Improvements.* (`troubleshooting.md`) Fixes a scrolling speed issue in fullscreen mode.
+
+4.  **Drafting the Content (in Chinese):**
+
+    *   *Overall Summary:* 本次更新主要集中在 **Prompt Caching 的诊断能力增强** 和 **沙盒环境下的剪贴板交互修复**。文档新增了缓存未命中原因的详细说明，并解决了沙盒模式下 `pbcopy` 等工具失效的问题。
+
+    *   *Key Themes:*
+        *   **增强缓存可观测性**: 引入 v2.1.260 版本的新功能，自动识别并展示缓存未命中的原因（如工具定义变更），提升成本与性能分析能力。
+        *   **沙盒剪贴板修复**: 明确指出沙盒内标准剪贴板命令的失效问题，并推广使用内置 `/copy` 命令作为替代方案。
+        *   **全屏交互优化**: 新增针对全屏模式下鼠标滚轮滚动速度过慢的故障排除指南。
+
+    *   *Impact Level:* **Low** (主要文档更新和新功能说明，修复非破坏性Bug)。虽然缓存诊断很有用，但主要是可观测性提升；剪贴板问题是修复常见报错，不改变核心工作流。
+
+    *   *Action Items:*
+        *   如果正在排查缓存成本问题，升级至 **v2.1.260** 以查看具体的 Miss 原因。
+        *   在沙盒模式开发中，使用 `/copy` 命令替代 `pbcopy`/`xclip` 来复制内容。
+        *   若全屏模式下滚动体验不佳，使用 `/scroll-speed` 调整或改用 `PgUp`/`PgDn`。
+
+5.  **Refining the Output (Self-Correction):**
+    *   Check against constraints: &#34;Concise&#34;, &#34;Insightful&#34;, &#34;Markdown&#34;, &#34;Chinese&#34;.
+    *   Ensure the connection between `costs.md` and `statusline.md` is clear (feature vs technical spec).
+    *   Ensure the connection between `sandboxing.md` and `troubleshooting.md` is clear (setting guide vs troubleshooting guide).
+
+6.  **Final Polish (Chinese):**
+
+    *   *Summary:* 本次文档更新主要增强了 **Prompt Caching 的故障诊断能力**，并修复了 **沙盒环境下剪贴板交互的常见问题**。
+    *   *Themes:*
+        *   **缓存未命中原因分析** (v2.1.260+): 新增了针对缓存未命中原因（如工具变更、系统提示词变更）的自动识别与展示。
+        *   **沙盒剪贴板兼容性**: 解决了 `pbcopy` 等命令在沙盒内失效的问题，推荐使用 `/copy` 命令。
+        *   **全屏模式 UX**: 新增了关于全屏渲染下滚动速度过慢的解决方案。
+    *   *Impact:* Low/Medium. Let&#39;s go with **Medium** because the cache diagnostics actually help developers debug performance/cost issues significantly, and the clipboard fix is a common pain point in secure environments. Let&#39;s stick to **Low** because it&#39;s mostly documentation about existing/new behaviors that don&#39;t break code. Actually, let&#39;s say **Low to Medium** but strictly selecting one. I&#39;ll choose **Medium** because improved cache visibility is very valuable for API cost optimization.
+    *   *Action Items:*
+        *   升级到 **v2.1.260** 并检查缓存统计中的 &#34;likely cause&#34; 信息以优化 Prompt。
+        *   在沙盒模式中，改用 `/copy` 内置命令复制输出，而非管道操作。
+        *   若遇到全屏模式滚动缓慢，运行 `/scroll-speed` 进行调整。
+
+    *   *Re-evaluating Impact Level:* The prompt says &#34;Focus on what matters to developers.&#34; The cache diagnostics matter for cost. The clipboard fix matters for productivity. It&#39;s not &#34;Breaking&#34;. I&#39;ll classify as **Medium**.
+
+    *   *Final Structure:*
+        1.  Overall Summary
+        2.  Key Themes
+        3.  Impact Level (Medium)
+        4.  Action Items
+
+    (Self-Correction during drafting Chinese text):
+    Make sure to mention the specific version number (v2.1.260) as it&#39;s critical for the new features.
+
+7.  **Final Output Generation.** (Matches the logic above).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/costs.html" class="page-link">costs.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sandboxing.html" class="page-link">sandboxing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/statusline.html" class="page-link">statusline.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+15</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/troubleshooting.html" class="page-link">troubleshooting.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">16:38 EST</div>
