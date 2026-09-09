@@ -716,6 +716,24 @@ To get the badge, you need:
 
 Claude Code ignores `glab`'s token environment variables, such as `GITLAB_TOKEN`, when it checks status, so you get no badge from an exported token alone. Claude Code also looks for `glab` and for its login once per session, so restart Claude Code after you install `glab` or run `glab auth login`.
 
+## Issue reference links
+
+When Claude mentions an issue as `owner/repo#123`, you can click the reference to open it, as long as your terminal supports hyperlinks. If Claude Code doesn't detect hyperlink support in your terminal, set [`FORCE_HYPERLINK`](/docs/en/env-vars) to `1` to turn the links on, or to `0` to keep references as plain text.
+
+You get a link only for the two-part `owner/repo#123` form. These stay plain text:
+
+* A bare `#123`
+* A nested GitLab path such as `group/subgroup/project#123`
+* Any reference inside a code span or code block
+
+Claude Code builds the link for the host of the repository it identifies from your git remote, not for the repository the reference names:
+
+| Your repository's host                                             | Where `owner/repo#123` links                 |
+| :----------------------------------------------------------------- | :------------------------------------------- |
+| github.com, a GitHub Enterprise host, or any host not listed below | `https://<host>/owner/repo/issues/123`       |
+| gitlab.com                                                         | `https://gitlab.com/owner/repo/-/issues/123` |
+| bitbucket.org, codeberg.org, or gitea.com                          | No link; the reference stays plain text      |
+
 ## See also
 
 * [Skills](/docs/en/skills) - Custom prompts and workflows

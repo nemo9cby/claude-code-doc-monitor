@@ -118,9 +118,331 @@
 
         <header>
             <h1>Changes on 2026-09-09</h1>
-            <p class="meta">26 total changes in 2 runs</p>
+            <p class="meta">39 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">18:10 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 文档变更批次分析
+
+#### 总体摘要
+本次更新（主要对应 v2.1.267）显著增强了组织级管控能力（如 `maxEffortLevel`），修复了会话恢复、提示词缓存及 MCP 工具处理中的关键稳定性问题，并优化了 AWS 环境下的网络与凭证处理体验。
+
+#### 关键主题
+
+*   **组织级控制与安全增强**
+    *   新增 `maxEffortLevel` 设置，允许管理员或用户设定最大努力级别上限。
+    *   引入新的错误类型 `cloud_credential_error`，用于更精准地识别凭证加载失败。
+    *   修复了 Marketplace 路径中包含反斜杠时可能绕过安全检查的漏洞。
+    *   子代理的 `bypassPermissions` 模式现在更加严格，仅当主会话处于该模式时才生效。
+
+*   **稳定性与缓存修复**
+    *   **重大修复**：解决了会话恢复、模型切换及 MCP 工具变更时导致 Prompt Cache 失效的问题。这防止了大型会话中上下文丢失和重复计费。
+    *   修复了 VS Code 扩展在处理包含循环父链接的记录时 CPU 占用 100% 的问题。
+    *   改进了 `--resume` 的首次渲染性能，特别是包含大量 Bash 调用的会话。
+
+*   **网络与凭证处理**
+    *   改进了 TLS 代理环境下的支持，现在 AWS 请求（模型发现、STS/SSO 等）会正确使用操作系统的 CA 证书存储。
+    *   AWS Bedrock 设置向导现在遵循凭证解析超时限制。
+    *   MCP 服务器添加逻辑优化：自动尝试 HTTP 传输，失败时回退到 SSE。
+
+*   **用户体验改进**
+    *   VS Code 新增会话自动归档功能（默认 14 天无活动）。
+    *   终端支持点击 Issue 链接（如 `owner/repo#123`）。
+    *   修复了 WSL2 粘贴截图、`/usage` 对话框显示以及 SSH 远程会话列表加载等问题。
+
+#### 影响级别
+**高**
+
+**理由**：
+1.  **性能与成本**：Prompt Cache 稳定性的修复直接关系到大型项目的运行效率和 Token 成本。
+2.  **安全性**：包含路径遍历漏洞修复和子代理权限逻辑收紧，对企业用户尤为重要。
+3.  **兼容性**：Hooks 错误类型的变更（`cloud_credential_error`）可能影响现有的自动化脚本。
+
+#### 开发者行动项
+
+1.  **升级版本**：强烈建议升级至 v2.1.267 或更高版本，以解决 Prompt Cache 失效和 CPU 挂起的关键问题。
+2.  **审查 Hooks 脚本**：如果你依赖 Hooks 捕获错误状态，请更新脚本以处理新增的 `cloud_credential_error` 类型，而非旧的 `server_error`。
+3.  **配置自动归档**：在 VS Code 中检查 `archiveInactiveSessions` 设置，确认 14 天自动归档策略是否符合团队习惯。
+4.  **检查凭证错误处理**：如果你处于 TLS 代理环境中，请确认升级后 AWS Bedrock 的连接错误是否已解决（无需额外配置）。
+5.  **更新努力级别设置**：如需限制模型运行的计算强度，请在托管设置中配置 `maxEffortLevel`。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Understand the Goal**: The user wants a batch analysis of documentation changes for &#34;Claude Code&#34; (based on the file names and content). I need to summarize the changes, identify key themes, assess impact, and suggest action items for developers. The output must be in Markdown and Chinese.
+
+2.  **Analyze the Input (Page by Page)**:
+
+    *   **`amazon-bedrock.md`**:
+        *   Added details about timeout behavior for the setup wizard and credential lookups (matches the 60s chain resolve timeout).
+        *   Added a new section &#34;Certificate errors behind a TLS-inspecting proxy&#34;.
+        *   *Key points*: CA certificate store now applies to AWS requests (model discovery, token counting, STS/SSO, setup wizard). Fixes issues where requests failed behind proxies with corporate root certificates unless explicitly configured or specific versions were used.
+        *   *Versions*: v2.1.260, v2.1.261.
+
+    *   **`cli-reference.md`**:
+        *   Updated `--disallowedTools` description. Changed &#34;denies only matching calls&#34; to &#34;denies only calls that match as written&#34; with a link to bash rule limits.
+        *   *Key points*: Clarification on how deny rules work (text matching).
+
+    *   **`headless.md`**:
+        *   Updated `api_retry` event schema.
+        *   `max_retries`: Clarified it&#39;s for the failure cause, not necessarily session-wide.
+        *   `error_status`: Clarified it&#39;s for the *failed attempt*.
+        *   `error`: Added `account_on_hold` and `cloud_credential_error`.
+
+    *   **`hooks.md`** &amp; **`hooks-guide.md`**:
+        *   Updated `StopFailure` event matchers. Added `cloud_credential_error`.
+        *   Added note: Requires v2.1.267+ to match this specific error type (previously reported as `server_error` or `unknown`).
+
+    *   **`interactive-mode.md`**:
+        *   Added &#34;Issue reference links&#34; section.
+        *   Explains hyperlinks for `owner/repo#123`.
+        *   *Key points*: Clickable issue links in terminal if supported. Specific logic for GitHub/GitLab/Bitbucket etc. `FORCE_HYPERLINK` env var.
+
+    *   **`mcp.md`**:
+        *   Updated SSE (Server-Sent Events) transport deprecation/usage. Claude now tries HTTP first, falls back to SSE (v2.1.265+).
+        *   Updated text regarding protocol negotiation feature flags.
+        *   Updated OAuth re-auth flow logic for cloud sessions.
+        *   Added details on what happens when MCP output exceeds `MAX_MCP_OUTPUT_TOKENS` (saved to file, message replaces content).
+
+    *   **`model-config.md`**:
+        *   `/model` behavior in non-interactive mode (`-p`) now saves as default only if specifically intended (clarified behavior in v2.1.205+).
+        *   Organization effort limits: Added `maxEffortLevel` managed setting description.
+        *   Plan mode (`opusplan`): Updated 1M context instructions (use `/model opusplan[1m]` requiring v2.1.265+).
+        *   Effort level resolution: Updated text regarding settings precedence.
+        *   `effortLevel` vs `maxEffortLevel` distinction.
+
+    *   **`security.md`**:
+        *   Updated &#34;Network command approval&#34; text. Clarified deny rules match &#34;as written&#34;. Added link to sandbox network isolation for command-independent enforcement.
+
+    *   **`settings.md`**:
+        *   Updated settings reload behavior. Now loads files created mid-session if the folder existed.
+        *   Added `maxEffortLevel` to the &#34;Exceptions to managed settings precedence&#34; table (v2.1.267+).
+
+    *   **`sub-agents.md`**:
+        *   Refined `permissionMode` logic for subagents.
+        *   Clarified when `bypassPermissions` is allowed (only when main conversation is also in that mode, v2.1.267+).
+        *   Moved warnings/details into clearer logic flow.
+
+    *   **`vs-code.md`**:
+        *   Session archiving: Auto-archiving inactive sessions after 14 days (v2.1.265+).
+        *   Usage dialog clarification.
+        *   Session persistence behavior after reload (Sidebar vs Editor tab).
+        *   New setting `archiveInactiveSessions`.
+
+    *   **`CHANGELOG.md.md`**:
+        *   Version 2.1.267.
+        *   Highlights: `maxEffortLevel`, `--system-prompt-snapshot off`.
+        *   Fixes: Cowork tasks, mobile rendering, tmux/ssh reconnection, workflow agents, marketplace security (backslash bypass), credential retries, resume logic, prompt cache stability (subagents, tools, MCP).
+        *   Improvements: `/diff` panel, bash tool description, sandbox guidance, resume speed.
+        *   Specific fixes for VSCode (CPU hang, screenshots, themes, WSL2), Web (GitHub Enterprise), and Claude Tag.
+
+3.  **Synthesize and Structure**:
+
+    *   **Overall Summary**: The update (v2.1.267) focuses on improving enterprise/organizational controls (effort limits, credential handling), fixing critical bugs related to prompt cache stability and session resumption, and enhancing usability (linkification, auto-archiving).
+
+    *   **Key Themes**:
+        1.  **Organizational Control &amp; Security**: New `maxEffortLevel` setting, enhanced error reporting (`cloud_credential_error`), and security fixes (marketplace path traversal).
+        2.  **Network &amp; Credential Reliability**: Better support for TLS proxies, improved credential retry logic, and automatic fallback for MCP transports.
+        3.  **Stability &amp; Performance**: Major fixes to prompt cache misses during resumption, MCP connector changes, and subagent tool handling. CPU hang fixes in VSCode.
+        4.  **User Experience (UX)**: Auto-archiving of sessions, clickable issue links, and improved `--resume` performance.
+        5.  **Subagent Permissions**: Stricter rules for inheriting `bypassPermissions` mode.
+
+    *   **Impact Level**: **Medium/High**.
+        *   *Reasoning*: The prompt cache and session resumption fixes are significant for users managing large sessions or complex tool chains. The `maxEffortLevel` adds important organizational governance. The security fixes (marketplace, permissions) are notable.
+
+    *   **Action Items**:
+        1.  Update to v2.1.267+ to fix prompt cache issues and security vulnerabilities.
+        2.  Review the new `maxEffortLevel` managed setting if using Enterprise plans.
+        3.  Check hooks/scripts relying on specific error codes (update for `cloud_credential_error`).
+        4.  Configure `archiveInactiveSessions` in VS Code if the default 14-day auto-archive is undesirable.
+        5.  Update MCP server configurations if relying on strict SSE transport (automatic fallback now enabled).
+
+4.  **Drafting the Response (in Chinese)**:
+
+    *   *Summary*: 版本 2.1.267 主要增强了组织级控制，修复了会话恢复和提示词缓存的关键稳定性问题，并改善了凭证处理和网络连接体验。
+    *   *Themes*:
+        *   **组织级控制与安全**: 新增 `maxEffortLevel` 限制，增加 `cloud_credential_error` 错误类型，修复了路径遍历漏洞。
+        *   **稳定性与缓存**: 修复了恢复会话时的 prompt cache 失效问题，特别是涉及 MCP 工具、子代理和模型切换的场景。修复了 VSCode 扩展宿主 CPU 占用过高的问题。
+        *   **网络与凭证**: 改进了 TLS 代理支持，AWS Bedrock 的 CA 证书处理，以及 MCP 传输的自动回退机制。
+        *   **子代理权限**: 子代理现在仅在主会话处于相同模式时才允许 `bypassPermissions`。
+        *   **用户体验**: VS Code 新增会话自动归档功能，终端支持点击 issue 链接。
+    *   *Impact*: High. (Why: Prompt cache fixes are crucial for performance/cost, security patches are important, new governance features matter for enterprise).
+    *   *Action Items*: (Translate the list above).
+
+5.  **Refining the Output**: Ensure the tone is professional and the markdown formatting is clean.
+
+    *   *Self-Correction during drafting*: Make sure to highlight the `cloud_credential_error` change in hooks, as that breaks compatibility for scripters expecting `server_error`. Emphasize the prompt cache fixes as they affect &#34;internal&#34; efficiency.
+
+6.  **Final Output Generation**: (Proceed to generate the Chinese response based on these points).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/amazon-bedrock.html" class="page-link">amazon-bedrock.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+10</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/cli-reference.html" class="page-link">cli-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/headless.html" class="page-link">headless.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/interactive-mode.html" class="page-link">interactive-mode.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+12</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/model-config.html" class="page-link">model-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/security.html" class="page-link">security.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/vs-code.html" class="page-link">vs-code.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+54</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">15:37 EST</div>
