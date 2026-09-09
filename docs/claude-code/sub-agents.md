@@ -415,7 +415,9 @@ Subagents inherit the [built-in tools](/docs/en/tools-reference) and MCP tools a
 * `WaitForMcpServers`
 * `Workflow`
 
-The second filter applies to subagents running in the background. Apart from `Agent` and `ExitPlanMode`, which follow the first filter's conditions wherever the subagent runs, a background subagent keeps every MCP tool but only these built-in tools: `Read`, `Grep`, `Glob`, `Bash`, `PowerShell`, `Edit`, `Write`, `NotebookEdit`, `WebFetch`, `WebSearch`, `TodoWrite`, `Skill`, `ToolSearch`, `EnterWorktree`, `ExitWorktree`, `Monitor`, `TaskStop`, `SendMessage`, and `Artifact`. Claude Code removes every other built-in tool from a background subagent, whether inherited or listed in the `tools` field, so the same definition can resolve to different tools in the foreground and the background. The removal reports no error unless it leaves the `tools` list [resolving to nothing](/docs/en/errors#agent-would-be-spawned-with-zero-tools). [`ListAgents`](/docs/en/cross-session-messaging) follows these filters like any built-in tool: a foreground subagent inherits it in sessions where cross-session messaging is enabled, and a background subagent doesn't keep it.
+The second filter applies to subagents running in the background. Apart from `Agent` and `ExitPlanMode`, which follow the first filter's conditions wherever the subagent runs, a background subagent keeps every MCP tool but only these built-in tools: `Read`, `Grep`, `Glob`, `Bash`, `PowerShell`, `Edit`, `Write`, `NotebookEdit`, `WebFetch`, `WebSearch`, `TodoWrite`, `Skill`, `ToolSearch`, `EnterWorktree`, `ExitWorktree`, `Monitor`, `TaskStop`, `SendMessage`, and `Artifact`. Claude Code removes every other built-in tool from a background subagent, whether inherited or listed in the `tools` field, so the same definition can resolve to different tools in the foreground and the background. The removal reports no error unless it leaves the `tools` list [resolving to nothing](/docs/en/errors#agent-would-be-spawned-with-zero-tools).
+
+[`ListAgents`](/docs/en/cross-session-messaging) follows these filters like any built-in tool: a foreground subagent inherits it in sessions where cross-session messaging is enabled, and a background subagent doesn't keep it.
 
 Teammates in [agent teams](/docs/en/agent-teams) additionally keep the task tools and cron tools: `TaskCreate`, `TaskGet`, `TaskList`, `TaskUpdate`, `CronCreate`, `CronDelete`, and `CronList`.
 
@@ -875,7 +877,9 @@ For each subagent Claude spawns with the Agent tool, Claude Code picks foregroun
 
 For a skill with `context: fork`, Claude Code follows the rules in [Run skills in a subagent](/docs/en/skills#run-skills-in-a-subagent) instead, whether or not fork mode is on.
 
-Background subagents run with a [smaller built-in tool set](#available-tools) than foreground subagents, except for conversation forks, and they surface every permission prompt in your main session. When you answer one of those prompts with a choice that lasts beyond that one tool call, such as a grant that lasts for the rest of the session, Claude Code applies your answer to the whole session, including your main conversation.
+Background subagents run with a [smaller built-in tool set](#available-tools) than foreground subagents, except for conversation forks and [resumed](#resume-subagents) foreground subagents.
+
+Background subagents surface every permission prompt in your main session. When you answer one of those prompts with a choice that lasts beyond that one tool call, such as a grant that lasts for the rest of the session, Claude Code applies your answer to the whole session, including your main conversation.
 
 A background subagent can leave a background [Bash or PowerShell command](/docs/en/tools-reference#background-commands) [running past the end of its turn](/docs/en/interactive-mode#how-backgrounding-works). When that command ends, Claude Code sends the subagent a notification.
 
@@ -1067,7 +1071,7 @@ Continue that code review and now analyze the authorization logic
 [Claude resumes the subagent with full context from previous conversation]
 ```
 
-When Claude sends a completed subagent a message with the `SendMessage` tool, the subagent resumes in the background without a new `Agent` invocation. The same applies to a subagent that Claude stopped with the `TaskStop` tool, once its stopped run has exited.
+When Claude sends a completed subagent a message with the `SendMessage` tool, the subagent resumes in the background without a new `Agent` invocation. The same applies to a subagent that Claude stopped with the `TaskStop` tool, once its stopped run has exited. The resumed run keeps the [tool set from where the subagent first ran](#run-subagents-in-foreground-or-background) and can keep reading the [prompt cache the original run warmed](/docs/en/prompt-caching#subagents-and-the-cache).
 
 A subagent that has the `SendMessage` tool can send that message too. In an interactive session, the resumed agent then reports back to the subagent that resumed it, not to your main conversation. That subagent waits for the result before finishing its own work. When a subagent messages an agent it reports to, such as its own launcher, Claude Code resumes that agent without redirecting its results.
 

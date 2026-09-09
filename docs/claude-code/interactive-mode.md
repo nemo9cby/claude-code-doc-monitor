@@ -123,6 +123,17 @@ In [fullscreen rendering](/docs/en/fullscreen#use-the-mouse), the `/` command an
 
 See the [commands reference](/docs/en/commands) for the full list of commands included in Claude Code.
 
+### Complete a command mid-prompt
+
+Command completion also works partway through a prompt: type `/` after a space, then the first letters of a name, as in `run the tests, then /com`. Only commands whose names start with those letters match, so a file path such as `/tmp/notes.md` doesn't keep a list open. Claude Code runs a command itself only when the command [starts your message](/docs/en/commands).
+
+* **In [fullscreen rendering](/docs/en/fullscreen)**: the matches open as a list while you type, with no row highlighted, so `Enter` still sends your prompt as typed. Press `Tab` to insert the top match, or pick a row with the arrow keys and `Enter`.
+* **Outside fullscreen**: the rest of the top match appears as ghost text at your cursor, with a count such as `+2` when more commands match. Press `Tab` to insert the only match, or to open the list when several match, then pick a row with the arrow keys and `Enter`.
+
+In both renderers, press `Tab` on a bare mid-prompt `/` to list every command.
+
+A plugin skill matches on its bare name too, so `/deploy` finds a skill named `myplugin:deploy-app`. When you insert the match, Claude Code writes the full `/myplugin:deploy-app`.
+
 ## Vim editor mode
 
 Enable vim-style editing via `/config` → Editor mode.
@@ -508,6 +519,8 @@ To find out which of these happened, start `claude --debug` with spell checking 
 ## Review changes with /diff
 
 Run `/diff` to look over the changes in your working tree without leaving Claude Code. You see the edits Claude has made so far alongside anything else you haven't committed.
+
+In the changes `/diff` reads from git, a submodule appears as a single entry, and only when the commit it points to changes; edits to files inside the submodule don't appear there.
 
 In [fullscreen rendering](/docs/en/fullscreen), `/diff` opens the [diff panel](#diff-panel) beside the conversation, which stays open and updates while you keep working. In the classic renderer, `/diff` opens the [diff viewer](#diff-viewer) in place of the prompt, and you close it when you're done reading.
 

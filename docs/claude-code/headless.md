@@ -187,9 +187,14 @@ For programmatic streaming with callbacks and message objects, see [Stream respo
 
 Messages from [subagents](/docs/en/sub-agents) appear in the stream as `assistant` and `user` messages whose `parent_tool_use_id` field is the ID of the tool call that spawned the subagent. Messages from the main conversation carry `null` in that field.
 
-By default, Claude Code emits only subagent `tool_use` and `tool_result` blocks. Pass [`--forward-subagent-text`](/docs/en/cli-reference#cli-flags) or set [`CLAUDE_CODE_FORWARD_SUBAGENT_TEXT`](/docs/en/env-vars) to also emit subagent text and thinking blocks, so you can reconstruct each subagent's transcript. This requires Claude Code v2.1.211 or later.
+The first message from a subagent running in the [foreground](/docs/en/sub-agents#run-subagents-in-foreground-or-background) is a `user` message carrying the prompt that drives it. After that first message, Claude Code emits:
+
+* **By default**: the subagent's `tool_use` and `tool_result` blocks.
+* **With [`--forward-subagent-text`](/docs/en/cli-reference#cli-flags) or [`CLAUDE_CODE_FORWARD_SUBAGENT_TEXT`](/docs/en/env-vars)**: the subagent's text and thinking blocks too, so you can reconstruct each subagent's transcript. This requires Claude Code v2.1.211 or later.
 
 When you enable either option, Claude Code forwards messages from [subagents at every nesting depth](/docs/en/sub-agents#let-subagents-spawn-their-own-subagents): when a subagent spawns its own subagent, the nested subagent's messages carry the ID of the Agent tool call that spawned it in `parent_tool_use_id`, so you can rebuild the full nesting tree by following those IDs. Before v2.1.219, messages from nested subagents didn't appear in the stream.
+
+Skills that [run in a subagent](/docs/en/skills#run-skills-in-a-subagent) appear in the stream the same way: the forked skill's first message is a `user` message carrying the skill content that drives the run. If you enable either option, the stream also carries the forked skill's text and thinking blocks. Before v2.1.265, only a forked skill's `tool_use` and `tool_result` blocks appeared in the stream.
 
 #### Handle API retries
 
