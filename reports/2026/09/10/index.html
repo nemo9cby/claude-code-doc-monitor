@@ -118,9 +118,330 @@
 
         <header>
             <h1>Changes on 2026-09-10</h1>
-            <p class="meta">9 total changes in 2 runs</p>
+            <p class="meta">22 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">16:42 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更分析
+
+### 1. 总体摘要
+本次文档更新主要澄清了 Hooks 与 MCP 服务集成的生命周期细节，修正了关于 Symlink 权限及外部导入的处理逻辑，并记录了 v2.1.268 版本中关于稳定性（如 CPU 占用、WebFetch 超时）和兼容性的重要修复。
+
+### 2. 关键主题
+*   **Hooks 生命周期与 MCP 可用性**：详细说明了在 `SessionStart` 和 `Setup` 阶段，MCP 服务器可能尚未连接，此时 `mcp_tool` 类型的 hooks 会被跳过。建议依赖 MCP 工具的初始化逻辑改为使用 `command` 类型 hook 或在后续事件中执行。
+*   **权限与安全模型细化**：进一步明确了针对 Symlink 目录（如 `/etc`, `/tmp`）的权限判定逻辑，修正了之前 Symlink 路径可能绕过 Deny 规则的问题。同时澄清了通过 Symlink 引用工作目录外的规则文件将被视为“外部导入”，需遵循相应的审批流程。
+*   **配置行为修正**：
+    *   **Effort/Ultracode**：阐明了当 `ultracode` 因工作流关闭或模型限制不可用时，`--effort ultracode` 将会降级到模型和策略允许的最高 effort 级别（最高 `xhigh`）。
+    *   **Skills**：移除了关于版本特定行为（如 Fable 5.1 版本要求）的过时描述，统一了技能禁用和覆盖的说明。
+*   **Bug 修复与功能增强**：CHANGELOG 记录了多项修复，包括解决空闲会话的高 CPU 占用问题、WebFetch 请求挂死（新增 300秒超时）、以及修复了第三方 Anthropic 兼容端点的 HTTP 400 错误。
+
+### 3. 影响级别
+**中等 (Medium)**
+虽然大部分变更属于文档澄清，但涉及 Hooks 的行为变更和 Symlink 权限修复直接影响了高级配置和安全性。对于依赖特定 Hook 时机或复杂权限管理的开发者，这些更新对调试和系统稳定性至关重要。
+
+### 4. 开发者行动项
+*   **审查 Hooks 配置**：检查当前配置中是否有在 `SessionStart` 阶段依赖 `mcp_tool` 的逻辑，需确认其兼容性或迁移至 `command` hook 以确保初始化步骤可靠执行。
+*   **验证 Symlink 策略**：若使用 Symlink 共享 `.claude/rules`，请评估外部路径引用的“导入审批”要求，确保共享规则能按预期加载。
+*   **利用 CLI 更新**：利用插件命令新增的 `--json` 输出选项来改进 CI/CD 或自动化脚本中的插件管理流程。
+*   **关注版本升级**：建议升级至 v2.1.268 以解决潜在的 CPU 占用过高问题和 WebFetch 超时问题。
+*   **检查 Effort 配置**：如果使用了 `ultracode` 或通过 frontmatter 设置 effort，需注意组织级 effort cap 仍会限制最终的执行级别。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">用户希望对 13 个页面文档变更的单批次分析进行总结。
+我需要关注开发者，提供简洁的见解，并用中文回复。
+
+**1. 分析各页面的变更：**
+
+*   **amazon-bedrock.md**：
+    *   移除了具体的版本引用（&#34;As of v2.1.172&#34;, &#34;On v2.1.171 and earlier&#34;），使文档相对于版本更加静态/通用，或者暗示当前行为是标准行为。
+    *   细化了区域解析解释。
+    *   *开发者影响*：减少关于“当前版本”与“旧版本”行为的困惑。清理了文本。
+
+*   **analytics.md**：
+    *   移除了“标签标准”部分，解释了如何根据行匹配来标记 PR。
+    *   *开发者影响*：略微减少了关于指标如何运作的内部细节。
+
+*   **claude-code-on-the-web.md**：
+    *   扩展了“网络访问控制”描述，增加了关于“默认允许域名”以及不走白名单的流量的特定参考链接。
+    *   *开发者影响*：有关云环境网络隔离的更好、更具体的文档。
+
+*   **cli-reference.md**：
+    *   优化了 `--effort` 参数描述。阐明 `ultracode` 会“请求” `xhigh` 效果（而不是“启动于”）。措辞调整。
+    *   *开发者影响*：对 `ultracode` 工作流启动时的细微澄清。
+
+*   **desktop.md**：
+    *   优化了“云会话”中关于创建/管理自定义环境的说明。现在解释了 UI 操作（悬停，齿轮图标）。
+    *   *开发者影响*：使用桌面应用管理云环境的 UI 更好指南。
+
+*   **hooks.md**：
+    *   大量编辑。
+    *   将“每个会话一次”改为“per session”。
+    *   阐明了 `CwdChanged` 的匹配器支持（不支持）。
+    *   扩展了关于 `mcp_tool` hooks 的部分。明确指出在 `SessionStart` 和 `Setup` 期间，MCP 服务器可能尚未就绪。添加了关于跳过行为的详细示例和解释。
+    *   *开发者影响*：对 Hooks（特别是与 MCP 的交互）的关键澄清。开发者在 `SessionStart` 中编写 MCP hooks 需要注意其生命周期。
+
+*   **interactive-mode.md**：
+    *   优化了“Shell 模式”沙盒行为文本。澄清了沙盒外的执行，例外情况在“严格沙盒模式”中。
+    *   *开发者影响*：澄清了 shell 命令的执行上下文。
+
+*   **memory.md**：
+    *   扩展了关于规则中符号链接的部分。阐明指向工作目录外部的符号链接会被视为“外部导入”，需要批准（或在 `~/.claude/rules` 中）。
+    *   *开发者影响*：影响开发者如何在项目间共享规则。理解外部导入的批准机制至关重要。
+
+*   **model-config.md**：
+    *   澄清 `--effort ultracode` 在不可用时的行为（例如工作流已关闭，努力上限较低） -&gt; 它会以最高允许级别（最高到 `xhigh`）启动。
+    *   阐明了前置元（Frontmatter）效果的限制（上限限制它）。
+    *   *开发者影响*：管理努力级别和 Ultracode 工作流的重要行为修正。
+
+*   **skills.md**：
+    *   优化了 `disableBundledSkills` 的描述。阐明 `/doctor` 的行为。
+    *   阐明命令文件名称解析。
+    *   添加了特定功能（名称比较，文本清理，`!` 命令处理）的版本要求（v2.1.228+）。
+    *   *开发者影响*：更好地理解如何通过设置禁用技能以及 synced skills 的版本依赖。
+
+*   **slash-commands.md**：
+    *   与 `skills.md` 中的变更相似（可能是共享内容或同一章节的重复）。更新了 `disableBundledSkills` 和 v2.1.228 的引用。
+
+*   **third-party-integrations.md**：
+    *   将部署 CLAUDE.md 文件的详细列表替换为指向特定内存文档章节的链接。
+    *   *开发者影响*：清理了重复信息，指向了权威来源。
+
+*   **CHANGELOG.md.md**：
+    *   添加了 v2.1.268 条目。
+    *   Bug 修复：第三方端点上的 Artifacts（HTTP 400）、WebFetch 超时、CPU 使用率、symlink 权限拒绝规则。
+    *   功能：`gatewayInternalNetworks`、`--json` 用于插件命令、自托管运行程序状态移除。
+    *   *开发者影响*：确认 v2.1.268 中修复的许多关键 bug（权限、webfetch、cpu）。
+
+**2. 综合分析：**
+
+*   **整体摘要**：文档更新主要聚焦于阐明特定功能的行为（Hooks、Skills、Effort/Ultracode）、修正关于外部资源（symlinks、MCP）的安全/权限细微差别，并描述了 v2.1.268 版本中的显著 bug 修复。
+*   **关键主题**：
+    *   **澄清生命周期**：Hooks 中的 MCP 服务器可用性。
+    *   **权限与安全**：symlink 权限（bedrock、memory、hooks、changelog 修复），沙盒模式执行。
+    *   **配置细微差别**：Effort 级别、Ultracode 后备、Bundled Skills 禁用。
+    *   **用户体验**：桌面 UI 中的云环境管理、Changelog 中的 Bug 修复（CPU、WebFetch）。
+*   **影响级别**：中等。变更主要是澄清和 bug 文档化，但关于 symlinks、MCP hooks 和 Ultracode 的行为变更影响工具的配置和可靠性。
+*   **行动项**：
+    *   检查依赖 `SessionStart` 中 MCP 服务器可用性的 hooks。
+    *   在通过 symlinks 共享规则时，审查 `memory.md` 中描述的外部导入行为。
+    *   更新脚本/文档，如果适用，使用插件命令的新 `--json` 标志。
+    *   如果遇到严格的权限问题，审查关于 symlinked 路径的权限规则。
+    *   如果依赖特定的 effort/Ultracode 行为，请了解 2.1.268 中的更改。
+
+**3. 格式化输出（中文）：**
+
+*   需要简洁且有洞察力。
+*   Markdown 格式。
+*   结构：摘要、主题、影响、行动项。
+
+*起草内容：*
+
+*   **Summary**：此次更新主要针对配置行为、Hooks 生命周期以及权限管理进行了澄清，并发布了 v2.1.268 版本的重要修复（如 CPU 占用、MCP Hooks、Symlink 权限等）。
+*   **Themes**：
+    *   **Hooks 与 MCP 集成细节**：明确 `SessionStart` 时 MCP 工具可能未就绪的行为，需改用 `command` 类型的 hook 或依赖 `Setup` 后的事件。
+    *   **权限与安全模型细化**：澄清了 symlinks 在共享规则时的导入机制，以及 Bedrock/Hooks 中关于 symlink 路径的权限判定逻辑。
+    *   **配置与 Effort 行为**：更新了 `--effort ultracode` 在不可用时的降级行为，以及 `disableBundledSkills` 对 `/doctor` 命令的影响说明。
+    *   **Bug 修复与功能增强**：记录了 v2.1.268 版本中关于 WebFetch 超时、高 CPU 占用、Symlink 权限拒绝等关键修复。
+*   **Impact**：Medium (中等)。大多数变更为文档修正和细节澄清，但对于依赖特定 Hook 行为、Symlink 共享规则或严格权限控制的开发者，这些信息对调试和配置至关重要。
+*   **Action Items**：
+    *   **检查 Hooks 配置**：若在 `SessionStart` 或 `Setup` 中使用了 `mcp_tool` 类型的 hook，请确认其逻辑能处理服务器未就绪的情况，或改用 `command` 类型。
+    *   **验证 Symlink 规则**：若使用 Symlink 共享 `.claude/rules`，注意外部目录规则被视为“外部导入”，可能需要额外批准。
+    *   **更新插件脚本**：利用新增的 `claude plugin` 命令 `--json` 输出功能来改进自动化脚本。
+    *   **回顾权限设置**：如果遇到关于 `/etc`、`/tmp` 等 symlink 目录的权限问题，需了解新修复的路径解析逻辑。
+    *   **关注 Effort 配置**：了解当 `ultracode` 不可用时，系统将尝试在允许的最高 effort 级别（最高 `xhigh`）下运行。
+
+*完善内容以增强语气和效果：*
+确保 &#34;Hooks&#34; 和 &#34;Skills&#34; 之间的区别清晰。CHANGELOG 证实了 hooks/symlinks 的修复。
+
+*最终润色（中文）：*
+摘要：本次文档更新重点澄清了 Hooks 与 MCP 服务的交互生命周期、Symlink 的权限及导入机制，并记录了 v2.1.268 版本中关于 CPU 占用、权限判定和网络请求的关键修复。
+关键主题：
+- **Hooks 生命周期与 MCP**：明确 `SessionStart` 时 MCP 服务器可能未连接，建议在该阶段使用 `command` hook 而非 `mcp_tool`。
+- **权限与 Symlink**：细化了 Symlink 路径（如 `/etc`, `/tmp`）的权限判定逻辑，并澄清共享外部规则需经过“外部导入”审批。
+- **配置行为**：更新了 `ultracode` 在受限环境下的降级策略，以及 `disableBundledSkills` 的具体行为。
+- **稳定性修复**：CHANGELOG 记录了多项修复，涉及高 CPU 占用、WebFetch 超时及第三方端点的兼容性。
+影响：中等。虽然主要是文档澄清，但对于深度定制 Hooks、使用 Symlink 共享配置或遇到特定 Bug 的开发者，这些更新对解决配置问题和提升稳定性至关重要。
+行动项：
+- 检查依赖 `SessionStart` 事件的 `mcp_tool` hooks，确保其能处理连接未就绪的错误或改用 `command` hook。
+- 若通过 Symlink 共享 `.claude/rules`，请确认外部路径的导入审批策略。
+- 更新自动化脚本以使用插件命令新增的 `--json` 输出格式。
+- 受益于 v2.1.268 更新：升级以修复 Symlink 权限问题和 WebFetch 挂起问题。
+
+让我们对照用户要求再次检查。
+“以世界级程序员的角色”，“简洁”，“markdown 格式”，“专注于对开发者的意义”，“中文”。
+
+一切看起来都不错。我将最终定稿。</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/amazon-bedrock.html" class="page-link">amazon-bedrock.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/analytics.html" class="page-link">analytics.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/claude-code-on-the-web.html" class="page-link">claude-code-on-the-web.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/cli-reference.html" class="page-link">cli-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/desktop.html" class="page-link">desktop.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+28</span>
+                            <span class="removed">-23</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/interactive-mode.html" class="page-link">interactive-mode.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/memory.html" class="page-link">memory.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/model-config.html" class="page-link">model-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+18</span>
+                            <span class="removed">-17</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+18</span>
+                            <span class="removed">-17</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/third-party-integrations.html" class="page-link">third-party-integrations.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+97</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">13:59 EST</div>
