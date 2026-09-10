@@ -118,9 +118,286 @@
 
         <header>
             <h1>Changes on 2026-09-09</h1>
-            <p class="meta">39 total changes in 3 runs</p>
+            <p class="meta">51 total changes in 4 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">20:45 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 1. 总体摘要
+本次更新涉及 12 个页面，主要优化了身份验证（特别是托管环境下的凭证优先级）、系统提示词控制（新增 CLI 标志）、插件市场的严格路径规范以及沙盒环境的故障排除。同时，增加了对 Gerrit 集成的支持并放宽了工具命名的长度限制。
+
+### 2. 关键主题
+*   **身份验证与权限逻辑**：明确了托管设置下 `forceLoginMethod` 和 `forceLoginGatewayUrl` 对凭证来源的强制覆盖行为；细化了 `/status` 命令的输出逻辑。
+*   **系统提示词管理**：新增 `--system-prompt-snapshot` CLI 标志，允许在跨会话迭代时动态重建提示词；明确了子代理和恢复会话时的提示词行为。
+*   **插件与市场规范**：增加了 `claude-tag-plugins` 为保留名称；明确了插件 `displayName` 的覆盖优先级（市场条目 &gt; plugin.json）；**强制要求**在 macOS/Linux 上插件组件路径必须使用正斜杠（禁止反斜杠）。
+*   **环境与网络**：增加了对 `googlesource.com` Gerrit 代码审查的网络访问说明；修复了 Linux/WSL2 下因会话异常终止导致的沙盒占位文件残留问题。
+*   **API 规范调整**：将工具名称的长度限制从 64 字符放宽至 128 字符。
+
+### 3. 影响等级：中等
+**理由**：
+*   **破坏性变更/风险**：插件开发者需注意，在 macOS/Linux 系统上，包含反斜杠的组件路径将不再被加载，需修改代码以使用正斜杠。
+*   **功能性增强**：新增的 `--system-prompt-snapshot` 标志为开发者提供了更灵活的提示词迭代能力。
+*   **重要修复**：修复了沙盒残留文件导致权限设置无法保存的问题，这对 Linux/WSL2 用户解决“不再询问”功能失效至关重要。
+
+### 4. 开发者行动项
+*   **修复插件路径**：检查您的插件代码，确保所有组件路径在 macOS/Linux 环境下仅使用正斜杠（`/`），避免使用反斜杠。
+*   **清理沙盒残留**：如果在 Linux 上遇到“不再询问”无法保存或权限问题，运行 `claude doctor` 并根据提示删除残留的占位文件。
+*   **利用新标志调试**：在使用 `--continue` 跨会话迭代系统提示词时，尝试使用 `--system-prompt-snapshot off` 以确保更改即时生效。
+*   **验证认证状态**：如果使用了托管设置，运行 `/status` 确认当前的认证方法是否符合预期的强制登录策略。
+*   **更新工具定义**：如果您此前因 64 字符限制而缩短了工具名称，现在可将其扩展至 128 字符以提高描述性。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Understand the Goal**: The user wants a concise, insightful analysis of a batch of documentation changes for &#34;Claude Code&#34; (likely Anthropic&#39;s CLI tool). The analysis needs to cover overall summary, key themes, impact level, and action items. The response must be in Chinese.
+
+2.  **Analyze the Diff Content (Page by Page)**:
+
+    *   **`claude-code-on-the-web.md`**:
+        *   *Change 1*: Clarified how diffs are computed for files not in the session&#39;s own checkouts (e.g., cloned inside workspace). It shows Claude&#39;s edit itself rather than a git comparison.
+        *   *Change 2*: Clarified session expiration. Inactivity includes waiting for MCP connector approval/sign-in. Sessions can expire during this wait.
+
+    *   **`cli-reference.md`**:
+        *   *Change 1*: Added `--system-prompt-snapshot` flag (off/on). Allows rebuilding system prompt on every request (useful for iterating with `--append-system-prompt` across `--continue` runs). Requires v2.1.257+.
+        *   *Change 2*: Updated the count of system prompt flags (4 -&gt; 5).
+
+    *   **`discover-plugins.md`**:
+        *   *Change 1*: Minor text tweak for URL-based marketplace troubleshooting (generalized error message).
+
+    *   **`iam.md`**:
+        *   *Change 1*: Detailed authentication logic for managed settings (`forceLoginMethod` and `forceLoginGatewayUrl`). If set, it skips other credentials.
+        *   *Change 2*: Clarified API key vs. subscription precedence logic.
+        *   *Change 3*: Clarified `/status` output behavior.
+        *   *Change 4*: Typo fix (&#34;passes over&#34; -&gt; &#34;skips&#34;).
+
+    *   **`memory.md`**:
+        *   *Change 1*: Added clarification/link about how `--append-system-prompt` behaves when resuming conversations.
+
+    *   **`network-config.md`**:
+        *   *Change 1*: Added `*-review.googlesource.com` to network list. Explains it&#39;s for Gerrit change lookup on `googlesource.com` checkouts. Mentions disable flag.
+
+    *   **`output-styles.md`**:
+        *   *Change 1*: Text refinements to definition of &#34;Output styles&#34; (changes how it modifies system prompt).
+        *   *Change 2*: Clarified VS Code extension support for creating styles (v2.1.261+).
+        *   *Change 3*: Clarified that styles apply to forks (inherits parent prompt) but not other subagents.
+        *   *Change 4*: Updated comparison table text.
+
+    *   **`plugin-marketplaces.md`**:
+        *   *Change 1*: Added `claude-tag-plugins` to reserved names list.
+        *   *Change 2*: Version history note about reserved names (v2.1.205, v2.1.265).
+        *   *Change 3*: Clarified `displayName` field logic (entry value overrides `plugin.json`).
+        *   *Change 4*: Detailed explanation of display fields priority between entry and `plugin.json`.
+
+    *   **`plugins-reference.md`**:
+        *   *Change 1*: Clarified `displayName` precedence logic (marketplace entry &gt; `plugin.json`).
+        *   *Change 2*: Added path traversal limitation on macOS/Linux: rejects paths with backslashes (Windows only).
+
+    *   **`sandboxing.md`**:
+        *   *Change 1*: Added troubleshooting for Linux/WSL2 regarding 0-byte read-only placeholders at `.claude` paths. Solution: `claude doctor` and `rm`. Mentioned v2.1.257 fix.
+
+    *   **`sub-agents.md`**:
+        *   *Change 1*: Updated behavior of restoring agents on session resume. It restores tools and model, but the system prompt behavior is now linked to a new section about &#34;System prompt flags in resumed conversations&#34;.
+
+    *   **`agents-and-tools/tool-use/implement-tool-use.md`**:
+        *   *Change 1*: Updated tool name regex from `{1,64}` to `{1,128}` characters.
+
+3.  **Synthesize Key Themes**:
+    *   **Authentication &amp; Identity**: Refined logic for Managed Settings (`forceLogin...`) and credential precedence.
+    *   **System Prompt Management**: New flag `--system-prompt-snapshot`, behavior on resume, and distinction between output styles, subagents, and standard prompts.
+    *   **Plugins &amp; Marketplaces**: Strict path validations (no backslashes on *nix), reserved names, and field precedence (`displayName`).
+    *   **Sandboxing &amp; Environment**: Troubleshooting stale files, Gerrit network access, and session expiration during MCP waits.
+    *   **Tooling Specs**: Increased tool name length limit.
+
+4.  **Determine Impact Level**:
+    *   **Medium**. While there are many changes, most are clarifications or edge-case fixes (e.g., sandbox placeholders, specific Gerrit traffic). However, the new `--system-prompt-snapshot` flag and changes to authentication precedence (especially in managed environments) are significant for power users and enterprise admins.
+
+5.  **Draft Action Items**:
+    *   Check `/status` to verify auth method if using managed settings.
+    *   Use `claude doctor` if encountering &#34;don&#39;t ask again&#34; permission issues on Linux.
+    *   Avoid backslashes in plugin paths for cross-platform compatibility.
+    *   Review tool names if hitting the old 64-char limit.
+    *   Use `--system-prompt-snapshot off` when iterating prompt changes across sessions.
+
+6.  **Translate and Format (Chinese)**:
+
+    *   *Summary*: 12 pages updated. Focus on authentication logic refinements, system prompt control improvements (new flag), plugin marketplace strictness, and environment sandboxing fixes.
+    *   *Themes*:
+        *   Auth: Managed settings credential precedence.
+        *   Prompts: New snapshot flag, resume behavior clarification.
+        *   Plugins: Backslash path restrictions on *nix, field overrides.
+        *   Environment: MCP wait expiration, sandbox cleanup, Gerrit network access.
+        *   API: Tool name length limit increase.
+    *   *Impact*: Medium. Includes functional new flags and breaking changes in plugin path handling (backslashes).
+    *   *Action Items*:
+        *   Run `claude doctor` for Linux sandbox permission issues.
+        *   Update plugins to use forward slashes only.
+        *   Check auth logic under managed settings.
+        *   Use new flag for prompt iteration.
+        *   Verify tool name constraints.
+
+7.  **Refine Content**:
+    *   Ensure &#34;Action items&#34; are specific.
+    *   Make &#34;Key Themes&#34; concise.
+    *   Highlight the &#34;Breaking/High&#34; aspect of the backslash restriction in plugins.
+
+8.  **Final Output Generation**: (Matches the logic above).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/claude-code-on-the-web.html" class="page-link">claude-code-on-the-web.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/cli-reference.html" class="page-link">cli-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+14</span>
+                            <span class="removed">-8</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/discover-plugins.html" class="page-link">discover-plugins.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/iam.html" class="page-link">iam.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/memory.html" class="page-link">memory.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/network-config.html" class="page-link">network-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/output-styles.html" class="page-link">output-styles.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+19</span>
+                            <span class="removed">-17</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugin-marketplaces.html" class="page-link">plugin-marketplaces.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sandboxing.html" class="page-link">sandboxing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/implement-tool-use.html" class="page-link">agents-and-tools/tool-use/implement-tool-use.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">18:10 EST</div>
