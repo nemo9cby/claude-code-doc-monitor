@@ -118,9 +118,305 @@
 
         <header>
             <h1>Changes on 2026-09-10</h1>
-            <p class="meta">22 total changes in 3 runs</p>
+            <p class="meta">34 total changes in 4 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">18:53 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 总体摘要
+本次文档更新涉及 12 个页面，核心变化包括**插件管理流程的自动化**（安装/修改后自动重载）、**CLI 脚本能力的增强**（新增 JSON 输出支持）、**Hooks 行为的变更**（`WorktreeRemove` 现在支持阻塞操作）以及**错误处理的安全性改进**（MCP 错误信息不再泄露环境变量值）。
+
+### 关键变化主题
+*   **自动化插件生命周期管理**：通过 UI 或 `/plugin` 菜单安装、启用或禁用插件后，Claude Code 现在会**自动执行** `/reload-plugins` 以应用更改。仅当操作会使 prompt cache 失效时，系统才会警告并保持挂起状态，需用户手动运行 `/reload-plugins --force`。
+*   **增强 CLI 可编程性**：`claude plugin` 系列命令（install, uninstall, enable, disable）新增了 `--json` 标志，输出结构化 JSON 数据（包含 outcome, message 等字段），极大地简化了自动化脚本和 CI/CD 集成的开发。
+*   **更严格的 Hooks 控制**：`WorktreeRemove` hook 的行为发生改变。此前失败仅在调试模式下记录，现在任何非零退出码（且目录删除后仍存在）都会导致工作树移除失败，使其成为真正的阻塞事件。
+*   **安全与隐私优化**：在 MCP 服务器连接失败报告中，显示的主机名（origin）将保留 `${VAR}` 环境变量的原始形式，而**不再展开**其实际值，有效防止了敏感信息（如密钥）在错误信息中泄露。
+
+### 影响等级
+**Medium**（中等）
+
+**理由**：
+尽管大部分更改（如自动重载）旨在改善用户体验且向后兼容，但 `WorktreeRemove` hook 的行为变更属于功能性调整，可能导致依赖此前“静默失败”行为的现有脚本出现问题。新增的 `--json` 功能虽然不破坏旧代码，但代表了脚本编写最佳实践的转变。MCP 错误信息的格式变更也可能影响相关的日志解析逻辑。
+
+### 开发者行动项
+1.  **审查并更新 Hook 脚本**：检查现有的 `WorktreeRemove` hook 逻辑，确保其能正确处理新的阻塞行为（即非零退出码现在会阻止操作）。
+2.  **利用 JSON 输出重构脚本**：更新任何用于管理插件的 Shell 或自动化脚本，使用 `--json` 标志解析结果，而不是尝试解析人类可读的文本输出。
+3.  **移除冗余的重载步骤**：如果你的工作流在安装插件后包含手动运行 `/reload-plugins` 的步骤，可以将其移除，因为系统现在会自动处理。
+4.  **调整错误日志解析逻辑**：如果你的工具监控 MCP 连接错误并提取主机信息，需更新解析器以适应未展开的环境变量引用（如 `${HOST}`）。
+5.  **留意 Prompt Cache 警告**：在使用插件时，若遇到因 prompt cache 而挂起的更改，记得使用 `/reload-plugins --force` 强制应用。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Understand the Goal**: The user wants a concise, insightful analysis of a batch of documentation changes for Claude Code. I need to summarize what changed, identify key themes, assess impact, and provide action items for developers. The response must be in Chinese.
+
+2.  **Analyze the Diff Files**:
+
+    *   **cli-reference.md**: The diff shown is truncated (`+37 / -37`), but the visible part shows the command reference table structure. It seems to be a formatting update or minor adjustment, though the full context is cut off. Looking at the other files, CLI reference changes might be minor. *Self-correction*: The diff provided is just the header and the start of the table. It doesn&#39;t show specific changes clearly in the snippet provided other than maybe a line break or formatting. I&#39;ll note this but focus on the substantive changes in other files.
+
+    *   **discover-plugins.md**:
+        *   *Change*: Update on `/reload-plugins` behavior.
+        *   *Detail*: Previously, if a plugin install summary said &#34;Run /reload-plugins to activate&#34;, the user had to run it manually. Now, Claude Code runs it automatically for you when installing from the `/plugin` interface or closing the `/plugin` menu.
+        *   *Detail*: If reload would invalidate prompt cache, it warns and leaves changes pending. User needs `--force`.
+        *   *Detail*: Clarification on when manual reload is needed (e.g., external terminal commands, `--plugin-dir` edits).
+
+    *   **hooks.md**:
+        *   *Change*: Update on `WorktreeRemove` hook event.
+        *   *Detail*: Exit code behavior change. Previously failures were logged only in debug mode. Now, any non-zero exit code causes removal to fail if the directory still exists. It&#39;s now a blocking event.
+
+    *   **interactive-mode.md**:
+        *   *Change*: Clarification on Task List tool availability.
+        *   *Detail*: Rewrites the sentence about which models support task-tracking tools. Explicitly lists supported models (Claude 3.x, Opus 4-4.7, Sonnet 4-4.6, Haiku 4.5) and mentions that unrecognized model IDs result in an empty list unless opted in.
+
+    *   **mcp.md**:
+        *   *Change*: Consistency update regarding `/reload-plugins` (similar to `discover-plugins.md`).
+        *   *Detail*: &#34;Claude Code then runs that reload for you.&#34;
+        *   *Change*: MCP server connection failure messaging.
+        *   *Detail*: When connecting and failing, the &#34;origin&#34; (scheme + host) is shown. Crucially, `${VAR}` expansion behavior changed: the origin shows the host as *written* in the config (with the variable reference), not the expanded value, to avoid leaking secrets in error messages.
+
+    *   **monitoring-usage.md**:
+        *   *Change*: Telemetry/Attribute definitions.
+        *   *Detail*: `user.email` source clarified (sign-in or cloud session creds).
+        *   *Detail*: `attempt` attribute behavior clarified regarding retries.
+        *   *Detail*: User identity attribution updated to include cloud sessions.
+
+    *   **plugin-marketplaces.md**:
+        *   *Change*: Update on `/reload-plugins` steps.
+        *   *Detail*: Refers to &#34;Apply plugin changes without restarting&#34; section instead of explicitly saying &#34;run that command&#34;.
+
+    *   **plugins.md**:
+        *   *Change*: Update on `/reload-plugins` steps.
+        *   *Detail*: Refers to the &#34;Apply plugin changes without restarting&#34; section.
+
+    *   **plugins-reference.md**:
+        *   *Change*: CLI command updates.
+        *   *Detail*: Added `--json` flag to `plugin install`, `uninstall`, `enable`, `disable`. This allows scripting by printing JSON results.
+        *   *Detail*: Clarified JSON output format (last line of stdout).
+
+    *   **skills.md**:
+        *   *Change*: Plugin skill deletion instructions.
+        *   *Detail*: Updated to reflect the automatic reload behavior mentioned in `discover-plugins.md`. &#34;Claude Code unloads the plugin&#39;s skills when the change applies&#34;.
+
+    *   **slash-commands.md**:
+        *   *Change*: Same as `skills.md` (Plugin skill deletion instructions). Duplicate content update.
+
+    *   **vs-code.md**:
+        *   *Change*: UI behavior updates.
+        *   *Detail*: Activity Bar click behavior update (&#34;open in your preferred location&#34;).
+        *   *Detail*: Plugin management dialog. Changes now apply right away to open sessions. It offers to retry or restart if reload fails.
+
+3.  **Synthesize Key Themes**:
+
+    *   **Theme 1: Automated Plugin Lifecycle Management.** The most significant change is that Claude Code now automatically executes `/reload-plugins` after changes made via the UI or install flows, reducing manual steps for the user.
+    *   **Theme 2: Enhanced CLI Scripting.** Addition of `--json` flags to plugin commands enables better automation and CI/CD integration.
+    *   **Theme 3: Security/Privacy in Error Reporting.** The MCP error reporting change prevents potential secret leaks (showing `${VAR}` instead of expanded values) is a security refinement.
+    *   **Theme 4: Hook Behavior Changes.** The `WorktreeRemove` hook is now stricter/functional.
+
+4.  **Determine Impact Level**:
+
+    *   *Level*: **Medium**.
+    *   *Reasoning*: While not &#34;breaking&#34; in the sense that old workflows (manually running reload) still work or are simply superseded, the automation changes significantly alter the user workflow. The `WorktreeRemove` hook behavior change could break existing scripts that relied on non-blocking failure. The `--json` flag is a net new feature.
+
+5.  **Draft Action Items**:
+
+    *   Update any scripts that rely on manual `/reload-plugins` invocations after plugin installs (though it&#39;s likely they still work, it&#39;s redundant).
+    *   Check `WorktreeRemove` hook scripts: ensure they handle the new blocking behavior correctly (exit codes matter now).
+    *   Review MCP hook/monitoring code if parsing error messages for host info (since variable expansion is no longer shown).
+    *   Leverage the new `--json` flags in CLI scripts for plugin management.
+    *   Review monitoring/telemetry dashboards if relying on `user.email` or `attempt` fields (minor clarification).
+
+6.  **Translate and Format (Chinese)**:
+
+    *   *Summary*: 这次更新主要集中在优化插件管理流程（自动化重载）、增强 CLI 脚本能力（JSON 输出）、细化 Hooks 行为（WorktreeRemove）以及改进错误信息的安全性（隐藏变量展开）。
+    *   *Themes*:
+        *   插件管理自动化（自动 `/reload-plugins`）。
+        *   CLI 可脚本化（新增 `--json` 标志）。
+        *   安全与隐私（MCP 错误信息不再展开环境变量）。
+        *   Hooks 逻辑变更（`WorktreeRemove` 现在支持阻塞）。
+    *   *Impact*: Medium.
+    *   *Actions*:
+        *   Check `WorktreeRemove` scripts.
+        *   Update automation scripts to use `--json`.
+        *   Be aware of automatic plugin reloading.
+        *   Review MCP error parsing logic.
+        *   Check telemetry dashboards if using specific attributes.
+
+7.  **Refine Output**:
+
+    *   Ensure &#34;What matters to developers&#34; is highlighted. The automatic reload is a huge UX improvement. The JSON flag is huge for DevEx. The secret leak fix in MCP is crucial for security-conscious devs.
+    *   Double check the `cli-reference.md`. Since the diff is truncated, I&#39;ll mention it&#39;s likely formatting but not impactful based on the snippet.
+
+    *Drafting the Chinese response...*
+
+    *   **Summary**: 本次文档更新涉及 12 个页面，核心变化包括**插件管理流程的自动化**（自动执行重载）、**CLI 脚本能力的增强**（新增 JSON 输出支持）、**Hooks 行为的变更**（`WorktreeRemove` 现在支持阻塞操作）以及**错误处理的安全性改进**（MCP 错误信息不再泄露环境变量值）。
+
+    *   **Key Themes**:
+        *   **自动化插件生命周期**：通过 UI 或 `/plugin` 菜单安装/修改插件后，Claude Code 会自动运行 `/reload-plugins`，除非这会使 prompt cache 失效（此时需手动 `--force`）。
+        *   **增强 CLI 可编程性**：`claude plugin` 系列命令（install, uninstall 等）新增 `--json` 标志，便于在脚本中解析状态。
+        *   **更严格的 Hooks 控制**：`WorktreeRemove` hook 不再仅记录日志，任何非零退出码且目录仍存在时将阻止删除操作。
+        *   **安全与隐私优化**：MCP 服务器连接失败时，显示的 URL 来源不再展开 `${VAR}` 环境变量，防止凭据泄露。
+
+    *   **Impact**: **Medium**（中等）。
+        *   理由：虽然大部分是体验优化（自动重载），但 `WorktreeRemove` 的行为变更可能影响现有的 Hook 脚本逻辑。新增的 `--json` 标志虽然向后兼容，但显著改变了编写自动化脚本的最佳实践。
+
+    *   **Action Items**:
+        *   **检查 Hook 脚本**：如果你的 `WorktreeRemove` hook 脚本依赖“静默失败”的行为，请更新逻辑以适应新的阻塞机制。
+        *   **利用 JSON 输出**：更新管理插件的自动化脚本，使用 `--json` 标志代替解析人类可读的文本输出。
+        *   **移除冗余重载命令**：如果你在安装插件后手动运行 `/reload-plugins`，现在可以移除该步骤，因为系统会自动处理。
+        *   **审查错误日志解析**：如果监控 MCP 连接错误，确保解析逻辑能处理未展开的环境变量引用（如 `${MY_HOST}`）。
+        *   **了解缓存失效行为**：在 prompt cache 敏感的会话中，注意插件变更的自动重载可能需要手动干预（`--force`）。
+
+8.  **Final Review**: Does it meet &#34;concise, insightful&#34;? Yes. Markdown format? Yes. Chinese? Yes.</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/cli-reference.html" class="page-link">cli-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+37</span>
+                            <span class="removed">-37</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/discover-plugins.html" class="page-link">discover-plugins.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+10</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+25</span>
+                            <span class="removed">-22</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/interactive-mode.html" class="page-link">interactive-mode.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugin-marketplaces.html" class="page-link">plugin-marketplaces.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins.html" class="page-link">plugins.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+27</span>
+                            <span class="removed">-21</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/vs-code.html" class="page-link">vs-code.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">16:42 EST</div>
