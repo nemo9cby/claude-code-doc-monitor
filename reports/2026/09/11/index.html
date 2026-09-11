@@ -118,9 +118,197 @@
 
         <header>
             <h1>Changes on 2026-09-11</h1>
-            <p class="meta">24 total changes in 3 runs</p>
+            <p class="meta">30 total changes in 4 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">19:48 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 整体摘要
+本次更新重点澄清了在 Unix-like 系统（macOS/Linux/WSL）上 `Glob` 和 `Grep` 工具并非默认包含在工具集中，并补充了子代理获取这些工具的特殊规则。此外，文档显著增强了 Hook 静默失败时的调试指南，并对插件 CLI 命令的描述进行了标准化措辞调整。
+
+### 关键主题
+*   **工具可用性明确化：** 明确了 `--tools` 标志在 Unix 系统上的默认行为（排除 `Glob`/`Grep`），并解释了子代理即使在主对话无权使用时，仍可能继承这些工具的例外情况。
+*   **调试体验提升：** 新增了 Hook JSON 配置无效的具体排查清单（如 JSON 字段层级错误、Shell 输出干扰），并指引用户使用 `--debug` 定位被忽略的字段。
+*   **文档一致性优化：** 统一了插件相关命令（`init`, `install` 等）的参数、选项和别名描述格式，提高了文档的可读性。
+
+### 影响级别
+**Medium**
+
+虽然主要是文档更新，但关于默认工具集变更的澄清直接影响开发者的预期行为。如果开发者默认依赖 `Grep` 或 `Glob` 而未显式声明，可能会遇到功能不可用的问题。
+
+### 开发者行动建议
+1.  **审查 CLI 脚本：** 如果你的自动化流程或 Prompt 依赖 `Glob` 或 `Grep`，请务必在启动命令中使用 `--tools &#34;Bash,Edit,Read,Grep,Glob&#34;` 显式启用，因为在 macOS/Linux/WSL 上它们不在默认集中。
+2.  **调试 Hook 问题：** 当 Hook 输出 JSON 但不生效时，使用 `claude --debug` 启动并搜索日志中的 `Hook JSON output had unrecognized keys`，检查字段（如 `permissionDecision`）是否被错误地放在了 JSON 顶层而非 `hookSpecificOutput` 内部。
+3.  **验证环境配置：** 在设置环境变量（如 `DISABLE_AUTOUPDATER`）后，运行 `claude doctor` 确认配置已正确生效。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Input:** 6 markdown files with diffs.
+    *   **Output Format:** Markdown.
+    *   **Content:** Overall summary, key themes, impact level, action items.
+    *   **Language:** Chinese.
+    *   **Tone:** Concise, insightful, developer-focused.
+
+2.  **Analyze the Diffs:**
+
+    *   **`cli-reference.md` (--tools flag):**
+        *   *Change:* The description for `--tools` now mentions that on macOS, Linux, and WSL, the default set excludes `Glob` and `Grep`. It links to a specific section about &#34;Glob tool behavior&#34;.
+        *   *Significance:* Clarifies default tool behavior, potentially surprising developers expecting `Grep`/`Glob` by default.
+
+    *   **`google-vertex-ai.md` (Wizard prompt):**
+        *   *Change:* Changed &#34;The wizard detects your project...&#34; to &#34;The wizard asks for your project...&#34;.
+        *   *Significance:* Correction/Clarification of workflow. It&#39;s an interactive ask, not automatic detection.
+
+    *   **`hooks-guide.md` (Hook JSON issues):**
+        *   *Change:* Expanded troubleshooting for &#34;Hook JSON has no effect&#34;. Added a bulleted list explaining two common causes: extra output before JSON (e.g., `echo` in profile) and fields at wrong JSON level (e.g., `permissionDecision` outside `hookSpecificOutput`). Added a tip on using `--debug` to see unrecognized keys.
+        *   *Significance:* Major debugging improvement for developers writing hooks. Saves time by pinpointing silent failures.
+
+    *   **`plugins-reference.md` (CLI phrasing):**
+        *   *Change:* Consistency changes. &#34;Arguments:&#34; -&gt; &#34;The command takes these arguments:&#34;, &#34;Options:&#34; -&gt; &#34;The command accepts these options:&#34;, &#34;Aliases:&#34; -&gt; &#34;X is an alias for this command.&#34;, &#34;Examples:&#34; -&gt; &#34;These examples show common invocations:&#34;.
+        *   *Significance:* Style guide consistency. Doesn&#39;t change functionality, but improves readability/standardization of the docs.
+
+    *   **`setup.md` (Installation and Auto-update):**
+        *   *Change:* Added repetitive `theme={null}` to code blocks (likely a bug in the doc generator or a specific styling fix, irrelevant to code logic). Added a verification tip: run `claude doctor` to confirm `DISABLE_AUTOUPDATER` works.
+        *   *Significance:* The `claude doctor` tip is useful for validating environment config. The `theme` stuff is noise.
+
+    *   **`sub-agents.md` (Tool inheritance):**
+        *   *Change:* Added a note that subagents on macOS/Linux/WSL *can* receive `Glob`/`Grep` tools even if the main conversation doesn&#39;t have them (referencing the same &#34;Glob tool behavior&#34; section).
+        *   *Significance:* Specific behavior clarification regarding tool propagation to subagents.
+
+3.  **Synthesize Findings:**
+
+    *   **Overall Summary:** This update focuses on clarifying tool availability (specifically `Glob` and `Grep`) across different environments (CLI, Sub-agents), improving troubleshooting for Hooks, and refining documentation phrasing for consistency.
+    *   **Key Themes:**
+        *   **Tool Granularity:** Explicitly defining where `Glob`/`Grep` exist or don&#39;t exist (defaults vs. subagents).
+        *   **Debugging/UX:** Better error guidance for Hooks (`--debug` usage, JSON structure validation) and setup verification (`claude doctor`).
+        *   **Docs Polish:** Standardizing command reference phrasing.
+    *   **Impact Level:** Low to Medium. It&#39;s mostly clarifications and troubleshooting aids rather than breaking API changes or new major features. However, knowing `Grep`/`Glob` aren&#39;t in the default toolset on Unix is important for developers.
+    *   **Action Items:**
+        *   Check if your CLI scripts or prompts rely on `Grep`/`Glob` being available by default; they might not be on macOS/Linux/WSL.
+        *   Use `claude --debug` if Hooks fail silently to check for JSON field placement issues.
+        *   Use `claude doctor` to verify environment variable overrides (like auto-updater settings).
+
+4.  **Drafting the Response (in Chinese):**
+
+    *   *Summary:* 此次更新主要澄清了不同平台下 `Glob` 和 `Grep` 工具的默认可用性，增强了 Hook 配置错误的调试指南，并统一了 CLI 插件命令的文档措辞。
+    *   *Themes:*
+        *   工具可用性明确化
+        *   调试体验提升
+        *   文档一致性优化
+    *   *Impact:* Medium. Reasoning: The clarification about default toolsets affects expected behavior on Unix-like systems, and the hooks debugging section significantly aids troubleshooting. The rest is polish.
+    *   *Action Items:*
+        *   Review CLI scripts: Ensure they explicitly request `Glob`/`Grep` if needed, as they aren&#39;t in the default set on macOS/Linux/WSL.
+        *   Debug Hooks: Use `claude --debug` to identify &#34;Hook JSON has no effect&#34; issues related to misconfigured JSON fields.
+        *   Verify Config: Run `claude doctor` to confirm `DISABLE_AUTOUPDATER` is applied correctly.
+
+5.  **Refining the Output:**
+
+    *   Ensure the tone is professional and technical.
+    *   Make sure the connection between `cli-reference` and `sub-agents` regarding `Glob`/`Grep` is noted.
+
+    *(Self-Correction during drafting)*: The `setup.md` change about `theme={null}` is clearly an artifact/maintenance issue in the doc source, not a functional change. I should ignore that in the summary as it adds noise, or mention it very briefly if needed. I will focus on the `claude doctor` tip.
+
+6.  **Final Polish (Chinese):**
+
+    *   **整体摘要:** 本次更新主要针对 `Glob` 和 `Grep` 工具在 CLI 及子代理中的默认行为进行了明确说明，大幅改进了 Hook 调试指南，并对插件 CLI 命令文档进行了标准化措辞调整。
+    *   **关键主题:**
+        *   **工具集边界定义:** 明确了在 macOS/Linux/WSL 上默认工具集不包含 `Glob`/`Grep`，并解释了子代理对这些工具的特殊获取机制。
+        *   **可观测性增强:** 为 Hook 的静默失败提供了具体的排查路径（如检查 JSON 结构及 `--debug` 的使用）。
+        *   **文档规范化:** 统一了插件命令参数和选项的描述格式，提升了可读性。
+    *   **影响级别:** **Medium**。虽然主要是文档和说明，但关于默认工具集排除 `Grep`/`Glob` 的说明可能改变开发者对 Claude 行为的预期，若忽略可能导致脚本报错。
+    *   **行动建议:**
+        *   **检查脚本依赖:** 如果你的工作流依赖 `Glob` 或 `Grep`，请在 `--tools` 标志中显式声明，因为在 macOS/Linux/WSL 上它们不在默认工具集中。
+        *   **利用调试工具:** 遇到 Hook 生效但无错误提示时，使用 `claude --debug` 查找 `unrecognized keys` 或检查 JSON 字段层级是否正确。
+        *   **验证环境配置:** 使用 `claude doctor` 确认环境变量（如 `DISABLE_AUTOUPDATER`）是否正确生效。
+
+7.  **Final Output Generation.** (Proceed to generate output based on step 6).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/cli-reference.html" class="page-link">cli-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/google-vertex-ai.html" class="page-link">google-vertex-ai.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/setup.html" class="page-link">setup.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">17:30 EST</div>
