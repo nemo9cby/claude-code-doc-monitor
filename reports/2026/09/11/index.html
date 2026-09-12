@@ -118,9 +118,219 @@
 
         <header>
             <h1>Changes on 2026-09-11</h1>
-            <p class="meta">30 total changes in 4 runs</p>
+            <p class="meta">37 total changes in 5 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">22:45 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 总体概要
+
+本次更新主要集中在提升开发者工作流的灵活性（Git 会话隔离改为可选）和增强系统的可观测性（新增 VCS 仓库指标），同时优化了终端键盘兼容性，并明确了模型切换与计费限额的边界行为。
+
+### 关键变更主题
+
+*   **Git 工作流行为变更**：在 Git 仓库中创建新会话时，隔离机制（基于 Git worktrees）由“自动”变为需手动选择 **worktree** 选项。这改变了多任务并行处理时的默认交互方式。
+*   **可观测性大幅增强**：新增了 `vcs.*` 系列标准属性（如 `repository_id`, `branch`, `commit`），并引入 `OTEL_METRICS_INCLUDE_REPOSITORY` 环境变量，支持按仓库和分支维度监控使用情况。
+*   **终端体验改进**：扩展了对 Kitty 键盘协议的支持，Alacritty 0.16+ 及 foot 等现代终端现在无需配置即可原生支持 Shift+Enter 换行。
+*   **文档澄清与优化**：明确了 `/model` 命令中 `s` 键仅作用于当前会话的行为，细化了个人/组织额度限制的排查指引，并简化了 IAM 部署配置的冗余说明。
+
+### 影响等级：中等
+
+**理由**：
+1.  **工作流调整**：Git worktree 隔离机制的显式化（而非自动）改变了习惯性的多会话操作，需要开发者适应新的 UI 交互，虽不破坏原有功能，但改变了默认路径。
+2.  **运维价值**：新增的 VCS 指标对于管理大型代码库和组织级监控非常有价值，属于重要的功能增强。
+
+### 开发者行动项
+
+*   **注意 Git 会话隔离**：在 Desktop 端创建新会话处理并行任务时，如果需要独立的代码副本，请务必在分支名称旁手动勾选 **worktree** 选项。
+*   **利用新的遥测指标**：如果你负责团队监控或资源管理，建议启用 `OTEL_METRICS_INCLUDE_REPOSITORY` 环境变量，以便按仓库和分支分析 Token 消耗。
+*   **验证终端快捷键**：如果你使用 Alacritty (0.16+) 或其他支持 Kitty 协议的终端，无需再运行 `/terminal-setup`，直接尝试使用 Shift+Enter 进行多行输入。
+*   **排查额度限制**：遇到 `spend limit` 报错时，参照更新后的文档区分是“个人/组织月度限额”还是“团队共享预算”，并前往 Admin Settings &gt; Usage 进行调整。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Understand the Goal:** The user wants a concise, insightful analysis of a batch of documentation changes for a developer tool (Claude Code, based on context). The response must be in Chinese, in markdown format, and cover specific sections: Overall Summary, Key Themes, Impact Level, and Action Items.
+
+2.  **Analyze the Changes (Page by Page):**
+
+    *   **`costs.md` (+2 / -1):**
+        *   *Change:* Modified the list of limit situations. Changed &#34;The four situations mean different things&#34; to &#34;These situations mean different things&#34;. Added a specific bullet point for &#34;You&#39;ve hit your individual spend limit&#34;, &#34;org&#39;s monthly spend limit&#34;, or &#34;team&#39;s shared budget&#34;.
+        *   *Meaning:* Adds clarity on different types of spend limits (individual/org/team) and how to resolve them (admin console increase or wait).
+        *   *Developer Impact:* Better troubleshooting for specific billing limit errors.
+
+    *   **`desktop.md` (+6 / -6):**
+        *   *Change 1:* Removed the specific note about Git for Windows being required *the first time* and restarting after install. (It&#39;s still in the `&lt;Note&gt;` block later, but the introductory paragraph was cleaned up).
+        *   *Change 2:* Removed mention of &#34;code changes&#34; in the definition of a session (&#34;each conversation is a session: it has its own chat history, project folder...&#34;). Small clarification.
+        *   *Change 3:* Updated instructions on Git worktrees. Instead of automatic isolation, it now says &#34;select the **worktree** option next to the branch name&#34;.
+        *   *Change 4:* Updated comparison table: &#34;Session isolation&#34; changed from &#34;Automatic worktrees&#34; to &#34;**worktree** option when starting a session&#34;.
+        *   *Change 5:* In the `&lt;Note&gt;`, removed the explicit requirement for Windows Git *for the Code tab to work* (simplified language), likely because the requirement hasn&#39;t changed but the phrasing is cleaner, or perhaps Git is now optional for basic use (though unlikely for worktrees). *Correction:* It removed &#34;On Windows, Git is required for the Code tab to work...&#34;.
+        *   *Developer Impact:* The big change here is **Git worktrees are now opt-in** via a UI option instead of being automatic or implied. This changes the workflow for parallel sessions in Git repos.
+
+    *   **`iam.md` (+1 / -4):**
+        *   *Change:* Simplified the section on `forceLoginMethod` and `forceLoginOrgUUID`. Removed the detailed list of keys that merge (`env` block, lock keys) and replaced it with a generic reference to &#34;per-key exceptions&#34;.
+        *   *Meaning:* Documentation cleanup. The logic remains the same (set keys in both device-managed and server-managed settings), but the explanation is less verbose.
+        *   *Developer Impact:* Low, mostly readability improvement for admins.
+
+    *   **`model-config.md` (+3 / -2):**
+        *   *Change:* Clarified how `/model` works. Explicitly stated that `s` switches for this session only and leaves the default unchanged. Added a keybinding reference (`modelPicker:thisSessionOnly`).
+        *   *Change:* Refined the description of non-interactive mode (`-p` flag) to be clearer that it&#39;s session-only.
+        *   *Developer Impact:* Better understanding of model switching behavior (temporary vs. permanent).
+
+    *   **`monitoring-usage.md` (+37 / -21):**
+        *   *Change 1:* Added a new environment variable `OTEL_METRICS_INCLUDE_REPOSITORY` (default `false`) to include `vcs.*` attributes.
+        *   *Change 2:* Updated text about custom keys overriding standard attributes. Added an exception: `vcs.*` repository attributes *can* override standard ones? Or just clarified handling. *Re-reading:* &#34;Except for the `vcs.*` repository attributes, custom keys never override...&#34;
+        *   *Change 3:* Added `vcs.repository_id`, `vcs.repository_name`, `vcs.branch`, `vcs.commit`, `vcs.remote_url` to the standard attributes table.
+        *   *Developer Impact:* Major for observability. Developers can now track metrics by specific repositories and branches.
+
+    *   **`setup.md` (+0 / -3):**
+        *   *Change:* Removed duplicate `theme={null}` attributes in code block markdown.
+        *   *Developer Impact:* None. Just fixing markdown syntax errors.
+
+    *   **`terminal-config.md` (+7 / -6):**
+        *   *Change:* Updated the table for Shift+Enter support.
+        *   *Change:* Specifically mentions &#34;Other terminals that support the kitty keyboard protocol, such as foot and Alacritty 0.16 or later&#34; now works without setup (requires v2.1.269).
+        *   *Change:* Updated Alacritty entry to &#34;Alacritty before 0.16&#34; needs setup.
+        *   *Developer Impact:* Better keyboard support in modern terminals without manual setup. Keybinding improvements.
+
+3.  **Synthesize and Structure:**
+
+    *   **Overall Summary:** The updates refine user experience (Git worktrees opt-in), enhance observability (VCS metrics), and clarify billing limits and model switching behavior.
+    *   **Key Themes:**
+        *   *Observability Enhancement:* Added VCS/repository attributes to metrics.
+        *   *Workflow UX Change:* Git worktree isolation is now a manual selection (&#34;worktree&#34; option) rather than automatic.
+        *   *Terminal Improvements:* Better native keyboard support for kitty protocol terminals.
+        *   *Documentation Clean-up:* Clarified model switching, IAM settings, and fixed Markdown formatting.
+    *   **Impact Level:** **Medium**. The Git worktree behavior change is significant for parallel workflows, and the new VCS metrics are valuable for monitoring. Billing clarifications help with admin operations.
+    *   **Action Items:**
+        *   Admins/DevOps: Enable `OTEL_METRICS_INCLUDE_REPOSITORY` if repo-level metrics are needed.
+        *   Developers: Be aware that creating a new session in a Git repo now requires selecting the &#34;worktree&#34; option for isolation.
+        *   Terminal Users: Try Shift+Enter in modern terminals (Alacritty 0.16+, foot) without running setup.
+
+4.  **Drafting the Response (in Chinese):**
+
+    *   *Summary:* 本次更新主要改进了多会话 Git 工作流的隔离机制（改为手动选择），增强了可观测性指标（新增 VCS 仓库信息），并优化了终端键盘支持和计费限额说明。
+    *   *Themes:*
+        *   **可观测性增强**：新增了 VCS 相关指标（如仓库 ID、分支名）到遥测数据中。
+        *   **工作流 UX 变更**：Git 仓库的会话隔离不再自动开启，需手动选择 &#34;worktree&#34; 选项。
+        *   **终端兼容性提升**：支持 Kitty 键盘协议的终端（如新版 Alacritty）现在无需配置即可使用 Shift+Enter。
+        *   **文档澄清**：明确了模型切换的持久性行为和 IAM 设置的部署逻辑。
+    *   *Impact:* Medium。Git 工作树的行为变更影响并行开发习惯，新的 VCS 指标对运维监控很有价值。
+    *   *Action Items:*
+        *   **开发者**：在创建新会话时，如需隔离环境，请手动勾选 **worktree** 选项。
+        *   **运维/管理员**：若需要按仓库或分支追踪使用情况，请启用 `OTEL_METRICS_INCLUDE_REPOSITORY` 环境变量。
+        *   **终端用户**：若使用 Alacritty 0.16+ 等现代终端，无需再运行 `/terminal-setup` 即可使用 Shift+Enter 换行。
+
+5.  **Review against constraints:**
+    *   Single batch analysis? Yes.
+    *   Markdown format? Yes.
+    *   Chinese language? Yes.
+    *   Focus on what matters to developers? Yes.
+
+6.  **Final Polish:** Ensure tone is professional and concise. (The translation looks good. &#34;Medium&#34; impact is appropriate because a default behavior change in Git isolation is notable but not breaking, just a UI toggle).
+
+    *Self-correction during drafting:* I initially thought the Git requirement removal for Windows might mean Git is no longer needed, but looking closer at `desktop.md`, it just moved the text to a generic note or simplified it. The *crucial* change is the move from automatic worktrees to an explicit option. I will emphasize that.
+
+    *Monitoring check:* The diff for `monitoring-usage.md` shows significant additions (attributes table). I should highlight `vcs.*` attributes.
+
+    *Setup.md check:* Just markdown cleanup, ignore in key themes but maybe mention in &#34;clean up&#34; if needed. I&#39;ll stick to the impactful changes.
+
+    *Ready to output.*</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/costs.html" class="page-link">costs.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/desktop.html" class="page-link">desktop.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/iam.html" class="page-link">iam.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/model-config.html" class="page-link">model-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+37</span>
+                            <span class="removed">-21</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/setup.html" class="page-link">setup.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/terminal-config.html" class="page-link">terminal-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">19:48 EST</div>
