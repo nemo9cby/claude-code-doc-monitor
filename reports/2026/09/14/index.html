@@ -118,9 +118,102 @@
 
         <header>
             <h1>Changes on 2026-09-14</h1>
-            <p class="meta">1 total change in 1 run</p>
+            <p class="meta">2 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">13:28 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 整体摘要
+文档修正了关于思考模块流式传输行为的描述，明确指出当 `display` 设置为 &#34;omitted&#34; 时，API 仍会发送 `thinking_delta` 事件，但其内容为空字符串，而不是完全不发送该事件。
+
+### 核心主题
+*   **流式事件协议精确性**：修正了 `thinking_delta` 事件在特定配置下的触发条件。
+*   **空事件处理**：区分了“不发送事件”与“发送内容为空的事件”之间的细微差别。
+
+### 影响级别：Medium
+**理由**：此变更澄清了 API 的实际行为。如果开发者严格依据旧文档（认为 `display: &#34;omitted&#34;` 时不会收到 `thinking_delta`）来构建客户端状态机，可能会遇到逻辑错误或解析异常，因为实际流中确实包含该事件。
+
+### 开发者行动项
+*   **更新解析逻辑**：检查处理流式响应的代码，确保在 `display: &#34;omitted&#34;` 模式下也能接收并处理 `thinking_delta` 事件。
+*   **处理空字符串**：修改逻辑以检查 `thinking` 字段的值是否为空，而不是依赖事件类型的缺失来判断思考是否被省略。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer with deep expertise in developer tools and documentation.
+    *   **Task:** Analyze documentation changes (1 page: `build-with-claude/streaming.md`) as a single batch.
+    *   **Output Format:** Markdown, specific sections (Overall Summary, Key Themes, Impact Level, Action Items).
+    *   **Language:** Chinese (as requested: &#34;请用中文回复&#34;).
+    *   **Content:** Concise, insightful, focused on what matters to developers.
+
+2.  **Analyze the Diff:**
+    *   **File:** `build-with-claude/streaming.md`.
+    *   **Context:** Describing how &#34;thinking&#34; content (reasoning blocks) streams in the API, specifically regarding the `display` configuration.
+    *   **Old Text:** &#34;When `display: &#34;omitted&#34;` is set... no `thinking_delta` events are sent. The thinking block opens, receives a single `signature_delta`, and closes.&#34;
+    *   **New Text:** &#34;When `display: &#34;omitted&#34;` is set... no thinking text is streamed. The thinking block opens, receives a `thinking_delta` with an empty `thinking` string and then a single `signature_delta`, and closes.&#34;
+    *   **Secondary Change:** &#34;With `display: &#34;updates&#34;` (beta)... stream `thinking_delta` events that carry text.&#34; (Added clarification that these carry text, whereas omitted ones don&#39;t).
+
+3.  **Interpret the Change:**
+    *   **Technical Detail:** The previous documentation claimed that when `display: &#34;omitted&#34;`, *no* `thinking_delta` events were sent. The new documentation clarifies that a `thinking_delta` *is* sent, but it contains an *empty string*.
+    *   **Why this matters:** This is a crucial implementation detail for streaming clients. If a developer wrote a client expecting *no* event when thinking is omitted, their parsing logic might break or get out of sync if they suddenly receive an empty event. They need to handle an empty `thinking` field, not just the absence of the event type.
+
+4.  **Draft the Response (Internal Monologue/Drafting):**
+
+    *   *Overall Summary:* The documentation clarifies the event stream behavior when thinking display is set to &#34;omitted&#34;. It now specifies that an empty `thinking_delta` event is sent, rather than no event at all.
+    *   *Key Themes:*
+        *   Clarification of streaming protocol behavior (specifically for &#34;thinking&#34; features).
+        *   Event payload structure details (empty strings vs missing events).
+    *   *Impact Level:* Medium. It corrects a potential misunderstanding of the API contract. If a developer implemented logic based on the old text (&#34;no event&#34;), their code might fail or behave unexpectedly now that they know an event *does* occur. It&#39;s not &#34;Breaking&#34; in the sense of the API stopping working, but &#34;Breaking&#34; to assumptions made from the docs. Let&#39;s stick to Medium/Low depending on strictness. It&#39;s likely an internal logic change in the API that requires docs update. Developers using streaming for thinking need to handle empty strings.
+    *   *Action Items:*
+        *   Update streaming parsers to expect `thinking_delta` events even when `display: &#34;omitted&#34;`.
+        *   Ensure the `thinking` field is checked for null/empty string rather than assuming the event won&#39;t fire.
+
+5.  **Translate to Chinese &amp; Refine:**
+
+    *   *Overall Summary:* 文档修正了 `display: &#34;omitted&#34;` 配置下的流式传输行为，明确指出此时仍会发送 `thinking_delta` 事件，但其 `thinking` 字段为空字符串，而不是完全不发送该事件。
+    *   *Key Themes:*
+        *   **流式事件协议细节**：修正了关于思考模块流式传输时的事件序列描述。
+        *   **空值处理逻辑**：强调了“不显示”并不等同于“不发送事件”。
+    *   *Impact Level:* Medium。虽然不是破坏性的 API 变更，但如果开发者严格按照旧文档（认为不会收到 `thinking_delta`）来编写客户端解析逻辑，可能会导致状态不同步或解析错误。
+    *   *Action Items:*
+        *   检查处理流式响应的代码逻辑，特别是针对 `thinking_delta` 事件的监听器。
+        *   确保代码能正确处理 `thinking` 字段为空字符串的情况，而不是假设该事件在 `display: &#34;omitted&#34;` 模式下不会触发。
+
+6.  **Final Polish (Formatting):** Ensure markdown structure matches the prompt requirements.
+
+    *   *Refining Impact Level reasoning:* The prompt asks for reasoning. I will explain that this is a &#34;behavioral clarification&#34; that affects state machine logic in clients.
+
+7.  **Final Output Generation:** (Matches the drafted content above).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/streaming.html" class="page-link">build-with-claude/streaming.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">07:32 EST</div>
