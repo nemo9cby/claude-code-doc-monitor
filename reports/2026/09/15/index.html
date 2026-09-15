@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026-09-15 - Documentation Changes</title>
+    <style>
+        :root {
+            --bg-color: #1a1a2e;
+            --card-bg: #16213e;
+            --text-color: #eee;
+            --accent: #0f3460;
+            --add-text: #4ade80;
+            --del-text: #f87171;
+            --time-color: #60a5fa;
+        }
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg-color: #f5f5f5;
+                --card-bg: #fff;
+                --text-color: #333;
+                --accent: #e0e0e0;
+                --add-text: #155724;
+                --del-text: #721c24;
+                --time-color: #2563eb;
+            }
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+        .container { max-width: 800px; margin: 0 auto; }
+        header { margin-bottom: 2rem; }
+        h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+        .meta { color: #888; }
+        .batch { margin-bottom: 2rem; }
+        .batch-header {
+            color: var(--time-color);
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--accent);
+        }
+        .page-list { list-style: none; }
+        .page-item {
+            background: var(--card-bg);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .page-item:hover { background: var(--accent); }
+        .page-link {
+            color: var(--text-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .page-summary { color: #888; font-size: 0.9rem; }
+        .added { color: var(--add-text); }
+        .removed { color: var(--del-text); }
+        a { color: #60a5fa; }
+        .back-link { margin-bottom: 1rem; display: inline-block; }
+        .page-item-content { flex: 1; }
+        .page-analysis {
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: 0.25rem;
+        }
+        .source-section {
+            margin-bottom: 1.5rem;
+        }
+        .source-header {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: #8b5cf6;
+        }
+        .batch-analysis {
+            background: var(--card-bg);
+            border-left: 3px solid #22c55e;
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            margin: 0.75rem 0 1rem 0;
+        }
+        .batch-analysis h4 {
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+        .batch-analysis-content {
+            white-space: pre-wrap;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        .reasoning-section {
+            margin-top: 1rem;
+            padding-top: 0.75rem;
+            border-top: 1px dashed var(--accent);
+            font-size: 0.85rem;
+            color: #888;
+        }
+        .reasoning-section summary {
+            cursor: pointer;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../../../index.html" class="back-link">&larr; All reports</a>
+
+        <header>
+            <h1>Changes on 2026-09-15</h1>
+            <p class="meta">15 total changes in 1 run</p>
+        </header>
+
+        
+        <div class="batch">
+            <div class="batch-header">01:41 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># Claude Code 文档变更分析
+
+## Overall Summary
+此次更新主要聚焦于提升 MCP 连接的安全性、增强子代理与插件的上下文控制能力，并显著改善了桌面端和 VS Code 扩展的用户体验，同时明确了多个新特性对 v2.1.271 版本的依赖。
+
+## Key Themes
+*   **MCP 安全性重大变更**：为防止凭证意外泄露，远程 MCP 服务器的 `url` 和 `headers` 中引用的敏感凭证环境变量（如 `ANTHROPIC_API_KEY`）现在会被系统**强制读取为空**，不再传递给服务器。
+*   **精细化上下文控制**：新增 `omitClaudeMd` 字段，允许子代理和插件在启动时跳过加载用户、项目和本地的 CLAUDE.md 文件，实现更纯净的上下文隔离。
+*   **桌面与多工作流优化**：Desktop 端支持面板弹出到独立窗口、macOS 后台计算机使用，并实现了与 CLI 会话的双向互通（通过 `/resume` 和 `/desktop`）。
+*   **VS Code 扩展增强**：新增“提示缓存时钟”图标，直观显示缓存过期倒计时；新增 `attachOpenFile` 设置，控制是否自动附加当前打开的文件。
+*   **插件系统与成本管理**：插件配置支持 `options` 字段以提供枚举选择器；成本设置支持价格加价，并要求 v2.1.271 版本。
+
+## Impact Level: **Medium**
+尽管大多数变更属于功能增强和体验改进（Low/Medium），但 **MCP 凭证变量的处理方式变更**对配置了远程 MCP 服务器的用户具有**高影响**。这实际上是一个“破坏性”安全变更，依赖于直接传递敏感变量到远程 URL/headers 的现有配置将无法连接，必须进行修改。其余变更均为版本依赖的新增功能。
+
+## Action Items
+1.  **检查 MCP 配置**：如果您使用远程 MCP 服务器且在 `url` 或 `headers` 中引用了 `ANTHROPIC_API_KEY`、`AWS_BEARER_TOKEN_BEDROCK` 等变量，请立即将其重命名为自定义变量名（如 `MY_API_KEY`），否则连接将失败。
+2.  **更新版本**：升级到 Claude Code v2.1.271 或更高版本，以启用价格加价、插件选项选择器、`omitClaudeMd` 以及 VS Code 的缓存时钟等新功能。
+3.  **优化子代理上下文**：如果您的自定义子代理或插件需要独立于项目 CLAUDE.md 运行，请在其 frontmatter 或 JSON 定义中添加 `&#34;omitClaudeMd&#34;: true`。
+4.  **利用多屏工作流**：在 Desktop 端尝试将 Diff 或 Terminal 面板拖出为独立窗口，以提高跨屏幕工作效率。
+5.  **更新自动化脚本**：在非交互式脚本中安装插件时，利用新增的 `--accept-command` 标志来接受之前通过 `--json` 预览过的安装命令。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Input:** A batch of 15 documentation diffs (markdown format).
+    *   **Output Format:** Markdown analysis in Chinese.
+    *   **Structure:**
+        1.  Overall Summary (1-2 sentences).
+        2.  Key Themes (bullets).
+        3.  Impact Level (Low/Medium/High/Breaking) + reasoning.
+        4.  Action Items (bullets, max 5).
+
+2.  **Analyze the Diffs (Page by Page):**
+
+    *   `claude-code-on-the-web.md`: Cloud sessions now support `/fast` toggling with specific version requirements (`v2.1.271`). Removed `/fast` from the list of commands that behave like terminal pickers (it toggles now).
+    *   `costs.md`: Clarifies pricing multipliers (discount vs markup). Adds markup support requirement (`v2.1.271`).
+    *   `desktop.md`:
+        *   Multi-monitor support (pop out panes).
+        *   Background computer use on macOS.
+        *   Better integration with CLI sessions (resume CLI sessions from Desktop using `/resume`).
+        *   Updated &#34;Unhide apps&#34; logic based on background mode.
+    *   `hooks.md`: Clarifies behavior when `SessionStart` hooks are running (prompt wait, `Esc` to cancel). Applies to resumed sessions too.
+    *   `interactive-mode.md`: UI improvement for selected lines in the panel (can delete selection using Backspace). Requires `v2.1.271`.
+    *   `mcp.md`:
+        *   *Security*: Clarifies credential variable behavior. Remote servers&#39; `url` and `headers` now intentionally read certain credential variables (like `ANTHROPIC_API_KEY`) as **empty** for security. They do *not* expand.
+        *   Explains how to work around this (use a custom var name).
+        *   Debug logging for these empty reads.
+    *   `plugin-marketplaces.md`: Adds `--accept-command` flag for non-interactive installs.
+    *   `plugins-reference.md`:
+        *   Plugin agents now support `omitClaudeMd`.
+        *   Synced plugins can&#39;t be disabled if required by organization.
+        *   Plugin config schema adds `options` field (enum picker support).
+    *   `skills.md`: Table update regarding subagent loading context (linking to `sub-agents.md`). Minor clarification.
+    *   `slash-commands.md`: Same as `skills.md`.
+    *   `sub-agents.md`:
+        *   Adds `omitClaudeMd` field support (skip CLAUDE.md files).
+        *   Clarifies `omitClaudeMd` behavior in main session vs subagent.
+    *   `vs-code.md`:
+        *   Prompt cache clock icon (visual indicator of cache expiry).
+        *   Auto-attach open file setting (`attachOpenFile`).
+    *   `api/messages.md` (and `.../batches/create.md`): Typo fix (&#34;of will&#34; -&gt; &#34;will&#34;).
+    *   `CHANGELOG.md.md`: Added entry for `v2.1.272`.
+
+3.  **Synthesize Key Themes:**
+
+    *   **Version Requirements:** Multiple mentions of `v2.1.271` (markup pricing, fast mode toggle, interactive mode selection, omitClaudeMd). This is a significant version release.
+    *   **Security &amp; Credentials:** Major changes in MCP (Model Context Protocol) regarding how credentials are handled. Preventing leakage of API keys to remote servers by reading specific env vars as empty.
+    *   **Agent &amp; Context Control:** Introduction of `omitClaudeMd` for subagents and plugins, allowing finer control over what context/CLAUDE.md files are loaded.
+    *   **Desktop &amp; UI Improvements:** Better multi-monitor support, background computer use, prompt cache clock in VS Code, and CLI/Desktop interoperability.
+    *   **Plugin System:** Enhanced plugin configuration (options/picker) and installation flags.
+
+4.  **Determine Impact Level:**
+
+    *   **Reasoning:**
+        *   The MCP credential security change is high impact for anyone configuring remote MCP servers. It breaks existing setups that relied on passing `ANTHROPIC_API_KEY` directly to a remote server URL/headers (intentionally).
+        *   `omitClaudeMd` is a medium/low impact feature improvement.
+        *   The `v2.1.271` features are feature additions, mostly low/medium impact (quality of life).
+        *   The API typo fix is low impact.
+        *   Overall, the MCP security change stands out as the most critical &#34;breaking&#34; change for specific workflows, while others are improvements.
+        *   Verdict: **Medium** (trending towards High for MCP users). The security change is technically breaking for those specific configurations, but likely intended behavior. However, compared to a full API overhaul, it&#39;s specific. Let&#39;s stick with Medium but emphasize the security aspect.
+
+5.  **Formulate Action Items:**
+
+    *   Check MCP configurations if using remote servers with credential variables.
+    *   Update CLI/Desktop apps to v2.1.271 for new features.
+    *   Review subagent/plugin definitions if you want to exclude CLAUDE.md.
+    *   Check costs settings if using markup pricing.
+    *   Update provisioning scripts for plugins if using non-interactive installs.
+
+6.  **Draft the Response (in Chinese):**
+
+    *   *Overall Summary:* 此次更新重点提升了安全性（MCP凭证保护）、上下文控制能力以及桌面/Web端的用户体验，并明确了多个新功能所需的 v2.1.271 版本要求。
+    *   *Key Themes:*
+        *   **MCP 安全增强**：为防止凭证泄露，远程 MCP 服务器的 URL 和 headers 中引用的特定凭证变量（如 `ANTHROPIC_API_KEY`）现在会被读取为空字符串。
+        *   **精细化上下文管理**：新增 `omitClaudeMd` 字段，允许子代理和插件加载时跳过 CLAUDE.md 文件。
+        *   **桌面与 UI 体验**：增强了多显示器支持（弹出面板）、后台计算机使用、VS Code 中的提示缓存倒计时显示，以及 CLI 与 Desktop 会话的无缝互通。
+        *   **插件系统增强**：插件配置支持枚举选择器，安装命令增加了 `--accept-command` 参数。
+        *   **版本依赖**：多项新功能（如价格加价、快速模式切换、行选择改进）要求 Claude Code v2.1.271 或更高版本。
+    *   *Impact Level:* **Medium** (主要影响配置了远程 MCP 服务器的用户，需调整凭证传递方式；其他为功能增强和体验优化)。
+    *   *Action Items:*
+        *   检查并更新使用了 `${ANTHROPIC_API_KEY}` 等凭证变量的远程 MCP 服务器配置，改用自定义变量名以避免被拦截读取为空。
+        *   更新至 Claude Code v2.1.271 以使用 `omitClaudeMd`、价格加价及 VS Code 的新 UI 功能。
+        *   如果需要在特定子代理或插件中排除 CLAUDE.md 上下文，请在定义中添加 `omitClaudeMd: true`。
+        *   在使用 Desktop 端时，尝试使用 `/resume` 命令从 CLI 历史中恢复会话。
+        *   更新非交互式插件安装脚本，利用 `--accept-command` 标志提高自动化效率。
+
+7.  **Review and Refine:**
+    *   Translation looks natural.
+    *   Technical terms preserved correctly.
+    *   Key point about MCP credential masking is highlighted.
+    *   Action items are actionable.
+
+8.  **Final Output Generation.** (Proceed to generate markdown).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/claude-code-on-the-web.html" class="page-link">claude-code-on-the-web.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/costs.html" class="page-link">costs.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/desktop.html" class="page-link">desktop.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/interactive-mode.html" class="page-link">interactive-mode.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+13</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugin-marketplaces.html" class="page-link">plugin-marketplaces.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+31</span>
+                            <span class="removed">-26</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+10</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/vs-code.html" class="page-link">vs-code.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+10</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/messages.html" class="page-link">api/messages.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/messages/batches/create.html" class="page-link">api/messages/batches/create.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
+        
+    </div>
+</body>
+</html>

@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.1.272
+
+- Bug fixes and reliability improvements
+
 ## 2.1.271
 
 - Added fast mode in Claude Code Remote sessions (cloud and self-hosted runners): the host's fast-mode setting or `/fast` typed in the session applies where your organization allows it
