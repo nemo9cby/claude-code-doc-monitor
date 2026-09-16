@@ -118,9 +118,275 @@
 
         <header>
             <h1>Changes on 2026-09-16</h1>
-            <p class="meta">4 total changes in 1 run</p>
+            <p class="meta">17 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">11:17 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更分析
+
+## 总体概述
+本次文档更新引入了针对 Web 工具（Web Fetch/Web Search）的细粒度安全控制参数 `url_sources`，允许开发者精确控制模型的 URL 获取来源。同时，新增了 `compact-2026-09-04` 能力标志，并修正了 Go SDK 中多个方法的调用签名，要求传入额外的参数结构体。
+
+## 核心变更主题
+
+*   **Web 工具安全增强 (`url_sources`)**
+    在 `api/messages.md` 及相关文件中，为 `WebFetchTool` 和 `WebSearchTool` 新增了 `url_sources` 参数。该参数允许开发者通过 `all`、`none`、`only`、`except` 等选项，严格控制 Web Fetch 可以抓取的 URL 来源（例如：仅允许用户输入的 URL，或仅允许特定工具返回的 URL）。这显著增强了基于 Agent 的应用的安全性。
+
+*   **Go SDK API 签名变更**
+    在 `build-with-claude/batch-processing.md`、`files.md` 等页面中的 Go 代码示例已更新。方法调用（如 `Batches.Get`、`Files.GetMetadata`、`Files.Download` 等）现在**必须**在末尾传入一个空的参数结构体（例如 `anthropic.MessageBatchGetParams{}`）。这表明 SDK 进行了破坏性更新，不再支持省略可选参数。
+
+*   **新增能力标志**
+    在 `api/models/list.md` 中，能力列表从 42 个增加到 43 个，新增了 `&#34;compact-2026-09-04&#34;` 标志。虽然具体细节尚未完全披露，但这通常预示着某种新的模型功能或优化模式即将推出。
+
+*   **文档与链接规范化**
+    更新了 API 密钥相关的文档链接（统一指向 `/docs/en/get-api-key`），并修正了定价表格中上标标记的 Markdown 格式，提升了文档的一致性和可读性。
+
+## 影响等级: **中等至高**
+
+**理由:**
+1.  **功能增强（高影响）**：`url_sources` 参数为使用 Web 搜索和抓取工具的开发者提供了关键的安全控制能力，防止模型在未经授权的情况下访问内部工具生成的敏感 URL。
+2.  **代码破坏性变更（高影响）**：Go SDK 的方法签名变更是破坏性的，使用该语言的开发者必须修改现有代码以适配新的参数结构。
+3.  **新特性预告（中等影响）**：`compact-2026-09-04` 的出现暗示了平台能力的扩展，需要开发者密切关注后续说明。
+
+## 开发者行动项
+
+*   **更新 Go SDK 代码**：检查所有调用 `client.Messages.Batches.*` 或 `client.Files.*` 的代码，务必在方法调用中添加相应的空参数结构体（例如 `Params{}`），以避免运行时错误。
+*   **实施 URL 来源控制**：如果您正在使用 Web Search 或 Web Fetch 工具，请评估并配置 `url_sources` 参数，以限制模型仅从可信来源（如仅限用户输入）抓取内容，从而提升应用安全性。
+*   **关注 `compact-2026-09-04`**：留意关于该新能力标志的官方公告或文档更新，判断是否适用于您的使用场景。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer/developer tools expert.
+    *   **Task:** Analyze documentation changes (13 pages total).
+    *   **Format:** Concise, insightful analysis in Markdown.
+    *   **Language:** Chinese.
+    *   **Key Outputs:** Overall Summary, Key Themes, Impact Level (with reasoning), Action Items.
+
+2.  **Scan and Process Each Page&#39;s Diff:**
+
+    *   `get-started.md`:
+        *   Change: Link update for API key (`/settings/keys` -&gt; `/docs/en/get-api-key`).
+        *   Impact: Minor, documentation polish/navigation improvement.
+
+    *   `about-claude/pricing.md` &amp; `build-with-claude/prompt-caching.md`:
+        *   Change: Markdown formatting for superscript footnotes (`MTok1` -&gt; `MTok&lt;sup&gt;1&lt;/sup&gt;`) and aligning tables. Also a specific pricing note update.
+        *   Impact: Formatting standardization. No pricing logic change (just presentation).
+
+    *   `api/overview.md` &amp; `api/errors.md`:
+        *   Change: Link updates related to API keys (pointing to `get-api-key`).
+        *   Impact: Consistent documentation structure.
+
+    *   `api/models/list.md` &amp; `api/beta/files/upload.md`:
+        *   Change: Updated &#34;capabilities&#34; header count (&#34;42 more&#34; -&gt; &#34;43 more&#34;).
+        *   Specific addition: `&#34;compact-2026-09-04&#34;`.
+        *   Impact: New capability flag `compact-2026-09-04` added to the API. This likely enables a new feature or optimization mode.
+
+    *   `api/messages.md`, `api/messages/count_tokens.md`, `api/messages/batches/create.md`:
+        *   Change: Massive addition of a new parameter `url_sources` to various web fetch/search tools (`WebFetchTool20250219`, `WebSearchTool20260209`, `WebFetchTool20260309`, etc.).
+        *   Structure: `url_sources` contains `client_tool_results`, `server_tool_results`, and `user_input`. It allows granular control (`all`, `none`, `only`, `except`) over where URLs can be fetched from.
+        *   Impact: **High**. This introduces a significant security/flexibility feature for controlling how Web Fetch and Web Search tools interact with URLs derived from user input versus tool results. It adds fine-grained control over the &#34;web surfing&#34; behavior of agents.
+
+    *   `build-with-claude/batch-processing.md`, `build-with-claude/files.md`, `agents-and-tools/tool-use/code-execution-tool.md`:
+        *   Change: Go SDK code updates.
+        *   Pattern: Adding empty params objects to methods (e.g., `client.Messages.Batches.Get(..., anthropic.MessageBatchGetParams{})`, `client.Files.GetMetadata(..., anthropic.FileGetMetadataParams{})`).
+        *   Impact: API breaking change in the Go SDK (or at least a required syntax update). The method signatures likely changed to require an options struct even if empty.
+
+3.  **Synthesize and Structure the Analysis (in Chinese):**
+
+    *   **Overall Summary:** Documentation updates focus on a new security control mechanism for web tools (`url_sources`), the introduction of a new capability flag (`compact-2026-09-04`), and necessary updates to the Go SDK examples regarding method signatures.
+    *   **Key Themes:**
+        *   **Web Tool Control:** Introduction of `url_sources` parameter to restrict where Web Fetch/Web Search gets URLs (user input vs. tool results). This is a big deal for agent security.
+        *   **New Capability:** Addition of `compact-2026-09-04` capability header.
+        *   **Go SDK Updates:** Function calls now require an options struct (e.g., `Params{}`).
+        *   **Doc Polish:** Link updates and formatting fixes.
+
+    *   **Impact Level:**
+        *   Level: **Medium to High**.
+        *   Reasoning: The `url_sources` feature represents a significant functional enhancement for web-enabled agents, providing much-needed control over URL fetching scope. The changes to the Go SDK examples suggest a change in the client library signature that will affect developers using Go. The pricing changes are cosmetic.
+
+    *   **Action Items:**
+        *   Review `url_sources` parameter if you use Web Search/Fetch tools to implement URL source restrictions.
+        *   Update Go SDK code to include the new empty parameter structs (e.g., `FileGetMetadataParams{}`) in method calls.
+        *   Check for the `compact-2026-09-04` capability if relevant to your specific use case (though details are sparse, it&#39;s a new flag to watch).
+
+4.  **Drafting the Content (Iterative refinement for conciseness):**
+
+    *   *Drafting Summary:* 本次文档更新引入了针对 Web 工具的细粒度控制参数 `url_sources`，用于限制 URL 获取来源。此外，新增了 `compact-2026-09-04` 能力标志，并修正了 Go SDK 中方法的调用签名。
+    *   *Drafting Themes:* 细粒度的 URL 来源控制（`url_sources`），新增能力标志，Go SDK 方法签名变更（需要传入 Params 结构体），文档链接规范化。
+    *   *Drafting Impact:* High/Medium. `url_sources` is high for security/control. Go SDK changes are medium impact for existing code.
+    *   *Drafting Action Items:* Update Go code. Implement `url_sources` for safer web browsing. Monitor `compact-2026-09-04`.
+
+5.  **Final Polish (Markdown formatting):** Ensure the tone is professional and &#34;world-class&#34;.
+
+    *   *Self-Correction on Go SDK:* The diffs show `client.Messages.Batches.Get(..., anthropic.MessageBatchGetParams{})`. This implies the previous signature `Get(ctx, id)` is now `Get(ctx, id, params)`. This is a breaking change for Go users who need to update their code. I must emphasize this.
+
+6.  **Final Output Generation (matching the requested structure):**
+
+    (See the final output below)</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/get-started.html" class="page-link">get-started.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/about-claude/pricing.html" class="page-link">about-claude/pricing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/overview.html" class="page-link">api/overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/messages.html" class="page-link">api/messages.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+141</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/messages/count_tokens.html" class="page-link">api/messages/count_tokens.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+31</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/messages/batches/create.html" class="page-link">api/messages/batches/create.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+31</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/models/list.html" class="page-link">api/models/list.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/beta/files/upload.html" class="page-link">api/beta/files/upload.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/errors.html" class="page-link">api/errors.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-caching.html" class="page-link">build-with-claude/prompt-caching.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/batch-processing.html" class="page-link">build-with-claude/batch-processing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/files.html" class="page-link">build-with-claude/files.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/code-execution-tool.html" class="page-link">agents-and-tools/tool-use/code-execution-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">06:42 EST</div>
