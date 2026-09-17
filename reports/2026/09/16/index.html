@@ -118,9 +118,137 @@
 
         <header>
             <h1>Changes on 2026-09-16</h1>
-            <p class="meta">26 total changes in 4 runs</p>
+            <p class="meta">27 total changes in 5 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">21:02 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">1.  **Overall Summary**
+    此次更新 (v2.1.274) 是一次重要的维护性发布，主要致力于提升系统稳定性、修复关键会话循环错误（如 MCP 连接和转录损坏问题）以及优化性能。引入了内存关键警告机制和更精细的 OpenTelemetry 追踪功能，并显著改善了插件重载和后台任务的资源开销。
+
+2.  **Key Themes across pages**
+    *   **稳定性与错误修复**: 修复了导致会话陷入无限重试的 &#34;unexpected tool_use_id&#34; 错误、MCP 服务器连接超时/403 错误以及 Agent 状态丢失问题。
+    *   **性能优化**: 解决了语言服务器发布大量诊断时的卡顿，合并了后台任务的模型调用以减少请求次数，并优化了插件重载时反复 sourcing shell profile 的开销。
+    *   **可观测性**: 新增了内存使用警告、`effort` 属性追踪及托管设置解析的 OTel 事件，增强了系统的可监控性。
+    *   **配置与控制**: 引入了 `CLAUDE_CODE_MCP_STARTUP_WAIT_MS` 和 `store.connect_timeout_seconds` 等配置项，提供更精细的启动和网络超时控制。
+    *   **用户体验改进**: 修复了终端中本地文件链接无法点击、全屏模式交互问题以及 Linux (Wayland) 下的窗口异常。
+
+3.  **Impact level**
+    *   **High**
+    *   **Reasoning**: 虽然没有破坏性变更，但该版本修复了多个会阻塞开发工作流的严重 Bug（如死循环、工具调用超时）和性能痛点（如不必要的后台模型调用）。对于重度使用 MCP 服务器、插件或复杂 Agent 工作流的开发者，此次更新显著提升了工具的可靠性和响应速度。
+
+4.  **Action items for developers**
+    *   **立即升级**: 强烈建议升级以解决会话卡死和 MCP 连接失败导致的死循环问题。
+    *   **配置 MCP 启动**: 如果在非交互模式下遇到 MCP 连接延迟，可设置环境变量 `CLAUDE_CODE_MCP_STARTUP_WAIT_MS` (设为 0 可不等待)。
+    *   **监控内存使用**: 关注新增的内存临界警告，根据提示释放内存或重启，避免系统崩溃。
+    *   **检查网关配置**: 如果使用 Claude apps gateway，可调整 `store.connect_timeout_seconds` 以应对 Postgres 连接超时问题。
+    *   **验证插件重载**: 适配新的插件重载逻辑（不再每次都重载 shell profile），利用此提速机会优化开发环境配置。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **分析用户请求：**
+    *   **角色：** 具有开发者工具和文档专业知识的顶级程序员。
+    *   **任务：** 分析文档更改批次（具体为 `CHANGELOG.md`），并总结变更内容及其对开发者的重要性。
+    *   **输入：** 单页差异（`CHANGELOG.md`，版本 2.1.274）。
+    *   **格式：** Markdown，中文回复，简洁的批次分析。
+    *   **输出结构：**
+        1.  整体摘要（1-2句话）。
+        2.  关键主题（项目符号）。
+        3.  影响级别（低/中/高/破坏性变更）及理由。
+        4.  开发者行动项（最多 5 条）。
+
+2.  **分析输入数据（`CHANGELOG.md` 差异）：**
+    *   **版本：** 2.1.274。
+    *   **新增功能（Added）：**
+        *   内存使用警告。
+        *   `CLAUDE_CODE_MCP_STARTUP_WAIT_MS`（环境变量）。
+        *   OpenTelemetry (OTel) 改进（`effort` 属性，`managed_settings_resolved` 事件）。
+        *   应用网关配置（`store.connect_timeout_seconds`，`enduser.sub` 遥测）。
+        *   全屏模式 UI 改进（点击展开）。
+    *   **修复内容：**
+        *   会话/转录（“意外 tool_use_id”循环，自我修复）。
+        *   MCP（模型上下文协议）服务器问题（HTTP 连接，超时，403 错误，刷新）。
+        *   Agent/Goals（丢失，提示过长，保留模型标志）。
+        *   性能（诊断造成的每轮延迟，多次后台任务调用合并为一次）。
+        *   终端/CLI 特性（本地文件链接，列表编号，Linux/Wayland 窗口）。
+        *   插件（重载逻辑，schema 验证，zip 提取）。
+        *   权限（Bash shell 变量，工作树隔离）。
+        *   网关（SIGTERM 处理，数据库连接）。
+
+3.  **综合与分析：**
+
+    *   **整体摘要：** 该更新（v2.1.274）主要侧重于稳定性、错误处理和性能优化，特别是围绕 MCP 服务器、插件系统和后台任务管理。它引入了更好的可观测性（OTel）和内存管理功能。
+
+    *   **关键主题：**
+        *   **稳定性与修复：** 列出了大量关于 MCP 连接、会话卡死、Agent 丢失状态和转录损坏的修复。
+        *   **性能：** 减少了与语言服务器诊断、后台任务处理和 shell 配置文件相关的延迟。
+        *   **可观测性：** 增强的 OpenTelemetry 追踪（`effort`，托管设置）和更清晰的错误消息/警告（内存，网络）。
+        *   **配置与控制：** 用于启动等待和网关超时的新环境变量（`CLAUDE_CODE_MCP_STARTUP_WAIT_MS`）。
+        *   **UX/UI：** 终端中本地文件的修复链接，全屏 UI 改进。
+
+    *   **影响级别：**
+        *   *级别：* **高**（虽然不是破坏性变更，但意义重大）。
+        *   *理由：* 它修复了导致会话卡死或循环的“数据损坏”问题（“意外 tool_use_id”）。它解决了影响工作流程的特定性能瓶颈（插件重载，后台任务）。它添加了更好的内存处理。
+
+    *   **开发者行动项：**
+        *   *行动 1（MCP）：* 检查 MCP 配置，特别是关于超时和 HTTP 连接。
+        *   *行动 2（内存）：* 注意新的内存警告。
+        *   *行动 3（环境变量）：* 如果 MCP 连接慢，考虑使用 `CLAUDE_CODE_MCP_STARTUP_WAIT_MS`。
+        *   *行动 4（升级）：* 强烈建议应用更新以修复“卡死循环”和性能问题。
+        *   *行动 5（插件）：* 重新验证插件重载行为（shell 配置文件不再每次都重新加载）。
+
+4.  **起草回复（中文）：**
+
+    *   *摘要：* 版本 2.1.274 是一次重要的维护更新，侧重于修复会话状态恢复、MCP 服务器连接及性能瓶颈。它引入了内存使用警告和新的可观测性指标，并显著改善了后台任务和插件重载的效率。
+    *   *主题：*
+        *   **稳定性与修复**: 大量修复了 MCP 连接错误、会话死循环（如 &#34;unexpected tool_use_id&#34;）、Agent 状态丢失及插件加载问题。
+        *   **性能优化**: 解决了语言服务器诊断导致的卡顿、合并了后台任务的模型调用次数，并优化了 Bash 工具重载 shell profile 的逻辑。
+        *   **可观测性与配置**: 新增了 OpenTelemetry 追踪属性、内存关键使用警告，并引入了环境变量控制 MCP 启动等待时间。
+        *   **用户体验 (UX)**: 修复了终端中本地文件链接无法点击、全屏模式交互及 Linux (Wayland) 下的窗口问题。
+    *   *影响级别：* **高**。
+        *   *理由：* 虽然没有破坏性变更，但此次更新修复了多个会导致开发工作流严重受阻的 Bug（如无限重试错误、工具状态丢失）和性能问题（不必要的后台模型调用）。对于重度使用 MCP 和插件的开发者来说，体验提升明显。
+    *   *行动项：*
+        *   **升级版本**: 强烈建议升级以修复会话卡死和转录自我修复问题。
+        *   **检查 MCP 配置**: 如果遇到启动延迟或连接超时，可尝试设置 `CLAUDE_CODE_MCP_STARTUP_WAIT_MS` 或检查网关配置 `store.connect_timeout_seconds`。
+        *   **关注内存警告**: 注意新增的内存使用警告，按照提示安全重启以释放内存。
+        *   **验证插件行为**: 插件重载时不再每次都重新加载 shell profile，这会显著加快重载速度，请适应这一变化。
+        *   **利用 OTel**: 如果在调试，可利用新增的 `effort` 属性和 `managed_settings_resolved` 事件进行更深入的追踪。
+
+5.  **审查与完善：**
+    *   对照约束条件检查：“简洁”、“洞察力”、“Markdown 格式”、“中文”。
+    *   草稿看起来很扎实。行动项具有可操作性。影响级别评定准确，因为“修复卡死循环”是生产力的关键因素。
+
+6.  **生成最终输出。**（继续根据草拟的要点生成回复）。</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+109</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">18:34 EST</div>
