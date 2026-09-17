@@ -118,9 +118,186 @@
 
         <header>
             <h1>Changes on 2026-09-17</h1>
-            <p class="meta">3 total changes in 1 run</p>
+            <p class="meta">8 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">13:31 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 整体总结
+本次文档更新主要引入并推广了 **&#34;Projects&#34;（项目）** 功能，指导开发者如何通过单一对话协调多个云端会话以处理复杂工作负载。同时，文档显著修正了云端会话中配置文件（特别是单仓库与多仓库场景差异）的加载逻辑与行为说明。
+
+### 关键主题
+
+*   **Projects 功能的深度集成与推广**
+    *   在 Web 端、桌面端及概览页中，明确建议对于涉及多个并行云端会话的大型任务，应使用 Projects 进行统一管理和协调。
+    *   桌面端通知逻辑已更新：属于 Project 的会话现在将触发项目级别的通知，而非单独的会话通知。
+
+*   **云端会话配置加载逻辑的精细化**
+    *   严格区分了**单仓库**与**多仓库**云端会话的配置读取行为：
+        *   **单仓库会话**：会读取仓库 `.claude/settings.json` 中的所有配置（包括 hooks、env、权限等）。
+        *   **多仓库会话**：由于会话启动在克隆路径“之上”，它**仅**从各仓库的 `.claude/settings.json` 中加载插件和市场定义，**忽略**权限规则、钩子、环境变量等其他键值。
+    *   澄清了 `/config` 命令在云端环境中的行为：它打开设置页面而非直接设置值，修改云端配置需依赖环境变量或单仓库的 settings.json。
+
+*   **GitHub 集成要求明确化**
+    *   明确指出 Project 线程要在每个克隆的仓库上运行，必须在每个仓库上安装 Claude GitHub App，这与连接方式无关。
+
+### 影响等级
+**中等**
+
+**理由**：虽然不是破坏性变更，但这些文档修正揭示了一个重要的行为差异：如果你在多仓库云端会话中依赖仓库级别的 `.claude/settings.json` 来定义环境变量或 Hooks，之前的假设可能是错误的，现在的文档明确指出这些配置在多仓库模式下不会被加载。同时，Projects 功能的推广建议改变现有的云端工作流。
+
+### 开发者行动项
+
+*   **评估 Projects 功能**：对于需要在云端处理多个代码库或长期运行任务的场景，开始尝试创建 Project 来替代分散的会话管理。
+*   **审查多仓库云端配置**：如果你在使用多仓库云端会话，请检查是否误将 `env`、`hooks` 或权限规则放在了仓库的 `.claude/settings.json` 中。这些配置在多仓库模式下**不会生效**，应迁移到环境变量或服务器管理设置中。
+*   **更新 GitHub App 安装**：若计划使用 Projects，请确保在所有涉及的私有仓库中安装了 Claude GitHub App。
+*   **调整通知预期**：在使用 Projects 时，桌面应用的通知将聚合显示，请适应这一变化以避免错过特定会话的更新。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Task:** Analyze a batch of documentation changes (5 pages) and summarize what changed and why it matters.
+    *   **Output Format:** Markdown.
+    *   **Language:** Chinese.
+    *   **Sections Required:**
+        1.  Overall Summary (1-2 sentences).
+        2.  Key Themes (bullets).
+        3.  Impact Level (Low/Medium/High/Breaking) with reasoning.
+        4.  Action Items for developers (bullets, max 5).
+
+2.  **Analyze the Changes (Page by Page):**
+
+    *   **Page 1: `claude-code-on-the-web.md`**
+        *   *Change:* Added a sentence about using &#34;projects&#34; to coordinate multiple cloud sessions for one body of work. Added a note that project threads need the GitHub App installed on each repository. Updated the table formatting. Clarified `/config` usage in cloud sessions, specifically mentioning committing to `.claude/settings.json` for single-repo sessions. Added a link to Projects in Related resources.
+        *   *Key takeaway:* Emphasizing the &#34;Projects&#34; feature for managing complex, multi-session work and clarifying settings behavior for single vs. multi-repo cloud sessions.
+
+    *   **Page 2: `desktop.md`**
+        *   *Change:* Updated notification behavior: sessions belonging to a project trigger project notifications, not individual session notifications. Updated the &#34;Cloud sessions also support multiple repositories&#34; section to suggest using &#34;Projects&#34; for tasks requiring many cloud sessions.
+        *   *Key takeaway:* Projects are changing how notifications work (aggregating them) and are the recommended workflow for complex cloud-based tasks.
+
+    *   **Page 3: `hooks.md`**
+        *   *Change:* Updated the description of where hooks come from in cloud sessions. Clarified that hooks come from the repo&#39;s `.claude/settings.json` (single repo context implies plugins are read) and managed settings. It refines the definition of what is read from the repo settings file.
+        *   *Key takeaway:* Technical clarification on hook resolution in cloud environments, linking back to how single vs. multi-repo settings work.
+
+    *   **Page 4: `overview.md`**
+        *   *Change:* Added a sentence in the &#34;Web&#34; tab suggesting creating a &#34;project&#34; for longer bodies of work to coordinate parallel sessions.
+        *   *Key takeaway:* Marketing/Guidance push towards using Projects for serious web-based workflows.
+
+    *   **Page 5: `settings.md`**
+        *   *Change:* Significant clarification on &#34;Shared project settings&#34; (`.claude/settings.json`). It distinguishes between sessions with **one repository** (reads full settings) and sessions with **multiple repositories** (starts above clones, only reads plugins/marketplaces from repo settings, ignores others like permissions/hooks/env). Also clarified `/config` usage again to align with Page 1.
+        *   *Key takeaway:* Critical distinction for developers: Multi-repo cloud sessions have limitations regarding what they can read from repo settings files compared to single-repo sessions.
+
+3.  **Synthesize Key Themes:**
+    *   **Projects (Projects) Feature Promotion:** The most obvious theme. The docs are pushing &#34;Projects&#34; as the way to handle complex workflows that require coordination of multiple cloud sessions.
+    *   **Settings Resolution in Cloud Sessions (Specifically Multi-Repo):** There is a clear focus on refining how settings (`.claude/settings.json`), hooks, and configs are applied in cloud sessions, particularly differentiating between single-repo and multi-repo sessions. Multi-repo sessions are &#34;higher up&#34; in the directory structure and thus don&#39;t pick up repo-level env/permissions/hooks.
+    *   **Notifications:** Project-level notifications override individual session notifications.
+
+4.  **Determine Impact Level:**
+    *   *Level:* Medium.
+    *   *Reasoning:* It&#39;s not &#34;Breaking&#34; in that existing code will stop working, but it introduces a major workflow shift (Projects) and clarifies a potentially confusing edge case (settings in multi-repo cloud sessions). If developers rely on repo-level `env` or hooks in a multi-repo cloud session, they might be surprised to learn it doesn&#39;t work as expected in a &#34;flat&#34; multi-repo session context (versus a Project or single repo session). The &#34;Projects&#34; push is the main driver here.
+
+5.  **Draft Action Items:**
+    *   Evaluate using &#34;Projects&#34; for complex workflows instead of ad-hoc cloud sessions.
+    *   Review `.claude/settings.json` logic: if using multi-repo cloud sessions, be aware that repo-specific env/hooks aren&#39;t loaded (only plugins/marketplaces).
+    *   Ensure GitHub App is installed on all repos if using Projects (as per the new note).
+    *   Adjust expectations for notifications in the Desktop app when using Projects.
+
+6.  **Translate to Chinese and Format:**
+
+    *   *Summary:* 本次文档更新重点引入了“Projects”功能，旨在帮助开发者协调多个云端会话以完成复杂任务。同时，显著澄清了云端会话中配置文件（特别是多仓库场景下）的加载逻辑。
+    *   *Themes:*
+        *   **Projects 功能的推广与集成**：在 Web 端和桌面端多处文档中，强调使用 Projects 来管理需要多个并行云端会话的大型工作负载，并解释了项目级别的通知机制。
+        *   **云端会话配置加载逻辑的精细化**：明确了单仓库与多仓库云端会话在读取 `.claude/settings.json` 时的差异。多仓库会话仅在克隆路径“之上”启动，因此仅加载插件和市场信息，而不加载权限、钩子、环境变量等配置。
+        *   **GitHub 集成要求**：明确指出 Project 线程需要在每个关联仓库上安装 Claude GitHub App。
+    *   *Impact:* Medium. 推动了新的工作流，并修正了关于云端多仓库配置行为的潜在误解。
+    *   *Action Items:*
+        *   探索使用 Projects 功能来处理涉及多个仓库或复杂依赖的开发任务。
+        *   检查多仓库云端会话的配置依赖：请注意在多仓库模式下，仓库级别的 `.claude/settings.json` 中的环境变量和钩子将不会被加载（仅加载插件），需通过环境变量或服务器管理设置来替代。
+        *   如果打算使用 Projects，请确保在所有相关仓库上安装了 Claude GitHub App。
+        *   适应桌面应用通知行为的变化：属于 Project 的会话现在将显示项目级别的通知。
+
+7.  **Review and Refine:**
+    *   The translation looks natural.
+    *   The distinction between single-repo and multi-repo cloud session settings is the most technical &#34;gotcha&#34; here, ensuring that&#39;s highlighted.
+    *   The &#34;Projects&#34; narrative is the &#34;feature&#34; aspect.
+    *   Impact level &#34;Medium&#34; is appropriate because if you are doing multi-repo cloud work, this changes how you manage settings.
+
+8.  **Final Output Generation.** (Proceed to generate the Markdown response).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/claude-code-on-the-web.html" class="page-link">claude-code-on-the-web.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/desktop.html" class="page-link">desktop.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/overview.html" class="page-link">overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">03:03 EST</div>
