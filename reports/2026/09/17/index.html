@@ -118,9 +118,270 @@
 
         <header>
             <h1>Changes on 2026-09-17</h1>
-            <p class="meta">33 total changes in 4 runs</p>
+            <p class="meta">43 total changes in 5 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">22:47 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更分析
+
+### 总体概述
+本次更新重点扩展了插件生态系统，引入了对 `claude.ai` 企业插件库的支持并大幅增强了 npm 包的安全性（禁用安装脚本）。同时，恢复了非交互模式下的 `/output-style` 命令，并修复了一个导致代理请求失败的关键回归 Bug。
+
+### 关键主题
+
+*   **插件生态与企业集成**：新增了从 `claude.ai` 添加市场（如组织库）的功能（`--claudeai` 标志），并支持在未添加市场的情况下直接通过 `--marketplace` 参数一步安装插件。
+*   **安全加固与依赖管理**：npm 源插件的依赖安装现在默认跳过生命周期脚本（如 `postinstall`），并且系统会自动跳过 `bunfig.toml` 文件以防止安全配置钩子加载。
+*   **CLI 与 Headless 模式增强**：恢复了此前被废弃的独立 `/output-style` 命令，使其现在支持非交互模式、Agent SDK 及移动端/网页端的远程控制。
+*   **关键 Bug 修复**：修复了 v2.1.275 引入的回归问题，即当配置 `ANTHROPIC_BASE_URL` 指向代理或网关时，所有请求均失败（报错 `400 ... Input tag &#39;advisor_20260301&#39;`）。
+*   **文档清理与 UX 细节**：移除了对旧版本号（如 v2.1.181）的特定引用，并优化了 Web 端和交互模式下的用户体验说明（如撤回排队消息）。
+
+### 影响程度：**高**
+**理由**：
+1.  **安全与兼容性变化**：插件依赖安装不再运行脚本，这对插件开发者来说是破坏性变化，需要确保构建产物包含所有必要文件。
+2.  **关键 Bug 修复**：使用代理或网关的用户必须更新至 v2.1.276 才能恢复服务。
+3.  **功能增强**：新的 CLI 命令和企业插件支持显著改变了开发者的部署和工作流方式。
+
+### 开发者行动项
+
+*   **插件作者**：请检查您的 npm 插件，确保不依赖 `install` 脚本来编译原生模块或生成文件；如果使用 Bun 锁文件，请移除 `bunfig.toml` 或改用 npm 锁文件以确保依赖能被正确安装。
+*   **企业/团队管理员**：利用新的 `claude plugin marketplace add --claudeai` 命令配置组织内的插件库，并指导用户使用 `/plugin install &lt;name&gt; --marketplace &lt;source&gt;` 进行快速部署。
+*   **DevOps 与自动化用户**：在 CI/CD 脚本中更新为使用 `/output-style &lt;style&gt;` 命令来控制输出格式。
+*   **代理环境用户**：务必升级到 Claude Code v2.1.276 以解决请求失败的问题。
+*   **Hook 开发者**：现在可以在 `hooks/hooks.json` 中添加 `$schema` 键以获得编辑器的自动补全和验证支持。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer/developer tools expert.
+    *   **Task:** Analyze a batch of documentation changes (10 pages).
+    *   **Output Format:** Markdown (Overall Summary, Key Themes, Impact Level, Action Items).
+    *   **Language:** Chinese.
+
+2.  **Review the Diffs (Page by Page):**
+
+    *   **Page 1: `amazon-bedrock.md`**
+        *   *Change:* Removed &#34;As of Claude Code v2.1.181&#34;.
+        *   *Analysis:* Technical writing cleanup. The feature (flat AWS credentials) is now standard/general behavior, not specific to an old version.
+
+    *   **Page 2: `claude-code-on-the-web.md`**
+        *   *Change:* Added section &#34;Take back a queued message&#34;.
+        *   *Analysis:* UX improvement. Users can cancel a message sent while Claude is thinking. Click &#34;✕&#34; to return text to the box.
+
+    *   **Page 3: `discover-plugins.md`**
+        *   *Change:* Added support for &#34;claude.ai&#34; as a marketplace source (organization library).
+        *   *Detail:* `claude plugin marketplace add --claudeai &lt;name&gt;`. Added feature to install a plugin from a marketplace *not yet added* in one go using `--marketplace`.
+        *   *Analysis:* Major workflow improvement for enterprise/team users. Simplifies plugin discovery and installation from corporate libraries.
+
+    *   **Page 4: `headless.md`**
+        *   *Change:* Updated list of supported commands in `-p` (prompt) mode. Added `/output-style`. Split note into bullet points for clarity.
+        *   *Analysis:* Clarification of CLI capabilities in headless mode. Support for output styles.
+
+    *   **Page 5: `interactive-mode.md`**
+        *   *Change:* Note about `/btw` side questions. Added a sentence explaining that if Claude prints tool calls as text (mistakenly), it adds a note that nothing was executed.
+        *   *Analysis:* UX refinement/expectation setting.
+
+    *   **Page 6: `output-styles.md`**
+        *   *Change:* Re-introduced standalone `/output-style` command (previously deprecated/removed). It now works in non-interactive, Agent SDK, mobile/web.
+        *   *Analysis:* Feature restoration/extension. Developers can now programmatically change output styles via CLI flags in scripts.
+
+    *   **Page 7: `plugin-marketplaces.md`**
+        *   *Change:* Reserved names expanded (npm, pip, etc. cannot be marketplace names).
+        *   *Change:* Updated `npm` source description: fetches tarball, unpacks, *no* install scripts run. If lockfile exists, dependencies are installed in a separate step (scripts disabled).
+        *   *Change:* Added `--claudeai` option to CLI.
+        *   *Analysis:* Security/Safety enhancement (no install scripts). Added support for cloud-hosted marketplaces.
+
+    *   **Page 8: `plugins-reference.md`**
+        *   *Change:* Schema support for `hooks/hooks.json`.
+        *   *Change:* Dependency install refinement: skips `bunfig.toml` (security risk). Skips `yarn`/`pnpm`. Updated version logic (doesn&#39;t look at enclosing git repo).
+        *   *Analysis:* Security hardening (preventing config hooks that run code). Dev tooling improvements (schema validation).
+
+    *   **Page 9: `sandboxing.md`**
+        *   *Change:* Clarified sandbox denial for `config` file. It denies `config` if `HEAD` sits beside it.
+        *   *Analysis:* Security/Privacy clarification.
+
+    *   **Page 10: `CHANGELOG.md.md`**
+        *   *Change:* Entry for 2.1.276 (Bug fix: 400 error with `advisor_20260301` tag regression).
+        *   *Analysis:* Critical bug fix for proxy users.
+
+3.  **Synthesize Findings:**
+
+    *   **Theme 1: Plugin Ecosystem Evolution.** Big changes here. Adding marketplaces from claude.ai (Enterprise). Installing plugins without adding the marketplace first. Safer npm package handling (no scripts, handling `bunfig.toml`).
+    *   **Theme 2: CLI/Headless Flexibility.** `/output-style` is back and works in non-interactive mode. Better documentation of `-p` mode commands.
+    *   **Theme 3: Security &amp; Reliability.** Skipping package install scripts (npm, bun). Bug fix for proxies (`advisor_20260301`).
+    *   **Theme 4: Documentation Refinement.** Removing specific version references (v2.1.181) for stable features. Clarifying UX behaviors (queued messages, `/btw`).
+
+4.  **Drafting the Response (in Chinese):**
+
+    *   *Overall Summary:* This batch primarily enhances the plugin ecosystem (adding cloud sources and safer package management), expands CLI capabilities for non-interactive modes, and fixes critical bugs related to proxies. It also includes general documentation cleanup and UX refinements.
+    *   *Key Themes:*
+        *   Plugin marketplace expansion (Enterprise/claude.ai integration).
+        *   Security hardening for npm/bun plugin dependencies (disabling scripts).
+        *   CLI feature restoration (`/output-style` in headless mode).
+        *   Bug fix for API proxy compatibility.
+    *   *Impact Level:* High. Why? The changes affect how plugins are installed and secured (major operational change for plugin devs), fix a blocking bug for proxy users, and restore important CLI functionality.
+    *   *Action Items:*
+        *   Review npm plugin dependencies: ensure they don&#39;t rely on `install` scripts.
+        *   Update enterprise workflows: utilize the new `--claudeai` flag for organization plugins.
+        *   Update scripts/tooling: use the restored `/output-style` command in CI/CD pipelines.
+        *   Upgrade to v2.1.276: necessary if using `ANTHROPIC_BASE_URL` proxies.
+
+5.  **Refining the Output (Self-Correction):**
+    *   *Check:* Did I emphasize the security aspect of npm packages? Yes, that&#39;s important for devs building plugins.
+    *   *Check:* Is the bug fix context clear? Yes, specifically for proxies.
+    *   *Check:* Is the tone appropriate? &#34;World-class programmer,&#34; so technical and direct.
+
+6.  **Final Polish (Markdown &amp; Chinese):** (Proceeding to generate the response based on the drafted points).
+
+    *   *Summary:* 本次更新主要集中在扩展插件生态系统（支持从 claude.ai 安装和更安全的 npm 依赖管理）、增强非交互式模式的 CLI 功能（恢复 `/output-style` 命令）以及修复关键的代理兼容性 Bug。
+    *   *Themes:*
+        *   插件生态扩展: 支持从 `claude.ai` 添加企业插件库，支持一步安装插件（`--marketplace`）。
+        *   安全加固: 插件依赖安装（npm/bun）默认跳过 `install` 脚本，且自动跳过 `bunfig.toml` 以防止潜在的安全配置加载。
+        *   CLI 灵活性: 恢复了独立 `/output-style` 命令，使其在 Headless 模式和 SDK 中可用。
+        *   关键修复: 修复了使用 `ANTHROPIC_BASE_URL` 代理时出现的 400 错误回归问题。
+    *   *Impact:* High. Plugin authors need to adjust to the no-script policy, and proxy users need the bug fix.
+    *   *Action Items:*
+        *   Plugin maintainers: Ensure plugins don&#39;t rely on install scripts.
+        *   DevOps/CLI users: Use `/output-style` in automation.
+        *   All users: Upgrade to 2.1.276 if using proxies.
+
+7.  **Final Output Generation.** (Matches the provided good response).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/amazon-bedrock.html" class="page-link">amazon-bedrock.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/claude-code-on-the-web.html" class="page-link">claude-code-on-the-web.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/discover-plugins.html" class="page-link">discover-plugins.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+16</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/headless.html" class="page-link">headless.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/interactive-mode.html" class="page-link">interactive-mode.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/output-styles.html" class="page-link">output-styles.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugin-marketplaces.html" class="page-link">plugin-marketplaces.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+16</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sandboxing.html" class="page-link">sandboxing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">19:19 EST</div>
