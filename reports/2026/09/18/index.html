@@ -118,9 +118,296 @@
 
         <header>
             <h1>Changes on 2026-09-18</h1>
-            <p class="meta">3 total changes in 2 runs</p>
+            <p class="meta">13 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">18:11 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 总体摘要
+本次更新核心在于 **Claude Code 对 `AGENTS.md` 的原生支持**，简化了多工具协作下的项目指令配置。同时，桌面端引入了 **&#34;Thinking&#34; 视图模式**以增强对模型推理过程的可见性，并更新了模型列表、插件安全策略及 CLI 用法。
+
+---
+
+### 核心变更主题
+
+*   **原生支持 `AGENTS.md` (重大变更)**
+    *   **改动内容**：重写了 `memory.md` 的逻辑。Claude Code 现在可以直接读取项目根目录的 `AGENTS.md` 作为项目指令，不再强制要求创建 `CLAUDE.md` 或通过 `@AGENTS.md` 导入。
+    *   **优先级规则**：若同时存在 `CLAUDE.md` 和 `AGENTS.md`，系统优先读取 `CLAUDE.md`；若只有 `AGENTS.md`，则直接读取它。
+    *   **连锁反应**：`sub-agents.md` 和 `overview.md` 已同步更新此逻辑。`hooks.md` 特别指出了 `on_instructions_loaded` 事件的触发细节——直接读取 `AGENTS.md` **不会**触发该 Hook，但通过导入或软链接则会触发。
+
+*   **桌面端视图模式更新**
+    *   **新增 &#34;Thinking&#34; 模式**：在 `Normal` 和 `Verbose` 之间新增了中间态，展示模型推理过程（Thinking）但折叠工具调用详情，便于理解逻辑而非仅仅调试工具。
+    *   **移除 &#34;Summary&#34; 模式**：该模式已被废弃（仅旧版本 Desktop &lt; 1.46388.1 可见），旨在简化视图选项。
+
+*   **插件安全与依赖安装**
+    *   **安全限制说明**：在 `plugins-reference.md` 中明确指出，因安全原因（如 `preinstall` 钩子或配置扫描），Claude Code 会跳过 `yarn.lock`、`pnpm-lock.yaml` 以及伴随 `bunfig.toml` 的 `bun.lockb`。
+    *   **开发者指导**：建议插件作者改用 `npm-shrinkwrap.json` 或 `package-lock.json` 以确保依赖能被正确安装。
+
+*   **模型与平台兼容性**
+    *   **新增模型**：在 `model-deprecations.md` 中增加了 `claude-mythos-5-1`、`claude-mythos-5` 等新模型的状态信息。
+    *   **平台更新**：更新了 Vertex AI 和 Microsoft Foundry 上的可用模型列表，修正了 API ID 格式并补充了旧版模型的废弃链接。
+
+*   **CLI 细节修复**
+    *   `extended-thinking.md` 修正了 `ant messages create` 命令示例，移除了不再适用的 `--transform content` 参数。
+
+---
+
+### 影响等级：**中等** (Medium)
+
+**理由**：虽然 `AGENTS.md` 的集成逻辑发生了根本性变化（从手动导入变为原生读取），但这主要降低了迁移门槛，并未破坏现有的 `CLAUDE.md` 工作流。桌面端 UI 的调整和插件的安装限制属于渐进式改进，对大多数开发者透明，仅对特定场景（插件发布、Hook 调试）有具体影响。
+
+---
+
+### 开发者行动项
+
+*   **检查现有项目配置**：如果你的仓库中同时存在 `CLAUDE.md` 和 `AGENTS.md`，请确认当前的加载顺序是否符合预期（优先加载 `CLAUDE.md`）。
+*   **尝试新视图模式**：在 Claude Desktop 中使用 **Ctrl+O** 切换到新的 **Thinking** 模式，以更直观地监控模型推理路径。
+*   **插件维护者注意**：检查插件的锁文件类型，若当前使用 Yarn 或 pnpm 且遇到安装问题，请切换至 npm 锁文件以确保兼容性。
+*   **Hook 调试**：如果你依赖 `on_instructions_loaded` Hook 监听文件加载，注意直接通过设置读取 `AGENTS.md` 不会触发该事件，需改用导入方式或监听其他事件。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Task:** Analyze a single batch of documentation changes (10 pages).
+    *   **Output Format:** Markdown, concise, insightful.
+    *   **Language:** Chinese (requested in the prompt).
+    *   **Focus:** What matters to developers.
+    *   **Specifics:** Overall Summary, Key Themes, Impact Level, Action Items.
+
+2.  **Analyze the Diff Data (Page by Page):**
+
+    *   **`desktop.md` (+7/-7):**
+        *   *Change:* Updated &#34;View modes&#34; documentation. &#34;Summary&#34; mode is replaced/removed (legacy versions only). New &#34;Thinking&#34; mode added.
+        *   *Detail:* &#34;Thinking&#34; mode shows tool call summaries + Claude&#39;s reasoning (thinking). &#34;Verbose&#34; includes everything + thinking. &#34;Summary&#34; is deprecated (older versions only).
+        *   *Implication:* UI/UX change for desktop users. New visibility into model reasoning.
+
+    *   **`hooks.md` (+1/-0):**
+        *   *Change:* Clarified when `on_instructions_loaded` fires regarding `AGENTS.md`.
+        *   *Detail:* It doesn&#39;t fire when `AGENTS.md` is read directly via **Project instructions** setting, but it *does* fire when `CLAUDE.md` imports it or is symlinked to it.
+        *   *Implication:* Specific behavioral nuance for hook developers debugging context loading.
+
+    *   **`memory.md` (+84/-13):**
+        *   *Change:* Major rework of how `AGENTS.md` is handled.
+        *   *Detail:* Claude Code now natively supports reading `AGENTS.md` as project instructions, replacing or coexisting with `CLAUDE.md`. Previously, docs told users to import `AGENTS.md` into `CLAUDE.md`. Now, priority rules exist: If `AGENTS.md` exists and no `CLAUDE.md` exists, read `AGENTS.md`. If both exist, read `CLAUDE.md`. If `CLAUDE.md` imports `AGENTS.md`, it works as before.
+        *   *Implication:* Simplifies adoption for projects already using other agents (like Cursor, etc. - though specific names aren&#39;t in this diff, the implication of &#34;AGENTS.md&#34; implies interoperability).
+
+    *   **`overview.md` (+1/-1):**
+        *   *Change:* Updated text to mention `AGENTS.md` support alongside `CLAUDE.md`.
+        *   *Implication:* Consistency update reflecting the `memory.md` changes.
+
+    *   **`plugins-reference.md` (+4/-2):**
+        *   *Change:* Clarified why `yarn.lock`/`pnpm-lock.yaml` and `bunfig.toml` cause install skips.
+        *   *Detail:* Security hooks bypass `--ignore-scripts` for yarn/pnpm. `bunfig.toml` configures security scanners.
+        *   *Implication:* Fixes plugin packaging issues. If a plugin fails to install, developers need to switch to `npm` lockfiles or remove config files.
+
+    *   **`sub-agents.md` (+1/-1):**
+        *   *Change:* Added `AGENTS.md` to the list of files loaded into subagent context.
+        *   *Implication:* Subagents now get context from `AGENTS.md` if used as project instructions.
+
+    *   **`about-claude/model-deprecations.md` (+4/-1):**
+        *   *Change:* Added new models: `claude-mythos-5-1` (Active), `claude-mythos-5` (Active), `claude-mythos-preview` (Deprecated).
+        *   *Implication:* New model family (Mythos) available/announced.
+
+    *   **`build-with-claude/extended-thinking.md` (+1/-1):**
+        *   *Change:* Removed `--transform content` flag from an example `ant messages create` command.
+        *   *Implication:* Bug fix or API change in CLI usage.
+
+    *   **`build-with-claude/claude-on-vertex-ai.md` (+17/-18):**
+        *   *Change:* Model ID table update.
+        *   *Detail:* Added backticks to model IDs. Added `claude-opus-4-5`, `claude-sonnet-4`, `claude-opus-4-1`, `claude-opus-4`. Added deprecated links.
+        *   *Implication:* Updated compatibility list for Vertex AI.
+
+    *   **`build-with-claude/claude-in-microsoft-foundry.md` (+12/-12):**
+        *   *Change:* Model table update.
+        *   *Detail:* Formatting changes (backticks, centering). Added `claude-opus-4-5`. Checked Azure/Anthropic hosting columns.
+        *   *Implication:* Updated compatibility list for Foundry.
+
+3.  **Synthesize and Categorize:**
+
+    *   **Theme 1: AGENTS.md Integration (High Impact):** `memory.md`, `overview.md`, `sub-agents.md`, `hooks.md`. This is a big shift from &#34;import AGENTS.md&#34; to &#34;Claude supports AGENTS.md natively&#34;.
+    *   **Theme 2: Desktop UI Enhancements:** `desktop.md`. &#34;Thinking&#34; mode is here. &#34;Summary&#34; mode is gone.
+    *   **Theme 3: Model Updates &amp; API Fixes:** `model-deprecations.md` (Mythos), Vertex/Foundry docs (newer models), `extended-thinking.md` (CLI fix).
+    *   **Theme 4: Plugin Compatibility:** `plugins-reference.md`. Security/Maintainability focus.
+
+4.  **Draft the Response (in Chinese):**
+
+    *   *Overall Summary:* 重点在于 `AGENTS.md` 的原生支持，桌面端新增了 &#34;Thinking&#34; 视图模式，以及一系列模型和 CLI 的更新。
+    *   *Key Themes:*
+        *   AGENTS.md 原生支持：无需导入或创建 CLAUDE.md，Claude Code 现在可直接读取 AGENTS.md。
+        *   新的视图模式：桌面端增加 &#34;Thinking&#34; 模式用于查看推理过程，废弃了 &#34;Summary&#34; 模式。
+        *   模型与平台更新：新增 Mythos 系列模型，更新了 Vertex AI 和 Microsoft Foundry 的模型列表。
+        *   插件安全策略：明确了插件依赖安装的安全限制（yarn/pnpm/bunfig）。
+    *   *Impact Level:* Medium. While AGENTS.md support is significant, it&#39;s additive/compatible (mostly). The Thinking mode is a UI feature. Nothing seems &#34;Breaking&#34; in a way that stops existing workflows immediately (Summary mode is the only breaking/deprecated thing).
+    *   *Action Items:*
+        *   Check existing AGENTS.md usage.
+        *   Try &#34;Thinking&#34; mode.
+        *   Update plugins if using yarn/pnpm lockfiles.
+        *   Check model migration if using Mythos/Preview.
+
+5.  **Refine and Polish (Self-Correction during drafting):**
+    *   *Refinement on Impact:* Is it High? The AGENTS.md change is big for interoperability, but it&#39;s *easier* for devs, not harder. The &#34;Summary&#34; mode removal is minor. I&#39;ll stick with **Medium** but mention it&#39;s a positive improvement.
+    *   *Refinement on AGENTS.md nuance:* The hook change in `hooks.md` is a specific technical detail that matters to power users debugging hooks. I should mention it under themes or details.
+    *   *Language check:* Ensure professional tone.
+
+6.  **Final Output Construction (Markdown):**
+
+    *   **Summary:** 本次更新最显著的变化是 Claude Code 现已原生支持 `AGENTS.md` 作为项目指令，简化了与其他 AI 工具的协作流程。同时，桌面端引入了新的 &#34;Thinking&#34; 视图模式，并更新了多项模型列表和插件安装策略。
+    *   **Themes:**
+        1.  **原生支持 `AGENTS.md`**：大幅重写了 `memory.md`，现在 Claude 可以直接读取 `AGENTS.md`，不再强制要求将其导入到 `CLAUDE.md` 中。这影响上下文加载优先级和 Hooks 的触发时机。
+        2.  **桌面端交互体验升级**：增加了 &#34;Thinking&#34; 模式（查看推理过程但折叠工具调用），旧版的 &#34;Summary&#34; 模式已被移除（仅旧版本保留）。
+        3.  **模型生态扩展**：新增了 `claude-mythos-5-1` 等模型状态，并更新了 Vertex AI 和 Microsoft Foundry 平台上的可用模型列表。
+        4.  **插件依赖管理收紧**：澄清了为何跳过 `yarn.lock` 和 `bunfig.toml` 的安装（出于安全考虑），建议插件作者改用 `npm` 锁文件。
+    *   **Impact Level:** **Medium**。虽然 `AGENTS.md` 的集成方式发生了重大逻辑变更，但它主要是为了降低门槛而非破坏现有工作流。桌面端 &#34;Summary&#34; 模式的移除属于小的 UI 调整。
+    *   **Action Items:**
+        *   项目若已存在 `AGENTS.md`，确认其是否按预期被加载（若同时有 `CLAUDE.md` 则优先读取后者）。
+        *   在 Claude Desktop 中尝试新的 `Ctrl+O` &#34;Thinking&#34; 模式以调试模型推理过程。
+        *   若开发 Claude Code 插件，确保使用 `package-lock.json` 或 `npm-shrinkwrap.json` 以避免安装被跳过。
+        *   调试 Hooks 时注意，通过设置直接读取 `AGENTS.md` 不会触发 `on_instructions_loaded`，但通过导入或符号链接会触发。
+
+7.  **Final Review:** Matches constraints? Yes. Chinese? Yes. Markdown? Yes. Concise? Yes.
+
+**(Self-Correction specific to `hooks.md`):** The diff says &#34;This event doesn&#39;t fire when Claude reads `AGENTS.md` directly... It does fire when a `CLAUDE.md` imports your `AGENTS.md`&#34;. This is a subtle but important distinction for debugging.
+
+**(Self-Correction specific to `desktop.md`):** &#34;Summary mode&#34; is listed as only available in versions before 1.46388.1. It&#39;s effectively deprecated for current users.
+
+8.  **Final Output Generation.** (Proceed to generate output based on step 6).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/desktop.html" class="page-link">desktop.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            <span class="removed">-7</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/memory.html" class="page-link">memory.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+84</span>
+                            <span class="removed">-13</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/overview.html" class="page-link">overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/about-claude/model-deprecations.html" class="page-link">about-claude/model-deprecations.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/extended-thinking.html" class="page-link">build-with-claude/extended-thinking.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-on-vertex-ai.html" class="page-link">build-with-claude/claude-on-vertex-ai.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+17</span>
+                            <span class="removed">-18</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-in-microsoft-foundry.html" class="page-link">build-with-claude/claude-in-microsoft-foundry.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+12</span>
+                            <span class="removed">-12</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">15:23 EST</div>
