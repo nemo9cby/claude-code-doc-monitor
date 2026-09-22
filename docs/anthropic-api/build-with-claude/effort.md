@@ -2,12 +2,31 @@
 title: Effort
 url: https://platform.claude.com/docs/en/build-with-claude/effort
 description: Control how many tokens Claude uses when responding with the effort parameter, trading off between response thoroughness and token efficiency.
+featureMetadata:
+  status: ga
+  zdr:
+    eligibility: eligible
+    note: Excludes [Covered Models](https://platform.claude.com/docs/en/manage-claude/api-and-data-retention#model-specific-data-retention-requirements).
+  supportedModels:
+    - claude-fable-5-1
+    - claude-mythos-5-1
+    - claude-fable-5
+    - claude-mythos-5
+    - claude-mythos-preview
+    - claude-opus-5
+    - claude-opus-4-8
+    - claude-opus-4-7
+    - claude-opus-4-6
+    - claude-opus-4-5-20251101
+    - claude-sonnet-5
+    - claude-sonnet-4-6
+  supportedPlatforms:
+    Claude API: ga
+    Claude Platform on AWS: ga
+    Amazon Bedrock: ga
+    Google Cloud: ga
+    Microsoft Foundry: ga
 ---
-
-## Compatibility
-- [ZDR](https://platform.claude.com/docs/en/manage-claude/api-and-data-retention): eligible (excludes [Covered Models](https://platform.claude.com/docs/en/manage-claude/api-and-data-retention#model-specific-data-retention-requirements))
-- Supported models: `claude-fable-5-1`, `claude-mythos-5-1`, `claude-fable-5`, `claude-mythos-5`, `claude-mythos-preview`, `claude-opus-5`, `claude-opus-4-8`, `claude-opus-4-7`, `claude-opus-4-6`, `claude-opus-4-5-20251101`, `claude-sonnet-5`, `claude-sonnet-4-6`
-- Platforms: Claude API, Claude Platform on AWS, Amazon Bedrock, Google Cloud, Microsoft Foundry
 
 The effort parameter lets you control how many tokens Claude spends when responding to requests. You can trade off between response thoroughness and token efficiency with a single model. The top-level effort parameter is available on all supported models with no beta header required. [Per-message effort](https://platform.claude.com/docs/en/build-with-claude/effort#change-effort-mid-conversation-beta) is in beta.
 
