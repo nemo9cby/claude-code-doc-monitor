@@ -118,9 +118,420 @@
 
         <header>
             <h1>Changes on 2026-09-24</h1>
-            <p class="meta">14 total changes in 1 run</p>
+            <p class="meta">41 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">21:07 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更分析
+
+## 整体摘要
+本次文档更新进行了大规模的结构重组，特别是彻底重构了插件相关文档，将其拆分为更细分的指南页。同时，针对 Amazon Bedrock Mantle 端点引入了关键的 IAM 权限变更，这属于破坏性更新，需要开发者立即采取行动。
+
+## 关键主题
+
+*   **插件文档架构重组**：插件文档已完全重写。`plugins.md` 现在作为概览页，`plugins-reference.md` 专门聚焦于 Manifest（清单文件）的参考，而安装、创建和市场相关的指南被拆分到独立的子页面（如 `/install`, `/create`, `/overview`）。全站数百个相关链接已更新至新路径。
+*   **Bedrock Mantle 权限变更（关键）**：Mantle 端点不再继承标准的 `bedrock:` IAM 权限。现在必须显式授予带有 `bedrock-mantle:` 前缀的特定 IAM 动作（如 `bedrock-mantle:CreateInference` 和 `bedrock-mantle:CountTokens`）。文档还细化了 403 错误的排查逻辑，区分 IAM 权限缺失和模型访问权限被拒的情况。
+*   **遥测配置的安全限制**：为了防止仓库劫持遥测数据，Claude Code 现在会忽略仓库配置文件（`.claude/settings.json` 和 `.settings.local.json`）中的 OpenTelemetry (OTEL) 导出器环境变量。这些配置必须在用户级或托管设置中生效。
+*   **清理版本依赖**：移除了大量诸如 &#34;Requires Claude Code v2.1.xxx or later&#34; 的具体版本号说明，暗示这些功能已通过充分测试或成为标准功能。
+
+## 影响等级：**高**
+
+**理由**：虽然大部分是文档结构调整，但对使用 Amazon Bedrock Mantle 的开发者而言，IAM 权限的变更是破坏性的。如果未更新策略，现有配置将直接报错 403 且无法正常推理。
+
+## 开发者行动项
+
+*   **更新 AWS IAM 策略**：如果你使用 Amazon Bedrock Mantle，请立即为相关的 IAM 身份添加 `bedrock-mantle:CreateInference`（用于推理）和 `bedrock-mantle:CountTokens`（用于计数的权限）。
+*   **排查 Mantle 403 错误**：遇到 403 时，首先检查错误是否包含 `bedrock-mantle:` 动作名称。如果有，补齐权限；如果没有，则是模型访问权限问题，需联系 AWS 账户团队。
+*   **检查遥测配置位置**：如果你依赖环境变量控制遥测导出，请确保 `OTEL_*` 变量配置在 `~/.claude/settings.json` 或托管设置中，而不是项目仓库的 `.claude/settings.json` 中。
+*   **更新书签/链接**：如果你之前收藏了插件相关的文档链接（特别是 `/plugins` 或 `/plugins-reference`），请更新为新的子页面路径（如 `/plugins/overview` 或 `/plugins/manifest-reference`）。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Understand the Goal**: The user wants a concise, insightful analysis of documentation changes for Claude Code. The output should be in Markdown, in Chinese, and focus on what matters to developers.
+
+2.  **Analyze the Input**:
+    *   **Total Changed Pages**: 27.
+    *   **Diff Content**:
+        *   `amazon-bedrock.md`: Updates regarding the Mantle endpoint. Key changes: Mantle now has its own IAM actions (`bedrock-mantle:` prefix). Previous `bedrock:` actions don&#39;t cover it. Updated error handling for 403s to distinguish between missing IAM actions vs. model access denial.
+        *   `checkpointing.md`: Removed a specific version requirement (&#34;Requires Claude Code v2.1.191 or later&#34;).
+        *   `cli-reference.md`: Updated MCP login/logout version requirements. Changed plugin reference paths (`/docs/en/plugins` to `/docs/en/plugins/overview`, etc.). Removed `--dry-run` option from `claude import` text (wait, actually looking closely at the diff, `--dry-run` is still there in the example, just removed version requirements).
+        *   `common-workflows.md`, `costs.md`, `desktop.md`: Updated links related to plugins (changing paths from root `/docs/en/plugins` to specific sub-pages like `/docs/en/plugins/code-intelligence`, `/docs/en/plugins/overview`).
+        *   `discover-plugins.md`: Massive rewrite (-302 / +199). The content changed from &#34;Discover and install prebuilt plugins&#34; to &#34;Install and manage plugins&#34;. It restructures the guide, likely improving clarity on installation scopes (user/project/local) and steps.
+        *   `github-actions.md`: Removed version requirement &#34;Before v2.1.187&#34;. Updated plugin link.
+        *   `headless.md`: Updated link for plugins. Changed phrasing &#34;plugins&#34; to &#34;installed plugins&#34;.
+        *   `hooks.md`, `hooks-guide.md`: Updated internal links for plugins. Removed specific cloud session behavior details regarding plugins synced from claude.ai (moved or simplified).
+        *   `interactive-mode.md`: Updated description for `Ctrl+S` (Stash/Restore prompt) to include &#34;input mode&#34;.
+        *   `mcp.md`: Updated links for plugins.
+        *   `monitoring-usage.md`: Added detail about ignoring OTEL variables in repo settings. Added `OTEL_LOG_TOOL_DETAILS=1` condition for telemetry attributes (agent.name, skill.name, etc.).
+        *   `network-config.md`: Updated link for plugin marketplaces.
+        *   `output-styles.md`: Updated plugin link.
+        *   `plugin-marketplaces.md`: Huge rewrite (-761 / +110). Content changed from &#34;Create and distribute a plugin marketplace&#34; to &#34;Create a marketplace&#34;. It simplifies the walkthrough, moving away from creating a local marketplace in the text to assuming the user has one.
+        *   `plugins.md`: Rewrite (-264 / +67). Changed from &#34;Create plugins&#34; to &#34;Plugins overview&#34;. This is a major structural change, turning the main plugin page into a landing/index page and moving technical details to sub-pages.
+        *   `plugins-reference.md`: Rewrite (-846 / +336). Changed from a general reference to specifically &#34;Plugin manifest reference&#34;. Focusing on `plugin.json`.
+        *   `sandboxing.md`: Updated permission mode exceptions text. Removed version requirement for `sandbox.credentials`.
+        *   `settings.md`: Added note about telemetry variables being ignored in repo settings (`env` block).
+        *   `skills.md`, `slash-commands.md`: Updated plugin links.
+        *   `statusline.md`: Updated plugin link.
+        *   `sub-agents.md`: Updated plugin links. Removed version requirement regarding nested agents.
+
+3.  **Synthesize Key Themes**:
+    *   **Documentation Restructuring (The Big One)**: The plugin documentation architecture has been completely overhauled. Old pages like `plugins.md` and `plugins-reference.md` have been split/reorganized into specific guides (Overview, Create, Install, Manifest, etc.). Links throughout the docs have been updated to reflect this new structure (`/docs/en/plugins` -&gt; `/docs/en/plugins/overview`).
+    *   **Bedrock Mantle IAM Specifics**: Critical operational change for AWS Bedrock users. Mantle now requires distinct IAM permissions (`bedrock-mantle:`), separate from standard Bedrock actions.
+    *   **Telemetry &amp; Settings Security/Control**: New restrictions on where telemetry environment variables (OTEL) can be set (ignored in repo settings to prevent repos from hijacking telemetry). New env var `OTEL_LOG_TOOL_DETAILS` for privacy in logs.
+    *   **Version Requirement Cleanup**: Many &#34;Requires version X.Y.Z&#34; notes have been removed, suggesting these features are now stable or the requirement is outdated/widely met.
+
+4.  **Determine Impact Level**:
+    *   **High**: The Bedrock Mantle IAM change is a breaking change for existing configurations that will fail silently (403 errors) if not updated. The documentation restructuring is high impact for finding information, but low impact for code functionality.
+    *   *Decision*: **High** (due to the Mantle IAM break).
+
+5.  **Formulate Action Items**:
+    *   Update AWS IAM policies for Bedrock Mantle users.
+    *   Update links/bookmarks if you relied on the old plugin documentation structure.
+    *   Review telemetry settings if managing repos for organizations.
+
+6.  **Draft the Response (in Chinese)**:
+
+    *   *Overall Summary*: 文档进行了大规模重构，特别是插件相关文档被拆分为更细分的章节。同时，针对 Amazon Bedrock Mantle 端点进行了关键的 IAM 权限更新，这是破坏性变更。
+
+    *   *Key Themes*:
+        *   **文档结构重组**: 插件文档大幅重写。`plugins.md` 现在是概览页，`plugins-reference.md` 专注于 Manifest，安装和创建指南被拆分到独立页面。所有相关链接已更新。
+        *   **Bedrock Mantle 权限变更**: Mantle 端点不再继承 `bedrock:` 权限，现在必须显式授予 `bedrock-mantle:` 前缀的 IAM 动作（如 `bedrock-mantle:CreateInference`）。
+        *   **遥测配置安全**: 仓库配置文件（`.claude/settings.json`）中的 OpenTelemetry (OTEL) 环境变量会被忽略，防止仓库劫持遥测数据。
+        *   **版本说明清理**: 移除了大量具体的版本号要求，表明相关功能已稳定。
+
+    *   *Impact*: **High**。对于使用 Amazon Bedrock Mantle 的开发者，必须立即更新 IAM 策略，否则将遇到 403 错误。文档结构的改变虽然不直接影响代码功能，但需要用户适应新的导航路径。
+
+    *   *Action Items*:
+        *   如果使用 Amazon Bedrock Mantle，请检查并更新 IAM 策略，添加 `bedrock-mantle:CreateInference` 和 `bedrock-mantle:CountTokens` 权限。
+        *   如果遇到 Mantle 403 错误，请根据错误信息区分是权限问题（`bedrock-mantle:` 动作）还是模型访问权限问题。
+        *   如果管理企业级 Claude Code 配置，请注意遥测变量现在必须在用户或托管设置中配置，仓库级别无效。
+
+7.  **Refine**: Ensure tone is professional and concise. (Self-correction: Make sure to emphasize the IAM change as the most critical technical takeaway).
+
+8.  **Final Polish**:
+    *   Summary: &#34;文档结构重组与 Bedrock Mantle 权限变更&#34;
+    *   Themes: 1. 插件文档重构, 2. Bedrock Mantle IAM 更新, 3. 遥测配置限制.
+    *   Impact: High.
+    *   Actions: Update IAM, Check 403 errors, Review telemetry config.
+
+    (Proceed to generate output).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/amazon-bedrock.html" class="page-link">amazon-bedrock.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/checkpointing.html" class="page-link">checkpointing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/cli-reference.html" class="page-link">cli-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/common-workflows.html" class="page-link">common-workflows.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/costs.html" class="page-link">costs.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/desktop.html" class="page-link">desktop.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/discover-plugins.html" class="page-link">discover-plugins.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+199</span>
+                            <span class="removed">-302</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/github-actions.html" class="page-link">github-actions.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/headless.html" class="page-link">headless.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+18</span>
+                            <span class="removed">-19</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+11</span>
+                            <span class="removed">-11</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/interactive-mode.html" class="page-link">interactive-mode.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+19</span>
+                            <span class="removed">-19</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+11</span>
+                            <span class="removed">-8</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/network-config.html" class="page-link">network-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/output-styles.html" class="page-link">output-styles.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugin-marketplaces.html" class="page-link">plugin-marketplaces.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+110</span>
+                            <span class="removed">-761</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins.html" class="page-link">plugins.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+67</span>
+                            <span class="removed">-264</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+336</span>
+                            <span class="removed">-846</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sandboxing.html" class="page-link">sandboxing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+22</span>
+                            <span class="removed">-22</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+22</span>
+                            <span class="removed">-22</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/statusline.html" class="page-link">statusline.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+20</span>
+                            <span class="removed">-19</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/terminal-config.html" class="page-link">terminal-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/vs-code.html" class="page-link">vs-code.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">15:44 EST</div>
