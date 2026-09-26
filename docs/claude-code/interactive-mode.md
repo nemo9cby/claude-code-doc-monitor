@@ -304,6 +304,8 @@ To run commands in the background, you can either:
 * Prompt Claude Code to run a command in the background
 * Press `Ctrl+B` to move a regular Bash tool invocation to the background. Tmux users must press `Ctrl+B` twice due to tmux's prefix key.
 
+When a command reaches its timeout before it finishes, Claude Code automatically [moves it to the background](/docs/en/tools-reference#background-commands) instead of stopping it, unless the command starts with `sleep`. To change how long commands run before that happens, set the [Bash timeout environment variables](/docs/en/tools-reference#timeout-and-output-limits).
+
 **Key features:**
 
 * Output is written to a file and Claude can retrieve it using the Read tool

@@ -118,9 +118,292 @@
 
         <header>
             <h1>Changes on 2026-09-25</h1>
-            <p class="meta">30 total changes in 3 runs</p>
+            <p class="meta">46 total changes in 4 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">20:20 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">## 文档变更分析
+
+### 总体概要
+
+本次更新涵盖 Claude Code 的成本透明度、模型访问控制、MCP 能力增强、安装引导优化以及若干行为变更，重点关注子代理/工作流的实际开销揭示和企业级模型管理粒度的提升。
+
+### 关键主题
+
+- **成本透明度提升**：多处明确子代理、动态工作流、MCP 工具都会产生独立请求并计入用量上限，补充了选择小模型降低子代理成本的指引
+- **模型访问控制增强**：新增 `deniedModels` 和 `availableModelsMatch` 设置，允许在 `availableModels` 白名单基础上精确屏蔽特定版本；`availableModels: []` 语义变更（现在同时屏蔽命名选择和默认模型）
+- **MCP 生态增强**：工具返回图片自动保存文件供 Claude 后续处理；`&#34;type&#34;: &#34;sdk&#34;` 服务器限制为仅 SDK 宿主可用；URL 端点去重规则细化（大小写、默认端口、尾斜杠）；elicitation URL 模式改为先询问再打开浏览器；新增 MCP Apps UI 资源说明
+- **行为变更**：SIGTERM 中断后恢复时不再自动继续被中断的 turn（需设 `CLAUDE_CODE_RESUME_INTERRUPTED_TURN=1`）；命令超时自动移至后台而非停止；`availableModels: []` 行为改变
+- **安装与调试体验**：安装流程增加终端引导和 `claude --version` 验证步骤及 PATH 排错链接；调试推荐 `--debug-file &lt;path&gt;` 替代 `--debug`；`claude plugin validate` 现在也检查 `outputStyles`/`lspServers`/`monitors`/`themes` 路径；plugin 错误增加 `path` 字段
+- **术语与命名统一**：sandbox 临时目录由&#34;session temp directory&#34;改为&#34;per-user temp directory&#34;；Skill 支持通过 frontmatter `name` 字段覆盖目录名作为命令名
+
+### 影响等级：**Medium**
+
+理由：存在两个可能影响现有用户的行为变更——SIGTERM 恢复行为反转（有 opt-in 环境变量回退）和 `availableModels: []` 语义收紧（可能锁定用户无法使用任何模型）。其余多为新增能力或文档澄清，破坏性较低。
+
+### 开发者行动项
+
+1. **审查模型限制配置**：若使用了 `availableModels: []`，立即检查是否依赖默认模型仍可用旧行为，按需调整；评估采用 `deniedModels` 精细屏蔽特定模型版本
+2. **更新 SIGTERM 处理逻辑**：若依赖 headless 会话中断后自动继续被中断 turn 的行为，设置 `CLAUDE_CODE_RESUME_INTERRUPTED_TURN=1`
+3. **迁移调试命令**：将监控排错流程中的 `claude --debug` 替换为 `claude --debug-file &lt;path&gt;` 以获取持久化日志
+4. **利用 MCP 图片结果**：MCP 工具返回的图片现自动保存至 `tool-results` 目录，可在 Bash 等工具中直接引用全分辨率文件做裁剪/转换
+5. **Skill 命名优化**：可通过 SKILL.md frontmatter 的 `name` 字段自定义斜杠命令名，不再受限于目录名</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">Let me analyze all the documentation changes across these 16 pages and provide a comprehensive summary.
+
+Let me go through each page&#39;s changes:
+
+1. **cli-reference.md**: `--bg`/`--background` flag now checks workspace trust before starting a background agent session.
+
+2. **costs.md**: Added clarification that subagent requests draw on your usage; tips to reduce costs by choosing smaller models. Added &#34;Subagents and workflows&#34; to the list of idle-context consumers.
+
+3. **headless.md**: SIGTERM behavior changed - now leaves interrupted turn as-is instead of continuing it on resume (opt-in via `CLAUDE_CODE_RESUME_INTERRUPTED_TURN=1`). Added section about working directory being deleted mid-session. Plugin error tracking now includes `path` field for `--plugin-dir` failures.
+
+4. **hooks.md**: Added link for scratchpad_dir. Updated deferred session resume in plan mode with a cross-reference. Added info about certain launch flags preventing plan mode restoration on resume.
+
+5. **interactive-mode.md**: Commands that timeout now automatically move to background instead of stopping (unless `sleep`).
+
+6. **mcp.md**: 
+   - `&#34;type&#34;: &#34;sdk&#34;` servers now only work in SDK host applications, skipped in `.mcp.json`/settings
+   - URL endpoint deduplication now considers case-insensitive scheme/host, default ports, trailing slashes
+   - MCP tool image results (PNG, JPEG, GIF, WebP) now saved to files and available for Claude to process
+   - MCP elicitation URL mode now asks before opening browser
+   - Elicitation client capabilities declared on newer protocol revision
+   - MCP Apps UI resources (`ui://` URIs) described - they don&#39;t appear in resource listings
+
+7. **model-config.md**: Major changes:
+   - `deniedModels` and `availableModelsMatch` settings introduced to block specific models/versions
+   - `availableModels: []` behavior changed - now blocks named selections AND default model
+   - Organization model restrictions consolidated
+   - New section on blocking specific models or versions
+
+8. **monitoring-usage.md**: 
+   - Debug verification changed from `--debug` to `--debug-file &lt;path&gt;`
+   - `request_id` field description changed to match event correlation attribute
+   - `tool.output` span event now supported for MCP tools, WebFetch, WebSearch
+   - Background-moved WebFetch/WebSearch calls excluded from tool.output
+   - New attributes added: `url`, `status_code`, `method`
+
+9. **overview.md/quickstart.md/setup.md**: Installation instructions improved - terminal guide reference, `claude --version` verification step, PATH troubleshooting link.
+
+10. **plugins-reference.md**: `claude plugin validate` now checks `outputStyles`, `lspServers`, `monitors`, and `themes` paths (previously didn&#39;t).
+
+11. **sandboxing.md**: &#34;Session temp directory&#34; renamed to &#34;per-user temp directory&#34; across multiple places. This is a terminology change.
+
+12. **skills.md/slash-commands.md**: 
+   - Skills can now use frontmatter `name` field to override directory name as command name
+   - Name resolution clarified for frontmatter `name` field
+   - Synced skill name collision behavior updated
+
+13. **sub-agents.md**: Subagents&#39; own requests count toward usage limits. Warning updated to mention token spending.
+
+Key themes:
+1. **Cost/usage transparency**: Multiple pages clarify that subagents/workflows consume their own tokens
+2. **Model access control**: New `deniedModels`/`availableModelsMatch` settings, changed `availableModels: []` behavior
+3. **MCP enhancements**: Image handling, SDK-type restriction, URL dedup, elicitation improvements
+4. **Installation UX**: Better onboarding with terminal guide and PATH troubleshooting
+5. **Behavior changes**: SIGTERM resume behavior, timeout→background, `availableModels: []` semantics
+6. **Debugging improvements**: `--debug-file`, plugin validation expanded, plugin error paths
+
+Impact: Medium - Several behavior changes but most are additive or have opt-in/out mechanisms. The `availableModels: []` change and SIGTERM resume change could surprise existing users.</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/cli-reference.html" class="page-link">cli-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/costs.html" class="page-link">costs.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/headless.html" class="page-link">headless.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/interactive-mode.html" class="page-link">interactive-mode.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+10</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/model-config.html" class="page-link">model-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+24</span>
+                            <span class="removed">-7</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+24</span>
+                            <span class="removed">-21</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/overview.html" class="page-link">overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/quickstart.html" class="page-link">quickstart.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sandboxing.html" class="page-link">sandboxing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/setup.html" class="page-link">setup.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+28</span>
+                            <span class="removed">-25</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+28</span>
+                            <span class="removed">-25</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">17:56 EST</div>
