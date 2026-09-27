@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026-09-27 - Documentation Changes</title>
+    <style>
+        :root {
+            --bg-color: #1a1a2e;
+            --card-bg: #16213e;
+            --text-color: #eee;
+            --accent: #0f3460;
+            --add-text: #4ade80;
+            --del-text: #f87171;
+            --time-color: #60a5fa;
+        }
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg-color: #f5f5f5;
+                --card-bg: #fff;
+                --text-color: #333;
+                --accent: #e0e0e0;
+                --add-text: #155724;
+                --del-text: #721c24;
+                --time-color: #2563eb;
+            }
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+        .container { max-width: 800px; margin: 0 auto; }
+        header { margin-bottom: 2rem; }
+        h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+        .meta { color: #888; }
+        .batch { margin-bottom: 2rem; }
+        .batch-header {
+            color: var(--time-color);
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--accent);
+        }
+        .page-list { list-style: none; }
+        .page-item {
+            background: var(--card-bg);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .page-item:hover { background: var(--accent); }
+        .page-link {
+            color: var(--text-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .page-summary { color: #888; font-size: 0.9rem; }
+        .added { color: var(--add-text); }
+        .removed { color: var(--del-text); }
+        a { color: #60a5fa; }
+        .back-link { margin-bottom: 1rem; display: inline-block; }
+        .page-item-content { flex: 1; }
+        .page-analysis {
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: 0.25rem;
+        }
+        .source-section {
+            margin-bottom: 1.5rem;
+        }
+        .source-header {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: #8b5cf6;
+        }
+        .batch-analysis {
+            background: var(--card-bg);
+            border-left: 3px solid #22c55e;
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            margin: 0.75rem 0 1rem 0;
+        }
+        .batch-analysis h4 {
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+        .batch-analysis-content {
+            white-space: pre-wrap;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        .reasoning-section {
+            margin-top: 1rem;
+            padding-top: 0.75rem;
+            border-top: 1px dashed var(--accent);
+            font-size: 0.85rem;
+            color: #888;
+        }
+        .reasoning-section summary {
+            cursor: pointer;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../../../index.html" class="back-link">&larr; All reports</a>
+
+        <header>
+            <h1>Changes on 2026-09-27</h1>
+            <p class="meta">3 total changes in 1 run</p>
+        </header>
+
+        
+        <div class="batch">
+            <div class="batch-header">13:24 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">## 文档变更分析
+
+### 1. 总体摘要
+
+MCP tool hooks 的行为发生重要改进：从要求&#34;已连接&#34;改为&#34;已配置&#34;即可，且在阻塞性事件（如 `PreToolUse`、`Stop`）上会自动等待服务器连接完成；同时 `claude plugin validate` 新增了对 MCP 服务器配置和 shell 变量引用的校验能力。
+
+### 2. 关键主题
+
+- **术语变更**：&#34;already-connected MCP server&#34; → &#34;configured MCP server&#34;，反映了实际行为的放宽——不再要求服务器事先已连接
+- **MCP hook 连接等待机制**：阻塞性事件上 Claude Code 现在会等待服务器连接（上限 `MCP_TIMEOUT`），观察性事件则不等待；`cached` 状态的服务器会在 hook 调用时按需连接
+- **OAuth 限制明确化**：hook 不会触发 OAuth 流程，需事先通过 `/mcp` 认证
+- **文档结构优化**：将原本内联的复杂说明拆分为三个独立小节（结果读取、连接中、事件时序），移除了冗长的 JSON 示例
+- **插件校验增强**：`claude plugin validate` 新增 MCP 服务器条目检查（无效 URL、未声明 user_config 引用、非回环 http/ws、疑似凭据 header）以及 shell 变量未加引号的警告
+
+### 3. 影响级别：**Medium**
+
+理由：核心行为变更——MCP tool hooks 在阻塞性事件上从&#34;服务器未连接则跳过&#34;变为&#34;等待连接后再调用&#34;，这直接影响 hook 的执行时机和成功率。对于依赖 `SessionStart`/`Setup` 上 MCP hook 的开发者，行为不变（仍跳过），但对 `PreToolUse`/`Stop` 等，hook 成功调用的概率显著提高，无需额外操作。
+
+### 4. 开发者行动项
+
+- **审查现有 MCP tool hooks**：如果你的 hook 绑定在 `PreToolUse`、`Stop` 等阻塞性事件上，现在执行时会等待服务器连接，可能引入额外延迟；必要时调整 `timeout` 设置
+- **确保远程 MCP 服务器已认证**：hook 不触发 OAuth 流程，需在 `/mcp` 中预先完成认证，否则 `cached` 状态的服务器可能连不上导致非阻塞错误
+- **升级到 v2.1.281+** 以获得 `claude plugin validate` 对 MCP 服务器配置的校验能力，在 CI 中用 `--strict` 捕获所有问题
+- **检查插件中的 shell-form hook 命令**：确保路径变量（如 `${CLAUDE_PLUGIN_ROOT}`）被双引号包裹，否则 validate 将发出警告
+- **不要在 `SessionStart`（启动时）或 `Setup` 上使用 `mcp_tool` hook**：它们仍会被跳过，改用 `type: &#34;command&#34;` 实现启动时的逻辑</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">Let me analyze the documentation changes across the three pages.
+
+1. **hooks.md** (+13/-15): Major changes to MCP tool hooks documentation:
+   - Changed &#34;already-connected&#34; to &#34;configured&#34; MCP server terminology
+   - Restructured the MCP tool hook fields table (removed inline description about server connection/OAuth from the `server` field)
+   - Added new subsections: &#34;How the tool&#39;s result is read&#34; and &#34;When the server is still connecting&#34; and &#34;Events that fire before MCP servers are available&#34;
+   - Key behavioral change: Claude Code now **waits** for connecting servers on blocking events (PreToolUse, Stop) up to MCP_TIMEOUT, rather than just skipping. On observational events, it doesn&#39;t wait.
+   - Clarified that cached-status servers connect on-demand when the hook calls the tool
+   - Simplified the SessionStart/Setup explanation - removed the verbose example with JSON config
+   - Added note that hook never starts OAuth flow
+
+2. **hooks-guide.md** (+1/-1): Terminology change matching hooks.md - &#34;already-connected&#34; → &#34;configured&#34;
+
+3. **plugins-reference.md** (+5/-1): 
+   - `claude plugin validate` now checks MCP server entries (requires v2.1.281+)
+   - Errors: dropped entries, bad user_config refs, invalid URLs
+   - Warnings: http:// or ws:// to non-loopback, credential-like headers
+   - Changed description of plugin data directory deletion on uninstall
+   - Added warning about unquoted variables in shell-form commands
+
+Key themes:
+- MCP tool hooks behavior refined: now waits for connecting servers on blocking events
+- Terminology shift: &#34;already-connected&#34; → &#34;configured&#34; (reflects that servers can be in connecting/cached state)
+- Plugin validation enhanced with MCP server checks
+- Better documentation structure (subsections instead of inline explanations)
+
+Impact: Medium - the behavioral change (waiting for servers on blocking events) is significant for developers using MCP tool hooks, as it changes when hooks succeed vs. get skipped. The terminology change reflects a real behavioral improvement.</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+13</span>
+                            <span class="removed">-15</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
+        
+    </div>
+</body>
+</html>
