@@ -118,9 +118,351 @@
 
         <header>
             <h1>Changes on 2026-09-28</h1>
-            <p class="meta">74 total changes in 2 runs</p>
+            <p class="meta">95 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">23:48 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更批量分析
+
+## 总体概要
+
+本次更新围绕 **Sonnet 5.5 新模型发布**和**企业级账户模型记录功能**展开，同时清理了 Ultracode 的冗余描述、改进了 Hooks/MCP/监控的行为文档，并升级了 Java SDK 至 2.66.0。
+
+## 关键主题
+
+- **新模型 `claude-sonnet-5-5`**：API 文档新增该模型，定位为&#34;高效的编码和 Agent 模型&#34;，模型列表排序调整为 sonnet-5-5 居首
+- **新的思考模式 `between_tools`**：Messages API 新增 `ThinkingConfigBetweenTools`（`type: &#34;between_tools&#34;`），提供工具调用间的思考控制
+- **企业账户模型记录**：Enterprise 用户通过 `/model` 保存的默认模型现在会记录到 claude.ai 账户，影响 Default 选项的解析逻辑
+- **多账户登录**：新增通过 `CLAUDE_CONFIG_DIR` 环境变量隔离配置目录，实现工作/个人账户并行登录
+- **Ultracode 描述统一化**：移除&#34;Ultracode 不是独立级别、报告为 xhigh&#34;的重复说明，effort 级别解析流程不再以 ultracode 设置为前提条件
+- **Hooks 行为变更**：`permissionDecisionReason` 对 `&#34;allow&#34;` 不再展示给用户，改为仅写入 debug 日志；prompt hook 默认模型从&#34;Haiku/快速模型&#34;改为&#34;后台功能所用模型&#34;
+- **VS Code 扩展增强**：新增 Ultracode 开关（v2.1.284+）和会话列表过滤器（按状态/活跃筛选）
+- **遥测改进**：`OTEL_LOG_TOOL_DETAILS=1` 现也解锁 cost/token 计数器上的真实名称；新增云会话仓库属性采集指引；HTTPS/SSH 远程属性一致性说明
+- **Java SDK 升级**：`anthropic-java` 从 2.65.0 → 2.66.0（覆盖 Bedrock、Vertex、Foundry、MCP 连接器）
+- **流式传输文档改进**：明确推荐使用 SDK 的 `messages.stream()` 而非直接设置 `stream=true`
+
+## 影响级别：**Medium**
+
+- **无破坏性变更**，但 `permissionDecisionReason` 对 `&#34;allow&#34;` 的行为改变可能影响依赖该字段展示信息的 Hook 开发者
+- `between_tools` 思考模式是纯新增，向后兼容
+- Sonnet 5.5 为新增模型，不影响现有调用
+- 遥测属性名脱敏逻辑收紧（v2.1.273 前后行为不同），仪表盘可能需要调整
+
+## 开发者行动项
+
+1. **Hooks 开发者**：检查代码中是否依赖 `permissionDecisionReason` 在 `&#34;allow&#34;` 时向用户展示文本的行为——该信息现在仅进 debug 日志
+2. **API 用户**：关注 `thinking.type: &#34;between_tools&#34;` 新选项，评估是否适合在工具调用间隙插入思考的场景
+3. **企业用户**：了解 `/model` 保存的默认模型现在会记录到 claude.ai 账户并影响 Default 解析，确认与组织策略/allowlist 的交互是否符合预期
+4. **多账户用户**：利用 `CLAUDE_CONFIG_DIR` 环境变量设置 alias，隔离工作/个人账户配置
+5. **Java SDK 用户**：将 `anthropic-java` 依赖升级至 2.66.0</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">Let me analyze the documentation changes across all 21 pages and provide a concise batch analysis.
+
+Key changes I&#39;m seeing:
+
+1. **New model: claude-sonnet-5-5** - Added to API docs as a new model option, described as &#34;Efficient model for coding and agents&#34;
+
+2. **ThinkingConfigBetweenTools** - New thinking config type `between_tools` added to the API
+
+3. **Streaming docs improvement** - Better guidance on using `messages.stream()` in SDKs instead of raw event streams
+
+4. **Java SDK bump** - anthropic-java 2.65.0 → 2.66.0 across all docs
+
+5. **Hooks changes**:
+   - Prompt-based hooks default model clarified as &#34;the model Claude Code uses for background functionality&#34; instead of &#34;a fast model&#34; or &#34;Haiku&#34;
+   - `permissionDecisionReason` behavior changed: for &#34;allow&#34;, now written to debug log only (was shown to user)
+   - Tool response format in examples changed (removed leading spaces from line numbers)
+
+6. **Multi-account support** - New section in iam.md about staying signed in to multiple accounts using `CLAUDE_CONFIG_DIR`
+
+7. **MCP changes**:
+   - Discovery cache behavior docs reorganized
+   - Duplicate matching now only matches against &#34;enabled&#34; servers
+   - OAuth redirect URI instructions simplified
+   - `claude mcp add-json` callback port docs clarified
+
+8. **Model config changes**:
+   - Enterprise plan model selection now recorded on claude.ai account
+   - Default model resolution updated to account for recorded model
+   - Effort level resolution: ultracode condition removed from the resolution order description
+   - Ultracode references being cleaned up/simplified across multiple docs
+
+9. **Monitoring/usage changes**:
+   - `OTEL_LOG_TOOL_DETAILS` now also enables real names on cost/token counters
+   - Repository attribution clarified for HTTPS vs SSH remotes
+   - Cloud session telemetry support added
+   - Agent/skill/plugin/MCP name redaction behavior changed - now always redacted unless OTEL_LOG_TOOL_DETAILS=1
+
+10. **VS Code extension**:
+    - Ultracode switch added to model picker (v2.1.284+)
+    - Session list filtering added (Active toggle, status filter)
+    - Sessions list can be &#34;grouped or filtered&#34; not just &#34;organized&#34;
+
+11. **Quickstart** - Code block theme attributes cleaned up (removed duplicate theme={null})
+
+12. **Skills/slash-commands/statusline** - Removed &#34;Ultracode is not a distinct level and reports as xhigh&#34; language
+
+13. **Prompting tools** - Removed &#34;What&#39;s new in Claude Sonnet 5&#34; link and &#34;migration from Claude Sonnet 4.6&#34; from Sonnet 5 card description</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/iam.html" class="page-link">iam.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-8</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/model-config.html" class="page-link">model-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+15</span>
+                            <span class="removed">-11</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+11</span>
+                            <span class="removed">-7</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/quickstart.html" class="page-link">quickstart.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/statusline.html" class="page-link">statusline.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/vs-code.html" class="page-link">vs-code.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/get-started.html" class="page-link">get-started.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/messages.html" class="page-link">api/messages.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+28</span>
+                            <span class="removed">-16</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/messages/count_tokens.html" class="page-link">api/messages/count_tokens.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/messages/batches/create.html" class="page-link">api/messages/batches/create.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-on-amazon-bedrock.html" class="page-link">build-with-claude/claude-on-amazon-bedrock.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-on-vertex-ai.html" class="page-link">build-with-claude/claude-on-vertex-ai.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-in-microsoft-foundry.html" class="page-link">build-with-claude/claude-in-microsoft-foundry.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/prompting-tools.html" class="page-link">build-with-claude/prompt-engineering/prompting-tools.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/claude-prompting-best-practices.html" class="page-link">build-with-claude/prompt-engineering/claude-prompting-best-practices.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/mcp-connector.html" class="page-link">agents-and-tools/mcp-connector.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">19:37 EST</div>

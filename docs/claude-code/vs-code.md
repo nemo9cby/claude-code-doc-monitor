@@ -115,6 +115,8 @@ The prompt box supports several features:
 * **Model**: select **Switch model…** from the command menu to change the model mid-session. You can also click the model name at the bottom of the prompt box to open the same picker.
 
   When the current model supports [effort levels](/docs/en/model-config#adjust-effort-level), the picker also shows an **Effort** row and the model name button shows the selected level. When you pick a level other than `max`, Claude Code saves it for the current model as your default, under [`modelSettings`](/docs/en/settings-reference#modelsettings) in your user settings; `max` applies to the current session only. The model name button and the **Effort** row require Claude Code v2.1.257 or later.
+
+  When [dynamic workflows](/docs/en/workflows) are enabled and the current model supports it, an **Ultracode** switch appears under the **Effort** row. Turn it on to have Claude plan a [workflow](/docs/en/workflows#let-claude-decide-with-ultracode) for each substantive task in this session, at the selected effort level. While it's on, the model name button shows `· Ultracode` after the level. The switch requires Claude Code v2.1.284 or later.
 * **Command menu**: click `/` or type `/` to open the command menu. Options include attaching files, switching models, and toggling extended thinking.
 
   The Customize section includes entries such as MCP servers, commands, output styles, hooks, memory, instructions, permissions, and plugins. Items with a terminal icon open in the integrated terminal.
@@ -257,7 +259,7 @@ For more on tracking and reducing usage, see [Track your costs](/docs/en/costs#t
 
 ## Customize your workflow
 
-You can reposition the Claude panel, run multiple conversations, organize the sessions list into groups, or switch to terminal mode.
+You can reposition the Claude panel, run multiple conversations, group or filter the sessions list, or switch to terminal mode.
 
 ### Choose where Claude lives
 
@@ -300,6 +302,15 @@ In the sessions list in the Activity Bar, you can collect related sessions into 
 * **Rename or delete a group**: right-click a group header. Deleting a group removes only the group, and its sessions return to the ungrouped list.
 
 The extension saves groups per workspace folder, so they survive window reloads and appear in every window where you open the same folder. When you search the list, the extension shows matches in one flat list across all groups.
+
+### Filter the sessions list
+
+To narrow a long sessions list in the Activity Bar, use the two filter controls at the top of the list. Requires Claude Code v2.1.271 or later. Archived sessions don't appear while either filter is on.
+
+* **Active**: turn on this toggle to show only sessions that need your input, are working, or are unread, plus the session in the Claude tab you last focused.
+* **Filter by status**: click the funnel icon, then check **Needs input**, **Working**, or **Completed** to show sessions in any of those states. Check **Open** or **Closed** to narrow by whether a session is open. A session counts as open when it has a tab in this window or is running in another Claude Code process on this machine, such as in a terminal.
+
+When **Active** is on and you check a status, **Open**, or **Closed**, the list also shows every session that matches your checks. The filters you set persist across window reloads.
 
 ### Switch to terminal mode
 
