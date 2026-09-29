@@ -118,9 +118,149 @@
 
         <header>
             <h1>Changes on 2026-09-29</h1>
-            <p class="meta">1 total change in 1 run</p>
+            <p class="meta">7 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">12:43 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">## 文档变更分析
+
+### 1. 总体摘要
+
+本次更新主要围绕 **Claude Tag（Slack 中的 Claude）** 这一新交付渠道展开，补充了其在服务端管理设置、遥测、模型配置等方面的行为差异，同时细化了 WorktreeRemove Hook 的退出码语义和云会话遥测配置指南。
+
+### 2. 关键主题
+
+- **Claude Tag 渠道支持**：多个页面新增 Claude Tag 会话的特殊行为说明——不接收服务端管理设置、遥测需通过环境变量配置、`app.entrypoint` 值为 `claude-in-slack`
+- **WorktreeRemove Hook 语义明确化**：补充了无 Hook（git 回退）、退出 0（视为已删除）、退出非零（目录仍存在则失败）三种情况的完整行为定义，并明确 Claude Code 不会删除 Hook 创建 worktree 时关联的分支
+- **云会话遥测配置**：新增完整章节，涵盖 OTEL 变量的设置位置、网络可达性约束、凭据安全注意事项、`ccr.session.id` 属性等
+- **登录/凭证范围收窄**：移除了 &#34;Claude Console login&#34; 的过期警告描述，仅保留 claude.ai 登录；MCP 连接器状态简化为 `session token rejected`
+- **服务端管理设置送达澄清**：云会话中并非&#34;只有&#34;服务端管理设置可达，而是通过 surface coverage 表明确哪些会话类型接收
+
+### 3. 影响级别：**Medium**
+
+无破坏性变更。但对以下场景有实质影响：
+- **使用 WorktreeCreate/Remove Hook 的开发者**：退出码语义从隐式变为显式定义，退出非零但目录已删除的情况现在被视为成功——这可能改变现有 Hook 的预期行为
+- **管理 Claude Tag 的团队管理员**：需了解该渠道不走服务端管理设置，模型选择和遥测配置需走不同路径
+- **配置云会话遥测的运维人员**：新增的完整配置指南提供了之前缺失的关键信息（网络 allowlist、凭据安全、环境变量位置）
+
+### 4. 开发者行动项
+
+- **检查现有 WorktreeRemove Hook**：确认退出码行为符合新定义——退出 0 意味着目录已删除，退出非零且目录仍存在则删除失败（不再有 git 回退）
+- **若使用 WorktreeCreate Hook 创建了分支**：必须在 WorktreeRemove Hook 中自行删除分支，Claude Code 不会代劳
+- **配置 Claude Tag 遥测**：需通过云环境的环境变量（而非服务端管理设置）设置 `CLAUDE_CODE_ENABLE_TELEMETRY` 和 `OTEL_*` 变量，并确保收集器域名在环境网络 allowlist 中
+- **利用 `ccr.session.id` 关联云会话**：该属性现已默认包含在指标中，可用于构建会话 transcript URL
+- **设置 `OTEL_METRICS_INCLUDE_ENTRYPOINT=true`** 以区分 Claude Tag 会话（`claude-in-slack`）与其他会话类型</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">Let me analyze all the documentation changes across these 6 pages.
+
+1. **hooks.md**: WorktreeRemove hook behavior is now documented in detail - what happens with no hook (fallback to `git worktree remove --force`), hook exit 0 (counts as removed), hook exit non-zero (fails if dir still exists). Also clarified that Claude Code never deletes a branch belonging to a hook-created worktree.
+
+2. **iam.md**: Removed &#34;Claude Console&#34; from the list of login types that show expiry warnings. The warning now only applies to &#34;claude.ai login&#34; being the active credential, not &#34;claude.ai or Claude Console login&#34;.
+
+3. **mcp.md**: Simplified the MCP connector status display - removed &#34;connected ·&#34; prefix from the `session token rejected` status description.
+
+4. **model-config.md**: Added Claude Tag as an exception to server-managed settings enforcement for cloud sessions. Added a new bullet explaining Claude Tag sessions don&#39;t receive server-managed settings but can read managed settings in self-hosted environments. Also clarified that `availableModels` rejection applies to requests from claude.ai/code or Desktop app.
+
+5. **monitoring-usage.md**: Major additions - new section on &#34;Telemetry from cloud sessions and Claude Tag&#34;, explaining how to configure telemetry for cloud/Claude Tag sessions, where to set variables, network access considerations, and how to attribute telemetry. Added `ccr.session.id` attribute, added `claude-in-slack` as an entrypoint value for Claude Tag sessions.
+
+6. **settings.md**: Clarified that server-managed settings reach cloud sessions (with surface coverage reference), rather than saying only server-managed settings reach them.
+
+Key themes:
+- Claude Tag integration/documentation throughout
+- WorktreeRemove hook behavior clarification
+- Cloud session telemetry configuration
+- Credential/login scope narrowing (removing Claude Console references)
+- Server-managed settings delivery clarification
+
+Impact: Medium - significant documentation additions for telemetry and Claude Tag, behavioral clarification for hooks. No breaking changes.</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/iam.html" class="page-link">iam.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/model-config.html" class="page-link">model-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+20</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">06:19 EST</div>
