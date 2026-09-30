@@ -118,9 +118,525 @@
 
         <header>
             <h1>Changes on 2026-09-30</h1>
-            <p class="meta">21 total changes in 2 runs</p>
+            <p class="meta">48 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">14:45 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 总体概览
+
+本次文档更新主要集中在增强 SDK 的平台支持（特别是 Go SDK 对 Microsoft Foundry 的原生支持）、收紧组织级安全策略控制、细化后台任务与 Hook 的行为逻辑，以及大量文档格式的标准化（将折叠列表展开）。
+
+### 核心变更主题
+
+*   **Go SDK 新增 Microsoft Foundry 原生支持**：Go SDK 现在引入了专用的 Foundry 客户端，不再需要通过标准客户端配置 Base URL 的变通方案，并支持自动化的 Entra ID 令牌刷新。
+*   **组织策略与安全加固**：
+    *   **桌面端策略**：明确了 `disableSideloadFlags` 的作用，当组织启用该标志时，本地/SSH 会话将不再加载云端 Skills 或插件。
+    *   **MCP 安全**：MCP OAuth 凭证现在仅发送到 HTTPS 端点或 `localhost`，局域网 HTTP 登录将失败。
+*   **行为逻辑细化**：
+    *   **后台任务**：Bash 和 PowerShell 后台命令引入了默认 30 分钟、最长 2 小时的超时限制，并明确了内存压力回收机制。
+    *   **Hook 扩展**：`UserPromptSubmit` Hook 现在可以接收 `session_title` 字段，便于追踪会话上下文。
+    *   **Skills 权限**：细化了 `Skill` 权限规则的匹配逻辑（如阻止别名、非限定名及插件形式的同步 Skills）。
+*   **PHP SDK 参数变更**：Google Cloud Vertex AI 的 PHP SDK 初始化参数从 `location` 重命名为 `region`，这可能影响现有代码。
+*   **文档格式统一**：将大量 Beta 标头和模型列表从折叠式改为展开式，并统一了 SDK 相关描述的单复数用法（强调 &#34;The SDK&#34;）。
+
+### 影响等级：中 等
+
+*   **理由**：虽然大部分变更属于文档澄清和格式调整，但 **Go SDK Foundry 的原生支持** 和 **PHP SDK 的参数重命名** 直接涉及代码迁移。此外，**MCP OAuth 的 HTTPS 限制**和**组织策略对本地环境的干预**属于可能破坏现有流程的非向后兼容变更，需要开发者注意。
+
+### 开发者行动项
+
+1.  **Go 开发者 (Microsoft Foundry)**：如果您目前使用标准 Go SDK 配合 `option.WithBaseURL` 访问 Foundry，请迁移至新的 `foundry.NewClient`，以获得更佳的 Entra ID 令牌管理体验。
+2.  **PHP 开发者 (Vertex AI)**：检查代码中 `Vertex\Client::fromEnvironment` 的调用，将参数名从 `location` 更改为 `region`，以避免潜在错误。
+3.  **MCP 开发者**：确保 MCP 服务器的 OAuth token 端点使用 HTTPS 或仅绑定 `localhost`，否则在安全更新后登录会失败。
+4.  **企业策略管理员**：请检查 `disableSideloadFlags` 的设置，确认其阻止本地会话加载云端插件的行为符合预期，以免影响开发环境的工作流。
+5.  **Hook 开发者**：利用 `UserPromptSubmit` 新增的 `session_title` 字段，在日志或处理逻辑中更好地识别和管理自定义会话。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer/developer tools expert.
+    *   **Task:** Analyze documentation changes (27 pages, 20 provided in the prompt) as a single batch.
+    *   **Output Format:** Markdown, concise, insightful, Chinese.
+    *   **Structure:** Overall Summary, Key Themes, Impact Level, Action Items.
+
+2.  **Scan the Diff Content (Page by Page - High Level):**
+
+    *   `desktop.md`:
+        *   &#34;Auto&#34; mode description change (background classifier details).
+        *   Skills loading behavior change regarding `disableSideloadFlags`.
+        *   Plugins behavior change regarding `disableSideloadFlags`.
+        *   *Theme:* Organization policy enforcement (`disableSideloadFlags`).
+
+    *   `hooks.md`:
+        *   `session_title` definition updated (custom title vs. generated title).
+        *   `UserPromptSubmit` hooks now receive `session_title`.
+        *   *Theme:* Hooks extensibility improvement.
+
+    *   `interactive-mode.md`:
+        *   Background tasks timeout logic changes (specifically for Bash/PowerShell, memory pressure reap, time limits).
+        *   Subagent behavior update.
+        *   *Theme:* Background task management/refinement.
+
+    *   `mcp.md`:
+        *   MCP server add command success message clarification.
+        *   Error handling (not saved/may not have been saved).
+        *   OAuth credentials security (HTTPS/localhost only).
+        *   Automatic backgrounding of MCP tools now shows progress.
+        *   Connectors tool blocking (`blocked` vs `ask`), organization controls.
+        *   *Theme:* MCP server management, security, and organization controls.
+
+    *   `skills.md` (and `slash-commands.md` - duplicate change):
+        *   Permission syntax clarification (`Skill(name)`).
+        *   Detailed table on what `deny` rules block (aliases, unqualified names, synced skills, plugin forms).
+        *   *Theme:* Permission system refinement for skills.
+
+    *   `about-claude/model-deprecations.md`:
+        *   Table updates (Claude Sonnet 4.5 status changed to Deprecated).
+        *   Deprecation history entry for Claude Sonnet 4.5.
+        *   *Theme:* Model lifecycle updates.
+
+    *   `api/overview.md`:
+        *   Pagination example code updated (more specific SDK examples).
+
+    *   `api/messages.md`, `api/messages/count_tokens.md`, `api/messages/batches/create.md`:
+        *   Model list formatting change (moved from collapsed list item to expanded items).
+        *   *Theme:* Documentation formatting (low functional impact).
+
+    *   `api/models/list.md`, `api/beta/files/upload.md`:
+        *   Model/Beta list formatting change (collapsed to expanded).
+        *   *Theme:* Documentation formatting.
+
+    *   `api/rate-limits.md`:
+        *   Grammar fix (&#34;SDK&#39;s&#34; vs &#34;SDKs&#39;&#34;).
+
+    *   `api/beta-headers.md`:
+        *   Grammar/Phrasing changes (&#34;SDKs&#39; beta&#34; -&gt; &#34;SDK&#39;s beta&#34;).
+        *   More specific code examples for different SDKs (java, go, php, etc.).
+
+    *   `api/errors.md`:
+        *   Grammar/Phrasing changes (&#34;SDKs&#39;&#34; -&gt; &#34;SDK&#39;s&#34;).
+
+    *   `build-with-claude/streaming.md`:
+        *   Streaming helper descriptions updated to be more specific about methods per language.
+        *   PHP example updated to use `MessageAccumulator`.
+
+    *   `build-with-claude/files.md`:
+        *   Pagination link fix.
+
+    *   `build-with-claude/claude-on-amazon-bedrock.md`:
+        *   Phrasing &#34;SDK detects&#34; instead of &#34;SDKs detect&#34;.
+
+    *   `build-with-claude/claude-on-vertex-ai.md`:
+        *   PHP SDK parameter name change (`location` -&gt; `region`).
+
+    *   `build-with-claude/claude-in-microsoft-foundry.md`:
+        *   **Major Change:** Go SDK now supports Foundry natively (previously workaround only).
+        *   Updated code examples for Go (native client).
+        *   C# specific note about base URL.
+
+    *   `agents-and-tools/tool-use/overview.md`:
+        *   &#34;SDK executes&#34; instead of &#34;SDKs execute&#34;.
+
+    *   `agents-and-tools/tool-use/bash-tool.md`:
+        *   &#34;SDK exposes&#34; instead of &#34;SDKs expose&#34;.
+
+    *   `agents-and-tools/tool-use/computer-use-tool.md`:
+        *   Grammar fixes (&#34;SDK&#34; vs &#34;SDKs&#34;).
+        *   Icon removal from steps.
+
+    *   `agents-and-tools/tool-use/memory-tool.md`:
+        *   Phrasing changes (&#34;SDK&#39;s beta namespace&#34; vs &#34;SDKs&#39;&#34;).
+
+3.  **Synthesize Findings:**
+
+    *   **Major functional changes:**
+        *   **Go SDK Foundry Support:** The Go SDK now supports Microsoft Foundry natively, replacing the need for workarounds.
+        *   **Vertex AI PHP SDK:** Parameter change (`location` to `region`) - potential breaking change for PHP users.
+        *   **Organization Policy Enforcement:** Stricter rules on loading cloud skills/plugins based on `disableSideloadFlags` in desktop environments.
+        *   **Background Task Logic:** Specific time limits and memory pressure behavior for background tasks (interactive mode).
+        *   **MCP Security:** OAuth credentials only sent to HTTPS or localhost.
+        *   **Skills Permissions:** More precise definition of what gets blocked when a `deny` rule is applied.
+
+    *   **Documentation/Grammar changes:**
+        *   Widespread correction of pluralization regarding &#34;SDK&#34; (using singular possessive &#34;SDK&#39;s&#34; or collective noun &#34;The SDK&#34; instead of plural &#34;SDKs&#39;&#34; in many contexts, or standardizing on &#34;The official SDK&#34;).
+        *   Expanding collapsed lists (models, beta headers) into individual items for better readability.
+
+4.  **Drafting the Response (in Chinese):**
+
+    *   *Summary:* The updates focus on refining the developer experience (Go SDK Foundry support, PHP SDK parameter updates), tightening organization policy controls (skills/plugins, MCP OAuth), and clarifying background task behavior. There is also a large amount of documentation cleanup and formatting standardization.
+
+    *   *Key Themes:*
+        *   **Go SDK Foundry Support:** Native support added.
+        *   **Organization Policy &amp; Security:** `disableSideloadFlags` enforcement, MCP OAuth HTTPS restriction.
+        *   **Behavioral Changes:** Background task timeouts, hooks receiving session titles.
+        *   **Permissions:** Skills blocking logic clarified.
+        *   **Documentation Formatting:** Expansion of parameter lists and grammar standardization (&#34;SDK&#34; usage).
+
+    *   *Impact Level:* Medium.
+        *   *Reasoning:* While mostly doc changes, the Go SDK Foundry update is significant for that ecosystem. The PHP SDK parameter change in Vertex AI is a minor breaking change. The organization policy changes affect enterprise users.
+
+    *   *Action Items:*
+        *   **Go Developers:** Update to use native Foundry client (`foundry.NewClient`) instead of standard client workarounds.
+        *   **PHP Developers (Vertex AI):** Check code for `location` parameter and update to `region`.
+        *   **Enterprise Admins:** Review the impact of `disableSideloadFlags` on skills/plugins loading in local/desktop sessions.
+        *   **MCP Developers:** Ensure token endpoints use HTTPS or localhost; OAuth will fail over HTTP on LAN.
+        *   **Hook Developers:** Utilize the new `session_title` field in `UserPromptSubmit` hooks.
+
+5.  **Refining the Analysis:**
+
+    *   Check the PHP change in `claude-on-vertex-ai.md`. It says `location: &#39;global&#39;` became `region: &#39;global&#39;`. This is a breaking change for PHP users.
+    *   Check the Go Foundry change. It moves from `anthropic.NewClient` with base URL tricks to `foundry.NewClient`. This is a major improvement/migration path for Go users on Foundry.
+    *   Check the Skills permissions. It clarifies that blocking a skill by name also blocks its plugin form or synced form. This is important for security policy.
+
+6.  **Final Polish (Markdown Construction):**
+
+    *   Translate concepts accurately.
+    *   Keep it concise.
+
+    *(Self-Correction during drafting)*: Make sure to distinguish between the formatting changes (low impact) and the actual logic changes (medium impact). The prompt asks for what matters to developers.
+
+    *Drafting Action Items:*
+    1. Go SDK Foundry users: Migrate to native client.
+    2. PHP Vertex AI users: `location` -&gt; `region`.
+    3. MCP OAuth devs: Use HTTPS.
+    4. Desktop/Skills users: Note the policy flag behavior.
+    5. Hook users: New `session_title` available.
+
+7.  **Final Review against Constraints:**
+    *   Concise? Yes.
+    *   Insightful? Yes, highlights the subtle policy changes and SDK support additions.
+    *   Markdown? Yes.
+    *   Chinese? Yes.
+
+**(Self-Correction on `desktop.md`):** The change regarding `disableSideloadFlags` suggests that if an organization sets this flag, local sessions *won&#39;t* load cloud skills. This is a security hardening move.
+
+**(Self-Correction on `interactive-mode.md`):** Background tasks now have specific timeout rules (30 min default, 2 hour max). This is behavior to be aware of for long-running scripts.
+
+Okay, ready to generate output.</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/desktop.html" class="page-link">desktop.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/interactive-mode.html" class="page-link">interactive-mode.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+13</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+13</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/about-claude/model-deprecations.html" class="page-link">about-claude/model-deprecations.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+27</span>
+                            <span class="removed">-24</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/overview.html" class="page-link">api/overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/messages.html" class="page-link">api/messages.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+31</span>
+                            <span class="removed">-38</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/messages/count_tokens.html" class="page-link">api/messages/count_tokens.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+31</span>
+                            <span class="removed">-34</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/messages/batches/create.html" class="page-link">api/messages/batches/create.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+31</span>
+                            <span class="removed">-34</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/models/list.html" class="page-link">api/models/list.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+48</span>
+                            <span class="removed">-49</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/beta/files/upload.html" class="page-link">api/beta/files/upload.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+48</span>
+                            <span class="removed">-49</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/rate-limits.html" class="page-link">api/rate-limits.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/beta-headers.html" class="page-link">api/beta-headers.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            <span class="removed">-7</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/errors.html" class="page-link">api/errors.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/streaming.html" class="page-link">build-with-claude/streaming.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+10</span>
+                            <span class="removed">-10</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/files.html" class="page-link">build-with-claude/files.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-on-amazon-bedrock.html" class="page-link">build-with-claude/claude-on-amazon-bedrock.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-on-vertex-ai.html" class="page-link">build-with-claude/claude-on-vertex-ai.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-in-microsoft-foundry.html" class="page-link">build-with-claude/claude-in-microsoft-foundry.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+22</span>
+                            <span class="removed">-31</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/overview.html" class="page-link">agents-and-tools/tool-use/overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/bash-tool.html" class="page-link">agents-and-tools/tool-use/bash-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/computer-use-tool.html" class="page-link">agents-and-tools/tool-use/computer-use-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/memory-tool.html" class="page-link">agents-and-tools/tool-use/memory-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/fine-grained-tool-streaming.html" class="page-link">agents-and-tools/tool-use/fine-grained-tool-streaming.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/mcp-connector.html" class="page-link">agents-and-tools/mcp-connector.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+9</span>
+                            <span class="removed">-9</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">09:15 EST</div>
