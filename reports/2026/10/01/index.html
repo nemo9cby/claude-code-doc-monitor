@@ -118,9 +118,168 @@
 
         <header>
             <h1>Changes on 2026-10-01</h1>
-            <p class="meta">9 total changes in 1 run</p>
+            <p class="meta">15 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">16:44 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">## 文档变更分析
+
+### 1. 总体概要
+
+Claude Code 2.1.287 引入了 **Mods** —— 一种新型插件，可通过 JavaScript 函数直接在进程内注册 Hook、绘制 UI 面板并添加命令，同时明确了 Mods 与传统 Hook 之间的权限层级关系，并新增了插件命名保留规则。
+
+### 2. 关键主题
+
+- **Mods 新架构**：插件现可通过 JS 函数 Hook 深度介入 Claude Code 生命周期，具备 UI 绘制能力，远超此前仅 shell/HTTP/MCP 的 Hook 模型
+- **权限层级澄清**：`PreToolUse` Hook 可收紧限制但不可放宽；Mod 的 `tool.check` 可推翻普通 Hook 的拒绝，但无法推翻托管设置 (managed settings) 中的 Hook
+- **插件命名保留**：以 `claude-`、`anthropic-` 等开头的名称将报错，包含这些词的名称将警告
+- **插件清单新字段**：`types` 字段指向 `.d.ts` 文件，声明 Mod 的 `$.state` 值与 `$` 名词类型
+- **API 头部澄清**：单工作区 API Key 省略 `anthropic-workspace-id` 时自动在该工作区运行
+
+### 3. 影响级别：**High**
+
+理由：Mods 是插件体系的重大架构演进，赋予插件在宿主进程内执行 JS 并操控 UI 的能力，彻底改变了 Hook 的表达力边界。同时权限模型的重定义和命名保留规则对所有插件开发者有直接约束力。Changelog 中 50+ 项修复也涉及多个核心场景。
+
+### 4. 开发者行动项
+
+- **评估 Mods 适用场景**：如需 UI 面板、进程内事件响应或命令扩展，将插件升级为 Mod（参考 `plugins/mods/overview` 与 `plugins/mods/events`）
+- **检查插件命名合规**：运行 `claude plugin validate`，确保名称不含 `claude`/`anthropic` 等保留词；若已使用需尽快重命名
+- **理解权限优先级**：`managed settings Hook &gt; Mod tool.check &gt; 普通 PreToolUse Hook`；依赖 Hook 做安全策略的团队应确认 Mod 不会绕过关键拦截
+- **为 Mod 添加类型声明**：在 `plugin.json` 中配置 `types` 字段，提供 `$.state` 和 `$` 的 `.d.ts` 类型定义
+- **审查 Changelog 修复项**：重点关注 `asyncRewake` 死循环、`--include-partial-messages` 延迟、MCP 双重调用等与你使用场景相关的 Bug 修复</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">Let me analyze the documentation changes across all 6 pages.
+
+1. **hooks.md** - Added info about plugins registering hooks as JavaScript functions (mods), which can draw in the UI and act on events. Links to mods docs.
+
+2. **hooks-guide.md** - Clarified that hooks in settings files and plugin&#39;s `hooks/hooks.json` can tighten but not loosen restrictions. Added that a mod&#39;s `tool.check` hook can approve a call that `PreToolUse` blocked, unless the hook is in managed settings.
+
+3. **plugins.md** - Added &#34;hooks module&#34; as a new plugin component type. A plugin with a hooks module is called a &#34;mod&#34;. Updated diagram description.
+
+4. **plugins-reference.md** - Added `types` field to plugin manifest (for `.d.ts` file declaring `$.state` values and `$` nouns of a mod). Added plugin name validation rules - reserved names starting with `claude-`, `anthropic-`, etc. cause errors or warnings.
+
+5. **api/overview.md** - Minor clarification: single-workspace API keys run in that workspace when you omit the `anthropic-workspace-id` header.
+
+6. **CHANGELOG.md.md** - Version 2.1.287 with extensive changes including Claude Mods, &#34;You should know&#34; mod, various fixes for hooks, permissions, screen reader mode, MCP, etc.
+
+Key themes:
+- **Claude Mods** - Major new feature: plugins can now register JavaScript function hooks that run in-process, can draw UI panes, and add commands. This is the &#34;mod&#34; concept.
+- **Permission hierarchy clarification** - Clear rules about what hooks vs mods can do regarding tightening/loosening permissions. Managed settings hooks override mods.
+- **Plugin name validation** - Reserved names for Anthropic&#39;s own plugins.
+- **New plugin manifest field** - `types` for TypeScript declarations in mods.
+- **API workspace header clarification** - Minor doc fix.
+- **Massive bug fix release** - 2.1.287 has tons of fixes.
+
+Impact level: This is High. Claude Mods is a significant new capability that changes the plugin architecture fundamentally - plugins can now run JavaScript in-process with UI capabilities, which is a major evolution from the previous shell/HTTP/MCP-only hook model.
+
+Action items:
+- Learn about Mods if you build plugins - new JS function hooks with UI capabilities
+- Check plugin names don&#39;t conflict with new reserved naming rules
+- Understand the permission hierarchy: managed settings hooks &gt; mods &gt; regular hooks
+- Add `types` field to plugin manifest if building a mod
+- Review the extensive changelog for relevant fixes</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins.html" class="page-link">plugins.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/overview.html" class="page-link">api/overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            <span class="removed">-7</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+107</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">04:10 EST</div>
