@@ -118,9 +118,211 @@
 
         <header>
             <h1>Changes on 2026-10-02</h1>
-            <p class="meta">39 total changes in 3 runs</p>
+            <p class="meta">49 total changes in 4 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">18:46 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更批量分析
+
+## 1. 总体总结
+
+本次变更主要围绕 Claude Code v2.1.288 的大量 bug 修复和若干行为调整，重点修改了交互式会话中后台命令的时间限制策略、`PermissionRequest` 钩子的触发范围、路径作用域规则的触发条件，以及 Amazon Bedrock/Mantle 的模型路由逻辑。
+
+## 2. 关键主题
+
+- **后台命令时间限制大幅放宽**：本地交互式会话（终端、桌面应用、VS Code 扩展）中的后台命令不再有超时限制，仅无人值守会话（`-p`、云会话）保留时间限制
+- **权限钩子行为细化**：`PermissionRequest` 钩子现在也会与 `--permission-prompt-tool` 和 Agent SDK 的 `canUseTool` 回调并行运行，先决定者生效；非交互模式下仍会在 `dontAsk` 模式之外运行
+- **路径作用域规则触发扩展**：`.claude/rules` 中的路径作用域规则现在在 **Read、Write、Edit** 三种工具触发时都会加载（此前仅 Read 触发）
+- **Bedrock/Mantle 路由更精确**：`anthropic.` 前缀的条目仅在匹配 Mantle 格式时才路由到 Mantle 端点，而非全部路由；模型选择器行为按提供商差异化说明
+- **安装与版本通道**：新模型可能需要 `latest` 通道；Linux 包管理器通过仓库选择通道
+- **v2.1.288 大量修复**：超过 50 项 bug 修复，涵盖会话恢复、结构化输出、权限判断、插件、云会话、遥测等多个领域
+
+## 3. 影响级别：**Medium**
+
+理由：后台命令时间限制的移除是行为显著变化，可能影响长时间运行任务的预期；路径作用域规则触发条件扩展可能让某些规则更频繁地加载；`PermissionRequest` 钩子与 SDK/CLI 权限机制的并行交互需要开发者理解新的优先级逻辑。但这些都不是破坏性变更，而是对先前行为的合理调整和细化。
+
+## 4. 开发者行动项
+
+- **审查后台命令依赖**：如果你依赖交互式会话中后台命令的 30 分钟/2 小时超时来自动终止任务，需自行实现超时逻辑，因为现在交互式会话中不再有强制时间限制
+- **更新路径作用域规则**：如果你的 `.claude/rules` 使用了 `paths` 字段，需注意规则现在会在 Write 和 Edit 操作时也触发，可能产生比预期更多的规则加载
+- **检查 PermissionRequest 钩子**：若同时使用了 `--permission-prompt-tool` 或 Agent SDK 的 `canUseTool`，需理解钩子与这些机制并行运行、先决定者生效的新行为
+- **验证 Bedrock 模型路由**：若在 `availableModels` 中使用 `anthropic.` 前缀条目，确认它们是否符合 Mantle 格式——只有匹配的才会路由到 Mantle 端点
+- **升级到 v2.1.288**：本次包含关键修复（API 超时续传、会话恢复丢失上下文、`--resume` 丢文件、Mantle/网关结构化输出失败等），强烈建议升级</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">Let me analyze these documentation changes as a batch.
+
+The changes span across 10 pages and include several important updates to Claude Code&#39;s documentation. Let me identify the key themes and impacts.
+
+1. **Amazon Bedrock / Mantle routing changes**: The `anthropic.` prefix entries are now only routed to Mantle if they match the Mantle format, not automatically. Model picker behavior differs by provider.
+
+2. **Hooks / Permission behavior changes**: `PermissionRequest` hooks now run alongside `--permission-prompt-tool` and Agent SDK&#39;s `canUseTool` callback. The behavior in non-interactive mode is clarified - hooks still run outside `dontAsk` mode.
+
+3. **Background command time limits**: Major change - background commands in local interactive sessions (terminal, desktop app, VS Code) now have NO time limit. Only unattended sessions (`-p` runs, cloud sessions) have time limits.
+
+4. **Path-scoped rules triggering**: Rules now trigger on Read, Write, or Edit tool usage (not just Read).
+
+5. **Setup/installation**: New info about newly launched models requiring the latest channel, and Linux package managers choosing channel by repository.
+
+6. **Subagent definitions**: Clarified that subagent definitions can be reused as agent team teammates.
+
+7. **VS Code**: Removed mention of time limit for background commands moved to background (consistent with the interactive-mode change).
+
+8. **Changelog**: Huge list of fixes and improvements for v2.1.288.
+
+Key themes:
+- Permission/hook behavior refinement
+- Background command time limit relaxation for interactive sessions
+- Model picker behavior clarification by provider
+- Path-scoped rules now trigger on Write/Edit (not just Read)
+- Many bug fixes
+
+Impact: Medium - the background command time limit change is significant (removing limits for interactive sessions), and the path-scoped rules triggering on Write/Edit is a behavior change. The permission hook changes are also notable for SDK users.
+
+Action items:
+- If you rely on background command time limits in interactive sessions, note they&#39;re now unlimited
+- If you use path-scoped rules, note they now trigger on Write/Edit too
+- If you use PermissionRequest hooks with --permission-prompt-tool or Agent SDK, review the new interaction
+- If you use Amazon Bedrock with anthropic. prefix models, verify routing still works (now only Mantle-format ones route to Mantle)
+- Upgrade to 2.1.288 for the many bug fixes</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/amazon-bedrock.html" class="page-link">amazon-bedrock.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/interactive-mode.html" class="page-link">interactive-mode.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/memory.html" class="page-link">memory.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/model-config.html" class="page-link">model-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/setup.html" class="page-link">setup.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/vs-code.html" class="page-link">vs-code.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+90</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">14:54 EST</div>
