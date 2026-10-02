@@ -645,9 +645,9 @@ The list fills only in sessions that have the task-tracking tools, which Claude 
 
 When you return to the terminal after stepping away, Claude Code shows a one-line recap of what happened in the session so far. The recap generates in the background once at least three minutes have passed since the last completed turn and the terminal is unfocused, so it's ready when you switch back. Recaps only appear once the session has at least three turns, and never twice in a row.
 
-Run `/recap` to generate a summary on demand. Claude Code caps both automatic recaps and `/recap` output at 400 characters. To turn automatic recaps off, open `/config` and turn off **Session recap**.
+Run `/recap` to generate a summary on demand. It runs only when you ask for it yourself. When it arrives in a message relayed from a Slack, Teams, or project thread, or in a prompt a routine sent, you get a [notice](/docs/en/errors#recap-only-runs-when-you-ask-for-it-yourself) instead of a recap.
 
-Session recap is on by default for every plan and provider. The recap is always skipped in non-interactive mode.
+Session recap is on by default for every plan and provider. To turn automatic recaps off, open `/config` and turn off **Session recap**. The automatic recap never appears in non-interactive mode. Claude Code caps both automatic recaps and `/recap` output at 400 characters.
 
 ## Wait for a usage limit to reset
 
