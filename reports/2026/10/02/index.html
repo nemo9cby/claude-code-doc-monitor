@@ -118,9 +118,234 @@
 
         <header>
             <h1>Changes on 2026-10-02</h1>
-            <p class="meta">49 total changes in 4 runs</p>
+            <p class="meta">60 total changes in 5 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">21:39 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">## 文档变更批量分析
+
+### 1. 总体概述
+
+此次文档更新主要围绕**移除过时的版本门槛说明**（多个 &#34;As of v2.1.199&#34; 标注被清除）、**CLI 命令简化**（`claude project purge` → `claude purge`）、以及**auto-compact 窗口的按模型存储重构**展开，同时新增了插件请求超时配置和 skill 覆盖内置命令的能力。
+
+### 2. 关键主题
+
+- **版本门槛清理**：大量 v2.1.199 相关的版本要求说明被移除（sandboxing、hooks、mcp、skills、sub-agents），表明这些功能已成为基线特性，不再需要版本提示
+- **CLI 命令简化**：`claude project purge` 缩短为 `claude purge`，降低了使用摩擦
+- **auto-compact 按模型配置**：`/autocompact` 现在将窗口值保存到当前模型的 `modelSettings` 下，而非全局 `autoCompactWindow`；同时新增环境变量 `CLAUDE_CODE_AUTO_COMPACT_WINDOW` 用于网关场景
+- **skill 优先级扩展**：自定义 skill 现可覆盖内置命令（如 `/usage`），但不会覆盖其别名（如 `/cost`）
+- **插件 MCP 服务器超时**：新增 `requestTimeout` 字段（默认 60s，需 v2.1.288+）
+- **权限行为细化**：浏览器权限改为按站点记忆；headless 模式下 `&#34;ask&#34;` 的 reason 会传递给 Claude；`idle_prompt` 在后台子代理运行时不再触发
+- **文档格式修复**：setup.md 中重复的 `theme={null}` 属性被清理
+
+### 3. 影响级别：**Medium**
+
+- **无破坏性变更**，但 `claude purge` 替代 `claude project purge` 属于命令重命名，旧命令可能仍可用但应迁移
+- auto-compact 存储位置从全局改为按模型，已保存的设置可能需要重新配置（v2.1.288 前的行为已文档化）
+- 版本门槛的移除对开发者无负面影响，仅简化阅读
+
+### 4. 开发者行动项
+
+- **迁移 `claude project purge` → `claude purge`**：更新脚本和肌肉记忆中的命令调用
+- **检查 auto-compact 配置**：升级到 v2.1.288+ 后，`/autocompact` 将按模型保存窗口值；如需全局设置，改用 `autoCompactWindow` 配置项或 `CLAUDE_CODE_AUTO_COMPACT_WINDOW` 环境变量
+- **利用 skill 覆盖内置命令**：现在可在 `.claude/skills/` 中创建与内置命令同名的 skill 来替换其行为（别名仍走内置）
+- **配置插件请求超时**：对响应慢的 MCP 服务器，在插件配置中设置 `requestTimeout`（毫秒）以替代默认 60s
+- **注意浏览器权限粒度变化**：权限提示现在按站点区分，已允许的站点不再重复询问，依赖旧行为的自动化脚本可能受影响</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">Let me analyze all the documentation changes across the 11 pages.
+
+Key changes I see:
+
+1. **chrome.md**: Clarification that browser permission prompts only appear for sites you haven&#39;t already allowed (more granular permission model).
+
+2. **cli-reference.md**: 
+   - `claude project purge` → `claude purge` (simplified command)
+   - Removed version-specific note about `--dangerously-skip-permissions daemon` behavior (v2.1.199)
+
+3. **hooks.md**:
+   - Clarified `permissionDecisionReason` behavior for `&#34;ask&#34;` in `-p` (headless) runs
+   - Removed &#34;As of v2.1.199&#34; prefix for MCP tool requiresUserInteraction
+   - `idle_prompt` now accounts for background agents/subagents still running
+
+4. **mcp.md**:
+   - Removed version requirement note for `anthropic/requiresUserInteraction` (v2.1.199)
+   - Simplified URL mode description (removed &#34;opens it when you accept&#34;)
+
+5. **model-config.md**:
+   - Auto-compact window now settable via `CLAUDE_CODE_AUTO_COMPACT_WINDOW` env var for gateway scenarios
+   - `/autocompact` now saves per-model under `modelSettings` instead of global `autoCompactWindow`
+   - Added new &#34;For every model&#34; setting option via `autoCompactWindow` in settings files
+   - Before v2.1.288 note about the old behavior
+
+6. **plugins-reference.md**: Added `requestTimeout` field for plugin MCP servers (default 60s, requires v2.1.288)
+
+7. **sandboxing.md**:
+   - Removed version requirement notes (v2.1.199 for masking env vars, v2.1.199 for tlsTerminate)
+   - Consolidated credential masking description
+
+8. **setup.md**: Fixed duplicate `theme={null}` attributes in code blocks (formatting fix)
+
+9. **skills.md** / **slash-commands.md** (duplicate changes):
+   - Added &#34;built-in commands&#34; to the name conflict resolution table
+   - New row: skills can replace built-in commands in local terminal sessions (but not their aliases)
+   - `effort` field now uses effort resolution order instead of &#34;inherits from session&#34;
+   - Removed &#34;Before v2.1.199&#34; note about skill stacking
+   - Removed &#34;As of v2.1.199&#34; prefix for `skillOverrides: &#34;off&#34;` behavior
+
+10. **sub-agents.md**:
+    - Removed &#34;As of v2.1.199&#34; prefixes for API error reporting and SendMessage name checking
+    - These features are now standard, not version-gated
+
+Overall themes:
+- **Removing version-gated language**: Many &#34;As of v2.1.199&#34; and version requirement notes are being removed, suggesting these features are now baseline/standard
+- **CLI simplification**: `claude project purge` → `claude purge`
+- **Per-model auto-compact**: Significant change to how auto-compact windows are saved (per-model vs global)
+- **New features**: `requestTimeout` for plugins, skills overriding built-in commands
+- **Bug fixes**: Duplicate theme attributes in setup.md
+- **Behavior clarifications**: Browser permissions per-site, idle_prompt with background agents, permissionDecisionReason in headless mode</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/chrome.html" class="page-link">chrome.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/cli-reference.html" class="page-link">cli-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/model-config.html" class="page-link">model-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sandboxing.html" class="page-link">sandboxing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/setup.html" class="page-link">setup.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">18:46 EST</div>
