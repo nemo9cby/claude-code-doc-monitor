@@ -118,9 +118,324 @@
 
         <header>
             <h1>Changes on 2026-10-06</h1>
-            <p class="meta">22 total changes in 2 runs</p>
+            <p class="meta">35 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">18:11 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">以下是对此次文档变更的批量分析摘要：
+
+### 1. 总体摘要
+
+此次更新主要集中在**企业级安全合规、Agent 行为优化以及稳定性修复**三个方面。文档新增了详细的数据流出路径映射表，强化了沙箱隔离策略，并明确了子代理中 `effort` 参数的优先级逻辑。同时，针对企业网络环境（代理、SSO）和后台会话的稳定性进行了多项关键修复。
+
+### 2. 关键变更主题
+
+*   **企业级安全与可观测性增强**
+    *   **核心新增**：在 `monitoring-usage.md` 中新增了“Map egress paths to managed controls and events”章节，提供了详细的表格，将 Bash、MCP、Hooks、Plugins 等可能的数据流出路径与对应的托管设置及监控事件一一映射。这对合规审计和 SIEM 集成至关重要。
+    *   **数据保留检查**：新增了如何验证“数据清理扫描”是否按预期运行的指南，帮助确认机器是否正确应用了托管的数据保留策略。
+
+*   **沙箱隔离策略升级**
+    *   **全进程边界**：文档澄清并建议，为了对整个 Claude Code 进程（包括原本在沙箱外运行的进程）进行隔离，应将本地模式运行在 **Sandbox Runtime** 或 **Dev Container** 内部。
+    *   **后台会话隔离**：明确了后台会话的 Bash 命令也会受其独立设置中的沙箱配置约束。
+
+*   **Agent 与模型行为优化**
+    *   **Effort 参数逻辑**：明确了子代理中的 `effort` 设置会覆盖会话级别，但**不会**覆盖 `CLAUDE_CODE_EFFORT_LEVEL` 环境变量。
+    *   **模型能力查询**：模型 API 响应中新增了 `capabilities.thinking.types.disabled` 字段，用于查询模型是否支持关闭 thinking 模式。
+
+*   **稳定性与网络环境修复**
+    *   **企业网络**：修复了 `NO_PROXY` 在设置 `HTTPS_PROXY` 时被忽略的问题；优化了 AWS SSO 在企业 VPN/代理环境下的登录循环说明。
+    *   **安全漏洞修复**：修复了 macOS/Windows 上 PDF 读取可能通过链接交换导致的文件越权漏洞，以及 UNC 路径下 PreToolUse hook 可能绕过权限提示的安全问题。
+    *   **后台任务**：修复了后台会话崩溃后计划任务丢失、进程重启后待处理唤醒丢失的问题。
+
+### 3. 影响等级
+
+**中 / 高**
+
+*   **理由**：
+    *   **高**：新增的数据流出路径映射表和全进程沙箱隔离指南对负责安全和合规的企业开发者至关重要。安全漏洞修复（PDF 读取、UNC 路径）建议尽快采纳。
+    *   **中**：Agent 参数逻辑的变更和众多 Bug 修复（如代理支持、后台任务稳定性）显著改善了开发体验，但通常不涉及破坏性变更。
+
+### 4. 开发者行动建议
+
+*   **审查监控策略**：如果你负责企业部署或合规，请查阅 `monitoring-usage.md` 新增的映射表，配置相应的托管设置和 SIEM 事件收集。
+*   **更新安全配置**：考虑利用新的“全进程边界”指南，通过 Sandbox Runtime 或 Dev Container 进一步加强隔离环境；评估是否需要更新代理设置以适配 `NO_PROXY` 修复。
+*   **检查 Agent 配置**：审查子代理定义，确保 `effort` 参数的行为符合预期（注意环境变量拥有更高优先级）。
+*   **排查网络问题**：如果在企业环境下遇到 AWS SSO 标签页无限弹出，请参考更新后的文档移除 `awsAuthRefresh` 并改用手动登录。
+*   **利用新 CLI 参数**：使用 `claude plugin install --marketplace &lt;source&gt;` 简化插件安装流程。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer, expert in developer tools/documentation.
+    *   **Task:** Analyze a batch of documentation changes (13 pages) and provide a summary.
+    *   **Format:** Markdown, concise, insightful.
+    *   **Focus:** What matters to developers.
+    *   **Language:** Chinese (as requested: &#34;请用中文回复&#34;).
+    *   **Output Structure:** Overall Summary, Key Themes, Impact Level, Action Items.
+
+2.  **Analyze the Diff Content (Page by Page):**
+
+    *   `amazon-bedrock.md`: Clarification on AWS SSO login loops. Explains *why* it loops (network interruption -&gt; auth failure -&gt; retry). Suggests manual login.
+    *   `costs.md`: Updated intro text to specify this page covers &#34;Claude Code usage only&#34; and links to Help Center for other product limits. Scope clarification.
+    *   `discover-plugins.md`: Minor grammar change (&#34;For every&#34; -&gt; &#34;For the other&#34;). Very low impact.
+    *   `monitoring-usage.md`:
+        *   Update to `files_past_cutoff` definition (includes stale synced folders).
+        *   **New Section:** &#34;Map egress paths to managed controls and events&#34;. This is huge for security/compliance. Maps Bash, MCP, Hooks, Plugins, WebFetch, etc., to settings keys and events.
+        *   **New Section:** &#34;Check the retention sweep&#34;. How to verify cleanup settings are working.
+    *   `sandboxing.md`:
+        *   Added &#34;Background sessions&#34; to sandbox scope explanation.
+        *   Added &#34;A boundary around the whole process&#34; section explaining how to sandbox the *entire* process using the sandbox runtime or dev container.
+    *   `security.md`: Updated recommendation for isolation. Explicitly mentions running the whole process in sandbox runtime or dev container (linking to the new section in `sandboxing.md`).
+    *   `statusline.md`: Clarification on `effort` field in JSON status line (absent when no level is set, vs inheriting).
+    *   `sub-agents.md`: Updated `effort` parameter description. Clarifies it overrides the session level but *not* the `CLAUDE_CODE_EFFORT_LEVEL` environment variable.
+    *   `about-claude/models/overview.md`: Added details about `capabilities.thinking.types.disabled` in the model response object.
+    *   `agents-and-tools/tool-use/implement-tool-use.md`: Image URL encoding fix (`tool_choice.png`). Technical detail, likely irrelevant to function.
+    *   `agents-and-tools/tool-use/web-search-tool.md`: Updated links to Managed Agents docs (renamed/moved sections like `tools-web-restrictions`).
+    *   `agents-and-tools/tool-use/web-fetch-tool.md`: Same as above, updated links.
+    *   `CHANGELOG.md.md`:
+        *   Version 2.1.292.
+        *   New CLI flag: `--marketplace`.
+        *   New Agent tool param: `effort`.
+        *   New Env var: `CLAUDE_CODE_OVERLOADED_RETRY_BASE_DELAY_MS`.
+        *   New Event: `prompt.autocomplete`.
+        *   **Fixes (Many):** Permission mode issues, sandbox read-deny path fixes, PDF security fixes (file swap), cache tampering fixes, `NO_PROXY` fix, subagent effort fix, background session fixes, etc.
+        *   **Security Fixes:** PreToolUse hook bypass fix for UNC paths.
+
+3.  **Synthesize &amp; Categorize:**
+
+    *   *Theme 1: Security &amp; Compliance (Enterprise focus).* The `monitoring-usage.md` update is significant here. Mapping egress paths to controls helps enterprise developers track data flow. Sandbox updates help with isolation.
+    *   *Theme 2: Agent/Model Refinement.* Updates to `effort` handling in sub-agents (env var takes precedence) and new `effort` param in Agent tool. Model capabilities API update (`thinking.types.disabled`).
+    *   *Theme 3: Reliability &amp; Bug Fixes.* Changelog lists extensive fixes: proxy support (`NO_PROXY`), background session recovery, sandbox security fixes, PDF security, plugin loading logic.
+    *   *Theme 4: Documentation Maintenance.* Link fixes, clarifying text for AWS SSO, and clarifying costs scope.
+
+4.  **Draft the Content (in Chinese):**
+
+    *   *Overall Summary:* This batch focuses heavily on enterprise security compliance (monitoring egress paths), hardening sandbox isolation, and refining agent behavior (effort levels). It also includes numerous bug fixes affecting networking, background sessions, and plugin stability.
+
+    *   *Key Themes:*
+        *   **Security &amp; Compliance:** Added a comprehensive table in `monitoring-usage.md` mapping data egress paths (Bash, MCP, Hooks, etc.) to managed controls and events. Clarified how to sandbox the *entire* process, not just sub-processes.
+        *   **Agent Behavior:** Refined how `effort` levels work in sub-agents (env vars override session settings) and added `effort` to the Agent tool API.
+        *   **Reliability Fixes:** Major fixes for corporate network environments (AWS SSO loops, `NO_PROXY`), security gaps (PDF read-swapping, UNC path permissions), and background session persistence.
+        *   **Model API:** Added model capability info regarding `thinking: {type: &#34;disabled&#34;}`.
+
+    *   *Impact Level:* **Medium/High**.
+        *   *Reasoning:* The security monitoring additions are high value for enterprise admins. The bug fixes resolve annoying edge cases (loops, proxy issues) and security vulnerabilities (sandbox escape, file swap). The API changes are additive.
+
+    *   *Action Items:*
+        *   Review the new &#34;Map egress paths&#34; section if implementing observability/SIEM.
+        *   Update sub-agent configurations if relying on `effort` inheritance (env vars now take precedence).
+        *   Update CLI scripts if using `claude plugin install` (new `--marketplace` flag).
+        *   Apply updates if experiencing AWS SSO login loops or Proxy issues.
+
+5.  **Refine Language (Self-Correction during drafting):**
+    *   Make sure to distinguish between &#34;Claude Code&#34; (the editor tool) and &#34;Claude&#34; (the API). The changes cover both.
+    *   Ensure &#34;Egress paths&#34; is translated or explained clearly (数据流出路径).
+    *   Highlight the security fixes in the changelog as they are actionable for security-conscious teams.
+
+6.  **Final Polish (Markdown Structure):**
+
+    *   **Overall Summary:** (Drafted above)
+    *   **Key Themes:**
+        *   企业级安全与合规性
+        *   Agent 与模型能力增强
+        *   稳定性与网络环境修复
+        *   文档澄清与链接修正
+    *   **Impact Level:** High (Security/Enterprise focus) -&gt; Medium (General dev). Let&#39;s go with **Medium/High**.
+    *   **Action Items:**
+        1.  Check monitoring docs for egress mapping.
+        2.  Verify effort level config.
+        3.  Apply security updates/restart.
+        4.  Handle AWS SSO loop workaround.
+        5.  Use new plugin flag.
+
+7.  **Final Output Generation** (Proceed to generate response based on these points).
+
+    *   *Self-Correction on `sub-agents.md`:* The change is that the `effort` setting in the frontmatter does *not* override the env var. This is a behavioral clarification.
+    *   *Self-Correction on `monitoring-usage.md`:* The new section is quite long and detailed. It&#39;s a very significant change for enterprise compliance.
+
+8.  **Constructing the Chinese response.** (Translating concepts accurately).
+    *   &#34;Egress paths&#34; -&gt; 数据流出路径 / 出站路径.
+    *   &#34;Managed settings&#34; -&gt; 托管设置.
+    *   &#34;Sandbox runtime&#34; -&gt; 沙箱运行时.
+
+    (Drafting the response now...)</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/amazon-bedrock.html" class="page-link">amazon-bedrock.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/costs.html" class="page-link">costs.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/discover-plugins.html" class="page-link">discover-plugins.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+30</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sandboxing.html" class="page-link">sandboxing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/security.html" class="page-link">security.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/statusline.html" class="page-link">statusline.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/about-claude/models/overview.html" class="page-link">about-claude/models/overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/implement-tool-use.html" class="page-link">agents-and-tools/tool-use/implement-tool-use.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/web-search-tool.html" class="page-link">agents-and-tools/tool-use/web-search-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/web-fetch-tool.html" class="page-link">agents-and-tools/tool-use/web-fetch-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+93</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">13:46 EST</div>
