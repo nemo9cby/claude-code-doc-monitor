@@ -118,9 +118,321 @@
 
         <header>
             <h1>Changes on 2026-10-08</h1>
-            <p class="meta">30 total changes in 2 runs</p>
+            <p class="meta">44 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">17:44 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 整体摘要
+本次文档更新主要涉及第三方云服务商的 1M Token 上下文窗口默认行为变更、Hooks 与 MCP 服务器配置能力的增强，以及 CLI 和 Headless 模式下后台任务行为的修正。这些变化旨在简化模型配置、提升集成灵活性并修复边缘情况下的行为不一致。
+
+### 关键变更主题
+
+*   **1M 上下文窗口默认启用**：在 Amazon Bedrock、Google Vertex AI 和 Microsoft Foundry 上，Fable 模型、Sonnet 5+ 和 Opus 4.7+ 现默认运行在 1M 上下文窗口，无需 `[1m]` 后缀。用户需使用 `CLAUDE_CODE_DISABLE_1M_CONTEXT=1` 来保持 200K 窗口。
+*   **Hooks 与事件系统增强**：扩展了 `TaskCreated`、`TaskCompleted` 等事件，新增 `agent_id` 字段（需 v2.1.290+）；优化了 `Elicitation` hook 的拒绝逻辑，支持 `decision: &#34;block&#34;` 或退出码 2 来拦截请求。
+*   **MCP 工具加载控制**：引入了 `anthropic/alwaysLoad` 工具元数据（需 v2.1.285+）及服务端延迟加载配置（需 v2.1.287+）；同时明确了 HTTP/SSE 服务器的响应大小限制（16MB）。
+*   **CLI 与 Headless 行为修正**：改进了 `claude -p` 在后台任务结束时的输出打印逻辑（确保每轮响应即时打印），并细化了等待后台命令、子代理及 Monitor 时的超时行为。
+*   **版本发布一致性**：CHANGELOG 确认了 v2.1.295 版本的发布，涵盖了上述文档中提到的多个 Bug 修复及功能添加。
+
+### 影响等级：高
+**理由**：
+1.  **配置破坏性变更**：第三方云服务商的 1M 上下文窗口默认行为改变，直接影响依赖特定模型配置的现有部署。
+2.  **集成逻辑调整**：MCP 工具加载和 Hook 拦截逻辑的更新要求开发者适配新接口，否则可能影响工具的可用性或权限控制。
+3.  **自动化脚本行为**：CLI 输出流逻辑的修正可能影响解析 `claude -p` 输出的自动化脚本。
+
+### 开发者行动建议
+
+1.  **检查模型配置**：如果您在 Bedrock、Vertex 或 Foundry 上使用 Opus 4.7+ 等新模型，请确认是否需要通过环境变量显式禁用 1M 上下文窗口，以避免意外的大量 Token 消耗。
+2.  **适配 MCP 元数据**：MCP 服务器开发者应评估是否在 `tools/list` 中添加 `anthropic/alwaysLoad` 字段，并确保服务器响应体积控制在 16MB 以内。
+3.  **更新 Hook 脚本**：审查处理 `Elicitation` 事件的 Hook 脚本，利用新的 `decision: &#34;block&#34;` 机制来更清晰地实现请求拒绝逻辑。
+4.  **测试自动化脚本**：如果您的 CI/CD 流水线依赖 `claude -p` 的输出格式，请测试新版本下后台任务结束时的打印行为，确保输出解析逻辑依然有效。
+5.  **审查服务端设置**：管理员应更新关于“Server-managed settings”的部署文档，移除对 API Key 的依赖说明，转而强调登录凭证的要求。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Task:** Analyze 14 documentation pages (diffs provided).
+    *   **Output Format:** Markdown (Overall Summary, Key Themes, Impact Level, Action Items).
+    *   **Language:** Chinese.
+    *   **Constraint:** Concise, insightful, developer-focused.
+
+2.  **Analyze the Diffs (Page by Page):**
+
+    *   **Page 1: `amazon-bedrock.md`**
+        *   *Change:* Updated 1M token context window behavior. Fable, Sonnet 5+, Opus 4.7+ default to 1M on Invoke API and Mantle without `[1m]` suffix. Opus 4.6 and Sonnet 4.6 still need `[1m]`. Added environment variable `CLAUDE_CODE_DISABLE_1M_CONTEXT=1`. Added historical note about v2.1.287.
+        *   *Impact:* Breaking change for users expecting 200K by default on new models, or conversely, a simplification (no suffix needed). Affects model configuration.
+
+    *   **Page 2: `claude-code-on-the-web.md`**
+        *   *Change:* Clarified cloud sessions count toward plan usage limits; no separate charge for cloud VM. Removed redundant sentence about compute charge in constraints.
+        *   *Impact:* Low. Clarification on pricing/billing.
+
+    *   **Page 3: `common-workflows.md`**
+        *   *Change:* Clarified that Claude answers questions about its capabilities using current docs, not just the installed version. Removed a redundant tip.
+        *   *Impact:* Low. UX clarification.
+
+    *   **Page 4: `desktop.md`**
+        *   *Change:* Updated managed settings description (removed mention of &#34;keys&#34; for remote pushes, now only &#34;eligible login&#34;). Added section on checking Claude Code version in the Code tab (`/status` command).
+        *   *Impact:* Low/Medium. Version checking is useful for debugging. Managed settings clarification is specific but minor.
+
+    *   **Page 5: `google-vertex-ai.md`**
+        *   *Change:* Similar to Amazon Bedrock. Fable, Sonnet 5+, Opus 4.7+ default to 1M without `[1m]`. Added `CLAUDE_CODE_DISABLE_1M_CONTEXT`. Historical note for v2.1.287.
+        *   *Impact:* Same as Bedrock. High impact on model configuration users.
+
+    *   **Page 6: `headless.md`**
+        *   *Change:* Refined logic for `claude -p` background tasks. Clarified that it waits for background commands, subagents, Monitor watches, and `/loop` wakeups. 10-minute cap logic refined.
+        *   *Impact:* Medium. Important for CLI users and automation scripts relying on `claude -p`.
+
+    *   **Page 7: `hooks.md`**
+        *   *Change:* Updated `Elicitation` and `ElicitationResult` hooks. Can now decline via `decision: &#34;block&#34;` or exit code 2. Added detailed examples for answering form requests from scripts. Added `agent_id` field to `TaskCreated`, `TaskCompleted`, `TeammateIdle` events (v2.1.290+).
+        *   *Impact:* Medium/High. Enhanced hook capabilities are significant for advanced users/integrators.
+
+    *   **Page 8: `iam.md`**
+        *   *Change:* Removed specific version requirement note (v2.1.257) regarding server-managed settings for sign-in. (Implied it&#39;s standard now or irrelevant).
+        *   *Impact:* Low. Cleanup.
+
+    *   **Page 9: `mcp.md`**
+        *   *Change:* Fixed typo &#34;identically&#34; -&gt; &#34;bundled&#34;. Added 16 MB limit for HTTP/SSE response bodies. Clarified `CLAUDE_CODE_MAX_MCP_DESCRIPTION_LENGTH` requirement. Added new per-tool meta field `anthropic/alwaysLoad` (v2.1.285+). Added feature to defer server tools even if marked always-load (v2.1.287+).
+        *   *Impact:* Medium. Important for MCP server developers regarding tool loading behavior and response sizes.
+
+    *   **Page 10: `memory.md`**
+        *   *Change:* Clarified when `CLAUDE.md` files in subdirectories are loaded (when files are read/written/edited via tools or specific bash commands like `cat`/`head`).
+        *   *Impact:* Low. Clarification.
+
+    *   **Page 11: `microsoft-foundry.md`**
+        *   *Change:* Added new section for 1M token context window support. Similar to Bedrock/Vertex: Fable, Sonnet 5+, Opus 4.7+ default to 1M. `modelOverrides` logic explained.
+        *   *Impact:* High (for Foundry users). Aligns with other provider updates.
+
+    *   **Page 12: `model-config.md`**
+        *   *Change:* Updated model alias table notes (`opus[1m]` note). Updated server-managed settings notes (removed &#34;keys&#34;, focus on login/OAuth). Updated content-based fallback behavior details (removed sentence about &#34;refused&#34;, clarified re-running behavior). Updated &#34;Ask before switching&#34; logic (new default behavior and prompt).
+        *   *Impact:* Medium/High. Fallback behavior changes and server-managed settings refinements affect configuration.
+
+    *   **Page 13: `monitoring-usage.md`**
+        *   *Change:* Fixed terminology &#34;boolean&#34; -&gt; &#34;Boolean&#34; (capitalized) in several places.
+        *   *Impact:* Low. Style/Typo fix.
+
+    *   **Page 14: `CHANGELOG.md.md`**
+        *   *Change:* Massive addition for version 2.1.295. Includes features (hook failure blocking, program status protocol, quoted text copy), fixes (1M model failures, background text output, remote MCP reconnects, file extensions, etc.).
+        *   *Impact:* High. Confirms the underlying version changes seen in the docs (e.g., v2.1.287, v2.1.290).
+
+3.  **Synthesize Key Themes:**
+    *   **1M Token Context Window Default:** Major shift across Bedrock, Vertex, and Foundry. Newer models (Fable, Sonnet 5+, Opus 4.7+) default to 1M without suffixes.
+    *   **Enhanced Hook &amp; Event Capabilities:** New `agent_id` fields, refined Elicitation hooks, and better failure blocking.
+    *   **MCP &amp; Tool Management:** Introduction of `anthropic/alwaysLoad`, server-side deferral control, and response size limits.
+    *   **CLI &amp; Headless Improvements:** Refinements to `claude -p` behavior regarding background tasks and timeouts.
+    *   **Version 2.1.295 Release:** Changelog confirms numerous bug fixes and minor features aligning with doc updates.
+
+4.  **Determine Impact Level:**
+    *   *High*: The default change to 1M token context windows is a behavioral change that affects anyone pinning models or expecting specific behavior without checking versions. The fallback model logic changes are also significant.
+    *   *Medium*: Hook changes and MCP loading behaviors affect developers building integrations.
+    *   *Low*: Text clarifications (cloud sessions, boolean typos, memory loading).
+    *   *Overall*: **High**. Because of the model context window defaults changing for major providers, this requires attention from developers relying on third-party deployments.
+
+5.  **Formulate Action Items (Chinese):**
+    *   Update model pinning logic for Bedrock/Vertex/Foundry if 1M context is now default but unwanted (use env var).
+    *   Review `anthropic/alwaysLoad` implementation for MCP servers.
+    *   Check hook scripts for `Elicitation` event handling if blocking logic is used.
+    *   Update automation scripts relying on `claude -p` output ordering (fixed to print per turn).
+    *   Review server-managed settings for login key exclusions.
+
+6.  **Draft the Response (Iterative Refinement for Chinese):**
+
+    *   *Summary*: 本次文档更新主要集中在第三方云服务商的 1M Token 上下文窗口默认行为变更、Hooks 与 MCP 服务器配置的增强，以及 CLI 和 Headless 模式的行为修正。
+    *   *Themes*:
+        *   **1M 上下文窗口默认启用**: Amazon Bedrock, Google Vertex, Microsoft Foundry 上的 Fable, Sonnet 5+, Opus 4.7+ 现默认使用 1M 窗口，无需后缀。
+        *   **Hooks 与事件系统增强**: 新增 `agent_id` 字段，优化 `Elicitation` 拦截逻辑，支持通过 `decision: &#34;block&#34;` 拒绝请求。
+        *   **MCP 工具加载控制**: 新增 `anthropic/alwaysLoad` 元数据及服务端延迟加载配置，增加了 HTTP 响应大小限制。
+        *   **CLI 与 Headless 行为修正**: `claude -p` 在后台任务时的输出打印逻辑及等待行为得到修正。
+    *   *Impact*: High. 模型默认上下文窗口的变更直接影响现有配置，Hooks 和 MCP 的增强涉及集成开发。
+    *   *Action Items*:
+        *   检查并调整在 Bedrock/Vertex/Foundry 上的模型配置，特别是是否需要通过 `CLAUDE_CODE_DISABLE_1M_CONTEXT=1` 限制回 200K 窗口。
+        *   MCP 开发者应审查工具加载逻辑，适配 `anthropic/alwaysLoad` 声明及服务端延迟加载策略。
+        *   更新处理 `Elicitation` 事件的 Hook 脚本，利用新的 `decision` 字段或退出码控制拒绝逻辑。
+        *   依赖 `claude -p` 输出流的自动化脚本需适配新的按轮次打印行为。
+
+7.  **Final Polish:** Ensure tone is professional and concise. Match markdown structure. (Self-correction: Ensure the specific version mentions from Changelog like v2.1.287, v2.1.290 are reflected as context for the changes).
+
+8.  **Output Generation.** (Proceed to generate markdown based on drafted points).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/amazon-bedrock.html" class="page-link">amazon-bedrock.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/claude-code-on-the-web.html" class="page-link">claude-code-on-the-web.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/common-workflows.html" class="page-link">common-workflows.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/desktop.html" class="page-link">desktop.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/google-vertex-ai.html" class="page-link">google-vertex-ai.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/headless.html" class="page-link">headless.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+66</span>
+                            <span class="removed">-17</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/iam.html" class="page-link">iam.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+20</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/memory.html" class="page-link">memory.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/microsoft-foundry.html" class="page-link">microsoft-foundry.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/model-config.html" class="page-link">model-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+29</span>
+                            <span class="removed">-26</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+144</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">12:03 EST</div>
