@@ -118,9 +118,383 @@
 
         <header>
             <h1>Changes on 2026-10-07</h1>
-            <p class="meta">94 total changes in 3 runs</p>
+            <p class="meta">110 total changes in 4 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">21:30 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更分析摘要
+
+## 1. 整体摘要
+本次文档更新标志着 **`claude-haiku-5-5` 模型的正式可用**，大幅扩展了 **Browser 工具的 API Schema**（增加了坐标定位、元素引用及双击等精细交互能力），并完善了模型能力元数据与 SSH 访问控制的安全策略说明。
+
+## 2. 关键主题
+
+*   **新模型发布 (`claude-haiku-5-5`)**: Haiku 5.5 已正式集成至 Messages API、Batches API 和 Count Tokens API 中，供开发者调用。
+*   **Browser 工具 API 扩展**: API 文档中新增了详细的输入/输出 Schema，支持通过坐标 (`coordinate`) 或元素引用 (`ref`) 进行点击 (`click`, `double_click`)、关闭标签页 (`close_tab`) 及文件上传 (`file_upload`)，显著增强了浏览器的自动化交互能力。
+*   **配置管理与安全策略**: 澄清了 Desktop 端 `sshHostAllowlist` 在多源托管设置（如 Server-managed 与 MDM）下的**优先级合并逻辑**。警告信息指出，若高优先级源未设置该密钥，则低优先级源的设置将被忽略，这对管理员配置安全策略至关重要。
+*   **MCP 协议协商更新**: 对于 stdio 服务器，询问协议版本支持现在是默认行为，无需再通过环境变量 `MCP_PROTOCOL_NEGOTIATION` 显式开启或等待特定版本。
+*   **模型能力发现增强**: `models/list` API 新增了 `server_tools`（代码执行、网络搜索）和 `thinking` 类型的详细支持情况，允许客户端通过程序化查询确定模型功能。
+
+## 3. 影响程度: **中高**
+
+*   **理由**:
+    *   **高**: 新模型的发布直接影响 API 调用成本与性能选择；Browser 工具 Schema 的变更为自动化工具开发者提供了更强大的控制力。
+    *   **中**: `sshHostAllowlist` 的优先级行为变更属于“隐形”配置逻辑调整，可能导致现有的安全策略在混合配置源下失效，需引起管理员高度注意。
+
+## 4. 开发者行动项
+
+*   **更新 API 客户端**: 在模型选择列表中添加对 `claude-haiku-5-5` 的支持，以利用其高性能或成本优势。
+*   **审查 SSH 白名单配置**: 如果您的组织同时使用了 Server-managed settings 和本地托管设置文件，请务必重新评估 `sshHostAllowlist` 的配置，确保遵循“最高优先级源决定策略”的规则。
+*   **利用 Browser 工具新特性**: 如果您正在构建代理或自动化脚本，建议使用新增的“元素引用”定位方式来替代脆弱的坐标定位，以提高交互的稳定性。
+*   **清理过时依赖**: 如果您在 Amazon Bedrock 上使用 Claude Haiku 3.5，请立即迁移，因为该版本已从支持列表中移除。
+*   **检查 MCP 服务端兼容性**: 确保您的 MCP stdio 服务端能够正确响应协议协商请求，因为现在这已成为默认连接流程的一部分。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Task:** Analyze a single batch of documentation changes (16 pages).
+    *   **Output Format:** Markdown, concise, insightful, Chinese.
+    *   **Content Requirements:** Overall summary, Key themes, Impact level (with reasoning), Action items (max 5).
+
+2.  **Analyze the Input Data (Page by Page):**
+
+    *   **Page 1: `claude-code-on-the-web.md`**
+        *   *Change:* Link update. `#add-api-credentials` -&gt; `#add-network-secrets`.
+        *   *Context:* Refining documentation terminology or anchor structure. &#34;Network secrets&#34; is the specific feature.
+
+    *   **Page 2: `desktop.md`**
+        *   *Change:*
+            *   Text polish (&#34;by adding... to a file&#34; -&gt; &#34;by setting... in [managed settings]&#34;).
+            *   Clarification on `sshHostAllowlist` precedence and interaction with server-managed settings. Added a `&lt;Warning&gt;` block about how empty arrays are handled across different managed sources (ranked precedence) and the importance of keeping lists consistent per machine if using server-managed settings.
+        *   *Context:* Security, policy enforcement, configuration management complexity.
+
+    *   **Page 3: `mcp.md`**
+        *   *Change:*
+            *   Removed a sentence about WebSocket servers not appearing in `claude mcp list` (likely obsolete behavior).
+            *   Updated text regarding asking HTTP and stdio servers about protocol revision support. Specifically, it removed the condition &#34;on Claude Code v2.1.285 or later it asks stdio servers&#34; and changed it to asking by default (implied).
+            *   Updated text regarding `MCP_PROTOCOL_NEGOTIATION`: default behavior for stdio servers is now active, no longer requiring the env var or specific version flag.
+        *   *Context:* MCP (Model Context Protocol) protocol evolution, defaulting to newer protocol versions for stdio servers.
+
+    *   **Page 4: `monitoring-usage.md`**
+        *   *Change:* Link update `#add-api-credentials` -&gt; `#add-network-secrets`.
+        *   *Context:* Consistency with Page 1.
+
+    *   **Page 5: `statusline.md`**
+        *   *Change:*
+            *   Refactored the documentation for `subagentStatusLine`.
+            *   Moved detailed field descriptions (`model`, `contextWindowSize`, `effort`) from the prose into a new &#34;Task fields&#34; table.
+            *   Added a new field `agentType` to the table.
+            *   Clarified optional fields and version requirements (e.g., `model` requires v2.1.205).
+        *   *Context:* Better documentation structure for plugin/hooks developers.
+
+    *   **Page 6: `about-claude/pricing.md`**
+        *   *Change:* Table formatting/whitespace changes (looks like column width adjustments). Content seems identical.
+        *   *Context:* Cosmetic/formatting.
+
+    *   **Page 7: `api/messages.md`**
+        *   *Change:*
+            *   Added `&#34;claude-haiku-5-5&#34;` model string to three places in the parameter descriptions (`model`).
+            *   Added extensive new object definitions for the `browser` tool: `BrowserClickTarget`, `BrowserCoordinateTarget`, `BrowserRefTarget`, `BrowserCloseTabInput`, `BrowserCloseTabToolUseBlock`, `BrowserDoubleClickInput`, `BrowserDoubleClickToolUseBlock`, `BrowserFileUploadInput`.
+            *   *Note:* The diff provided is truncated but clearly shows detailed input/output schemas for browser interactions (clicking, double-clicking, closing tabs, file uploads) using either coordinates or element references.
+        *   *Context:* API expansion for browser automation capabilities, adding the `claude-haiku-5-5` model to the standard API.
+
+    *   **Page 8: `api/messages/count_tokens.md`**
+        *   *Change:* Added `&#34;claude-haiku-5-5&#34;` model string.
+        *   *Context:* Consistency with API changes.
+
+    *   **Page 9: `api/messages/batches/create.md`**
+        *   *Change:* Added `&#34;claude-haiku-5-5&#34;` model string.
+        *   *Context:* Consistency with API changes.
+
+    *   **Page 10: `api/models/list.md`**
+        *   *Change:*
+            *   Updated description of `code_execution` capability (refined definition).
+            *   Added `server_tools` capability object to model listing, detailing support for `code_execution` and `web_search` tools.
+            *   Updated `thinking` capability descriptions: Added `disabled` type support info.
+        *   *Context:* Model capability metadata expansion, allowing clients to discover feature support programmatically (server tools, thinking types).
+
+    *   **Page 11: `api/rate-limits.md`**
+        *   *Change:* Table formatting/whitespace.
+        *   *Context:* Cosmetic.
+
+    *   **Page 12: `api/errors.md`**
+        *   *Change:* Minor text clarification regarding Haiku 5.5 thinking limitations (&#34;matching message shown earlier&#34; vs &#34;matching message above&#34;).
+        *   *Context:* Minor UX improvement in docs.
+
+    *   **Page 13: `build-with-claude/prompt-caching.md`**
+        *   *Change:* Table formatting/whitespace.
+        *   *Context:* Cosmetic.
+
+    *   **Page 14: `build-with-claude/batch-processing.md`**
+        *   *Change:* Table formatting/whitespace.
+        *   *Context:* Cosmetic.
+
+    *   **Page 15: `build-with-claude/claude-on-amazon-bedrock.md`**
+        *   *Change:* Removed `Claude Haiku 3.5` entry from the Bedrock model list (deprecated/removed from Bedrock support list).
+        *   *Context:* Deprecation cleanup.
+
+    *   **Page 16: `agents-and-tools/tool-use/overview.md`**
+        *   *Change:* Table formatting/whitespace.
+        *   *Context:* Cosmetic.
+
+3.  **Synthesize Findings:**
+
+    *   **Key Themes:**
+        *   **Model Updates:** `claude-haiku-5-5` is now officially available in the API (Messages, Batches, Count Tokens).
+        *   **Browser Tool Enhancements:** Significant addition to the `browser` tool schema in the API, enabling more granular control (double click, coordinate targeting vs element refs, closing tabs).
+        *   **Capability Discovery:** The `models` API now reports support for `server_tools` (code execution, web search) and `thinking` variants (adaptive, enabled, disabled).
+        *   **Configuration &amp; Security (`desktop.md`):** Refined behavior around `sshHostAllowlist` regarding precedence rules between server-managed and file-based managed settings. This is crucial for administrators enforcing security policies.
+        *   **MCP Protocol:** Defaulting to protocol negotiation for stdio servers, simplifying usage (no env var needed).
+
+    *   **Impact Level:**
+        *   **Medium to High.**
+        *   *Reasoning:*
+            *   *High for API Users:* New model (Haiku 5.5) availability is major. Enhanced browser tool schemas (refs vs coords) are significant for agent developers.
+            *   *Medium for Admins:* The `sshHostAllowlist` precedence nuance could break existing configurations if not understood.
+            *   *Low for Others:* Mostly formatting and link fixes.
+
+4.  **Draft Action Items:**
+
+    *   Update API client implementations to accept `claude-haiku-5-5`.
+    *   Review browser automation logic to utilize new `BrowserClickTarget` capabilities (element references) if applicable.
+    *   Administrators: Review `sshHostAllowlist` configuration to ensure policy precedence matches the new behavior (highest-ranked source wins).
+    *   MCP developers: Update stdio server implementations to handle protocol negotiation by default (if they weren&#39;t already).
+    *   Bedrock users: Stop relying on Haiku 3.5.
+
+5.  **Refine into Chinese:**
+
+    *   *Summary:* 本次文档更新主要包括正式上线 Haiku 5.5 模型、大幅扩展了 Browser 工具的 API schema（支持坐标定位和元素引用）、增强了模型能力发现机制，并优化了 SSH 主机白名单的管理策略。
+    *   *Themes:*
+        *   **新模型上线**: `claude-haiku-5-5` 已集成至 Messages、Batches 等多个 API 端点。
+        *   **Browser 工具增强**: 新增了精细化的交互能力，如双击、通过坐标或引用定位、关闭标签页等。
+        *   **配置与安全**: 澄清了 Desktop 端 `sshHostAllowlist` 在多源托管设置下的优先级规则。
+        *   **能力发现**: `models` API 现在能返回 `server_tools` 和 `thinking` 类型的详细支持情况。
+    *   *Impact:* **中高**。涉及新模型可用性、API Schema 扩展以及关键安全策略的行为变更。
+    *   *Action Items:*
+        1.  更新 API 客户端以支持 `claude-haiku-5-5` 模型。
+        2.  审查并更新 `sshHostAllowlist` 配置，确保理解最高优先级源的覆盖规则。
+        3.  如果使用 Browser 工具进行自动化，可利用新的元素引用定位和双击能力。
+        4.  MCP stdio 服务端开发者应准备好处理默认的协议协商。
+        5.  Bedrock 用户需迁移代码以放弃使用 Haiku 3.5（已移除）。
+
+6.  **Final Review against Constraints:**
+    *   Single batch analysis? Yes.
+    *   Markdown format? Yes.
+    *   Focus on what matters? Yes (Model release, Schema expansion, Security config).
+    *   Chinese language? Yes.
+    *   Max 5 action items? Yes.
+
+7.  **Final Polish:** Ensure the tone is professional (&#34;world-class programmer&#34;). The `desktop.md` change regarding `sshHostAllowlist` is subtle but important—it changes how empty arrays are interpreted in different precedence tiers. I will emphasize this.
+
+    (Self-correction: The API diffs for browser tools are quite extensive. I should summarize them generally rather than listing every new object, but highlight the &#34;coordinate vs ref&#34; distinction as it&#39;s a UX/API improvement.)
+
+    (Self-correction on MCP: The change is that asking stdio servers about protocol support is now the default behavior, rather than gated behind a feature flag or version. This is a simplification for developers.)
+
+    Result looks good. Proceed to generate output.</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/claude-code-on-the-web.html" class="page-link">claude-code-on-the-web.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/desktop.html" class="page-link">desktop.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/statusline.html" class="page-link">statusline.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+19</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/about-claude/pricing.html" class="page-link">about-claude/pricing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+64</span>
+                            <span class="removed">-69</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/messages.html" class="page-link">api/messages.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1282</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/messages/count_tokens.html" class="page-link">api/messages/count_tokens.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/messages/batches/create.html" class="page-link">api/messages/batches/create.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/models/list.html" class="page-link">api/models/list.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+15</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/rate-limits.html" class="page-link">api/rate-limits.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+32</span>
+                            <span class="removed">-32</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/errors.html" class="page-link">api/errors.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-caching.html" class="page-link">build-with-claude/prompt-caching.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+24</span>
+                            <span class="removed">-24</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/batch-processing.html" class="page-link">build-with-claude/batch-processing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+23</span>
+                            <span class="removed">-23</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-on-amazon-bedrock.html" class="page-link">build-with-claude/claude-on-amazon-bedrock.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/overview.html" class="page-link">agents-and-tools/tool-use/overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+18</span>
+                            <span class="removed">-18</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">17:43 EST</div>
