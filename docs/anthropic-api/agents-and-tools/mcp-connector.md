@@ -9,8 +9,6 @@ featureMetadata:
   supportedPlatforms:
     Claude API: beta
     Claude Platform on AWS: beta
-    Amazon Bedrock: not available
-    Google Cloud: not available
     Microsoft Foundry: beta
 ---
 
