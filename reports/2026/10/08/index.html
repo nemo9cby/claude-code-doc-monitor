@@ -118,9 +118,300 @@
 
         <header>
             <h1>Changes on 2026-10-08</h1>
-            <p class="meta">44 total changes in 3 runs</p>
+            <p class="meta">55 total changes in 4 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">21:40 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 文档变更分析摘要
+
+**1. 总体概述**
+本次更新主要围绕**成本核算的精确性**、**自动化脚本与 Hooks 的行为澄清**以及**配置继承逻辑的细化**展开。特别是针对 Haiku 5.5 的计费逻辑和预算限制执行机制进行了关键修正，同时增强了 CLI 环境下的插件安装能力。
+
+**2. 核心变更主题**
+
+*   **成本计费关键修正**
+    *   **Haiku 5.5 定价**：明确了 Prompt 超过 10万 tokens 的高价触发机制。即使部分 Prompt 命中缓存，只要总输入量超过阈值，整个请求仍按高价计费；且每个请求独立计价，不受之前请求的影响。
+    *   **预算执行 (`--max-budget-usd`)**：强调了预算基于“预估花费”，且允许实际花费**超出**预算限制（需预留余量）。明确了子代理和恢复会话时的计数规则。
+
+*   **自动化与 Hooks 增强**
+    *   **插件安装**：新增 Shell 命令行直接添加 Marketplace 并安装插件的能力（v2.1.292+），无需交互式确认，适用于自动化脚本。
+    *   **SessionStart Hooks**：增加了关于插件安装时序的关键警告——若插件在会话开始后才完成安装，其 Hook 中的 `initialUserMessage` 和 `sessionTitle` 将被忽略。同时新增了 `WebSearch` 工具的 `offset` 参数（v2.1.290+）以支持长网页抓取。
+
+*   **配置与代理行为**
+    *   **Subagent 参数层级**：细化了 `effort`（精力级别）和 `permissionMode`（权限模式）的优先级规则。例如，`auto` 模式若不可用会回退到主会话模式（v2.1.267+），环境变量优先级最高。
+    *   **Cloud Session 设置**：区分了 Anthropic 托管与自托管环境中多仓库会话的设置（`.claude/settings.json`）继承逻辑。
+
+*   **UI 调整**
+    *   **VS Code**：默认开启消息时间戳显示 (`showMessageTimestamps: true`) (v2.1.290)。
+
+**3. 影响级别**
+
+**中等**
+
+*   **理由**：虽然没有破坏性的 API 变更，但 Haiku 5.5 计费逻辑的澄清直接影响成本预估，预算控制的“超限”行为需要开发者重新评估风控策略。Hooks 的时序警告和新的 Shell 安装能力也会影响现有的 CI/CD 脚本和插件开发。
+
+**4. 开发者行动项**
+
+*   **审查 Haiku 5.5 成本**：如果使用 Haiku 5.5 处理长上下文，需重新评估成本结构，特别是缓存命中无法降低超过 10万 tokens 阈值的单价这一点。
+*   **更新预算策略**：由于 `--max-budget-usd` 允许实际花费超出限制，建议在脚本中为关键任务预留 10-20% 的预算余量。
+*   **检查 Hooks 时序**：如果你的 SessionStart Hook 依赖安装插件或设置 `initialUserMessage`，请确保插件在会话启动前已就绪，否则需调整逻辑。
+*   **利用无头插件安装**：更新部署脚本，使用新的 `claude plugin install --marketplace &lt;source&gt;` 语法以实现无交互式自动化配置。
+*   **确认 Subagent 权限回退**：在定义 Subagent 时，若使用了 `auto` 模式，需确认环境支持该特性，否则会回退到主会话权限模式。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Output Format:** Markdown.
+    *   **Constraint:** Concise, insightful, focus on what matters to developers.
+    *   **Language:** Chinese.
+    *   **Input:** 11 pages of diffs for a tool called &#34;Claude Code&#34; (CLI, desktop, plugins, hooks, monitoring, settings, skills, sub-agents, VS Code, pricing).
+
+2.  **Analyze the Diffs (Page by Page):**
+
+    *   `cli-reference.md`:
+        *   `--max-budget-usd`: Updated description. Now mentions &#34;Stop the run once estimated spend... reaches this amount&#34; (vs &#34;Maximum dollar amount...&#34;). Explicitly mentions &#34;Spend can pass the cap, so leave headroom&#34;. Clarifies behavior.
+        *   *Impact:* Budget enforcement clarification.
+
+    *   `desktop.md`:
+        *   &#34;Work in parallel with sessions&#34;: Removed trailing whitespace/sentence fragment &#34;so changes in one session don&#39;t affect other sessions until you commit them.&#34; from the worktree description.
+        *   *Impact:* Minor cleanup/accuracy fix (worktrees are isolated by default, not just *until* commit).
+
+    *   `discover-plugins.md`:
+        *   &#34;The marketplace on a new machine&#34;: Text cleanup.
+        *   &#34;Add a marketplace and install in one command&#34;: Major restructuring.
+            *   Split into &#34;Add and install in a session&#34; vs &#34;Add and install from your shell&#34;.
+            *   Shell command (`claude plugin install ...`) now adds marketplace *without confirmation* (v2.1.292+).
+            *   Shell command reuses existing marketplace or adds new one under org policy checks.
+        *   *Impact:* Improved UX for scriptable plugin installation (no confirmation in shell).
+
+    *   `hooks.md`:
+        *   `SessionStart`: Clarified `initialUserMessage` behavior (non-interactive mode only). Removed misleading context about creating turns. Clarified `sessionTitle` applies to specific sources.
+        *   Added warning: If plugin installs *during* session start, `initialUserMessage`/`sessionTitle` are ignored.
+        *   `reloadSkills`: Created a dedicated section. Clarified *why* it&#39;s needed (skill discovery runs before hooks finish).
+        *   `WebSearch` tool input schema: Added `offset` field (v2.1.290+) for skipping characters in long pages.
+        *   Async hooks: Removed text about &#34;no deduplication&#34; (maybe fixed or just removed for clarity?).
+        *   *Impact:* Critical fixes for `SessionStart` hooks (context/timing) and new web scraping capability (`offset`).
+
+    *   `monitoring-usage.md`:
+        *   Gateway identity: Added a note that events logged *before* sign-in don&#39;t carry gateway identity (anonymous `user.id`).
+        *   *Impact:* Important for telemetry/debugging in gateway environments.
+
+    *   `settings.md`:
+        *   Server-managed settings: Added link to a specific warning in the admin console.
+        *   Cloud sessions (`.claude/settings.json`): Clarified behavior for sessions with several repositories. Split logic between Anthropic-hosted vs self-hosted environments. Added link for self-hosted repo settings.
+        *   *Impact:* Clarity on configuration inheritance in cloud sessions.
+
+    *   `skills.md`:
+        *   `managed-agents-onboard`: Added new usage patterns: passing a URL or a quickstart name (v2.1.290+).
+        *   *Impact:* New feature/shortcut for building Managed Agents.
+
+    *   `slash-commands.md`:
+        *   Same as `skills.md` (duplicate content update).
+
+    *   `sub-agents.md`:
+        *   `effort` field: Added link to &#34;Choose an effort level&#34;.
+        *   `/tasks`: Clarified how effort level is displayed (if set for that subagent).
+        *   &#34;Choose an effort level&#34;: New section detailing hierarchy of effort level settings (Definition field &gt; Per-invocation param &gt; Env Var).
+        *   `permissionMode`: Clarified that `auto` falls back to main mode if unavailable (v2.1.267+), similar to `bypassPermissions`.
+        *   *Impact:* Better understanding of effort and permission inheritance in subagents.
+
+    *   `vs-code.md`:
+        *   `showMessageTimestamps`: Changed default from `false` to `true` (changed in v2.1.290).
+        *   *Impact:* UI default change.
+
+    *   `about-claude/pricing.md`:
+        *   Haiku 5.5 pricing: Detailed clarification. &#34;Request whose prompt is over 100k tokens pays higher prices&#34;. Clarifies that cache hits *do not* reduce the price back down if the total input &gt; 100k. Each request is priced independently.
+        *   *Impact:* Critical cost estimation detail for Haiku 5.5 users.
+
+3.  **Synthesize and Structure the Analysis:**
+
+    *   **Overall Summary:** This update focuses on clarifying cost tracking (budgets, Haiku pricing), enhancing scripting capabilities (plugin installation, hooks), and refining configuration behaviors (cloud sessions, subagent permissions/effort).
+    *   **Key Themes:**
+        *   *Cost &amp; Billing*: Haiku 5.5 pricing nuance, budget cap enforcement behavior.
+        *   *Automation &amp; Hooks*: SessionStart hook warnings, web scraping `offset`, shell plugin install.
+        *   *Configuration &amp; Agents*: Cloud session settings inheritance, subagent effort/permission hierarchy.
+        *   *UI/UX*: VS Code timestamp default.
+    *   **Impact Level:** Medium. No breaking changes to code APIs, but significant behavioral clarifications (especially pricing) and new features that affect workflows.
+    *   **Action Items:**
+        *   Review Haiku 5.5 pricing logic.
+        *   Update scripts using SessionStart hooks.
+        *   Check budget enforcement logic.
+        *   Utilize new plugin install CLI flow.
+
+4.  **Drafting the Content (in Chinese):**
+
+    *   *Summary:* 本次文档更新主要集中在成本核算细节澄清、自动化能力增强以及配置行为修正。
+    *   *Themes:*
+        *   **成本与计费 (Cost &amp; Billing)**: 修正了 Haiku 5.5 的计费逻辑（缓存命中不降级），明确了预算限制的强制执行机制。
+        *   **Hooks 与自动化**: 增强了 `SessionStart` Hooks 的行为说明和警告，新增 Web 工具的 `offset` 参数，支持 Shell 无确认安装插件。
+        *   **配置与代理 (Config &amp; Agents)**: 明确了 Cloud Session 中多仓库设置的继承逻辑，细化了 Subagent 的 `effort` 和 `permissionMode` 优先级。
+    *   *Impact:* Medium. (Reasons: Pricing clarity is vital, budget cap behavior change matters, hook timing is tricky).
+    *   *Action Items:*
+        *   Check Haiku 5.5 usage regarding the 100k token threshold.
+        *   Review `SessionStart` hooks if they rely on context injection timing.
+        *   Adjust scripts for unattended plugin installation.
+        *   Verify budget caps have sufficient headroom.
+
+5.  **Refining the Output:**
+
+    *   Ensure the tone is professional (&#34;world-class programmer&#34;).
+    *   Use clear formatting.
+    *   Double-check the Haiku pricing nuance: &#34;A request over the threshold pays the higher prices even when part of its prompt is a cache hit&#34;. This is a key detail.
+
+6.  **Final Polish (Self-Correction during drafting):**
+    *   *Note on `desktop.md`*: The removal of &#34;until you commit them&#34; suggests worktrees are *fully* isolated in behavior, not just a temporary separation. It&#39;s a nuance, maybe minor enough to omit from the &#34;Key Themes&#34; but good to acknowledge generally in the summary of docs improvements.
+    *   *Note on `hooks.md`*: The warning about plugin installation timing is a &#34;gotcha&#34;. Developers need to know that if a plugin installs *after* the session starts, it won&#39;t affect that session&#39;s title or initial message. This is a crucial action item.
+
+7.  **Final Output Generation** (Translating thoughts to the requested markdown format).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/cli-reference.html" class="page-link">cli-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/desktop.html" class="page-link">desktop.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/discover-plugins.html" class="page-link">discover-plugins.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+13</span>
+                            <span class="removed">-8</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/vs-code.html" class="page-link">vs-code.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/about-claude/pricing.html" class="page-link">about-claude/pricing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">17:44 EST</div>
