@@ -1094,6 +1094,8 @@ Logged when a skill is invoked, whether Claude calls it through the Skill tool o
 
 Logged when Claude Code resolves an `@`-mention in a prompt. Not every mention emits an event: early-exit paths such as permission denials, oversized files, PDF reference attachments, and directory listing failures return without logging.
 
+Each time Claude Code reads a prompt, it logs at most 100 events with a `mention_type` of `"agent"` and 100 with `"mcp_resource"`. Mentions past either limit still resolve but emit no event.
+
 **Event Name**: `claude_code.at_mention`
 
 **Attributes**:

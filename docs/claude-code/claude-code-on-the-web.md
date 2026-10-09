@@ -421,7 +421,7 @@ Cloud sessions stop after a period of inactivity and the session's VM is reclaim
 Reopen the session from [claude.ai/code](https://claude.ai/code) to provision a fresh VM:
 
 * **Restored**: your conversation history
-* **Not restored**: background work that was still running when the VM was reclaimed, such as subagents and shell commands
+* **Not restored**: background work that was still running when the VM was reclaimed, such as subagents and shell commands, and the pending wakeup of a [self-paced `/loop`](/docs/en/scheduled-tasks#let-claude-choose-the-interval). To restart the loop, run `/loop` again.
 
 ## Limitations
 
