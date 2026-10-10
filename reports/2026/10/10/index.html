@@ -118,9 +118,286 @@
 
         <header>
             <h1>Changes on 2026-10-10</h1>
-            <p class="meta">5 total changes in 2 runs</p>
+            <p class="meta">21 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">14:11 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更批量分析
+
+## 1. 总体概要
+
+本次更新围绕**网络路径权限新边界**、**worktree 桌面会话行为澄清**、**Hook JSON 解析规则重写**三大核心展开，同时清理了大量过时的版本限定词（v2.1.196 等），并新增了终端状态协议（OSC 7501）和动态工作流中 forked skill 的行为修正说明。
+
+## 2. 关键主题
+
+- **网络路径读取需独立授权**：`--allowedTools` 中的 `Read` 不再覆盖网络路径读取；`dontAsk` 模式和 hook 的 `permissionDecision: &#34;allow&#34;` 均无法绕过网络路径的权限提示——这是一个全新的安全边界，影响多个页面（cli-reference、headless、hooks-guide、sub-agents）
+- **Worktree 桌面会话行为统一说明**：多处新增指向 &#34;What worktrees share with the main checkout&#34; 的交叉引用，澄清桌面端启动的 worktree 会话中 `${CLAUDE_PROJECT_DIR}`、settings、hooks、skills 的加载路径
+- **Hook stdout JSON 解析规则收紧与重写**：明确定义了&#34;单个 JSON 对象 = 解析为 JSON&#34;、&#34;多行各为 JSON = 纯文本或解析失败&#34;等场景，async hook 豁免于严格解析；troubleshooting 拆分为独立子节并补充调试方法
+- **版本限定词批量清理**：移除了 mcp.md、skills.md、slash-commands.md 等处 &#34;As of v2.1.196&#34; 等表述，表明这些功能已成基线
+- **终端状态协议（OSC 7501）**：terminal-config.md 新增章节，支持在终端中显示会话状态（working/waiting/done），需 v2.1.295+
+- **动态工作流中 forked skill 行为修正**：v2.1.295 起，dynamic workflow 中的 agent 调用 forked skill 时会等待并接收结果，修复了之前结果跑到主对话的 bug
+- **Checkpoint UX 优化**：用 &#34;No code restore&#34; 标记替代了晦涩的 &#34;not checkpointed&#34; 描述，操作指引更直观
+- **Ctrl+C 恢复**：清空输入后按 Up 可恢复草稿（v2.1.288+）
+
+## 3. 影响等级：**Medium**
+
+**理由**：网络路径权限是新增的安全约束边界，可能导致现有 `--allowedTools: Read` 或 `dontAsk` 配置在读取网络路径时意外被拒，需要开发者审查 CI/CD 和 headless 脚本中的权限配置。其余变更为文档澄清和 bug 修复，无破坏性 API 变更。
+
+## 4. 开发者行动项
+
+- **审查权限配置**：检查所有使用 `--allowedTools Read`、`dontAsk` 模式或 hook `permissionDecision: &#34;allow&#34;` 的场景，确认是否涉及网络路径读取，按需补充网络路径授权规则
+- **更新 Hook 脚本**：若 hook stdout 输出多行 JSON 或 shell profile 有 echo 污染，按新解析规则调整输出格式，确保只输出单个 JSON 对象；利用 `claude --debug` 验证解析结果
+- **升级到 v2.1.295+** 以获得：动态工作流 forked skill 结果正确投递、终端 OSC 7501 状态显示两项修复/特性
+- **利用 Ctrl+C + Up 恢复草稿**：误按 Ctrl+C 清空输入后，可在空提示符下按 Up 恢复（需 v2.1.288+）
+- **Review worktree 桌面会话配置**：若从桌面端使用 worktree 会话，确认 settings、hooks、skills、`${CLAUDE_PROJECT_DIR}` 的加载行为符合预期（参考 worktrees 文档的新增说明）</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">Let me analyze all the documentation changes across these 16 pages to identify the key themes, impacts, and action items for developers.
+
+Key changes I&#39;m seeing:
+
+1. **Network paths permission model** - Multiple pages (cli-reference, headless, hooks-guide, sub-agents) now mention that reads from &#34;network paths&#34; are treated specially - they require permission even when `--allowedTools` includes `Read`, and they&#39;re denied in `dontAsk` mode even with allow rules. This is a new security concept being documented.
+
+2. **Worktree sessions from desktop app** - Several pages (desktop, hooks, settings, skills, slash-commands) now cross-reference the &#34;What worktrees share with the main checkout&#34; section, clarifying how settings, hooks, skills, and `${CLAUDE_PROJECT_DIR}` work in desktop-initiated worktree sessions.
+
+3. **Checkpointing UX clarification** - The checkpointing page now uses clearer language about &#34;No code restore&#34; markers in the rewind menu, making it more intuitive for developers.
+
+4. **Hook JSON parsing rules** - The hooks page significantly rewrites the JSON output parsing rules, making them more explicit about what counts as JSON vs plain text vs parse failure. Also adds guidance about async hooks being exempt from the strict parsing.
+
+5. **Hook troubleshooting restructure** - hooks-guide.md restructures the &#34;Hook JSON has no effect&#34; troubleshooting into separate subsections (Shell profile output, Fields at wrong level) with more debug guidance.
+
+6. **Agent ID/type in hooks** - hooks.md now clarifies that `agent_id` and `agent_type` apply to in-process teammates too, not just subagents.
+
+7. **Forked skills in dynamic workflows** - skills.md and slash-commands.md add that agents in dynamic workflows now wait for forked skill results (fixed in v2.1.295).
+
+8. **Ctrl+C recovery** - interactive-mode.md adds that you can press Up to recover a cleared prompt draft (v2.1.288).
+
+9. **Queue message behavior** - interactive-mode.md adds details about what happens when you take back queued text while ← is waiting to background the session.
+
+10. **OSC 7501 terminal status** - terminal-config.md adds a new section about terminal status reporting via the OSC 7501 Program Status Protocol (v2.1.295).
+
+11. **Version requirement removals** - Multiple pages remove &#34;As of v2.1.196&#34; or similar version qualifiers, suggesting these features are now considered baseline.
+
+12. **MCP version qualifiers removed** - mcp.md removes &#34;As of v2.1.196&#34; from several places.
+
+13. **IAM invitation link** - iam.md now points to the specific URL for inviting members.
+
+14. **Subagent model variable clarification** - sub-agents.md reorganizes the `CLAUDE_CODE_SUBAGENT_MODEL` docs, removing some outdated version-specific notes.
+
+15. **Git status in worktree subagents** - sub-agents.md adds that subagents in their own worktree get the worktree&#39;s branch/status/commits in the git status snapshot.
+
+16. **Plan mode restoration** - vs-code.md adds a third case where plan mode isn&#39;t restored: when a deny rule removes ExitPlanMode.
+
+17. **attach command** - cli-reference.md clarifies that passing a name (not just ID) only works for *running* sessions.
+
+18. **daemon stop** - network-config.md removes the note about installed services not needing `--any`.
+
+19. **Session resume cross-reference** - headless.md updates links from `#resume-a-session` to `#where-the-session-picker-looks`.
+
+Overall themes:
+- Network path security is a new permission boundary
+- Worktree/desktop app behavior clarifications
+- Hook system robustness improvements (JSON parsing, troubleshooting)
+- Version qualifier cleanup (features now baseline)
+- New terminal status protocol support
+- Various UX clarifications</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/checkpointing.html" class="page-link">checkpointing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/cli-reference.html" class="page-link">cli-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/desktop.html" class="page-link">desktop.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/headless.html" class="page-link">headless.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+26</span>
+                            <span class="removed">-12</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+9</span>
+                            <span class="removed">-7</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/iam.html" class="page-link">iam.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/interactive-mode.html" class="page-link">interactive-mode.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/network-config.html" class="page-link">network-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/terminal-config.html" class="page-link">terminal-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/vs-code.html" class="page-link">vs-code.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">09:14 EST</div>
