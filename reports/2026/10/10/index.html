@@ -118,9 +118,155 @@
 
         <header>
             <h1>Changes on 2026-10-10</h1>
-            <p class="meta">21 total changes in 3 runs</p>
+            <p class="meta">26 total changes in 4 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">18:10 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">## 文档变更分析
+
+### 1. 总体概要
+
+本次更新主要围绕 **SSH 会话的 Worktree 配置与遥测归属**展开，同时修正了分析指标在 GitHub Enterprise Server 上的适用范围说明，并补充了沙箱模式下 Monitor 工具的自动审批行为和设置作用域的细节。
+
+### 2. 关键主题
+
+- **SSH Worktree 可配置化**：新增远程机器上的 Worktree 存放目录设置，支持连接级别、远端 settings.json、默认路径三级优先级，管理员分发的 SSH 连接也允许用户自行设置 Worktree folder
+- **SSH 遥测机器归属**：新增通过 `OTEL_RESOURCE_ATTRIBUTES` 标识 SSH 会话所运行的远程主机名的完整指南，含常见排错场景
+- **遥测 `service.name` 语义精确化**：`claude-code-desktop` 仅代表本地 Code tab 会话，SSH 会话不在此列
+- **GHES 分析指标范围收缩**：贡献指标仅覆盖 github.com 仓库，GHES 仅展示使用量指标
+- **沙箱自动放行例外**：Monitor 工具命令即使在沙箱中也不会自动放行，需显式添加 allow 规则
+- **设置作用域补充**：仓库级 settings.json 中被忽略的 scope 列表新增 `User`
+
+### 3. 影响等级：**Medium**
+
+- SSH Worktree 配置是新增功能点，对使用 SSH 会话并行开发的团队有直接影响
+- 遥测归属对依赖 OpenTelemetry 监控 SSH 会话的运维团队至关重要
+- 沙箱 Monitor 工具行为变更可能导致原本静默运行的命令突然弹窗提示
+- `service.name` 语义变更可能影响已有仪表盘过滤器的准确性
+
+### 4. 开发者行动项
+
+- **SSH 会话用户**：在 SSH 连接中配置 **Worktree folder**（需 Desktop v1.44121.0+），或通过远端 `~/.claude/settings.json` 的 `worktree.location` 设定
+- **运维/可观测性团队**：为每台远程机器在 managed settings 的 `env` 块中添加 `OTEL_RESOURCE_ATTRIBUTES: &#34;host.name=&lt;机器名&gt;&#34;`，并检查仪表盘过滤器是否遗漏了 SSH 会话
+- **沙箱模式用户**：若 `npm run` 等 Monitor 工具命令出现意外提示，添加 `Bash(npm run *)` 等 allow 规则
+- **GHES 用户**：注意贡献指标不再可用，分析仪表盘仅保留使用量指标
+- **仪表盘维护者**：若按 `service.name = claude-code-desktop` 过滤，确认该过滤器现在仅覆盖本地会话，SSH 会话的 `service.name` 为 `claude-code`</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">Let me analyze the documentation changes across all 5 pages.
+
+1. **analytics.md**: Contribution metrics scope clarification - GitHub Cloud vs GitHub Enterprise Server distinction changed. Previously said &#34;support GitHub Cloud and GitHub Enterprise Server&#34;, now clarifies that contribution metrics only cover github.com repos, and GHES only shows usage metrics (not contribution metrics).
+
+2. **desktop.md**: Major changes around SSH session worktrees:
+   - Worktree location configuration now distinguishes between local sessions and SSH sessions
+   - New section &#34;Choose where SSH session worktrees go&#34; with priority order for worktree folder resolution
+   - SSH connections now have a &#34;Worktree folder&#34; field
+   - Managed SSH connections: users can now set their own Worktree folder but can&#39;t edit other fields
+   - Added telemetry reference for attributing SSH sessions to remote machines
+   - sshConfigs managed setting updated: users can edit Worktree folder
+
+3. **monitoring-usage.md**: 
+   - New section &#34;Attribute telemetry to Desktop SSH sessions&#34; - how to identify which remote machine an SSH session ran on using OTEL_RESOURCE_ATTRIBUTES
+   - Troubleshooting for when host.name doesn&#39;t arrive
+   - service.name clarification: `claude-code-desktop` is for *local* sessions, not all Desktop sessions
+   - Filter advice updated to say &#34;local Code tab sessions&#34;
+
+4. **sandboxing.md**: 
+   - Monitor tool commands aren&#39;t auto-approved in sandbox, need explicit allow rules like `Bash(npm run *)`
+
+5. **settings.md**: 
+   - Added `User` to the scope list that gets ignored in repository files
+
+Key themes:
+- SSH session improvements (worktree configuration, telemetry attribution)
+- Scope/sandboxing clarity (monitor tool, settings scope)
+- Analytics scope clarification (GHES limitations)
+- Telemetry precision (local vs SSH desktop sessions)
+
+Impact: Medium - SSH worktree configuration is a meaningful feature addition, telemetry attribution is important for enterprise monitoring, sandboxing change may require allow rule updates.
+
+Action items:
+- If using SSH sessions, configure Worktree folder on connections or via settings
+- If monitoring SSH sessions, add OTEL_RESOURCE_ATTRIBUTES with host.name to identify machines
+- If using sandboxed auto-allow, add allow rules for monitor tool commands (e.g., `Bash(npm run *)`)
+- If filtering telemetry on service.name, note that claude-code-desktop only covers local sessions now
+- If relying on GHES contribution metrics, note they now only show usage metrics</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/analytics.html" class="page-link">analytics.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/desktop.html" class="page-link">desktop.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+17</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+14</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sandboxing.html" class="page-link">sandboxing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">14:11 EST</div>
