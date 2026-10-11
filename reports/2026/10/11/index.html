@@ -118,9 +118,129 @@
 
         <header>
             <h1>Changes on 2026-10-11</h1>
-            <p class="meta">2 total changes in 1 run</p>
+            <p class="meta">5 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">15:52 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">## 文档变更分析
+
+### 1. 总体概要
+
+本次更新涵盖企业 SSH 会话管控、Worktree 生命周期 Hooks 细化、以及沙箱权限边界条件三个领域，核心是为管理员提供更精细的桌面会话控制能力，并明确 Hooks 和沙箱在新增工具/场景下的行为边界。
+
+### 2. 关键主题
+
+- **企业 SSH 锁定方案**：新增 `disableDesktopLocalSessions` 配置，可联合 `sshConfigs` + `sshHostAllowlist` 禁用本地会话、仅允许指定 SSH 连接，实现&#34;仅远程开发&#34;的管控模型
+- **Worktree Hooks 场景扩展**：`WorktreeCreate`/`WorktreeRemove` 触发场景明确覆盖 `EnterWorktree`/`ExitWorktree` 工具、workflows、以及 `claude remote-control` worktree 模式；同时新增子代理/工作流完成后 worktree 不自动清理的行为说明
+- **沙箱中变量赋值命令的权限穿透**：`FOO=bar npm test`、`make CC=clang`、`eval &#34;ls&#34;` 等因变量前置可能改变执行程序，不再自动放行，需显式 allow rule 匹配
+
+### 3. 影响等级：**Medium**
+
+- **非 Breaking**：所有变更均为文档补充和澄清，未引入新的破坏性行为
+- `disableDesktopLocalSessions` 是面向管理员的增量管控能力，需 Desktop v1.37937.0+
+- Worktree Hooks 行为变更（子代理不自动清理、ExitWorktree 拒绝移除 hook 创建的 worktree 除非 `discard_changes: true`）可能影响现有 Hook 使用者的预期，但属边界场景
+- 沙箱变量赋值命令的权限提示可能让部分用户感到新出现的弹窗，但这是对已有安全逻辑的文档化
+
+### 4. 开发者行动项
+
+- **企业管理员**：若需锁定桌面为纯 SSH 模式，部署 `disableDesktopLocalSessions` + `sshConfigs` + `sshHostAllowlist` 组合配置，确保 `sshHostAllowlist` 中的 pattern 匹配 `sshConfigs` 中的 hostname（不含 `user@`），并将三键放入最高优先级的 managed source
+- **Hook 开发者**：审查现有 `WorktreeRemove` Hook 是否正确处理 `ExitWorktree` 和 `remote-control` 清理路径（此路径无用户确认提示），并为子代理/workflow 完成后遗留的 worktree 安排独立清理策略
+- **沙箱用户**：若遇到 `FOO=bar cmd`、`make VAR=val` 或 `eval &#34;...&#34;` 类命令反复弹权限提示，添加对应 allow rule（如 `Bash(FOO=bar npm *)`、`Bash(eval &#34;ls&#34;)`），注意通配符 `Bash(eval *)` 对 `eval` 无效，需完整匹配
+- **版本检查**：使用 `disableDesktopLocalSessions` 前确认 Claude Desktop ≥ v1.37937.0
+- **SSH Host 用户名**：`sshHost` 省略 `user@` 时，将使用 `~/.ssh/config` 中该 host 的 `User` 字段或本地用户名，确认此默认行为符合预期</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">Let me analyze the three documentation changes:
+
+1. **desktop.md** (+23/-0): Adds documentation about:
+   - SSH host behavior when `user@` is omitted (falls back to `~/.ssh/config` User or local username)
+   - New section on turning off local sessions and distributing SSH connections via `disableDesktopLocalSessions` combined with `sshConfigs` and `sshHostAllowlist`
+   - Detailed deployment example and verification steps
+   - Notes about version requirements (v1.37937.0+), managed settings placement, and what these keys don&#39;t affect (CLI, Cowork, cloud sessions)
+
+2. **hooks.md** (+21/-4): Updates WorktreeCreate and WorktreeRemove hook documentation:
+   - Expanded list of when WorktreeCreate runs (added EnterWorktree tool, workflows, remote-control worktree mode)
+   - Clarification that `git worktree add` via Bash tool doesn&#39;t trigger WorktreeCreate hook
+   - Expanded WorktreeRemove triggers (ExitWorktree tool, remote-control cleanup scenarios)
+   - New behavior: subagent/workflow worktrees are kept after completion, WorktreeRemove doesn&#39;t run for them
+   - ExitWorktree without `discard_changes: true` refuses to remove hook-created worktrees
+   - No prompt before hook runs for ExitWorktree or remote-control cleanup
+   - Reworked fallback behavior documentation (no WorktreeRemove hook scenario split into more cases)
+   - Clarification that background-session delete checks only apply on that specific route
+
+3. **sandboxing.md** (+7/-1): Updates sandboxing permission behavior:
+   - Changed &#34;fall back to the regular permission flow&#34; to &#34;run outside the sandbox&#34; for clarity
+   - New section explaining that some sandboxed commands go through regular permission flow (e.g., `FOO=bar npm test`, `make CC=clang`, `eval &#34;ls&#34;`) because variable assignments can change which program runs
+   - Example allow rules for these patterns
+   - Note that allow rules also approve unsandboxed retries
+
+Key themes:
+- Enterprise/admin controls for SSH session management
+- Worktree lifecycle hook refinements with new tools (EnterWorktree, ExitWorktree, remote-control)
+- Sandboxing security edge cases with variable assignments and eval
+
+Impact: Medium - these are documentation updates for existing features/new settings. The `disableDesktopLocalSessions` is new but well-documented. The sandboxing and hooks changes describe behavior that may already exist but wasn&#39;t documented.
+
+Action items for developers:
+- Enterprise admins: consider deploying `disableDesktopLocalSessions` + `sshConfigs` + `sshHostAllowlist` to lock down Desktop to SSH-only
+- Hook users: update WorktreeCreate/WorktreeRemove hooks to handle new ExitWorktree/remote-control scenarios
+- Hook users: be aware subagent/workflow worktrees are no longer auto-cleaned
+- Sandbox users: add allow rules for commands with variable assignments (e.g., `Bash(FOO=bar npm *)`) to avoid recurring prompts
+- Check Desktop version &gt;= v1.37937.0 for `disableDesktopLocalSessions`</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/desktop.html" class="page-link">desktop.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+23</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+21</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sandboxing.html" class="page-link">sandboxing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">04:10 EST</div>
