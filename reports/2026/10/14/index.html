@@ -118,9 +118,257 @@
 
         <header>
             <h1>Changes on 2026-10-14</h1>
-            <p class="meta">25 total changes in 2 runs</p>
+            <p class="meta">39 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">14:15 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">## 文档变更分析
+
+### 1. 总体概要
+
+本次更新引入了新的环境变量 `CLAUDE_CODE_DISABLE_FILE_MENTIONS` 来控制 `@` 引用的行为、为子代理新增 `autoCompactWindow` 前置元字段、详细文档化了技能名称的字符限制规则，并将 Java SDK 版本从 2.71.0 升级至 2.72.0。
+
+### 2. 关键主题
+
+- **`@` 引用行为可配置化**：新增 `CLAUDE_CODE_DISABLE_FILE_MENTIONS=1` 环境变量，关闭 `@` 引用时自动内联文件内容的行为，改为让 Claude 通过文件工具读取——这意味着 `PreToolUse` 钩子可以对 `@` 引用的文件触发
+- **子代理自动压缩窗口**：新增 `autoCompactWindow` 前置元字段（100K–1M tokens），允许单个子代理比默认更早触发上下文压缩；同时新增调试日志排查拼写错误的字段
+- **技能/命令名称字符校验**：详细文档化了名称中不允许的字符（零宽空格、控制字符、`&lt;&gt;`、方向控制字符等），以及排查方法（`--debug` 日志搜 `[names]`）
+- **MCP 状态显示更新**：`/mcp` 命令的服务器状态从文字 `connected`/`failed` 改为 ✅/✘ 符号
+- **Java SDK 版本升级**：全平台（Bedrock、Vertex AI、Foundry、MCP Connector）Java SDK 统一升至 2.72.0
+- **网络超时文档澄清**：byte-level watchdog 的超时值描述更清晰，明确了 Claude Platform on AWS、Bedrock、Claude apps gateway 均为 300 秒
+- **文档清理**：修复 setup.md 中重复的 `theme={null}` 属性
+
+### 3. 影响级别：**Medium**
+
+- `CLAUDE_CODE_DISABLE_FILE_MENTIONS` 是纯增量功能，不改变默认行为，但显著影响钩子开发者的工作流设计
+- `autoCompactWindow` 是纯增量功能，对需要精细控制子代理上下文的开发者有价值
+- 技能名称校验属于**已有行为的文档化**（代码已在拒绝，只是现在写明了规则），但开发者可能发现之前&#34;静默失败&#34;的技能现在有了明确排查路径
+- Java SDK 升级是常规版本更新，无破坏性
+
+### 4. 开发者行动项
+
+- **评估 `CLAUDE_CODE_DISABLE_FILE_MENTIONS`**：如果你依赖 `PreToolUse` 钩子拦截文件读取，且用户常用 `@` 引用，考虑在 shell/用户设置中启用此变量，使钩子对 `@` 引用也生效
+- **为长上下文子代理设置 `autoCompactWindow`**：如果子代理处理大量日志/文件，在前置元中添加 `autoCompactWindow: 200000` 等值以避免上下文溢出；注意 YAML 中写整数而非 `200k`
+- **检查技能名称是否被拒绝**：如果自定义技能/命令未出现在 `/` 菜单中，用 `claude --debug` 启动并搜索 `[names]` 确认是否因非法字符被拒绝
+- **更新 Java SDK 依赖**：将 `anthropic-java` 及平台适配包从 2.71.0 升级至 2.72.0
+- **更新 MCP 状态检查脚本**：如果自动化脚本解析 `/mcp` 输出判断连接状态，需适配新的 ✅/✘ 符号格式而非文字 `connected`</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">Let me analyze these documentation changes across 14 pages.
+
+Key changes:
+
+1. **common-workflows.md**: New env var `CLAUDE_CODE_DISABLE_FILE_MENTIONS=1` to stop `@` references from including file contents inline, instead letting Claude use file tools to read them.
+
+2. **hooks.md**: Updated PreToolUse warning - restructured the info about blocking `@` references. Now documents two approaches: Read deny rules (existing) and the new `CLAUDE_CODE_DISABLE_FILE_MENTIONS=1` env var. When file mentions are disabled, PreToolUse hooks fire for `@` referenced files.
+
+3. **mcp.md**: MCP server status now shows checkmark/✘ symbols instead of &#34;connected&#34;/&#34;failed&#34; text. Updated two instances.
+
+4. **model-config.md**: Added reference to subagent auto-compact window documentation.
+
+5. **network-config.md**: Updated byte-level watchdog timeout docs - clarified that 300s applies to Claude Platform on AWS, Amazon Bedrock, Claude apps gateway, and custom ANTHROPIC_BASE_URL. Simplified/clarified the timeout values.
+
+6. **setup.md**: Fixed duplicate `theme={null}` attributes in code blocks (cleanup).
+
+7. **skills.md** and **slash-commands.md**: Added documentation about characters that skill names can&#39;t contain (zero-width spaces, control chars, `&lt;`, `&gt;`, etc.). Added troubleshooting step for refused names.
+
+8. **sub-agents.md**: 
+   - Added `autoCompactWindow` field to subagent frontmatter
+   - Added debug log tip for finding misspelled fields
+   - Added section on setting auto-compact window for one subagent
+   - Updated JSON definition to include `autoCompactWindow`
+
+9. **get-started.md**, **claude-on-amazon-bedrock.md**, **claude-on-vertex-ai.md**, **claude-in-microsoft-foundry.md**, **mcp-connector.md**: Java SDK version bump from 2.71.0 to 2.72.0.
+
+Themes:
+- New env var for disabling file mentions (affects hooks behavior)
+- Subagent auto-compact window control
+- Skill name validation/character restrictions
+- Java SDK version update
+- MCP UI status display change
+- Minor doc cleanups and clarifications</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/common-workflows.html" class="page-link">common-workflows.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/model-config.html" class="page-link">model-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/network-config.html" class="page-link">network-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/setup.html" class="page-link">setup.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+14</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+14</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+16</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/get-started.html" class="page-link">get-started.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-on-amazon-bedrock.html" class="page-link">build-with-claude/claude-on-amazon-bedrock.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-on-vertex-ai.html" class="page-link">build-with-claude/claude-on-vertex-ai.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-in-microsoft-foundry.html" class="page-link">build-with-claude/claude-in-microsoft-foundry.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/mcp-connector.html" class="page-link">agents-and-tools/mcp-connector.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">09:15 EST</div>
