@@ -373,7 +373,7 @@ When none count, here's what Claude reads and how you can tell:
 
 * **At session start**: every `AGENTS.md` and `.claude/AGENTS.md` in your working directory and the directories above it. In an interactive session you see a line such as `no CLAUDE.md found; AGENTS.md loaded: /home/you/repo/AGENTS.md` in the conversation
 * **As Claude works in subdirectories**: a subdirectory's `AGENTS.md`, when Claude opens a file there with the Read tool and that subdirectory has none of the three `CLAUDE.md` files of its own
-* **Inside each `AGENTS.md`**: [`@path` imports](#import-additional-files) are expanded, [`claudeMdExcludes`](#exclude-specific-claude-md-files) patterns apply, and subagents that [skip project instructions](/docs/en/sub-agents#what-loads-at-startup) skip these files too
+* **Inside each `AGENTS.md`**: [`@path` imports](#import-additional-files) are expanded, [`claudeMdExcludes`](#exclude-specific-claude-md-files) patterns apply, and subagents that [start without project instructions](/docs/en/sub-agents#what-loads-at-startup) start without these files too
 * **Not read**: `AGENTS.local.md`, `AGENTS.override.md`, or anything under a `.agents/` directory
 
 <Note>

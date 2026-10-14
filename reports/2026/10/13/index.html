@@ -118,9 +118,268 @@
 
         <header>
             <h1>Changes on 2026-10-13</h1>
-            <p class="meta">6 total changes in 2 runs</p>
+            <p class="meta">20 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">21:32 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更分析
+
+## 1. 总体摘要
+
+本次更新涵盖两个主要方向：一是全面将文档中的模型示例从 `claude-opus-4-8` 更新为 `claude-opus-5-5` 并调整 Opus 5.5 定价（输入 $4/百万、输出 $20/百万，缓存折扣降至 0.05），二是大幅完善 MCP 服务器生命周期管理文档（进程关闭信号处理、断线重连策略、后台任务取消语义）并统一子代理相关术语。
+
+## 2. 关键主题
+
+- **模型 ID 与定价全面更新**：Opus 5 → Opus 5.5，价格从 $5/$25 降至 $4/$20，prompt cache 折扣从 10% 降至 5%
+- **MCP stdio 服务器关闭机制**：新增完整信号序列说明（macOS/Linux: SIGINT→SIGTERM→SIGKILL；Windows: 关闭 stdin→终止进程树），并标注 v2.1.296 前的旧行为
+- **MCP 断线重连增强**：非交互模式下 HTTP/SSE 服务器在 5 次快速重试失败后会后台持续重试约 30 分钟
+- **后台任务取消语义明确**：停止后台 MCP 工具调用会通知 Claude 无结果，但不保证服务器停止工作
+- **idleCompaction（空闲压缩）**：新引用 `idleCompaction` 设置，监控事件中 `precompute_reuse` 也适用于空闲压缩
+- **子代理术语统一**：&#34;skip CLAUDE.md&#34; → &#34;start without CLAUDE.md&#34;；明确 `omitClaudeMd` 下子目录的 CLAUDE.md 和路径规则仍会加载
+- **Cloud sessions 错误信息扩展**：新增带原因的错误消息，已有消息增加交叉引用
+
+## 3. 影响等级：**Medium**
+
+**理由**：定价变更直接影响成本核算；MCP 服务器关闭信号变化可能影响自定义 MCP 服务器的优雅关停逻辑（需处理 SIGINT/SIGTERM 或 stdin 关闭）；`backgroundOutputPath` 字段和空闲压缩是新功能。但无破坏性 API 变更，模型 ID 更新仅为文档示例。
+
+## 4. 开发者行动项
+
+- **更新自定义 MCP stdio 服务器的关闭逻辑**：确保能正确处理 SIGINT/SIGTERM（macOS/Linux）或 stdin 关闭（Windows），在 500ms/300ms 窗口内完成状态保存和锁文件清理
+- **重新评估 Opus 5.5 成本**：输入/输出价格下降约 20%，但 prompt cache 命中折扣从 90% 降至 95%（即缓存读取成本从 $0.5 → $0.2/百万），重度缓存场景成本结构显著改变
+- **利用 `backgroundOutputPath` 检测后台命令输出**：如需在 MCP 客户端中追踪后台 Bash/PowerShell 命令，读取该字段指向的文件，并追加完成标记（如 `echo DONE`）来检测命令结束
+- **配置 `idleCompaction` 设置**：长时间闲置的对话现在可自动压缩上下文，减少恢复会话时的 token 开销
+- **注意 `omitClaudeMd` 的实际行为**：设置了该标志的子代理在进入子目录时仍会加载该目录的 CLAUDE.md 和路径规则，如有全局排除需求需另行处理</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">Let me analyze all the documentation changes across these 14 pages.
+
+1. **claude-code-on-the-web.md**: Cloud sessions error messages expanded - added new error case &#34;Cloud sessions aren&#39;t available:&#34; with cause, and updated existing error descriptions with more detail and cross-references to errors page.
+
+2. **mcp.md**: Major updates:
+   - New section on how Claude Code stops a stdio server (signal handling on macOS/Linux, stdin closing on Windows, with version note about pre-v2.1.296 behavior)
+   - Remote server reconnection: clarified that in non-interactive mode, HTTP/SSE servers keep retrying in background for ~30 minutes after 5 failed attempts
+   - Background task cancellation: now tells Claude no result is coming, but server may still finish work
+   - OAuth flow clarification for non-interactive mode: sign in from interactive session first
+   - New `backgroundOutputPath` field in Bash/PowerShell tool results for background commands
+   - HTTP/SSE response size limit clarified (16 MiB, applies after decompression)
+
+3. **memory.md**: Minor wording change - &#34;skip project instructions&#34; → &#34;start without project instructions&#34;
+
+4. **model-config.md**: Added reference to `idleCompaction` setting for idle conversation compaction
+
+5. **monitoring-usage.md**: Updated `precompute_reuse` to also apply to idle compaction (trigger: &#34;auto&#34;)
+
+6. **skills.md**: Reworded &#34;skip CLAUDE.md&#34; → &#34;start without CLAUDE.md&#34;, added emphasis on putting everything in SKILL.md for forked skills
+
+7. **slash-commands.md**: Same rewording as skills.md
+
+8. **sub-agents.md**: Multiple changes:
+   - &#34;skip&#34; → &#34;start without&#34; terminology
+   - `omitClaudeMd` description updated
+   - Added note that subdirectory CLAUDE.md and path-scoped rules still load even with omitClaudeMd
+   - Auto-compaction description simplified
+
+9. **about-claude/pricing.md**: Pricing updated from Opus 5 ($5/$25) to Opus 5.5 ($4/$20), cache read discount changed from 0.1 to 0.05
+
+10. **api/errors.md**: Model example changed from claude-opus-4-8 to claude-opus-5-5
+
+11. **build-with-claude/vision.md**: Vision cost example updated from Opus 5 ($5) to Opus 5.5 ($4)
+
+12. **build-with-claude/claude-in-microsoft-foundry.md**: Model example from claude-opus-5 to claude-opus-5-5
+
+13. **build-with-claude/prompt-engineering/prompting-tools.md**: All model examples from claude-opus-4-8 to claude-opus-5-5
+
+14. **build-with-claude/prompt-engineering/claude-prompting-best-practices.md**: Same model example updates
+
+Key themes:
+1. Model ID updates: claude-opus-4-8 → claude-opus-5-5, and Opus 5 → Opus 5.5 in pricing
+2. Pricing changes for Opus 5.5 ($4/$20 vs old $5/$25), cache read ratio 0.05 vs 0.1
+3. MCP server lifecycle improvements (shutdown signals, reconnection behavior, background task cancellation)
+4. Terminology consistency: &#34;skip&#34; → &#34;start without&#34; for subagents
+5. New features: idleCompaction, backgroundOutputPath, cloud sessions error details
+6. Subagent context loading clarification (subdirectory CLAUDE.md still loads with omitClaudeMd)</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/claude-code-on-the-web.html" class="page-link">claude-code-on-the-web.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+24</span>
+                            <span class="removed">-10</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/memory.html" class="page-link">memory.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/model-config.html" class="page-link">model-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/about-claude/pricing.html" class="page-link">about-claude/pricing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+14</span>
+                            <span class="removed">-14</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/errors.html" class="page-link">api/errors.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/vision.html" class="page-link">build-with-claude/vision.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-in-microsoft-foundry.html" class="page-link">build-with-claude/claude-in-microsoft-foundry.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/prompting-tools.html" class="page-link">build-with-claude/prompt-engineering/prompting-tools.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-8</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/claude-prompting-best-practices.html" class="page-link">build-with-claude/prompt-engineering/claude-prompting-best-practices.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-8</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">18:12 EST</div>
