@@ -118,9 +118,173 @@
 
         <header>
             <h1>Changes on 2026-10-14</h1>
-            <p class="meta">18 total changes in 1 run</p>
+            <p class="meta">25 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">09:15 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">## 文档变更分析
+
+### 1. 总体概述
+
+本次变更在 7 个页面中系统性地移除了 Python SDK 的内联代码示例，同时澄清了速率限制相关的行为说明。
+
+### 2. 关键主题
+
+- **Python SDK 示例被全面移除**：所有页面中括号内多语言示例里的 Python 用法均被删除（此前 Python 通常是首要示例位置），涉及自动分页、beta 命名空间、错误类型、流式处理、computer-use 工具和 MCP 连接器等场景
+- **`retry-after` 头行为澄清**：从暗示&#34;总会返回&#34;改为&#34;当响应包含该头时才需等待&#34;，明确了 spend-cap 429 等场景下该头可能不存在
+- **速率限制表说明优化**：新增&#34;每行拥有独立的 RPM/ITPM/OTPM 限制，部分行覆盖多个共享限额的模型&#34;的明确表述
+
+### 3. 影响级别：**Medium**
+
+**理由**：Python 内联示例的全面移除暗示 Python SDK 可能正在被弃用或重构，对 Python 开发者影响显著。但各页面底部的 SDK 链接列表（如 errors.md 中的 Python 链接）仍保留，说明 Python SDK 页面本身暂未删除。速率限制的澄清属于行为明确化，不改变实际逻辑但影响重试策略的正确实现。
+
+### 4. 开发者行动项
+
+- ⚠️ **Python SDK 用户需密切关注**：若正在使用 Python SDK，留意官方后续公告，此次文档变更可能是弃用前兆
+- 📋 **审查重试逻辑**：不要假设 429 响应一定包含 `retry-after` 头；需先检查头是否存在再决定等待时长，否则可能对 spend-cap 限流场景处理不当
+- 📖 **重新理解速率限制表**：表中每行是独立限额单元，同一行内多个模型共享限额——影响多模型并发策略的规划
+- 🔄 **参考其他语言示例**：若你依赖文档中的内联多语言示例来对照语法，现在需直接查阅对应 SDK 的独立文档页面</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">Let me analyze the documentation changes across all 7 pages.
+
+1. **api/overview.md**: Removed Python from the auto-paginating iterator example. Previously listed Python first (`for session in client.beta.sessions.list()` (python; typescript:...)), now starts with TypeScript.
+
+2. **api/rate-limits.md**: 
+   - Clarified that `retry-after` header may not always be present - changed from implying it&#39;s always sent to saying &#34;When the response has a `retry-after` header, wait that many seconds before retrying.&#34;
+   - Added explanation that &#34;Each row in the following tables has its own RPM, ITPM, and OTPM limits. Some rows cover several models that share one limit&#34;
+   - The rate limit headers table seems to have been reformatted (the diff is cut off but shows changes to the table)
+
+3. **api/beta-headers.md**: Removed Python from multiple inline SDK language examples. Previously Python was listed first in parentheses like `(python, typescript, ruby; csharp, go:...)`, now Python is removed from these listings.
+
+4. **api/errors.md**: Removed Python from the SDK error type example. Previously `anthropic.NotFoundError` was shown as the Python example first, now TypeScript is shown first.
+
+5. **build-with-claude/streaming.md**: Removed Python from the streaming example inline language listing.
+
+6. **agents-and-tools/tool-use/computer-use-tool.md**: Removed Python from the betas parameter inline language listing in two places.
+
+7. **agents-and-tools/mcp-connector.md**: Removed Python from all the MCP helper function examples in the table.
+
+The main themes:
+1. **Python SDK removal from docs**: Across all 7 pages, Python has been systematically removed from inline multi-language SDK examples. This is the dominant change.
+2. **Rate limits clarification**: The `retry-after` header behavior was clarified - it&#39;s not always present. Also added clarity about how rate limit rows work in tables.
+
+This is significant - it suggests the Python SDK may have been deprecated or is no longer being actively maintained/supported. The Python references were removed from all inline code examples across the documentation.
+
+Impact: This is Medium to High. If the Python SDK is being deprecated, that&#39;s a major change for Python developers. The rate limits clarification is Low-Medium.
+
+Let me think about this more carefully. The Python SDK links are still present in some places (like the error handling links at the bottom of errors.md). But the inline examples showing Python syntax have been removed. This could mean:
+- Python SDK is being deprecated
+- Python SDK is being restructured/renamed
+- They&#39;re just cleaning up the docs to reduce clutter
+
+Given that ALL Python inline examples were removed across 7 pages systematically, this seems intentional and significant. But the SDK link pages still list Python, so maybe it&#39;s just a documentation style change to reduce verbosity.
+
+Wait, looking more carefully - in the errors.md page, the link list at the bottom still includes Python: `* [Python](...) · [TypeScript](...)...`. So the Python SDK page still exists. This might just be a documentation formatting decision to remove Python from the inline parenthetical examples to reduce clutter, not an actual SDK deprecation.
+
+Actually, re-reading the changes more carefully - in every case, Python was previously listed as the &#34;primary&#34; or first example in the parenthetical, and now it&#39;s been removed. The other languages (TypeScript, Ruby, Go, Java, C#, PHP) remain. This is suspicious - why remove just Python?
+
+This could indicate the Python SDK is being deprecated or restructured. Or it could be a docs cleanup. Given the systematic nature across 7 pages, I&#39;ll flag this as potentially significant.
+
+Let me provide the analysis.</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/overview.html" class="page-link">api/overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/rate-limits.html" class="page-link">api/rate-limits.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+23</span>
+                            <span class="removed">-23</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/beta-headers.html" class="page-link">api/beta-headers.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/errors.html" class="page-link">api/errors.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/streaming.html" class="page-link">build-with-claude/streaming.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/computer-use-tool.html" class="page-link">agents-and-tools/tool-use/computer-use-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/mcp-connector.html" class="page-link">agents-and-tools/mcp-connector.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">03:00 EST</div>
