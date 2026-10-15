@@ -118,9 +118,86 @@
 
         <header>
             <h1>Changes on 2026-10-14</h1>
-            <p class="meta">50 total changes in 4 runs</p>
+            <p class="meta">51 total changes in 5 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">20:24 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">## 文档变更分析
+
+### 1. 总体摘要
+
+此次更新大幅扩展了 Claude Desktop SSH 远程会话的高级网络配置指南，新增了代理/CA证书设置、容器穿透连接、以及 AWS 临时凭证在 ProxyCommand 中的使用说明，帮助开发者在企业代理和容器化环境中顺利使用远程会话。
+
+### 2. 关键主题
+
+- **SSH 会话代理与 CA 证书**：SSH 会话不会继承 `~/.profile` 等文件中的环境变量，必须在 `~/.claude/settings.json` 的 `env` 中显式设置 `HTTPS_PROXY` 和 `NODE_EXTRA_CA_CERTS`（不支持 `SSL_CERT_FILE`）
+- **环境变量优先级与排障**：远程机器上已设置的变量会覆盖 settings 文件中的值，需通过 `ssh host env` 排查并修改来源文件，修改后需重启远程机器或终止 helper 进程
+- **容器穿透连接**：Desktop 不执行 SSH config 中的 `RemoteCommand`，需改用 `ProxyCommand` + `sshd -i` 在容器内启动 SSH 服务，附带详细的连接排障步骤（密码提示、Bad packet length、Missing privilege separation directory 等）
+- **AWS 临时凭证问题**：Shell 启动文件中的临时 AWS 凭证会过期导致 ProxyCommand 在 Desktop 中失败，建议改用 AWS CLI profile
+
+### 3. 影响级别：**High**
+
+这些变更直接解决开发者在企业代理环境和容器化部署中使用 Claude Desktop 远程会话时的常见阻断性问题（连接挂起、认证失败、容器无法连接）。新增内容占比大（+83/-2），且涉及配置变更和排障流程，对受影响的开发者而言是必须了解的关键信息。
+
+### 4. 开发者行动项
+
+- **检查远程 Linux 机器的代理配置**：若通过代理上网，务必在远程机器的 `~/.claude/settings.json` → `env` 中设置 `HTTPS_PROXY` 和 `NODE_EXTRA_CA_CERTS`，不要依赖 shell profile
+- **排查变量优先级冲突**：运行 `ssh &lt;host&gt; env` 检查远程是否已有同名变量，若有则修改其来源文件并重启
+- **容器连接改用 ProxyCommand**：如果需要连接不暴露 SSH 端口的容器，配置 `ProxyCommand ssh &lt;host&gt; docker exec -i &lt;container&gt; /usr/sbin/sshd -i`，移除相关 `RemoteCommand`/`RequestTTY`
+- **AWS ProxyCommand 用户迁移到 profile**：若在 shell 启动文件中导出临时 `AWS_*` 变量，改用 AWS CLI named profile 避免凭证过期导致 Desktop 连接失败
+- **注意 CA 证书字段**：在 settings.json 中必须使用 `NODE_EXTRA_CA_CERTS`，而非 `SSL_CERT_FILE`</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">Let me analyze this documentation change for the desktop.md page.
+
+The diff shows significant additions (+83 / -2) to the desktop.md page, focusing on SSH session configuration for remote machines. Let me break down what changed:
+
+1. **Proxy/CA certificate for SSH sessions** - New section explaining how to set proxy and CA certificate variables in `~/.claude/settings.json` for Linux remote machines, because SSH sessions don&#39;t pick up variables from shell profile files. Key points:
+   - Must use `NODE_EXTRA_CA_CERTS` instead of `SSL_CERT_FILE` for CA certs
+   - Variables in settings.json take effect within seconds
+   - If variables are set elsewhere on the remote machine, those take precedence
+   - Instructions to find and change variables set elsewhere
+
+2. **Reach a container on a remote machine** - New section about using `ProxyCommand` to connect to containers that don&#39;t publish SSH ports. Key points:
+   - Desktop doesn&#39;t run `RemoteCommand`, so you need `ProxyCommand` with sshd -i
+   - Step-by-step setup including SSH config entry, container preparation, allowlist checking, and troubleshooting
+   - Detailed troubleshooting for common SSH issues
+
+3. **AWS credentials in ProxyCommand** - New section about using AWS CLI profiles instead of temporary credentials in shell startup files, because temporary credentials can expire and cause ProxyCommand failures in Desktop.
+
+These are all about advanced SSH configuration scenarios that developers encounter when using Claude Desktop with remote machines, especially in enterprise/containerized environments.</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/desktop.html" class="page-link">desktop.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+83</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">18:00 EST</div>
