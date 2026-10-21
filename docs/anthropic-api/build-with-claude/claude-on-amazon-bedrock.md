@@ -8,6 +8,10 @@ description: The legacy Amazon Bedrock integration for Claude models, using Invo
   This page covers the legacy Amazon Bedrock integration: the `InvokeModel` and `Converse` APIs with ARN-versioned model identifiers and AWS event-stream encoding. For models available on the Messages-API Bedrock endpoint, see [Claude in Amazon Bedrock](https://platform.claude.com/docs/en/build-with-claude/claude-in-amazon-bedrock), which uses the Messages API at `/anthropic/v1/messages` with SSE streaming. For an Anthropic-operated alternative with AWS Marketplace billing and typically same-day feature access, see [Claude Platform on AWS](https://platform.claude.com/docs/en/build-with-claude/claude-platform-on-aws). Existing Bedrock users can follow the [migration guide](https://platform.claude.com/docs/en/build-with-claude/claude-platform-on-aws#migrating-from-amazon-bedrock).
 </Note>
 
+<Warning>
+  The latest version of the SDK sends API version `2026-10-21` by default, including through Amazon Bedrock. The ARN-versioned models in the model table on this page don't support `2026-10-21` on Bedrock, and requests to them that send it can return a 400 error. If you call them through the SDK, keep the SDK on the version you use today, and pin that version where you install it so a later install doesn't upgrade it. The Boto3 example sets `anthropic_version` in its request body and isn't affected.
+</Warning>
+
 Calling Claude through Bedrock slightly differs from how you would call Claude on the Claude API directly. This guide walks you through completing an API call to Claude on Bedrock using one of Anthropic's [client SDKs](https://platform.claude.com/docs/en/cli-sdks-libraries/overview).
 
 Note that this guide assumes you have already signed up for an [AWS account](https://portal.aws.amazon.com/billing/signup) and configured programmatic access.
@@ -54,20 +58,20 @@ Anthropic's [client SDKs](https://platform.claude.com/docs/en/cli-sdks-libraries
   <Tab title="Java">
     <CodeGroup>
       ```groovy Gradle
-      implementation("com.anthropic:anthropic-java:2.75.0")
-      implementation("com.anthropic:anthropic-java-bedrock:2.75.0")
+      implementation("com.anthropic:anthropic-java:3.0.0")
+      implementation("com.anthropic:anthropic-java-bedrock:3.0.0")
       ```
 
       ```xml Maven
       <dependency>
           <groupId>com.anthropic</groupId>
           <artifactId>anthropic-java</artifactId>
-          <version>2.75.0</version>
+          <version>3.0.0</version>
       </dependency>
       <dependency>
           <groupId>com.anthropic</groupId>
           <artifactId>anthropic-java-bedrock</artifactId>
-          <version>2.75.0</version>
+          <version>3.0.0</version>
       </dependency>
       ```
 

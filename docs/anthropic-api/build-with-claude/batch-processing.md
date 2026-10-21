@@ -258,10 +258,7 @@ You can [create a batch](https://platform.claude.com/docs/en/api/messages/batche
               {
                   Model = Model.ClaudeOpus5_5,
                   MaxTokens = 1024,
-                  Messages =
-                  [
-                      new() { Role = Role.User, Content = "Hello, world" }
-                  ]
+                  Messages = [new UserMessageParam { Content = "Hello, world" }]
               }
           },
           new()
@@ -271,10 +268,7 @@ You can [create a batch](https://platform.claude.com/docs/en/api/messages/batche
               {
                   Model = Model.ClaudeOpus5_5,
                   MaxTokens = 1024,
-                  Messages =
-                  [
-                      new() { Role = Role.User, Content = "Hi again, friend" }
-                  ]
+                  Messages = [new UserMessageParam { Content = "Hi again, friend" }]
               }
           }
       ]
@@ -790,13 +784,14 @@ Results of the batch are available for download at the `results_url` property on
 
   await foreach (var result in client.Messages.Batches.ResultsStreaming("msgbatch_01HkcTjaV5uDC8jWR4ZsDV8d"))
   {
-      switch (result.Result.Type)
+      switch (result.Result.Type.Raw())
       {
           case "succeeded":
               Console.WriteLine($"Success! {result.CustomID}");
               break;
           case "errored":
-              if (result.Result.Error?.Type == "invalid_request")
+              if (result.Result.TryPickErrored(out var errored)
+                  && errored.Error.Error.Type.Raw() == "invalid_request_error")
               {
                   Console.WriteLine($"Validation error: {result.CustomID}");
               }
@@ -928,6 +923,8 @@ The results are in `.jsonl` format, where each line is a valid JSON object repre
 ```
 
 If your result has an error, its `result.error` will be set to the standard [error shape](https://platform.claude.com/docs/en/api/errors#error-shapes).
+
+Batch results use the API version of the request that created the batch.
 
 <Tip>
   **Batch results may not match input order**
@@ -1290,7 +1287,7 @@ Example of implementing prompt caching in a batch:
                   },
                   Messages =
                   [
-                      new() { Role = Role.User, Content = "Analyze the major themes in Pride and Prejudice." }
+                      new UserMessageParam { Content = "Analyze the major themes in Pride and Prejudice." }
                   ]
               }
           },
@@ -1315,7 +1312,7 @@ Example of implementing prompt caching in a batch:
                   },
                   Messages =
                   [
-                      new() { Role = Role.User, Content = "Write a summary of Pride and Prejudice." }
+                      new UserMessageParam { Content = "Write a summary of Pride and Prejudice." }
                   ]
               }
           }
@@ -1678,7 +1675,7 @@ A single 300k-token generation can take over an hour to complete, so plan your b
                   MaxTokens = 300_000,
                   Messages =
                   [
-                      new() { Role = Role.User, Content = "Write a comprehensive technical guide to building distributed systems, covering architecture patterns, consistency models, fault tolerance, and operational best practices." }
+                      new BetaUserMessageParam { Content = "Write a comprehensive technical guide to building distributed systems, covering architecture patterns, consistency models, fault tolerance, and operational best practices." }
                   ]
               }
           }
