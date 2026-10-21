@@ -252,6 +252,7 @@ Click any conversation to resume it. If the conversation is already open in anot
 
 * **Session titles**: new sessions receive AI-generated titles based on your first message.
 * **Rename and archive**: hover over a session to reveal these actions. Rename to give it a descriptive title, or archive to move it to the **Archived sessions** group at the bottom of the list.
+* **Conversations missing with [`claudeProcessWrapper`](#extension-settings) set**: update the extension to version 2.1.304 or later. The list then includes the conversations that were missing, along with sessions that `claude -p` or the [Agent SDK](/docs/en/agent-sdk/overview) started in this workspace.
 
 If the conversation is open in another Claude Code process, such as `claude` in a terminal or another VS Code window, this notice appears in place of the prompt box:
 
@@ -578,6 +579,10 @@ By default in VS Code, subagents don't show this action. To see why for one suba
 Type `/tasks` in the prompt box to open the [agent map](#use-the-prompt-box), which lists the session's background tasks, such as a dev server Claude left running as a background shell command. Click a task to open its card, where you can stop it. Requires Claude Code v2.1.277 or later.
 
 For a background shell command, or a [monitor](/docs/en/tools-reference#monitor-tool) that runs a command, the card also shows the command's latest output and refreshes it while the command runs.
+
+#### See a background subagent's tool calls
+
+When a subagent shows as one status line with no tool calls, type `/tasks` in the prompt box to open the [agent map](#use-the-prompt-box) and click the subagent there. The subagent is [running in the background](#the-run-in-background-action-is-missing-under-a-subagent), and its card shows its tool calls and a button that opens its transcript.
 
 ## VS Code commands and shortcuts
 

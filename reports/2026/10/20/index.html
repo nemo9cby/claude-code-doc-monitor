@@ -118,9 +118,306 @@
 
         <header>
             <h1>Changes on 2026-10-20</h1>
-            <p class="meta">102 total changes in 3 runs</p>
+            <p class="meta">114 total changes in 4 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">21:11 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">1. **Overall Summary**
+本次文档更新主要涉及 MCP Tool Search 在 LLM 网关环境下的默认行为变更（默认开启并支持自动重试）、Java SDK 版本全面升级至 2.75.0，以及 API 头部 `anthropic-user-profile-id` 正式脱离 Beta 状态。
+
+2. **Key Themes**
+*   **MCP Tool Search 网关行为变更**：当通过 `ANTHROPIC_BASE_URL` 使用网关时，Tool Search 不再默认关闭，而是默认开启（发送 `defer_loading` 和 `tool_reference`）。v2.1.305+ 版本增加了对不兼容请求的自动重试机制（回退到非 Tool Search 模式）。
+*   **SDK 版本更新**：Java SDK (`anthropic-java`) 及其扩展包（Bedrock, Vertex, Foundry, MCP）版本从 2.74.0 升级至 2.75.0。
+*   **API 稳定性**：`anthropic-user-profile-id` 头部不再被标记为需要 `user-profiles` Beta 标志，意味着该功能已正式稳定。
+*   **开发工具增强与修复**：VS Code 扩展修复了 `claudeProcessWrapper` 导致的会话丢失问题，并新增了查看后台子代理工具调用的功能；macOS 沙箱增加了对通过符号链接访问被拒绝路径的拦截说明。
+
+3. **Impact Level**
+**Medium**
+*   **理由**：MCP Tool Search 的行为变更会影响所有使用自定义 LLM 网关的开发者。如果你的网关不支持 `tool_reference` 或 `defer_loading`，请求可能会在后台经历自动重试，或者需要显式配置禁用 Tool Search。Java SDK 的升级属于常规维护更新。
+
+4. **Action Items for Developers**
+*   **检查 LLM 网关兼容性**：如果你使用了自定义 `ANTHROPIC_BASE_URL` 网关，请确认其是否支持 `tool_reference` 块和 `defer_loading` 字段。如果不支持，请设置 `ENABLE_TOOL_SEARCH=false` 以避免不必要的请求重试。
+*   **升级 Java SDK**：将项目中的 `com.anthropic:anthropic-java` 及相关平台依赖更新至 **2.75.0**。
+*   **升级 VS Code 扩展**：更新至 **v2.1.304 或更高版本**，以修复在使用 `claudeProcessWrapper` 时会话列表缺失的问题。
+*   **审查 macOS 沙箱配置**：如果你在 macOS 上使用了符号链接（如将 `~/.claude` 链接到 dotfiles 仓库），请注意沙箱现在会同时拒绝该链接及其指向的真实路径的访问。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Input:** 12 pages of diffs (Markdown).
+    *   **Output Format:** Markdown (Concise, insightful, Chinese).
+    *   **Structure:** Overall Summary, Key Themes, Impact Level, Action Items.
+
+2.  **Analyze the Input Data (Page by Page):**
+
+    *   **Page: `mcp.md` (+11 / -4):**
+        *   *Changes:* Updates regarding Tool Search behavior.
+        *   *Specifics:*
+            *   Removed &#34;custom `ANTHROPIC_BASE_URL`&#34; from the list of configurations that automatically disable tool search.
+            *   Added a new section &#34;Tool search through an LLM gateway&#34;.
+            *   Tool search is now **enabled by default** even when using a gateway (`ANTHROPIC_BASE_URL` points to a gateway), meaning it sends `defer_loading` and `tool_reference` blocks.
+            *   Version 2.1.304+: Tool search was off behind a gateway unless explicitly enabled. Now (v2.1.305+), it&#39;s on by default.
+            *   Version 2.1.305+: Introduces automatic retry without tool search if a gateway rejects a request (400/422) for unknown reasons.
+            *   Updated the &#34;Configure tool search&#34; table row &#34;(unset)&#34; to reflect that non-first-party hosts (gateways) now default to deferred loading, not upfront loading.
+        *   *Theme:* MCP Tool Search default behavior change regarding LLM Gateways.
+
+    *   **Page: `sandboxing.md` (+2 / -0):**
+        *   *Changes:* Added a note about symlink handling on macOS.
+        *   *Specifics:* If a denied path passes through a symlink (e.g., `~/.claude` linked to a dotfiles repo), the sandbox denies the *real location* too.
+        *   *Theme:* Sandbox security/symlink behavior.
+
+    *   **Page: `vs-code.md` (+3 / -0):**
+        *   *Changes:* Bug fix/Feature update regarding missing conversations and subagent visibility.
+        *   *Specifics:*
+            *   Extension v2.1.304+ fixes missing conversations when using `claudeProcessWrapper`.
+            *   New feature: Use `/tasks` to see tool calls for background subagents that previously showed only as a status line.
+        *   *Theme:* VS Code Extension improvements.
+
+    *   **Page: `get-started.md` (+2 / -2):**
+        *   *Changes:* Version update for Java SDK.
+        *   *Specifics:* Updated from `2.74.0` to `2.75.0`.
+        *   *Theme:* Dependency update.
+
+    *   **Page: `api/messages.md` (+2 / -2):**
+        *   *Changes:* Removed requirement note for `anthropic-user-profile-id` header.
+        *   *Specifics:* Previously &#34;Requires the `user-profiles` beta header&#34;, now just &#34;Use when acting on behalf of a party other than your organization.&#34;.
+        *   *Theme:* API Header maturity (Beta -&gt; Stable).
+
+    *   **Page: `api/messages/count_tokens.md` (+1 / -1):**
+        *   *Changes:* Same as `api/messages.md`. `anthropic-user-profile-id` header requirement removed.
+        *   *Theme:* API Header maturity.
+
+    *   **Page: `api/messages/batches/create.md` (+1 / -1):**
+        *   *Changes:* Same as above. Beta header requirement removed for `anthropic-user-profile-id`.
+        *   *Theme:* API Header maturity.
+
+    *   **Page: `api/client-sdks.md` (+12 / -0):**
+        *   *Changes:* Added a &#34;Latest versions&#34; table.
+        *   *Specifics:* Lists current versions for CLI, Python, TS, C#, Go, Java (2.75.0), PHP, Ruby. Mentions a JSON endpoint for version info.
+        *   *Theme:* SDK versioning/reference.
+
+    *   **Page: `build-with-claude/claude-on-amazon-bedrock.md` (+3 / -3):**
+        *   *Changes:* Java SDK version update.
+        *   *Specifics:* 2.74.0 -&gt; 2.75.0.
+        *   *Theme:* Dependency update.
+
+    *   **Page: `build-with-claude/claude-on-vertex-ai.md` (+3 / -3):**
+        *   *Changes:* Java SDK version update.
+        *   *Specifics:* 2.74.0 -&gt; 2.75.0.
+        *   *Theme:* Dependency update.
+
+    *   **Page: `build-with-claude/claude-in-microsoft-foundry.md` (+3 / -3):**
+        *   *Changes:* Java SDK version update.
+        *   *Specifics:* 2.74.0 -&gt; 2.75.0.
+        *   *Theme:* Dependency update.
+
+    *   **Page: `agents-and-tools/mcp-connector.md` (+3 / -3):**
+        *   *Changes:* Java SDK version update.
+        *   *Specifics:* 2.74.0 -&gt; 2.75.0.
+        *   *Theme:* Dependency update.
+
+3.  **Synthesize and Summarize:**
+
+    *   **Overall Summary:** Documentation updates focus on a behavior change for MCP Tool Search when using LLM Gateways (defaulting to &#34;on&#34;), the stabilization of `anthropic-user-profile-id` headers (no longer marked beta), Java SDK version 2.75.0 promotion, and minor VS Code extension fixes/symlink sandbox improvements.
+
+    *   **Key Themes:**
+        *   **MCP Tool Search Gateway Behavior:** Significant change. Tool search is now enabled by default behind gateways. Claude Code will automatically retry without tool search if the gateway rejects the request (v2.1.305+).
+        *   **SDK Updates:** Java SDK bumped to `2.75.0` across multiple integration guides (Bedrock, Vertex, Foundry, MCP).
+        *   **API Stability:** `anthropic-user-profile-id` header is no longer tied to a beta flag requirement in the docs.
+        *   **Tooling Fixes:** VS Code extension fixes session visibility and adds subagent tool call inspection. macOS sandbox clarifies symlink denial behavior.
+
+    *   **Impact Level:** **Medium**.
+        *   *Reasoning:* The MCP Tool Search change is behavioral. If developers are using custom gateways or proxies that *don&#39;t* support `tool_reference` or `defer_loading`, Claude might now send requests that fail (though there is an auto-retry mechanism for 400/422). This changes how interactions happen behind proxies. The other changes are version bumps or documentation clarifications.
+
+    *   **Action Items for Developers:**
+        *   **Review MCP Gateway Config:** If using `ANTHROPIC_BASE_URL` with a custom gateway, check if it supports `defer_loading`/`tool_reference`. If not, you might see transient errors or need to explicitly set `ENABLE_TOOL_SEARCH=false`.
+        *   **Update Java SDK:** Bump `anthropic-java` to version `2.75.0`.
+        *   **Update VS Code Extension:** Update to v2.1.304+ to fix missing conversations with `claudeProcessWrapper`.
+        *   **Check Sandbox Symlinks:** On macOS, ensure symlinks to denied directories (like `~/.claude`) are handled correctly if relying on specific denial rules.
+
+4.  **Drafting the Response (in Chinese):**
+
+    *   *Summary:* 本次更新主要涉及 MCP Tool Search 在 LLM 网关后的默认行为变更，Java SDK 版本升级至 2.75.0，以及 `anthropic-user-profile-id` API 头部不再标记为 Beta 状态。
+    *   *Themes:* MCP 网关行为变更、SDK 版本更新、API 稳定性、工具修复。
+    *   *Impact:* Medium (行为变更可能导致代理/网关请求失败)。
+    *   *Action Items:* 升级 Java SDK、检查网关兼容性、升级 VS Code 插件。
+
+5.  **Refining the Output:**
+
+    *   Make the Tool Search explanation very clear because that&#39;s the most &#34;developer-affecting&#34; logic change. The auto-retry mechanism (v2.1.305) softens the blow, but it&#39;s still a protocol change.
+    *   Group the Java SDK updates mentally (they are repetitive diffs).
+    *   Highlight the VS Code subagent feature as a usability improvement.
+
+6.  **Final Polish (Markdown formatting):**
+    *   Ensure correct header levels.
+    *   Keep it concise.
+
+    *(Self-Correction during drafting)*: Did I miss anything?
+    - The `mcp.md` changes explicitly mention v2.1.304 vs v2.1.305 behavior differences regarding the fallback. This is important context.
+    - The sandbox symlink thing is niche but important for security/macOS developers.
+    - `anthropic-user-profile-id` losing the &#34;requires beta header&#34; note suggests the feature is now stable/standard.
+
+7.  **Final Output Generation.** (Proceeding to generate output based on these thoughts).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+11</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sandboxing.html" class="page-link">sandboxing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/vs-code.html" class="page-link">vs-code.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/get-started.html" class="page-link">get-started.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/messages.html" class="page-link">api/messages.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/messages/count_tokens.html" class="page-link">api/messages/count_tokens.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/messages/batches/create.html" class="page-link">api/messages/batches/create.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/client-sdks.html" class="page-link">api/client-sdks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+12</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-on-amazon-bedrock.html" class="page-link">build-with-claude/claude-on-amazon-bedrock.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-on-vertex-ai.html" class="page-link">build-with-claude/claude-on-vertex-ai.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-in-microsoft-foundry.html" class="page-link">build-with-claude/claude-in-microsoft-foundry.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/mcp-connector.html" class="page-link">agents-and-tools/mcp-connector.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">18:01 EST</div>
