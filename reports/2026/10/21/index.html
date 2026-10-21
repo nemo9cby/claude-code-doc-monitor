@@ -118,9 +118,127 @@
 
         <header>
             <h1>Changes on 2026-10-21</h1>
-            <p class="meta">12 total changes in 1 run</p>
+            <p class="meta">17 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">08:39 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">## 文档变更分析
+
+### 1. 总体概要
+
+本次更新为 Claude Code 引入了 **&#34;Projects&#34;（项目）** 概念及其 **&#34;Cloud Threads&#34;（云端线程）**，明确了项目内云端线程与普通云端会话在配置加载行为上的关键差异——项目内的云端线程**不再读取仓库级别的 settings、skills、subagents 和 MCP 配置**。
+
+### 2. 关键主题
+
+- **Projects 特性的隔离语义**：项目内的云端线程对仓库级配置（`.claude/settings.json`、`.claude/skills/`、`.claude/agents/`）的加载被显式排除，需改用 claude.ai 账户级配置或环境变量。
+- **Settings 层级重构**：`settings.md` 将云端会话的设置来源拆分为三条：项目内线程、单仓库非项目会话、多仓库会话，各自适用不同规则。
+- **Skills 可用性收窄**：项目和嵌套目录级别的 skills 在项目云端线程中不可用；普通云端会话也不再自动加载仓库 `.claude/skills/`（原文&#34;additionally load&#34;被删除）。
+- **MCP 安全提示条件化**：跳过 `.mcp.json` 审批提示的行为现在仅适用于&#34;项目外&#34;的云端会话。
+- **文档一致性**：`skills.md` 和 `slash-commands.md` 的 skills 部分变更完全同步。
+
+### 3. 影响级别：**Medium**
+
+**理由**：这不涉及 API 或 CLI 参数的 breaking change，但对使用 Claude Code Web/云端环境的团队影响显著——如果你依赖仓库内提交的 `.claude/settings.json`（权限规则、hooks、env）、`.claude/skills/` 或 `.claude/agents/`，在项目的云端线程中将**静默失效**。行为变更容易被忽略，可能导致权限泄露或功能缺失。
+
+### 4. 开发者行动项
+
+- **审查现有仓库级配置**：检查 `.claude/settings.json` 中的 permission rules、hooks、`env` 是否被项目云端线程依赖，若是则迁移至环境变量或 server-managed settings。
+- **迁移项目线程所需的 skills**：将仓库 `.claude/skills/` 中的 skill 启用到 claude.ai 账户级别，否则项目云端线程中无法使用。
+- **迁移项目线程所需的 subagents**：同理，`.claude/agents/` 中的自定义 subagent 在项目线程中不会自动加载，需考虑替代方案。
+- **关注 MCP 安全边界**：项目内的云端线程会要求 `.mcp.json` 中项目级 MCP server 的审批（不再自动跳过），确认自动化流水线不会因此中断。
+- **阅读 Projects 文档**：深入了解 [claude-projects](/docs/en/claude-projects#what-threads-pick-up-from-your-repositories) 中&#34;线程从仓库加载什么&#34;的完整列表，确保配置策略与新的隔离模型一致。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">Let me analyze the documentation changes across all 5 pages.
+
+The changes all revolve around a new concept: &#34;projects&#34; (linked to `claude-projects`) and their &#34;cloud threads.&#34; The key change is that cloud threads within a project have different behavior for settings, skills, subagents, and MCP servers compared to regular cloud sessions.
+
+Specifically:
+1. **claude-code-on-the-web.md**: `/config` and subagents behavior now distinguishes between sessions inside vs. outside a project. Settings via `.claude/settings.json` only work &#34;outside a project,&#34; and subagents only load automatically &#34;outside a project&#39;s threads.&#34;
+
+2. **mcp.md**: Project-scoped MCP servers from `.mcp.json` skip the approval prompt in cloud sessions *outside a project* (added that qualifier).
+
+3. **settings.md**: Major restructuring of cloud session settings. New bullet for &#34;Cloud threads in a project&#34; — these don&#39;t read repository `.claude/settings.json` permission rules, hooks, or env. The existing bullet for shared project settings now says &#34;outside a project.&#34; Separated the &#34;several repositories&#34; case into its own bullet. `/config` behavior updated similarly.
+
+4. **skills.md** and **slash-commands.md** (identical changes): Project and nested skills now exclude &#34;cloud threads in a project.&#34; Cloud sessions no longer &#34;additionally load project skills committed to the cloned repository&#39;s `.claude/skills/`&#34; — that was removed. Instead, for project cloud threads, skills must be enabled via claude.ai account. For non-project cloud sessions, committing to repo still works.
+
+So the overall theme: A new &#34;projects&#34; feature (likely claude.ai projects that group repositories) introduces &#34;cloud threads&#34; that have restricted access to repository-level configurations (settings, skills, subagents, MCP servers). This is a significant behavioral distinction.</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/claude-code-on-the-web.html" class="page-link">claude-code-on-the-web.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">02:54 EST</div>
