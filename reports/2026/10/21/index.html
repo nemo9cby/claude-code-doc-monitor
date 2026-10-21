@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026-10-21 - Documentation Changes</title>
+    <style>
+        :root {
+            --bg-color: #1a1a2e;
+            --card-bg: #16213e;
+            --text-color: #eee;
+            --accent: #0f3460;
+            --add-text: #4ade80;
+            --del-text: #f87171;
+            --time-color: #60a5fa;
+        }
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg-color: #f5f5f5;
+                --card-bg: #fff;
+                --text-color: #333;
+                --accent: #e0e0e0;
+                --add-text: #155724;
+                --del-text: #721c24;
+                --time-color: #2563eb;
+            }
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+        .container { max-width: 800px; margin: 0 auto; }
+        header { margin-bottom: 2rem; }
+        h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+        .meta { color: #888; }
+        .batch { margin-bottom: 2rem; }
+        .batch-header {
+            color: var(--time-color);
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--accent);
+        }
+        .page-list { list-style: none; }
+        .page-item {
+            background: var(--card-bg);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .page-item:hover { background: var(--accent); }
+        .page-link {
+            color: var(--text-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .page-summary { color: #888; font-size: 0.9rem; }
+        .added { color: var(--add-text); }
+        .removed { color: var(--del-text); }
+        a { color: #60a5fa; }
+        .back-link { margin-bottom: 1rem; display: inline-block; }
+        .page-item-content { flex: 1; }
+        .page-analysis {
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: 0.25rem;
+        }
+        .source-section {
+            margin-bottom: 1.5rem;
+        }
+        .source-header {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: #8b5cf6;
+        }
+        .batch-analysis {
+            background: var(--card-bg);
+            border-left: 3px solid #22c55e;
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            margin: 0.75rem 0 1rem 0;
+        }
+        .batch-analysis h4 {
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+        .batch-analysis-content {
+            white-space: pre-wrap;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        .reasoning-section {
+            margin-top: 1rem;
+            padding-top: 0.75rem;
+            border-top: 1px dashed var(--accent);
+            font-size: 0.85rem;
+            color: #888;
+        }
+        .reasoning-section summary {
+            cursor: pointer;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../../../index.html" class="back-link">&larr; All reports</a>
+
+        <header>
+            <h1>Changes on 2026-10-21</h1>
+            <p class="meta">12 total changes in 1 run</p>
+        </header>
+
+        
+        <div class="batch">
+            <div class="batch-header">02:54 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 总体概览
+此次文档更新主要集中在优化非交互模式下的工具延迟与恢复机制，新增了针对插件通知的 Hook 支持，并完善了 MCP 工具加载行为及 API 缓存错误的诊断说明。同时包含若干重要的 Bug 修复，涉及云会话的登录状态及多 MCP 工具场景下的错误处理。
+
+### 核心主题
+*   **Hook 与工具编排增强**：大幅细化了 `PreToolUse` Hook 中 `&#34;defer&#34;` 决策的行为描述。明确指出 `defer` 是结束当前“轮次”而非直接退出进程，并增加了恢复会话时若工具不可用（如 MCP 服务器断开）的处理逻辑（返回 `tool_deferred_unavailable`）。
+*   **插件生态系统扩展**：在 `Notification` Hook 类型中新增了 `plugin_notification`，允许 Mods 通过 `$.ui.notify` 触发通知事件。
+*   **MCP 与工具搜索逻辑澄清**：详细解释了当 `ENABLE_TOOL_SEARCH` 设置为 `auto` 阈值模式时，工具为何会在定义总大小低于阈值时仍保持延迟加载的状态。
+*   **API 诊断可观测性**：为 Messages API 中的各类 `cache_miss_reason`（如 `model_changed`, `tools_changed` 等）补充了详细描述和外部文档链接，便于调试缓存失效问题。
+*   **Bug 修复**：修复了在云会话中使用 `claude -p` 时因环境变量缺失而误报“Not logged in”的问题，以及修复了在 MCP 工具较多时 API 错误被错误替换为“prompt is too long”的缺陷。
+
+### 影响等级：中等
+**理由**：虽然大部分变动属于文档澄清，但对于构建基于 Agent SDK 的复杂封装或非交互式自动化工作流的开发者来说，`defer` 机制的语义变化及错误处理逻辑更新至关重要。插件通知的 Hook 也为扩展开发提供了新能力。
+
+### 开发者行动项
+1.  **检查 Defer 处理逻辑**：如果你的应用使用了 `permissionDecision: &#34;defer&#34;`，请务必更新代码以处理新的 `stop_reason: &#34;tool_deferred_unavailable&#34;` 状态，并理解恢复时发送 Prompt 与不发送 Prompt 的区别。
+2.  **适配新 Hook 类型**：在 Hook 监听器中增加对 `plugin_notification` 类型的处理，以支持插件的 UI 通知功能。
+3.  **审查 MCP 工具加载配置**：如果你的环境依赖 `ENABLE_TOOL_SEARCH=auto`，请查阅更新后的文档，理解工具在会话恢复或重连时可能保持延迟加载的行为。
+4.  **利用缓存诊断信息**：在调试 API 缓存命中率时，参考新增的 `cache_miss_reason` 详细说明来优化 Prompt 构建策略。
+5.  **更新环境变量配置**：针对云会话或无写入权限目录下的沙盒配置，参考文档中的 `~/.claude/settings.json` 配置方案进行修正。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request**:
+    *   **Role**: World-class programmer analyzing documentation changes.
+    *   **Input**: 12 pages of documentation diffs (hooks, hooks-guide, mcp, model-config, sandboxing, setup, api/messages, api/models/list, api/beta/files/upload, claude-in-microsoft-foundry, mcp-connector, CHANGELOG).
+    *   **Task**: Summarize what changed, why it matters, key themes, impact level, and action items.
+    *   **Format**: Markdown.
+    *   **Language**: Chinese.
+
+2.  **Process the Diffs (Page by Page Analysis)**:
+
+    *   **Page: `hooks.md`**:
+        *   *Change 1*: Added `plugin_notification` to the `Notification` hook types.
+        *   *Change 2*: Updated `permissionDecision` for `&#34;defer&#34;`. Now clarifies that it ends the turn so the tool can be resumed later, and requires the `-p` flag (non-interactive).
+        *   *Change 3*: Refined the `PreToolUse` -&gt; `defer` flow description.
+        *   *Change 4*: Added handling for when a deferred tool is unavailable upon resume (`tool_deferred_unavailable`). Clarified behavior when sending prompts vs. no prompts during resume.
+        *   *Theme*: Hook extensibility (plugins), Tool deferral/resume logic refinements.
+
+    *   **Page: `hooks-guide.md`**:
+        *   *Change 1*: Added `plugin_notification` description (Mod raising notifications).
+        *   *Change 2*: Updated description of `&#34;defer&#34;` to mention it ends the turn (not just &#34;exits the process&#34;).
+        *   *Change 3*: Added `plugin_notification` to the notification types table.
+        *   *Theme*: Consistency with `hooks.md`.
+
+    *   **Page: `mcp.md`**:
+        *   *Change 1*: Clarified `ENABLE_TOOL_SEARCH=auto` behavior. Specifically, tools stay deferred below the threshold if tool search was already on.
+        *   *Theme*: Tool loading and MCP configuration clarity.
+
+    *   **Page: `model-config.md`**:
+        *   *Change 1*: Clarified warnings for `maxEffortLevel` caps. Warnings go to stderr for `--print`, debug log otherwise.
+        *   *Change 2*: Minor text correction regarding 200K limit warnings.
+        *   *Theme*: Effort level cap warnings/logging.
+
+    *   **Page: `sandboxing.md`**:
+        *   *Change 1*: Added a workaround for when no writable project folder is available. Suggests enabling sandbox via `~/.claude/settings.json` user settings.
+        *   *Theme*: Sandbox configuration edge cases.
+
+    *   **Page: `setup.md`**:
+        *   *Change 1*: Removed duplicate `theme={null}` attributes from code blocks (cosmetic cleanup).
+        *   *Theme*: Documentation hygiene.
+
+    *   **Page: `api/messages.md`**:
+        *   *Change 1*: Added detailed descriptions for various `cache_miss_reason` types (e.g., `model_changed`, `system_changed`, etc.) and linked to the cache diagnostics guide.
+        *   *Theme*: API diagnostics and caching clarity.
+
+    *   **Page: `api/models/list.md`** &amp; `api/beta/files/upload.md`**:
+        *   *Change 1*: Added `&#34;webhooks-2026-10-07&#34;` to headers.
+        *   *Theme*: API versioning/headers update.
+
+    *   **Page: `claude-in-microsoft-foundry.md`** &amp; `agents-and-tools/mcp-connector.md`**:
+        *   *Change 1*: Minor text corrections/formatting (e.g., Markdown code backticks in URL text).
+        *   *Theme*: Documentation hygiene/formatting.
+
+    *   **Page: `CHANGELOG.md.md`**:
+        *   *Change 1*: Added entry for v2.1.306.
+        *   *Fixes*: Fixed `claude -p` inside cloud sessions reporting &#34;Not logged in&#34;. Fixed API error being replaced by &#34;prompt is too long&#34; in sessions with many MCP tools.
+        *   *Theme*: Bug fixes.
+
+3.  **Synthesize and Structure**:
+
+    *   **Overall Summary**: The changes focus on refining the &#34;defer&#34; mechanism for tools in non-interactive modes, adding hook support for plugin notifications, clarifying tool loading behaviors with MCP, and adding diagnostic details to the API cache miss reasons. There are also minor bug fixes and documentation cleanups.
+
+    *   **Key Themes**:
+        *   **Hook &amp; Tool Orchestration**: Significant updates to how the `&#34;defer&#34;` permission decision works, specifically regarding tool unavailability during resume and the state of the turn (ending vs. exiting). Support for plugin notifications via hooks.
+        *   **MCP &amp; Tool Search**: Clarification on the `auto` threshold for tool loading and when tools stay deferred.
+        *   **API Diagnostics**: Enhanced documentation for `cache_miss_reason` types in the Messages API.
+        *   **Bug Fixes &amp; Stability**: Fixes related to cloud sessions (`-p` flag) and error handling with many MCP tools.
+
+    *   **Impact Level**: **Medium**.
+        *   *Reasoning*: The changes to the `defer` logic and tool unavailability are critical for developers building advanced Agent SDK wrappers or non-interactive workflows. The plugin notification hook enables new integration capabilities. Other changes are informational or cosmetic.
+
+    *   **Action Items**:
+        *   Review Agent SDK implementations handling the `defer` logic to account for the new `tool_deferred_unavailable` state and the distinction between sending prompts vs. resuming without prompts.
+        *   Update hook listeners to handle the new `plugin_notification` type if plugin integration is relevant.
+        *   Check `tool_deferred_unavailable` handling in custom integrations.
+        *   Consult the new cache diagnostics guide if implementing caching strategies with the API.
+
+4.  **Drafting the Response (in Chinese)**:
+
+    *   *Summary*: 此次更新主要优化了非交互模式下的工具延迟机制，增加了插件通知的 Hook 支持，并明确了 MCP 工具加载逻辑及 API 缓存诊断细节。
+    *   *Themes*:
+        *   Hook 与工具编排：细化了 `defer` 权限决策的行为，特别是恢复会话时工具不可用的处理逻辑；新增 `plugin_notification` Hook 类型。
+        *   MCP 与工具搜索：阐明了 `ENABLE_TOOL_SEARCH=auto` 阈值下的工具加载行为。
+        *   API 诊断：为 Messages API 的 `cache_miss_reason` 类型补充了详细说明。
+        *   Bug 修复：解决了云会话中 `claude -p` 的登录状态报错及多 MCP 工具场景下的错误处理问题。
+    *   *Impact*: Medium (主要影响构建 Agent SDK 封装或高级自动化工作流的开发者)。
+    *   *Actions*:
+        *   调整处理 `defer` 逻辑的代码，以应对新增的 `tool_deferred_unavailable` 状态。
+        *   在 Hook 监听器中添加对 `plugin_notification` 的处理。
+        *   参考新的缓存诊断指南优化 API 缓存策略。
+
+5.  **Refining Language**: Ensure technical terms are accurate (e.g., &#34;defer&#34;, &#34;non-interactive&#34;, &#34;Agent SDK&#34;, &#34;MCP&#34;).
+
+6.  **Final Polish**: (Self-correction: Ensure I mention the change from &#34;process exits&#34; to &#34;turn ends&#34; for defer, as that&#39;s a nuance).
+
+7.  **Final Output Generation**. (Matches the thought process above).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+9</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/model-config.html" class="page-link">model-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sandboxing.html" class="page-link">sandboxing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/setup.html" class="page-link">setup.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/messages.html" class="page-link">api/messages.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+63</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/models/list.html" class="page-link">api/models/list.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/beta/files/upload.html" class="page-link">api/beta/files/upload.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-in-microsoft-foundry.html" class="page-link">build-with-claude/claude-in-microsoft-foundry.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/mcp-connector.html" class="page-link">agents-and-tools/mcp-connector.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
+        
+    </div>
+</body>
+</html>
