@@ -69,7 +69,7 @@ Anthropic's [client SDKs](https://platform.claude.com/docs/en/cli-sdks-libraries
 
   <Tab title="Go">
     ```bash
-    go get github.com/anthropics/anthropic-sdk-go/foundry
+    go get github.com/anthropics/anthropic-sdk-go/v2/foundry
 
     # For Entra ID authentication, also install the Azure Identity library
     go get github.com/Azure/azure-sdk-for-go/sdk/azidentity
@@ -290,8 +290,8 @@ The SDK's Foundry client requires an API key and either a resource name or base 
   	"fmt"
   	"os"
 
-  	"github.com/anthropics/anthropic-sdk-go"
-  	"github.com/anthropics/anthropic-sdk-go/foundry"
+  	"github.com/anthropics/anthropic-sdk-go/v2"
+  	"github.com/anthropics/anthropic-sdk-go/v2/foundry"
   )
 
   func main() {
@@ -508,8 +508,8 @@ Entra ID authentication lets you manage access with Azure RBAC, integrate with y
 
   	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
   	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
-  	"github.com/anthropics/anthropic-sdk-go"
-  	"github.com/anthropics/anthropic-sdk-go/foundry"
+  	"github.com/anthropics/anthropic-sdk-go/v2"
+  	"github.com/anthropics/anthropic-sdk-go/v2/foundry"
   )
 
   func main() {

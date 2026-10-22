@@ -38,7 +38,7 @@ First, install Anthropic's [client SDK](https://platform.claude.com/docs/en/cli-
 
   <Tab title="Go">
     ```bash
-    go get github.com/anthropics/anthropic-sdk-go
+    go get github.com/anthropics/anthropic-sdk-go/v2
     ```
   </Tab>
 
@@ -250,8 +250,8 @@ The following examples show how to generate text from Claude on Agent Platform:
   	"context"
   	"fmt"
 
-  	"github.com/anthropics/anthropic-sdk-go"
-  	"github.com/anthropics/anthropic-sdk-go/vertex"
+  	"github.com/anthropics/anthropic-sdk-go/v2"
+  	"github.com/anthropics/anthropic-sdk-go/v2/vertex"
   )
   // ...
   	// Uses default Google Cloud credentials
@@ -522,8 +522,8 @@ Set the `region` parameter to `"global"` when initializing the client:
   	"context"
   	"fmt"
 
-  	"github.com/anthropics/anthropic-sdk-go"
-  	"github.com/anthropics/anthropic-sdk-go/vertex"
+  	"github.com/anthropics/anthropic-sdk-go/v2"
+  	"github.com/anthropics/anthropic-sdk-go/v2/vertex"
   )
   // ...
   	// Uses default Google Cloud credentials
@@ -708,8 +708,8 @@ Set the `region` parameter to a multi-region identifier: `"us"` for the United S
   	"context"
   	"fmt"
 
-  	"github.com/anthropics/anthropic-sdk-go"
-  	"github.com/anthropics/anthropic-sdk-go/vertex"
+  	"github.com/anthropics/anthropic-sdk-go/v2"
+  	"github.com/anthropics/anthropic-sdk-go/v2/vertex"
   )
   // ...
   	// Multi-region identifier: "us" or "eu"
@@ -898,8 +898,8 @@ Specify a specific region such as `"us-east5"` or `"europe-west1"`:
   	"context"
   	"fmt"
 
-  	"github.com/anthropics/anthropic-sdk-go"
-  	"github.com/anthropics/anthropic-sdk-go/vertex"
+  	"github.com/anthropics/anthropic-sdk-go/v2"
+  	"github.com/anthropics/anthropic-sdk-go/v2/vertex"
   )
   // ...
   	// Specify a specific region

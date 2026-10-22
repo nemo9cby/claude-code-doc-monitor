@@ -878,8 +878,7 @@ Send the full conversation history plus your tool result. Three details matter o
   	},
   	Messages: []anthropic.MessageParam{
   		anthropic.NewUserMessage(anthropic.NewTextBlock("Query customer purchase history from the last quarter and identify our top 5 customers by revenue")),
-  		{
-  			Role: anthropic.MessageParamRoleAssistant,
+  		{OfAssistant: &anthropic.AssistantMessageParam{
   			Content: []anthropic.ContentBlockParamUnion{
   				anthropic.NewTextBlock("I'll query the purchase history and analyze the results."),
   				{OfServerToolUse: &anthropic.ServerToolUseBlockParam{
@@ -898,9 +897,8 @@ Send the full conversation history plus your tool result. Three details matter o
   					},
   				}},
   			},
-  		},
-  		{
-  			Role: anthropic.MessageParamRoleUser,
+  		}},
+  		{OfUser: &anthropic.UserMessageParam{
   			Content: []anthropic.ContentBlockParamUnion{
   				{OfToolResult: &anthropic.ToolResultBlockParam{
   					ToolUseID: "toolu_def456",
@@ -911,7 +909,7 @@ Send the full conversation history plus your tool result. Three details matter o
   					},
   				}},
   			},
-  		},
+  		}},
   	},
   	// Same tools array as the original request
   	Tools: []anthropic.ToolUnionParam{

@@ -2076,8 +2076,7 @@ The following code snippets showcase various prompt caching patterns. These exam
       	Messages: []anthropic.MessageParam{
       		anthropic.NewUserMessage(anthropic.NewTextBlock("Hello, can you tell me more about the solar system?")),
       		anthropic.NewAssistantMessage(anthropic.NewTextBlock("Certainly! The solar system is the collection of celestial bodies that orbit our Sun. It consists of eight planets, numerous moons, asteroids, comets, and other objects. The planets, in order from closest to farthest from the Sun, are: Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, and Neptune. Each planet has its own unique characteristics and features. Is there a specific aspect of the solar system you would like to know more about?")),
-      		{
-      			Role: anthropic.MessageParamRoleUser,
+      		{OfUser: &anthropic.UserMessageParam{
       			Content: []anthropic.ContentBlockParamUnion{
       				anthropic.NewTextBlock("Good to know."),
       				{OfText: &anthropic.TextBlockParam{
@@ -2085,7 +2084,7 @@ The following code snippets showcase various prompt caching patterns. These exam
       					CacheControl: anthropic.NewCacheControlEphemeralParam(),
       				}},
       			},
-      		},
+      		}},
       	},
       })
       if err != nil {
@@ -2787,15 +2786,14 @@ The following code snippets showcase various prompt caching patterns. These exam
       			false,
       		)),
       		anthropic.NewAssistantMessage(anthropic.NewTextBlock("I found 3 relevant documents about Mars rovers. Let me get more details from the Mars Exploration document.")),
-      		{
-      			Role: anthropic.MessageParamRoleUser,
+      		{OfUser: &anthropic.UserMessageParam{
       			Content: []anthropic.ContentBlockParamUnion{
       				{OfText: &anthropic.TextBlockParam{
       					Text:         "Yes, please tell me about the Perseverance rover specifically.",
       					CacheControl: anthropic.NewCacheControlEphemeralParam(),
       				}},
       			},
-      		},
+      		}},
       	},
       })
       if err != nil {

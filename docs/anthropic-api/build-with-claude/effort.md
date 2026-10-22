@@ -529,10 +529,9 @@ The following example starts at `high`, then drops to `low` for a routine follow
   	},
   	Messages: []anthropic.BetaMessageParam{
   		anthropic.NewBetaUserMessage(anthropic.NewBetaTextBlock("Plan a migration from SQLite to PostgreSQL in three short steps.")),
-  		{
-  			Role:    anthropic.BetaMessageParamRoleAssistant,
+  		{OfAssistant: &anthropic.BetaAssistantMessageParam{
   			Content: []anthropic.BetaContentBlockParamUnion{anthropic.NewBetaTextBlock("1. Export the SQLite data. 2. Create the PostgreSQL schema. 3. Import the data and verify row counts.")},
-  		},
+  		}},
   		// Effort-only system message: the new level takes effect from the next user turn.
   		anthropic.NewBetaSystemMessage(anthropic.BetaSystemMessageOutputConfigParam{
   			Effort: anthropic.BetaSystemMessageOutputConfigEffortLow,
