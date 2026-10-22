@@ -1197,7 +1197,7 @@ for region in regions:
     results[region] = sum(row["revenue"] for row in rows)
 
 # Process results programmatically
-top_region = max(results.items(), key=lambda x: x[1])
+top_region = max(results.items(), key=lambda item: item[1])
 print(f"Top region: {top_region[0]} with ${top_region[1]:,} in revenue")
 ```
 

@@ -295,7 +295,7 @@ The Python environment can process various file types uploaded through the Files
     -H "anthropic-version: 2023-06-01" \
     -F "file=@data.csv"
 
-  # Then use the file with code execution: FILE_ID is the id from the upload response
+  # Then use the file with code execution: FILE_ID is the ID from the upload response
   curl --fail-with-body -sS https://api.anthropic.com/v1/messages \
     -H "x-api-key: $ANTHROPIC_API_KEY" \
     -H "anthropic-version: 2023-06-01" \
@@ -321,7 +321,7 @@ The Python environment can process various file types uploaded through the Files
   # First, upload a file
   ant files upload --file ./data.csv
 
-  # Then use the file with code execution: FILE_ID is the id from the upload response
+  # Then use the file with code execution: FILE_ID is the ID from the upload response
   ant messages create <<YAML
   model: claude-opus-5-5
   max_tokens: 4096

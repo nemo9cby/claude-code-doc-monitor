@@ -402,7 +402,8 @@ The following example starts at `high`, then drops to `low` for a routine follow
   ```
 
   ```bash CLI
-  ant beta:messages create --beta mid-conversation-output-config-2026-07-01 <<'YAML'
+  ant beta:messages create \
+    --beta mid-conversation-output-config-2026-07-01 <<'YAML'
   model: claude-fable-5-1
   max_tokens: 4096
   output_config:

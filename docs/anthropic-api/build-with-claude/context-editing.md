@@ -270,7 +270,7 @@ The simplest way to enable tool result clearing is to specify only the strategy 
   client = Anthropic::Client.new
 
   response = client.beta.messages.create(
-    model: "claude-opus-5-5",
+    model: Anthropic::Model::CLAUDE_OPUS_5_5,
     max_tokens: 4096,
     messages: [
       { role: "user", content: "Search for recent developments in AI" }
@@ -893,7 +893,7 @@ Use thinking block clearing to manage context and prompt caching in conversation
   client = Anthropic::Client.new
 
   response = client.beta.messages.create(
-    model: "claude-opus-5-5",
+    model: Anthropic::Model::CLAUDE_OPUS_5_5,
     max_tokens: 16000,
     messages: [{ role: "user", content: "Hello" }],
     betas: ["context-management-2025-06-27"],
@@ -1115,7 +1115,7 @@ Keep thinking blocks from the last 3 assistant turns:
   client = Anthropic::Client.new
 
   response = client.beta.messages.create(
-    model: "claude-opus-5-5",
+    model: Anthropic::Model::CLAUDE_OPUS_5_5,
     max_tokens: 16000,
     messages: [{ role: "user", content: "Hello" }],
     betas: ["context-management-2025-06-27"],
@@ -1312,7 +1312,7 @@ Keep all thinking blocks (maximizes cache hits):
   client = Anthropic::Client.new
 
   response = client.beta.messages.create(
-    model: "claude-opus-5-5",
+    model: Anthropic::Model::CLAUDE_OPUS_5_5,
     max_tokens: 16000,
     messages: [{ role: "user", content: "Hello" }],
     betas: ["context-management-2025-06-27"],
@@ -1678,7 +1678,7 @@ You can use both thinking block clearing and tool result clearing together:
   client = Anthropic::Client.new
 
   response = client.beta.messages.create(
-    model: "claude-opus-5-5",
+    model: Anthropic::Model::CLAUDE_OPUS_5_5,
     max_tokens: 16000,
     messages: [
       {
@@ -1823,8 +1823,7 @@ The [token counting](https://platform.claude.com/docs/en/build-with-claude/token
   ```
 
   ```bash CLI
-  ant beta:messages count-tokens \
-    --beta context-management-2025-06-27 <<'YAML'
+  ant beta:messages count-tokens --beta context-management-2025-06-27 <<'YAML'
   model: claude-opus-5-5
   messages:
     - role: user
@@ -2042,7 +2041,7 @@ The [token counting](https://platform.claude.com/docs/en/build-with-claude/token
   client = Anthropic::Client.new
 
   response = client.beta.messages.count_tokens(
-    model: "claude-opus-5-5",
+    model: Anthropic::Model::CLAUDE_OPUS_5_5,
     messages: [
       { role: "user", content: "Continue our conversation..." }
     ],
@@ -2281,7 +2280,7 @@ To use both features together, enable them in your API request:
   client = Anthropic::Client.new
 
   response = client.beta.messages.create(
-    model: "claude-opus-5-5",
+    model: Anthropic::Model::CLAUDE_OPUS_5_5,
     max_tokens: 4096,
     messages: [{ role: "user", content: "Hello" }],
     tools: [

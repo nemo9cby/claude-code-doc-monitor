@@ -45,20 +45,20 @@ First, install Anthropic's [client SDK](https://platform.claude.com/docs/en/cli-
   <Tab title="Java">
     <CodeGroup exclude="shell, python, typescript, csharp, go, php, ruby">
       ```groovy Gradle
-      implementation("com.anthropic:anthropic-java:3.0.0")
-      implementation("com.anthropic:anthropic-java-vertex:3.0.0")
+      implementation("com.anthropic:anthropic-java:3.1.0")
+      implementation("com.anthropic:anthropic-java-vertex:3.1.0")
       ```
 
       ```xml Maven
       <dependency>
           <groupId>com.anthropic</groupId>
           <artifactId>anthropic-java</artifactId>
-          <version>3.0.0</version>
+          <version>3.1.0</version>
       </dependency>
       <dependency>
           <groupId>com.anthropic</groupId>
           <artifactId>anthropic-java-vertex</artifactId>
-          <version>3.0.0</version>
+          <version>3.1.0</version>
       </dependency>
       ```
 
@@ -623,7 +623,7 @@ Set the `region` parameter to a multi-region identifier: `"us"` for the United S
 
 <CodeGroup exclude="shell:CLI">
   ```bash cURL
-  # The multi-region identifier, "us" or "eu", appears in the host name and in the path
+  # The multi-region identifier, "us" or "eu", appears in the hostname and in the path
   curl https://aiplatform.us.rep.googleapis.com/v1/projects/MY_PROJECT_ID/locations/us/publishers/anthropic/models/claude-opus-5-5:rawPredict \
     -H "Authorization: Bearer $(gcloud auth print-access-token)" \
     -H "Content-Type: application/json" \
@@ -810,7 +810,7 @@ Specify a specific region such as `"us-east5"` or `"europe-west1"`:
 <CodeGroup exclude="shell:CLI">
   ```bash cURL
   # Specific regional endpoints support Claude Sonnet 4.6 and earlier; newer models use the global or multi-region endpoints
-  # The region, here us-east5, appears in the host name and in the path
+  # The region, here us-east5, appears in the hostname and in the path
   curl https://us-east5-aiplatform.googleapis.com/v1/projects/MY_PROJECT_ID/locations/us-east5/publishers/anthropic/models/claude-sonnet-4-6:rawPredict \
     -H "Authorization: Bearer $(gcloud auth print-access-token)" \
     -H "Content-Type: application/json" \

@@ -126,7 +126,7 @@ The [Python SDK](https://github.com/anthropics/anthropic-sdk-python) and [TypeSc
   client = Anthropic::Client.new
 
   stream = client.messages.stream(
-    model: "claude-opus-5-5",
+    model: Anthropic::Model::CLAUDE_OPUS_5_5,
     max_tokens: 1024,
     messages: [{ role: "user", content: "Hello" }]
   )
@@ -141,7 +141,7 @@ If you don't need to process text as it arrives, the SDK provides a way to use s
 
 <CodeGroup exclude="shell:cURL">
   ```bash CLI
-  # The ant CLI's --stream flag emits one event per line and does not
+  # The ant CLI's --stream flag emits one event on each line and does not
   # accumulate into a final Message. For long generations, stream the
   # raw events:
   ant messages create --stream --format jsonl <<'YAML'
@@ -273,7 +273,7 @@ If you don't need to process text as it arrives, the SDK provides a way to use s
   client = Anthropic::Client.new
 
   message = client.messages.stream(
-    model: "claude-opus-5-5",
+    model: Anthropic::Model::CLAUDE_OPUS_5_5,
     max_tokens: 128000,
     messages: [{ role: "user", content: "Write a detailed analysis..." }]
   ).accumulated_message
@@ -521,7 +521,7 @@ There might be `ping` events dispersed throughout the response as well. See [Eve
   client = Anthropic::Client.new
 
   stream = client.messages.stream(
-    model: "claude-opus-5-5",
+    model: Anthropic::Model::CLAUDE_OPUS_5_5,
     messages: [{ role: "user", content: "Hello" }],
     max_tokens: 256
   )
@@ -859,7 +859,7 @@ This request asks Claude to use a tool to report the weather.
   ]
 
   stream = client.messages.stream(
-    model: "claude-opus-5",
+    model: Anthropic::Model::CLAUDE_OPUS_5,
     max_tokens: 1024,
     tools: tools,
     tool_choice: { type: "any" },
@@ -1375,7 +1375,7 @@ This request asks Claude to search the web for current weather information.
   client = Anthropic::Client.new
 
   stream = client.messages.stream(
-    model: :"claude-opus-5-5",
+    model: Anthropic::Model::CLAUDE_OPUS_5_5,
     max_tokens: 1024,
     tools: [
       {

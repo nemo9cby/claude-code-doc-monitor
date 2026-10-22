@@ -244,6 +244,10 @@ To enable dynamic filtering, use `web_fetch_20260209` or any later version. The 
 
 ## How to use web fetch
 
+<Note>
+  An organization admin can turn off web fetch for your organization on the [**Capabilities**](https://platform.claude.com/settings/capabilities) page of the Claude Console. With web fetch off, a Messages API request that includes the tool fails with a 400 `invalid_request_error` that says web fetch is not enabled, and `web_fetch` calls in a [Claude Managed Agents](https://platform.claude.com/docs/en/managed-agents/overview) session return an error result to the agent while the session continues. With web fetch on, the admin can also set allowed or blocked domains for web fetch on the same page. For how the organization's domain lists apply, see [Domain filtering](https://platform.claude.com/docs/en/agents-and-tools/tool-use/server-tools#domain-filtering) for Messages API requests and [Restrict web search and web fetch domains](https://platform.claude.com/docs/en/managed-agents/tools-web-restrictions) for Managed Agents sessions.
+</Note>
+
 Provide the web fetch tool in your API request:
 
 <CodeGroup>

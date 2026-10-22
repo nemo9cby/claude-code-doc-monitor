@@ -348,7 +348,7 @@ Once uploaded, reference the file by passing the `id` from the upload response a
 
   ```ruby Ruby
   response = client.messages.create(
-    model: "claude-opus-5-5",
+    model: Anthropic::Model::CLAUDE_OPUS_5_5,
     max_tokens: 1024,
     messages: [
       {
@@ -461,9 +461,7 @@ The following examples read a text file and send its contents as plain text:
 
   ```bash CLI
   # The "@./path" reference inlines the file contents directly into the field.
-  ant messages create \
-    --model claude-opus-5-5 \
-    --max-tokens 1024 <<'YAML'
+  ant messages create --model claude-opus-5-5 --max-tokens 1024 <<'YAML'
   messages:
     - role: user
       content:
@@ -641,7 +639,7 @@ The following examples read a text file and send its contents as plain text:
   text_content = File.read("document.txt")
 
   message = client.messages.create(
-    model: "claude-opus-5-5",
+    model: Anthropic::Model::CLAUDE_OPUS_5_5,
     max_tokens: 1024,
     messages: [
       {

@@ -275,7 +275,7 @@ If you don't need to process events incrementally, the SDK can consume the strea
   </CodeGroupItem>
 
   ```bash CLI
-  # The CLI streams events; --format jsonl emits one event per line
+  # The CLI streams events; --format jsonl emits one event on each line
   ant messages create --stream --format jsonl <<'YAML'
   model: claude-sonnet-5
   max_tokens: 128000
@@ -413,7 +413,7 @@ If you don't need to process events incrementally, the SDK can consume the strea
   client = Anthropic::Client.new
 
   message = client.messages.stream(
-    model: "claude-sonnet-5",
+    model: Anthropic::Model::CLAUDE_SONNET_5,
     max_tokens: 128000,
     messages: [{ role: "user", content: "Write a detailed analysis..." }]
   ).accumulated_message

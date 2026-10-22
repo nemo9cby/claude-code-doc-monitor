@@ -553,7 +553,8 @@ Claude can read both text and images in requests. You can supply images using th
 
   ```bash CLI
   # Option 1: Base64-encoded image (CLI auto-encodes binary @file refs)
-  curl -s "https://platform.claude.com/docs/images/vision-example.jpg" -o ./vision-example.jpg
+  curl -s "https://platform.claude.com/docs/images/vision-example.jpg" \
+    -o ./vision-example.jpg
 
   ant messages create <<'YAML'
   model: claude-opus-5-5

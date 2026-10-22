@@ -200,7 +200,7 @@ You can optionally specify a `max_characters` parameter to control truncation wh
   client = Anthropic::Client.new
 
   response = client.messages.create(
-    model: "claude-opus-5-5",
+    model: Anthropic::Model::CLAUDE_OPUS_5_5,
     max_tokens: 1024,
     tools: [
       {
@@ -543,7 +543,7 @@ First, your application provides Claude with the text editor tool and a prompt t
   client = Anthropic::Client.new
 
   response = client.messages.create(
-    model: "claude-opus-5-5",
+    model: Anthropic::Model::CLAUDE_OPUS_5_5,
     max_tokens: 1024,
     tools: [{type: "text_editor_20250728", name: "str_replace_based_edit_tool"}],
     messages: [
@@ -973,7 +973,7 @@ Your application should then read the file and return its contents to Claude:
   client = Anthropic::Client.new
 
   response = client.messages.create(
-    model: "claude-opus-5-5",
+    model: Anthropic::Model::CLAUDE_OPUS_5_5,
     max_tokens: 1024,
     tools: [{type: "text_editor_20250728", name: "str_replace_based_edit_tool"}],
     messages: [
@@ -1417,7 +1417,7 @@ Your application should then make the edit and return the result:
   client = Anthropic::Client.new
 
   response = client.messages.create(
-    model: "claude-opus-5-5",
+    model: Anthropic::Model::CLAUDE_OPUS_5_5,
     max_tokens: 1024,
     tools: [{type: "text_editor_20250728", name: "str_replace_based_edit_tool"}],
     messages: [

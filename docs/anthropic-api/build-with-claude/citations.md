@@ -276,7 +276,7 @@ The following example shows how to enable citations on a plain text document wit
   client = Anthropic::Client.new
 
   response = client.messages.create(
-    model: "claude-opus-5-5",
+    model: Anthropic::Model::CLAUDE_OPUS_5_5,
     max_tokens: 1024,
     messages: [
       {
@@ -666,7 +666,7 @@ The citation blocks generated in responses cannot be cached directly, but the so
     " ... " * 1000 # Minimum cacheable length
 
   response = client.messages.create(
-    model: "claude-opus-5-5",
+    model: Anthropic::Model::CLAUDE_OPUS_5_5,
     max_tokens: 1024,
     messages: [
       {
@@ -945,7 +945,7 @@ Plain text documents are automatically chunked into sentences. You can provide t
 
       ```ruby Ruby
       cited_response = client.messages.create(
-        model: "claude-opus-5-5",
+        model: Anthropic::Model::CLAUDE_OPUS_5_5,
         max_tokens: 1024,
         messages: [
           {
@@ -1255,7 +1255,7 @@ PDF documents can be provided as base64-encoded data, as a URL, or by `file_id`.
       pdf_base64 = Base64.strict_encode64(File.binread("/path/to/document.pdf"))
 
       response = client.messages.create(
-        model: "claude-opus-5-5",
+        model: Anthropic::Model::CLAUDE_OPUS_5_5,
         max_tokens: 1024,
         messages: [
           {
@@ -1761,7 +1761,7 @@ PDF documents can be provided as base64-encoded data, as a URL, or by `file_id`.
 
       ```ruby Ruby
       cited_response = client.messages.create(
-        model: "claude-opus-5-5",
+        model: Anthropic::Model::CLAUDE_OPUS_5_5,
         max_tokens: 1024,
         messages: [
           {
@@ -2076,7 +2076,7 @@ Custom content documents give you control over citation granularity. No addition
   client = Anthropic::Client.new
 
   response = client.messages.create(
-    model: "claude-opus-5-5",
+    model: Anthropic::Model::CLAUDE_OPUS_5_5,
     max_tokens: 1024,
     messages: [
       {

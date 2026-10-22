@@ -253,7 +253,7 @@ Add the computer use toolset to the `tools` array of a [Messages API](https://pl
   client = Anthropic::Client.new
 
   response = client.messages.create(
-    model: "claude-opus-5-5",
+    model: Anthropic::Model::CLAUDE_OPUS_5_5,
     max_tokens: 1024,
     tools: [
       { type: "computer_toolset_20260801" },
@@ -1323,7 +1323,7 @@ The computer use tool is implemented as a schema-less tool. When using this tool
             continue;
           }
           if (failed) {
-            // A batch stops at its first failure; answer later actions unexecuted
+            // A batch stops at its first failure; answer later actions without running them
             toolResults.push(computerResult(block.id, HALT_TEXT, true));
             continue;
           }

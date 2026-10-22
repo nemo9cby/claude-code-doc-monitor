@@ -387,7 +387,7 @@ You can [create a batch](https://platform.claude.com/docs/en/api/messages/batche
       {
         custom_id: "my-first-request",
         params: {
-          model: "claude-opus-5-5",
+          model: Anthropic::Model::CLAUDE_OPUS_5_5,
           max_tokens: 1024,
           messages: [
             { role: "user", content: "Hello, world" }
@@ -397,7 +397,7 @@ You can [create a batch](https://platform.claude.com/docs/en/api/messages/batche
       {
         custom_id: "my-second-request",
         params: {
-          model: "claude-opus-5-5",
+          model: Anthropic::Model::CLAUDE_OPUS_5_5,
           max_tokens: 1024,
           messages: [
             { role: "user", content: "Hi again, friend" }
@@ -1492,7 +1492,7 @@ Example of implementing prompt caching in a batch:
       {
         custom_id: "my-first-request",
         params: {
-          model: "claude-opus-5-5",
+          model: Anthropic::Model::CLAUDE_OPUS_5_5,
           max_tokens: 1024,
           system: [
             {
@@ -1513,7 +1513,7 @@ Example of implementing prompt caching in a batch:
       {
         custom_id: "my-second-request",
         params: {
-          model: "claude-opus-5-5",
+          model: Anthropic::Model::CLAUDE_OPUS_5_5,
           max_tokens: 1024,
           system: [
             {
@@ -1770,7 +1770,7 @@ A single 300k-token generation can take over an hour to complete, so plan your b
       {
         custom_id: "long-form-request",
         params: {
-          model: "claude-opus-5-5",
+          model: Anthropic::Model::CLAUDE_OPUS_5_5,
           max_tokens: 300_000,
           messages: [
             { role: "user", content: "Write a comprehensive technical guide to building distributed systems, covering architecture patterns, consistency models, fault tolerance, and operational best practices." }

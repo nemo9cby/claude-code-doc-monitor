@@ -84,57 +84,57 @@ The following example includes the tool search tool and two deferred tools:
 <CodeGroup>
   ```bash cURL
   curl https://api.anthropic.com/v1/messages \
-      -H "x-api-key: $ANTHROPIC_API_KEY" \
-      -H "anthropic-version: 2023-06-01" \
-      -H "content-type: application/json" \
-      -d '{
-          "model": "claude-opus-5-5",
-          "max_tokens": 2048,
-          "messages": [
-              {
-                  "role": "user",
-                  "content": "What is the weather in San Francisco?"
+    -H "x-api-key: $ANTHROPIC_API_KEY" \
+    -H "anthropic-version: 2023-06-01" \
+    -H "content-type: application/json" \
+    -d '{
+      "model": "claude-opus-5-5",
+      "max_tokens": 2048,
+      "messages": [
+        {
+          "role": "user",
+          "content": "What is the weather in San Francisco?"
+        }
+      ],
+      "tools": [
+        {
+          "type": "tool_search_tool_regex_20251119",
+          "name": "tool_search_tool_regex"
+        },
+        {
+          "name": "get_weather",
+          "description": "Get the weather at a specific location",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "location": {"type": "string"},
+              "unit": {
+                "type": "string",
+                "enum": ["celsius", "fahrenheit"]
               }
-          ],
-          "tools": [
-              {
-                  "type": "tool_search_tool_regex_20251119",
-                  "name": "tool_search_tool_regex"
-              },
-              {
-                  "name": "get_weather",
-                  "description": "Get the weather at a specific location",
-                  "input_schema": {
-                      "type": "object",
-                      "properties": {
-                          "location": {"type": "string"},
-                          "unit": {
-                              "type": "string",
-                              "enum": ["celsius", "fahrenheit"]
-                          }
-                      },
-                      "required": ["location"]
-                  },
-                  "defer_loading": true
-              },
-              {
-                  "name": "search_files",
-                  "description": "Search through files in the workspace",
-                  "input_schema": {
-                      "type": "object",
-                      "properties": {
-                          "query": {"type": "string"},
-                          "file_types": {
-                              "type": "array",
-                              "items": {"type": "string"}
-                          }
-                      },
-                      "required": ["query"]
-                  },
-                  "defer_loading": true
+            },
+            "required": ["location"]
+          },
+          "defer_loading": true
+        },
+        {
+          "name": "search_files",
+          "description": "Search through files in the workspace",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "query": {"type": "string"},
+              "file_types": {
+                "type": "array",
+                "items": {"type": "string"}
               }
-          ]
-      }'
+            },
+            "required": ["query"]
+          },
+          "defer_loading": true
+        }
+      ]
+    }'
   ```
 
   ```bash CLI
@@ -479,7 +479,7 @@ The following example includes the tool search tool and two deferred tools:
   client = Anthropic::Client.new
 
   message = client.messages.create(
-    model: "claude-opus-5-5",
+    model: Anthropic::Model::CLAUDE_OPUS_5_5,
     max_tokens: 2048,
     messages: [
       { role: "user", content: "What is the weather in San Francisco?" }
@@ -801,7 +801,7 @@ data: {"type": "content_block_start", "index": 1, "content_block": {"type": "ser
 event: content_block_delta
 data: {"type": "content_block_delta", "index": 1, "delta": {"type": "input_json_delta", "partial_json": "{\"pattern\":\"weather\"}"}}
 
-// Pause while search executes
+// Pause while search runs
 
 // Search results streamed
 event: content_block_start

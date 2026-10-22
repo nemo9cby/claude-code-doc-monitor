@@ -125,7 +125,7 @@ Here's a minimal example using a server tool, the [Web search tool](https://plat
   client = Anthropic::Client.new
 
   message = client.messages.create(
-    model: "claude-opus-5-5",
+    model: Anthropic::Model::CLAUDE_OPUS_5_5,
     max_tokens: 1024,
     tools: [{ type: "web_search_20260209", name: "web_search" }],
     messages: [{ role: "user", content: "What's the latest on the Mars rover?" }]
@@ -587,7 +587,7 @@ Here's that round trip in full for a client tool. The first request defines a `g
 
   # Claude replies with a tool_use block naming the tool and its arguments.
   response = client.messages.create(
-    model: "claude-opus-5-5",
+    model: Anthropic::Model::CLAUDE_OPUS_5_5,
     max_tokens: 1024,
     tools: tools,
     # Ask for at most one tool call per turn.
@@ -609,7 +609,7 @@ Here's that round trip in full for a client tool. The first request defines a `g
     }
   ]
   followup = client.messages.create(
-    model: "claude-opus-5-5",
+    model: Anthropic::Model::CLAUDE_OPUS_5_5,
     max_tokens: 1024,
     tools: tools,
     tool_choice: {type: "auto", disable_parallel_tool_use: true},

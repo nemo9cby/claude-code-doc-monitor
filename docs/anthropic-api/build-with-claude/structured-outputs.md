@@ -678,7 +678,7 @@ Structured outputs guarantee schema-compliant responses through constrained deco
     end
 
     message = client.messages.create(
-      model: "claude-opus-5-5",
+      model: Anthropic::Model::CLAUDE_OPUS_5_5,
       max_tokens: 1024,
       messages: [{
         role: "user",
@@ -720,7 +720,7 @@ Structured outputs guarantee schema-compliant responses through constrained deco
       end
 
       message = client.messages.create(
-        model: "claude-opus-5-5",
+        model: Anthropic::Model::CLAUDE_OPUS_5_5,
         max_tokens: 1024,
         messages: [{role: "user", content: "give me some famous numbers"}],
         output_config: {format: Output}
@@ -1151,7 +1151,7 @@ To use a JSON schema from a file, an OpenAPI spec, or code that builds it at run
     client = Anthropic::Client.new
 
     response = client.messages.create(
-      model: "claude-opus-5-5",
+      model: Anthropic::Model::CLAUDE_OPUS_5_5,
       max_tokens: 1024,
       messages: [
         {
@@ -1513,7 +1513,7 @@ To use a JSON schema from a file, an OpenAPI spec, or code that builds it at run
       invoice_text = "Invoice #12345, Date: 2024-01-15, Total: $500.00"
 
       message = client.messages.create(
-        model: "claude-opus-5-5",
+        model: Anthropic::Model::CLAUDE_OPUS_5_5,
         max_tokens: 4096,
         output_config: {format: Invoice},
         messages: [
@@ -1800,7 +1800,7 @@ To use a JSON schema from a file, an OpenAPI spec, or code that builds it at run
       feedback_text = "Great product, fast shipping!"
 
       message = client.messages.create(
-        model: "claude-opus-5-5",
+        model: Anthropic::Model::CLAUDE_OPUS_5_5,
         max_tokens: 1024,
         output_config: {format: Classification},
         messages: [
@@ -2139,7 +2139,7 @@ To use a JSON schema from a file, an OpenAPI spec, or code that builds it at run
       end
 
       message = client.messages.create(
-        model: "claude-opus-5-5",
+        model: Anthropic::Model::CLAUDE_OPUS_5_5,
         max_tokens: 1024,
         output_config: {format: APIResponse},
         messages: [
@@ -2546,7 +2546,7 @@ When combined, Claude can call tools with guaranteed-valid parameters AND return
   client = Anthropic::Client.new
 
   message = client.messages.create(
-    model: "claude-opus-5-5",
+    model: Anthropic::Model::CLAUDE_OPUS_5_5,
     max_tokens: 1024,
     messages: [
       {role: "user", content: "Help me plan a trip to Paris departing May 15, 2026"}

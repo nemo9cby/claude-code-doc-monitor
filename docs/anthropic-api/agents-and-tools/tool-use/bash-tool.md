@@ -166,7 +166,7 @@ The current version of the tool is `bash_20250124`. For model support, beta head
   client = Anthropic::Client.new
 
   response = client.messages.create(
-    model: "claude-opus-5-5",
+    model: Anthropic::Model::CLAUDE_OPUS_5_5,
     max_tokens: 1024,
     tools: [{type: "bash_20250124", name: "bash"}],
     messages: [
@@ -1147,7 +1147,7 @@ Claude determines which command to run. Your application owns everything else: t
       client = Anthropic::Client.new
 
       response = client.messages.create(
-        model: "claude-opus-5-5",
+        model: Anthropic::Model::CLAUDE_OPUS_5_5,
         max_tokens: 1024,
         tools: [{type: "bash_20250124", name: "bash"}],
         messages: [

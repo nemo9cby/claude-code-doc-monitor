@@ -224,7 +224,7 @@ Setting a role in the system prompt focuses Claude's behavior and tone for your 
   client = Anthropic::Client.new
 
   message = client.messages.create(
-    model: "claude-opus-5-5",
+    model: Anthropic::Model::CLAUDE_OPUS_5_5,
     max_tokens: 1024,
     system: "You are a helpful coding assistant specializing in Python.",
     messages: [
