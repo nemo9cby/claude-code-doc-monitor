@@ -118,9 +118,290 @@
 
         <header>
             <h1>Changes on 2026-10-23</h1>
-            <p class="meta">47 total changes in 2 runs</p>
+            <p class="meta">60 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">13:39 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更分析
+
+### 总体概述
+本次文档更新主要阐明了后台任务相关环境变量的具体影响范围，引入了新的 MCP (Model Context Protocol) 长时任务与超时控制功能，并对多个语言的 SDK 版本进行了更新（特别是 Java）。
+
+### 关键主题
+
+*   **MCP 功能重大更新 (Beta)**
+    *   引入了 **MCP 服务端任务**，允许 MCP 服务器上的长时作业在退出会话后继续运行，并支持恢复会话查看结果。
+    *   新增 MCP 工具调用的超时控制配置，支持通过 `timeout` 字段或 `MCP_TOOL_TIMEOUT` 环境变量设定。
+*   **后台任务行为精细化定义**
+    *   明确了 `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS` 环境变量的副作用：它不仅禁用后台命令，还会禁用后台子代理、后台派生技能以及 `Ctrl+B` 功能。
+*   **非交互模式 (Headless) 行为澄清**
+    *   明确了 `claude -p` 等非交互式运行不会等待 MCP 后台工作完成，并区分了“自动后台化调用”与“服务端任务”在不同模式下的行为差异。
+*   **SDK 版本升级**
+    *   Java SDK 从 `3.1.0` 升级至 `3.2.0`。
+    *   Python, Go, Ruby 等其他 SDK 也有次版本号更新。
+
+### 影响等级
+**中等**
+
+**理由：**
+虽然大多数是澄清性文字更新，但新增的“服务端 MCP 任务”功能（需要 v2.1.304+）改变了长时任务的生命周期管理方式。环境变量行为的明确可能会影响依赖特定后台行为（如子代理）的现有脚本或配置。SDK 版本更新属于常规维护。
+
+### 开发者行动项
+
+*   **更新依赖**：如果你使用的是 Java SDK (`anthropic-java`)，请将版本升级至 `3.2.0`；其他语言开发者也建议更新至最新版本。
+*   **检查环境变量**：如果你设置了 `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS`，请注意这现在会明确禁用后台子代理和 `Ctrl+B` 快捷键，请确认这符合你的预期。
+*   **利用 MCP 任务**：如果你有需要长时间运行的构建或导出任务，尝试使用新的 MCP 任务功能，以便在退出 CLI 后任务仍能在远程服务器继续运行。
+*   **配置 MCP 超时**：如果你的 MCP 工具调用需要严格的耗时控制，请在服务器配置中添加 `timeout` 字段或设置 `MCP_TOOL_TIMEOUT`。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer/doc analyzer.
+    *   **Input:** A batch of documentation changes (diffs from 13 pages).
+    *   **Output Format:** Markdown.
+    *   **Language:** Chinese (Simplified).
+    *   **Structure:** Overall Summary, Key Themes, Impact Level, Action Items.
+    *   **Constraint:** Focus on what matters to developers.
+
+2.  **Analyze the Diffs (Page by Page):**
+
+    *   **`headless.md`**:
+        *   *Change 1:* Clarified &#34;Background tasks&#34; in bare mode. Now explicitly mentions background *subagents* are disabled, and links to `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS`.
+        *   *Change 2:* Added a new section &#34;MCP work when a non-interactive run ends&#34;. Explains that `claude -p` doesn&#39;t wait for background MCP work. Distinguishes between &#34;MCP tasks&#34; (remote, survive exit) and &#34;backgrounded MCP calls&#34; (result lost). Connects to resuming sessions.
+
+    *   **`interactive-mode.md`**:
+        *   *Change 1:* Refined wording around `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS`. Changed &#34;disable all background task functionality&#34; to &#34;turn off background commands&#34; + expanded description of what gets turned off (subagents, forked skills, Ctrl+B).
+        *   *Change 2:* Refined the description of `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS` usage. More specific about side effects (Ctrl+B, etc.).
+
+    *   **`mcp.md`**:
+        *   *Change 1:* Added &#34;Time limits on MCP tool calls&#34;. Introduces `timeout` in server config and `MCP_TOOL_TIMEOUT` env var. Explains the &#34;hard wall-clock limit&#34; vs. &#34;per-request timer&#34; (HTTP/SSE).
+        *   *Change 2:* &#34;Automatic backgrounding of long tool calls&#34;. Updated instructions on turning this off. Added connection to &#34;MCP tasks that run on the server&#34;. Clarified `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS` effect.
+        *   *Change 3 (Major Addition):* &#34;MCP tasks that run on the server&#34;. New beta feature (v2.1.304+). Allows long jobs on the server. Explains lifecycle (survives exit), how to stop/restart, elicitation dialogs interaction, and table of behaviors (exit/resume).
+
+    *   **`skills.md`**, **`slash-commands.md`**, **`sub-agents.md`**:
+        *   *Change:* Minor copy-editing regarding `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS`. Removed the word &#34;all&#34; before &#34;other background task features&#34; or refined the phrasing to be precise about what gets disabled (e.g., &#34;Background commands are off too...&#34;).
+
+    *   **`get-started.md`**, **`build-with-claude/structured-outputs.md`**, **`build-with-claude/claude-on-amazon-bedrock.md`**, **`build-with-claude/claude-on-vertex-ai.md`**, **`build-with-claude/claude-in-microsoft-foundry.md`**, **`agents-and-tools/mcp-connector.md`**:
+        *   *Change:* SDK Version updates.
+            *   Java: `3.1.0` -&gt; `3.2.0`.
+            *   General CLI/Python/TS/C#/Go/PHP/Ruby updates listed in `api/client-sdks.md` (e.g., Python `2.1.0` -&gt; `2.2.0`).
+            *   Term change in `structured-outputs.md`: &#34;GA&#34; -&gt; &#34;stable&#34;.
+
+3.  **Synthesize and Categorize:**
+
+    *   **Theme 1: Background Task &amp; Environment Variable Behavior Consistency.** Several pages were updated to clarify exactly what `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS` does. It&#39;s not just &#34;background tasks&#34; but specifically &#34;background commands&#34;, &#34;background subagents&#34;, &#34;background forked skills&#34;, and &#34;Ctrl+B&#34;.
+    *   **Theme 2: New MCP Features (Beta).**
+        *   **Server-side MCP Tasks:** A major new feature allowing jobs to survive session exit.
+        *   **Timeouts:** New configuration for MCP tool call timeouts (`MCP_TOOL_TIMEOUT`).
+    *   **Theme 3: Non-interactive / Headless Behavior.** Clarified that `claude -p` doesn&#39;t wait for background MCP work and the distinction between local backgrounding vs. remote server tasks.
+    *   **Theme 4: SDK Updates.** Java SDK bumped to 3.2.0. Others (Python, etc.) bumped in the SDK table. Mostly dependency updates.
+
+4.  **Draft the Analysis (in Chinese):**
+
+    *   *Overall Summary:* Documentation updates focus on refining background task behavior, introducing new MCP (Model Context Protocol) capabilities (server-side tasks and timeouts), and updating SDK versions (notably Java).
+    *   *Key Themes:*
+        *   MCP Enhancements: New &#34;MCP tasks&#34; feature for long-running jobs that survive session exits; new timeout controls for tool calls.
+        *   Clarification on `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS`: Detailed side effects (disables background subagents, forked skills, and Ctrl+B).
+        *   Headless Mode Behavior: Specifically regarding MCP work in non-interactive runs.
+        *   SDK Updates: Version bumps across multiple languages (Java 3.2.0, Python 2.2.0, etc.).
+    *   *Impact Level:* Medium.
+        *   Reasoning: The &#34;MCP tasks&#34; feature is a new beta capability that changes how long-running jobs are handled. The clarification of environment variables affects existing configurations but doesn&#39;t change the logic (just docs). SDK updates are standard maintenance.
+    *   *Action Items:*
+        *   Review `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS` usage if you rely on specific background subagents or skills.
+        *   Explore new &#34;MCP tasks&#34; (Beta) if you need long-running jobs to persist after exit.
+        *   Update Java dependencies to `3.2.0` (and others to latest) to stay current.
+        *   Implement `MCP_TOOL_TIMEOUT` if you need strict limits on MCP tool duration.
+
+5.  **Refine Language (Chinese):**
+
+    *   &#34;Overall Summary&#34;: 本次文档更新主要阐明了后台任务环境变量的具体行为，引入了新的 MCP (Model Context Protocol) 功能（服务端任务和超时控制），并更新了 SDK 版本。
+    *   &#34;Key Themes&#34;:
+        *   **MCP 功能增强**: 新增“服务端 MCP 任务”功能（测试版），支持退出会话后继续运行；引入 `MCP_TOOL_TIMEOUT` 以控制工具调用时长。
+        *   **后台任务行为澄清**: 明确了 `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS` 会禁用后台子代理、派生技能以及 `Ctrl+B` 快捷键。
+        *   **非交互模式行为**: 细化了 `claude -p` 在处理 MCP 后台工作时的行为（不等待）。
+        *   **SDK 版本更新**: Java SDK 升级至 3.2.0，其他语言 SDK 也有相应更新。
+    *   &#34;Impact Level&#34;: **中等 (Medium)**。
+    *   &#34;Action Items&#34;:
+        *   更新依赖（特别是 Java）。
+        *   检查环境变量配置。
+        *   尝试新的 MCP 任务功能。
+        *   设置 MCP 超时。
+
+6.  **Final Polish:** Ensure formatting matches the prompt instructions and the tone is professional.
+
+    *   *Self-Correction during drafting:* Make sure to distinguish between &#34;background commands&#34; and &#34;background tasks/subagents&#34; in the themes, as the docs now make this distinction clearer. The MCP task feature is the &#34;High&#34; value part for advanced users.
+
+7.  **Final Output Generation:** (Matches the provided good response).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/headless.html" class="page-link">headless.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/interactive-mode.html" class="page-link">interactive-mode.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+105</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/get-started.html" class="page-link">get-started.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/client-sdks.html" class="page-link">api/client-sdks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-8</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/structured-outputs.html" class="page-link">build-with-claude/structured-outputs.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-on-amazon-bedrock.html" class="page-link">build-with-claude/claude-on-amazon-bedrock.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-on-vertex-ai.html" class="page-link">build-with-claude/claude-on-vertex-ai.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-in-microsoft-foundry.html" class="page-link">build-with-claude/claude-in-microsoft-foundry.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/mcp-connector.html" class="page-link">agents-and-tools/mcp-connector.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">08:21 EST</div>
