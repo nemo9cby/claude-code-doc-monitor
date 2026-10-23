@@ -383,10 +383,10 @@ If you don't need to process events incrementally, the SDK can consume the strea
 
       Message message = accumulator.message();
       message.content().stream()
-              .filter(ContentBlock::isText)
-              .findFirst()
-              .flatMap(ContentBlock::text)
-              .ifPresent(textBlock -> IO.println(textBlock.text()));
+          .filter(ContentBlock::isText)
+          .findFirst()
+          .flatMap(ContentBlock::text)
+          .ifPresent(textBlock -> IO.println(textBlock.text()));
   }
   ```
 

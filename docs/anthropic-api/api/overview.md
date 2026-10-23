@@ -12,7 +12,7 @@ The Claude API is a RESTful API at `https://api.anthropic.com` that provides pro
 
 ## Prerequisites
 
-To use the Claude API, you'll need:
+To use the Claude API, you need:
 
 * A [Claude Console account](https://platform.claude.com/)
 * An [API key](https://platform.claude.com/settings/keys) from the Console, or a configured [Workload Identity Federation](https://platform.claude.com/docs/en/manage-claude/workload-identity-federation) rule
@@ -116,7 +116,7 @@ Access Claude through AWS, Google Cloud, or Microsoft Azure:
 If you exceed these limits, you'll receive a 413 `request_too_large` error.
 
 <Note>
-  Partner-operated platforms have their own request size limits: Bedrock limits requests to 20 MB, and Claude Models on Google Cloud (Google managed) limits requests to 30 MB. Claude Platform on AWS uses the same limits as the direct Claude API. Consult your platform's documentation for current values.
+  Partner-operated platforms have their own request size limits: Bedrock limits requests to 20 MB, and Claude Models on Google Cloud (Google managed) limits requests to 30 MB. Claude Platform on AWS uses the same limits as the direct Claude API. Consult your platform's documentation for current values.
 </Note>
 
 ### Response headers

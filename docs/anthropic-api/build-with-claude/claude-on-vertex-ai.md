@@ -342,7 +342,7 @@ The endpoint types differ in where they send requests:
 * **Multi-region:** Requests go to any region in the United States (`"us"`) or the European Union (`"eu"`). Use it when you need data residency within a broad geography and higher availability than a single region.
 * **Regional:** Requests go only to the region you name, such as `"us-east5"` or `"europe-west1"`. Use it when you need single-region data residency or must meet strict compliance mandates.
 
-Multi-region and regional endpoints cost 10% more than global endpoints. All three endpoint types take pay-as-you-go traffic, and provisioned throughput needs a regional endpoint.
+Multi-region and regional endpoints cost 10 percent more than global endpoints. All three endpoint types take pay-as-you-go traffic, and provisioned throughput needs a regional endpoint.
 
 Regional endpoints serve Claude Sonnet 4.6 and earlier models only. For newer models, use a global or multi-region endpoint.
 
@@ -354,7 +354,7 @@ The following examples use the `us` multi-region endpoint. The highlighted lines
 
 <CodeGroup exclude="shell:CLI">
   ```bash cURL
-  # The multi-region identifier, "us" or "eu", appears in the host name and in the path
+  # The multi-region identifier, "us" or "eu", appears in the hostname and in the path
   curl https://aiplatform.us.rep.googleapis.com/v1/projects/MY_PROJECT_ID/locations/us/publishers/anthropic/models/claude-opus-5-5:rawPredict \
     -H "Authorization: Bearer $(gcloud auth print-access-token)" \
     -H "Content-Type: application/json" \
@@ -508,7 +508,7 @@ Claude Models on Google Cloud (Google managed) offers a [1M-token context window
 
 Other Claude models have a 200k-token context window. These include Claude Sonnet 4.5 (deprecated) and Claude Sonnet 4 (deprecated).
 
-Agent Platform limits request payloads to 30 MB. When you send large documents or many images, you might reach this limit before the token limit.
+Agent Platform limits request payloads to 30 MB. When you send large documents or many images, you might reach this limit before the token limit.
 
 ## Billing, rate limits, and logging
 
