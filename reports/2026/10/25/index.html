@@ -118,9 +118,105 @@
 
         <header>
             <h1>Changes on 2026-10-25</h1>
-            <p class="meta">6 total changes in 2 runs</p>
+            <p class="meta">9 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">14:02 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">## 文档变更分析
+
+### 1. 总体概要
+
+v2.1.295 版本引入了三项行为变更：异步 `SessionStart` Hook 输出去重、插件市场按需拉取 Git 子模块、以及 `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` 不再抑制花费限额的美元字段返回。
+
+### 2. 关键主题
+
+- **v2.1.295 版本界线**：三处变更均以此版本为分水岭，旧版行为被明确标注为&#34;Before v2.1.295&#34;
+- **减少冗余/提升效率**：Hook 输出去重避免重复注入相同上下文；子模块按需拉取避免克隆无用大仓库
+- **环境变量语义收缩**：`CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` 不再影响 `used_usd`/`limit_usd`/`period` 字段，开发者需更新依赖此行为的脚本假设
+
+### 3. 影响等级：**Medium**
+
+- **Hook 去重**：对依赖每次 SessionStart 都注入相同上下文的开发者是行为变更，但属修复性质（之前是 bug — 重复注入）
+- **子模块按需拉取**：对市场插件作者影响较大，根目录插件可能意外拉取所有子模块，需调整目录结构
+- **花费字段变更**：移除了一个&#34;静默抑制&#34;行为，脚本本身已有 fallback 写法则无影响，但之前刻意用该环境变量屏蔽美元字段的用户会收到数据
+
+### 4. 开发者行动项
+
+- 检查异步 `SessionStart` Hook 是否依赖每次 resume 都重复注入相同文本，若是则改用同步 Hook 或确保输出在需要时变化
+- 审查插件市场仓库结构：根目录插件若含大型构建用子模块，将其移入子目录以避免被自动拉取
+- 在插件 hook/server 配置中显式写出子模块内文件的路径（如 `${CLAUDE_PLUGIN_ROOT}/vendor/tool/run.sh`），确保 Claude Code 能识别依赖
+- 确认状态栏脚本对 `used_usd`/`limit_usd`/`period` 使用了 `// empty` 等 fallback，而非假设字段一定缺失
+- 若之前依赖 `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` 来屏蔽美元花费数据，注意该策略在 v2.1.295+ 已失效</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">Let me analyze the three documentation changes as a batch.
+
+1. **hooks.md**: Changes about async `SessionStart` hooks - now skips repeated output (deduplication). Before v2.1.295, the same text was added to conversation on every resume. Now it only delivers when text changes, or after compaction/clear.
+
+2. **plugin-marketplaces.md**: New section about keeping unused submodules out of the clone. When someone adds a marketplace, Claude Code now only fetches relevant git submodules. Requires v2.1.295+. Explains how plugin placement affects which submodules get fetched.
+
+3. **statusline.md**: Changed note about `used_usd`, `limit_usd`, and `period` fields. Previously, these stayed absent if `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` was set. Now (v2.1.295+), that environment variable no longer suppresses them - they&#39;re just delayed relative to the percentage.
+
+Key themes:
+- All changes reference v2.1.295 as a version boundary
+- Performance/efficiency improvements (deduplication of hook output, selective submodule fetching)
+- Behavioral clarifications around environment variables and data availability
+
+Impact: Medium - these are behavioral changes that could affect how plugins/hooks work, but are mostly improvements that reduce redundant behavior.</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugin-marketplaces.html" class="page-link">plugin-marketplaces.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/statusline.html" class="page-link">statusline.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">10:43 EST</div>
