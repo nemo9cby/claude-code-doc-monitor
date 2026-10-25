@@ -118,9 +118,147 @@
 
         <header>
             <h1>Changes on 2026-10-25</h1>
-            <p class="meta">1 total change in 1 run</p>
+            <p class="meta">6 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">10:43 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">## 文档变更批量分析
+
+### 1. 总体概要
+
+本次更新主要扩展了 Claude Desktop 在 Windows 上的 SSH 远程连接支持，详细记录了 `MaxSessions 1` 服务器的兼容方案，并显著完善了沙箱在强制模式下的失败行为文档。同时修正了若干环境变量和路径处理的说明细节。
+
+### 2. 关键主题
+
+- **Windows SSH 支持**：新增 Windows 通过 OpenSSH 客户端使用 `~/.ssh/config` 的完整指南，包括版本要求（Desktop v2.2553.0+、OpenSSH 9.4+）、客户端检测路径及故障排除
+- **`MaxSessions 1` 兼容**：将原先简单的&#34;调高 MaxSessions&#34;建议扩展为三平台分治方案，并补充了一次性密码（OTP）登录在该限制下的行为说明
+- **沙箱强制失败行为**：新增 `Sandbox is required` 拒绝命令的完整场景描述，明确 `dangerouslyDisableSandbox` 重试在此时被忽略，以及排除命令和用户输入命令的处理方式
+- **环境变量在 SSH 会话中的丢失**：明确 `/etc/profile` 等仅登录 shell 读取的文件不会生效，指引开发者改用 managed settings 的 `env` 字段
+- **Windows 路径斜杠方向**：修正为&#34;大多数&#34;替换路径用正斜杠，exec-form hook 和 PowerShell hook 保留反斜杠
+
+### 3. 影响等级：**Medium**
+
+无破坏性变更，但涉及多个重要行为澄清：Windows SSH 连接是新能力；`MaxSessions 1` 的 OTP 限制和沙箱强制拒绝是开发者可能踩到的坑，若不了解会导致连接失败或命令被静默拒绝。
+
+### 4. 开发者行动项
+
+- **Windows 用户**：确认 OpenSSH ≥ 9.4 且 Desktop ≥ v2.2553.0，并确保从官网下载而非 Microsoft Store 安装，否则无法使用本地 SSH config
+- **`MaxSessions 1` 服务器**：macOS/Linux 用户升级至 Desktop v3.1623.0+；若使用 OTP 登录，避免 `!` 命令，改用终端标签页
+- **SSH 会话环境变量**：不要依赖 `/etc/profile` 等 login shell 文件，改为在远程机器的 managed settings 文件 `env` 下设置
+- **沙箱 `failIfUnavailable`**：若启用该选项，需了解沙箱初始化失败后所有沙箱命令将被拒绝且无法重试，需重启修复；排除命令和 `!` 手动命令仍可在沙箱外运行
+- **Windows hook 路径**：若使用 exec-form hook 或 PowerShell hook，注意路径保留反斜杠，需自行处理转义</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">Let me analyze the documentation changes across these 5 pages.
+
+1. **desktop.md** (+38/-16): Major updates to SSH connection documentation:
+   - Expanded `MaxSessions 1` handling with platform-specific guidance (macOS/Linux vs Windows)
+   - Added Windows SSH configuration support (OpenSSH client on Windows)
+   - Added Windows-specific version requirements and troubleshooting
+   - Clarified SSH session environment variable behavior
+   - Updated proxy/CA variable explanation
+
+2. **hooks.md** (+1/-1): Minor change - removed &#34;and Claude receives an error result naming the timeout&#34; from Agent SDK callback hook timeout description, and changed the link to point to a more specific anchor.
+
+3. **monitoring-usage.md** (+1/-1): Improved guidance for when env vars set in `/etc/profile` don&#39;t reach Desktop SSH sessions - now explicitly tells users to set the variable under `env` in managed settings file instead of just describing the problem.
+
+4. **plugins-reference.md** (+1/-1): Clarified that on Windows, most (not all) substituted paths use forward slashes - exec-form hooks and PowerShell hooks keep native backslashes.
+
+5. **sandboxing.md** (+16/-2): Significant additions:
+   - Added info that `dangerouslyDisableSandbox` is ignored when commands are refused with &#34;Sandbox is required&#34; message
+   - Expanded the 0-byte placeholder files section to include background commands as a cause
+   - Added new section about &#34;Commands are refused with `Sandbox is required`&#34; explaining behavior when sandbox is required but unavailable, including details about excluded commands, user-typed commands, and unsandboxed retries
+
+Key themes:
+- SSH/remote connection improvements, especially Windows support
+- Sandbox behavior clarification and new failure modes documentation
+- Environment variable handling in SSH sessions
+- Path handling on Windows
+
+Impact: Medium - The SSH changes are significant for Windows users and those with MaxSessions 1 servers. The sandbox changes affect users with strict sandbox requirements. No breaking changes, but important behavioral clarifications.
+
+Action items:
+- Windows users: check OpenSSH version and Desktop version for SSH config support
+- If using MaxSessions 1 servers, update Desktop to v3.1623.0+ on macOS/Linux
+- Set env vars in managed settings file for SSH sessions instead of /etc/profile
+- Review sandbox failIfUnavailable behavior if using strict sandbox mode
+- Be aware that exec-form hooks on Windows keep backslashes</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/desktop.html" class="page-link">desktop.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+38</span>
+                            <span class="removed">-16</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sandboxing.html" class="page-link">sandboxing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+16</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">01:35 EST</div>
