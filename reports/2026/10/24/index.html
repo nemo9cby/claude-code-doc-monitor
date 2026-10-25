@@ -118,9 +118,206 @@
 
         <header>
             <h1>Changes on 2026-10-24</h1>
-            <p class="meta">13 total changes in 3 runs</p>
+            <p class="meta">22 total changes in 4 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">20:44 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">## 文档变更分析
+
+### 1. 总体概要
+
+本次更新主要围绕 **Claude Code Web/Desktop 的 UI 交互变更** 和 **Hooks 系统的行为边界澄清**，同时补充了若干故障排查指南和边缘场景说明。
+
+### 2. 关键主题
+
+- **Web UI 重构**：Diff 审查入口从独立指示器改为侧边栏 &#34;Changes&#34; 卡片；归档/删除操作统一到 `⋯` 菜单；新增 `claude.ai/code/sessions` 归档管理页；Auto-fix 入口从 CI 状态栏迁移至 Changes 卡片
+- **Hooks 行为澄清**：多个 `PreToolUse` hook 改写同一工具输入时，行为从&#34;最后一个完成者生效&#34;改为&#34;不保证结果&#34;（实质是非确定性）；新增 Esc 中断 hook 检查时的行为说明；WorktreeCreate hook 在 `--worktree + --tmux` 下插件定义不触发
+- **环境选择器更新**：Desktop 启动云会话从 &#34;Cloud vs Local&#34; 切换改为环境选择器下拉
+- **凭证与安全**：私有 marketplace HTTPS 克隆明确说明 `GIT_ASKPASS` 被禁用，克隆失败而非弹提示
+- **Git 中间状态处理**：diff 面板在未完成的 merge/rebase/cherry-pick/revert 期间保留上次状态，不显示 incoming changes
+- **故障排查补充**：会话启动失败（连接/服务器错误）；自托管 runner v2.1.246 以下不支持回退到非最新消息
+
+### 3. 影响等级：**Medium**
+
+无破坏性变更，但有多项行为澄清直接影响开发者的 hook 编写策略和自托管环境运维。特别是 `PreToolUse` 多 hook 改写行为从&#34;可预测的 last-wins&#34;变为&#34;不保证&#34;，以及 WorktreeCreate 插件 hook 在 `--worktree + --tmux` 下静默跳过，属于容易踩坑的隐性变更。
+
+### 4. 开发者行动项
+
+- **检查 PreToolUse hook 冲突**：若多个 hook 对同一工具返回 `updatedInput`，行为现已为非确定性——必须确保最多只有一个 hook 改写同一工具输入
+- **迁移 WorktreeCreate hook**：使用 `--worktree + --tmux` 时，插件定义的 hook 不会触发，需改在 settings file 中定义（`--worktree` 单独使用在 v2.1.300+ 已修复）
+- **升级自托管 runner**：需升级至 v2.1.246+ 以支持回退到任意消息，否则仅能回退到最新消息
+- **注意 Esc 中断 hook 的竞态**：按 Esc 时若 hook 恰好 block 了 prompt，文本不会返回输入框——需要了解此边缘行为避免困惑
+- **Monitors 不再与 `-p` 标志一起运行**：若在 headless/管道场景依赖 monitors，需调整预期</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">Let me analyze the documentation changes across these 9 pages to understand what changed and why it matters.
+
+Let me go through each page:
+
+1. **checkpointing.md**: Simplified the explanation about mid-turn messages and checkpoints. Removed some detailed explanation about what &#34;No code restore&#34; means and how to handle it. The core guidance is preserved but made more concise.
+
+2. **claude-code-on-the-web.md**: Several significant changes:
+   - Desktop app: changed from &#34;select Cloud instead of Local&#34; to &#34;select an environment under Cloud in the environment selector&#34; - UI change
+   - Review changes: restructured the diff view explanation, now mentions &#34;Changes card&#34; in the panel, multiple ways to access it
+   - Archive sessions: restructured with clearer steps, added &#34;Find an archived session&#34; section, mentions new Archived tab at claude.ai/code/sessions
+   - Delete sessions: added &#34;From the Archived tab&#34; option
+   - Auto-fix: moved from CI status bar to Changes card&#39;s ⋮ menu
+   - New troubleshooting: &#34;Your new session couldn&#39;t start&#34; and &#34;Can&#39;t rewind to this message&#34; (for self-hosted runners before v2.1.246)
+
+3. **desktop.md**: Removed &#34;when the window is narrow&#34; condition for showing session rail option in ⋮ menu - now always available.
+
+4. **discover-plugins.md**: More detailed explanation about HTTPS credential handling - now mentions GIT_ASKPASS being disabled, and that clone fails instead of prompting.
+
+5. **hooks.md**: Several changes:
+   - Setup hooks: clarified that variables persist &#34;if your hook writes variables to that file&#34;
+   - Added section about Esc during prompt check - behavior when interrupting while hooks are checking
+   - CwdChanged: same clarification about variables persisting
+   - WorktreeCreate: expanded explanation - plugin hooks don&#39;t run with --worktree + --tmux, and before v2.1.300 they didn&#39;t run with --worktree alone either
+
+6. **hooks-guide.md**: Changed PreToolUse updatedInput behavior description - from &#34;last one to finish takes effect&#34; to &#34;Claude Code doesn&#39;t merge the rewrites or guarantee which rewrite the tool runs with&#34; - this is a significant clarification that the behavior is non-deterministic, not just &#34;last wins&#34;
+
+7. **interactive-mode.md**: Added note that during unfinished merge/rebase/cherry-pick/revert, the diff panel keeps showing previous changes instead of filling with incoming changes.
+
+8. **plugins-reference.md**: Changed monitors description - from &#34;Monitors run only in interactive sessions, and not on Amazon Bedrock, Google Cloud&#39;s Agent Platform, or Microsoft Foundry&#34; to &#34;Monitors don&#39;t start with the -p flag&#34; - simpler/clearer constraint
+
+9. **terminal-config.md**: Added note that tab title doesn&#39;t start with a status glyph in terminals that report protocol support, since the terminal shows state itself.
+
+Key themes:
+- UI/UX changes in web and desktop (Changes card, environment selector, archive UI)
+- Hook behavior clarifications (Esc handling, WorktreeCreate with --tmux, updatedInput non-determinism)
+- Credential handling clarification for private marketplaces
+- Troubleshooting additions (session start failures, rewind errors on self-hosted runners)
+- Diff panel behavior during git operations
+- Terminal title behavior clarification
+
+Impact: Medium - there are behavioral clarifications that affect how developers should write hooks and configure their setup, plus UI changes for web/desktop users.
+
+Action items:
+- Update WorktreeCreate hooks to use settings files instead of plugins if you need them with --worktree + --tmux
+- Don&#39;t rely on specific ordering when multiple PreToolUse hooks rewrite the same tool&#39;s input
+- Be aware that Esc during hook checks may block the prompt if a hook blocks at the same time
+- Upgrade self-hosted runners to v2.1.246+ to enable rewind functionality
+- Note monitors no longer run with -p flag</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/checkpointing.html" class="page-link">checkpointing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/claude-code-on-the-web.html" class="page-link">claude-code-on-the-web.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+21</span>
+                            <span class="removed">-9</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/desktop.html" class="page-link">desktop.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/discover-plugins.html" class="page-link">discover-plugins.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/interactive-mode.html" class="page-link">interactive-mode.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/terminal-config.html" class="page-link">terminal-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">15:12 EST</div>
