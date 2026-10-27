@@ -118,9 +118,219 @@
 
         <header>
             <h1>Changes on 2026-10-26</h1>
-            <p class="meta">3 total changes in 2 runs</p>
+            <p class="meta">10 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">20:10 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 1. Overall Summary
+本次更新显著增强了开发者对 AI 上下文和插件行为的控制能力，扩展了 MCP（Model Context Protocol）服务在旧协议版本下的功能支持，并引入了 VS Code 扩展中针对代码选中和文件附件的精细化设置。同时，版本 2.1.311 修复了大量影响稳定性的关键 Bug，特别是针对大文件编辑和 MCP 服务器交互的性能问题。
+
+### 2. Key Themes
+*   **插件建议管理**：新增功能允许 Claude 自动推荐插件，并提供了通过权限规则（`SearchPlugins`, `SuggestPluginInstall`）彻底禁用此行为的配置方法。
+*   **MCP 协议能力扩展**：Claude Code 现在在旧版协议（2025-11-25 及更早）的本地连接中也支持 `form` 和 `url` 两种 Elicitation 模式，但给出了针对 Java MCP SDK 0.17.0 及更早版本的兼容性警告。
+*   **VS Code 扩展上下文控制**：新增 `attachSelection` 设置（v2.1.300+），允许开发者关闭编辑器选中代码自动附加到上下文的行为，进一步减少隐私泄露或上下文冗余。
+*   **交互体验优化**：改进了桌面端 Diff 视图的评论交互（Hover 显示 &#34;+&#34;），并支持在提示中引用终端输出（`@terminal:name`）和 PDF 特定页面阅读。
+
+### 3. Impact Level
+**High** (高)
+*   **理由**：
+    *   **MCP 开发者**：协议能力的声明变更直接影响 MCP 服务器的构建逻辑，特别是 Java SDK 用户需关注兼容性问题。
+    *   **默认行为变更**：VS Code 中引入了新的 `attachSelection` 默认开启行为，改变了用户与代码上下文的交互方式。
+    *   **稳定性修复**：Changelog 显示修复了会导致启动/编辑“卡死”的严重 Bug，直接影响生产环境的使用体验。
+
+### 4. Action items for developers
+*   **MCP 服务开发者**：检查您的服务器实现，确保能正确处理包含 `form` 和 `url` 的 `elicitation` 能力声明；若使用 Java SDK 0.17.0 或更早版本，需升级以避免连接被拒。
+*   **VS Code 用户**：检查设置中的 `attachSelection` 和 `attachOpenFile`，根据需要调整代码自动附加行为，以避免敏感代码被意外发送。
+*   **配置管理员**：如果不想让 Claude 自动推荐插件，请在 `.claude/settings.json` 中添加相应的 `permissions.deny` 规则。
+*   **升级建议**：尽快升级至 v2.1.311，以解决处理 `CLAUDE.md` 长列表时的卡顿问题以及大文件编辑时的延迟问题。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer/doc expert.
+    *   **Task:** Analyze documentation changes (batch of 7 pages).
+    *   **Output Format:** Concise, insightful analysis in Markdown. Chinese language required.
+    *   **Components:** Overall Summary, Key Themes, Impact Level, Action Items.
+
+2.  **Analyze the Input Data (Page by Page):**
+
+    *   **Page 1: `claude-code-on-the-web.md` (+13/-0)**
+        *   *Change:* Added section &#34;Plugin suggestions in the conversation&#34;. Explains how Claude suggests plugins (Add button), how to manage them (Add/Remove), and how to disable suggestions using permission rules (`SearchPlugins`, `SuggestPluginInstall`).
+        *   *Developer Implication:* Need to know how to control/override plugin suggestions via config files if they are intrusive.
+
+    *   **Page 2: `desktop.md` (+4/-4)**
+        *   *Change 1:* Diff view interaction: Now &#34;hover over a line and click the +&#34; instead of just clicking any line.
+        *   *Change 2:* Keyboard shortcut clarification: &#34;Shortcuts that start with Ctrl stay the same on every platform.&#34; Changed `Ctrl+Tab` description to &#34;Switch between sessions&#34;.
+        *   *Change 3:* Updated shortcut table text.
+        *   *Developer Implication:* Minor UI/UX changes for diff commenting and keyboard navigation.
+
+    *   **Page 3: `mcp.md` (+6/-1)**
+        *   *Change:* Refined the &#34;Elicitation modes&#34; section.
+        *   *Detail:* Claude Code now declares `elicitation: {form: {}, url: {}}` for both the new protocol (2026-07-28) AND older protocols (2025-11-25 and older) for local stdio/sse/http/ws servers (requires v2.1.287+). However, for connections to `claude.ai` connectors on older protocols, it only declares `elicitation: {}` (form mode only).
+        *   *Warning:* Java MCP SDK 0.17.0 or earlier might reject the declaration if it has both form and url.
+        *   *Developer Implication:* Crucial for MCP server builders. Compatibility notes regarding Java SDK and protocol versions.
+
+    *   **Page 4: `vs-code.md` (+19/-8)**
+        *   *Change 1:* Added &#34;Read specific pages of a PDF&#34; section.
+        *   *Change 2:* Reorganized &#34;Automatic context&#34; sections. Moved &#34;Attach images/files&#34;, &#34;Include terminal output&#34;, &#34;Paste text&#34;, and &#34;Automatic context&#34; around.
+        *   *Change 3:* Clarified &#34;Keep your selection and open file out of your messages&#34; using explicit settings `attachSelection` and `attachOpenFile`. Added `attachSelection` to the settings table (default `true`, requires v2.1.300).
+        *   *Change 4:* Clarified behavior for excluded/ignored files (chat panel vs terminal).
+        *   *Developer Implication:* Better control over context attachment (`attachSelection` setting is new). Workflow improvements for PDFs and terminal output.
+
+    *   **Page 5 &amp; 6: `claude-on-vertex-ai.md` &amp; `claude-in-microsoft-foundry.md` (+4/-7 each)**
+        *   *Change:* Simplified the model migration tip. Removed the `&lt;Tip&gt;` block wrapper and made the `/claude-api migrate` command more direct.
+        *   *Developer Implication:* Documentation formatting cleanup. Easier to see the migration command.
+
+    *   **Page 7: `CHANGELOG.md` (+93/-0)**
+        *   *Change:* Added changelog for version 2.1.311.
+        *   *Key Fixes:* `self-hosted-runner` flags added. Fixed freeze on long list items in CLAUDE.md. Fixed timeouts with MCP servers/skills. Fixed context limit issues (compaction). Fixed Write/Edit stalling. Fixed subagent MCP tool usage. Fixed `claude mcp` commands. Improved `/teleport` warning. Improved artifacts.
+        *   *Developer Implication:* Stability improvements, performance fixes, and specific bug fixes for MCP/Agents.
+
+3.  **Synthesize and Structure (in Chinese):**
+
+    *   **Overall Summary:** Focus on the addition of Plugin Suggestion controls, refined MCP Elicitation capabilities for server builders, new VS Code context settings, and significant stability/performance fixes in version 2.1.311.
+    *   **Key Themes:**
+        *   *Plugin/Context Control:* New features to manage suggestions and fine-tune context attachment (VS Code).
+        *   *MCP Ecosystem:* Updated client capabilities for elicitation (form vs URL) across protocol versions, with specific compatibility warnings for Java SDK.
+        *   *UX Refinements:* Diff commenting, PDF reading, terminal output references.
+        *   *Stability/Performance:* Changelog 2.1.311 fixes freezing, large file edits, and subagent issues.
+    *   **Impact Level:** High. (Why? MCP changes affect server implementers. New settings change default behavior in VS Code context attachment. Bug fixes address critical stability issues like freezing and context limits).
+    *   **Action Items:**
+        *   Review and update permission rules if plugin suggestions are unwanted.
+        *   MCP Server builders: Check protocol versions and Java SDK compatibility regarding elicitation capabilities.
+        *   VS Code users: Check new `attachSelection` setting if context leakage is a concern.
+        *   Update to v2.1.311 for stability fixes (especially large file edits/CLAUDE.md handling).
+
+4.  **Drafting the Response (Iterative refinement for &#34;World-class programmer&#34; tone):**
+
+    *   *Drafting Summary:* 本次更新主要增强了开发者对上下文和插件的控制力，特别是针对 MCP 服务构建者的能力扩展，以及 VS Code 扩展中上下文附件行为的精细化调整。同时，2.1.311 版本修复了大量影响稳定性的 Bug。
+    *   *Drafting Themes:*
+        *   新增插件建议控制机制。
+        *   MCP Elicitation 能力扩展及兼容性说明。
+        *   VS Code 扩展引入 `attachSelection` 设置。
+        *   性能与稳定性大幅提升（Changelog）。
+    *   *Drafting Impact:* High (高)。涉及协议层面的行为变更（MCP）和默认交互逻辑的改变。
+    *   *Drafting Action Items:*
+        *   MCP 开发者注意 Java SDK 兼容性。
+        *   检查新的 VS Code 设置。
+        *   升级版本以解决卡死和编辑延迟问题。
+
+5.  **Final Polish (Markdown formatting):** Ensure strict adherence to the requested format.
+
+    *   *Self-Correction during drafting:* Make sure to emphasize the MCP changes for *builders* specifically, as that&#39;s a technical detail in `mcp.md`. For VS Code, highlight the `attachSelection` toggle as it changes the default behavior of automatic context inclusion.
+
+6.  **Final Output Generation** (translating thoughts to the final Chinese response).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/claude-code-on-the-web.html" class="page-link">claude-code-on-the-web.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+13</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/desktop.html" class="page-link">desktop.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/vs-code.html" class="page-link">vs-code.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+19</span>
+                            <span class="removed">-8</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-on-vertex-ai.html" class="page-link">build-with-claude/claude-on-vertex-ai.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-7</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-in-microsoft-foundry.html" class="page-link">build-with-claude/claude-in-microsoft-foundry.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-7</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+93</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">16:50 EST</div>
