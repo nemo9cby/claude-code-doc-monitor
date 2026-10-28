@@ -118,9 +118,142 @@
 
         <header>
             <h1>Changes on 2026-10-28</h1>
-            <p class="meta">2 total changes in 1 run</p>
+            <p class="meta">7 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">15:15 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">## 批量文档变更分析
+
+### 1. 总体摘要
+
+本次更新涵盖 Claude Desktop 布局检测逻辑优化、OAuth 登录排障指引改进、IAM 托管设备无密钥登录控制策略新增、MCP 服务器 OAuth 令牌撤销与工具 schema 容错机制增强，以及 VS Code 扩展新错误消息的记录。
+
+### 2. 关键主题
+
+- **布局检测描述更精确**：将模糊的&#34;无环境选择器&#34;改为&#34;环境显示在输入框上方而非下方&#34;，并明确第三方基础设施部署需 v4.29.0+ 才能使用新布局
+- **OAuth 登录排障统一**：devcontainer 和 iam 页面同步更新了 OAuth 登录失败的排障指引，新增对 WSL2/SSH/容器的交叉引用
+- **托管设备登录管控收紧**：新增 `forceLoginOrgUUID` 部署后禁止无密钥登录的完整策略，细化了各类凭据（keyless、环境变量、claude.ai）的迁移处理方式
+- **MCP OAuth 令牌生命周期变更**：`claude mcp remove` 不再在授权服务器端撤销令牌，需先执行 `claude mcp logout`
+- **MCP 工具 schema 容错增强**：v2.1.300 起，当 API 拒绝某工具的 input schema 时，Claude Code 改为以无参数形式重新发送请求（而非直接 400 报错），实现优雅降级
+- **MCP 环境变量边界行为明确**：空字符串视为&#34;已设置&#34;，`${VAR:-default}` 不会回退到 default
+
+### 3. 影响级别：**Medium**
+
+理由：无破坏性 API 变更，但多项行为变更会影响开发者日常操作——MCP 令牌撤销流程需手动补充步骤、工具 schema 容错行为改变影响调试预期、托管登录策略变更影响企业部署。
+
+### 4. 开发者行动项
+
+- **MCP 用户**：删除远程服务器前务必先执行 `claude mcp logout &lt;name&gt;`，否则 OAuth 令牌在授权服务器端不会被撤销
+- **MCP 服务器维护者**：若工具 schema 被 API 拒绝，Claude 会以无参数形式调用该工具，需确保服务端对无参数调用有合理的参数校验/默认值处理
+- **企业管理员**：若要禁止无密钥登录，部署 `forceLoginOrgUUID` 到托管设置中；仅设 `forceLoginMethod: &#34;console&#34;` 不够，用户仍可在重试时选择无密钥方式
+- **使用环境变量默认值的 MCP 配置**：检查是否有变量被设为空字符串而非 unset，否则 `${VAR:-default}` 不会如预期回退
+- **第三方基础设施 Desktop 用户**：确认版本 ≥ v4.29.0 以获得新布局支持</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">Let me analyze the documentation changes across all 5 pages.
+
+1. **desktop.md** - Changes to layout detection and environment selector language. Key changes:
+   - Replaced &#34;no environment selector&#34; with &#34;shows no environment&#34; or &#34;shows the environment above the prompt box instead of under it&#34; - more descriptive language for detecting which layout you have
+   - Updated third-party provider infrastructure layout info: now requires v4.29.0 (was unclear before)
+   - Added &#34;or repository&#34; to earlier layout description
+   - Removed a blank line (minor formatting)
+
+2. **devcontainer.md** - Changed the OAuth login troubleshooting note:
+   - Old: advice about copying code when callback doesn&#39;t reach container
+   - New: more comprehensive advice covering cases where browser doesn&#39;t open OR shows localhost error, directing to use the login URL, and linking to OAuth troubleshooting for WSL2/SSH/containers
+
+3. **iam.md** - Authentication changes:
+   - Removed the note about WSL2/SSH/containers being common for login code issues (simplified)
+   - Changed `forceLoginMethod: &#34;console&#34;` behavior: now API key is created without asking only when `forceLoginMethod` is &#34;console&#34; AND no `forceLoginOrgUUID` is set, until retry from error screen
+   - New section: &#34;Stop offering the keyless sign-in on managed machines&#34; - deploying `forceLoginOrgUUID` prevents keyless sign-in option; detailed guidance on handling credentials when deploying this
+
+4. **mcp.md** - Several changes:
+   - OAuth token revocation: removing a remote server no longer revokes tokens at the authorization server; need to run `claude mcp logout` before `claude mcp remove`
+   - Simplified environment variable expansion docs: merged &#34;Supported syntax&#34; and &#34;Expansion locations&#34; sections into more concise format
+   - New section on &#34;Variables set to an empty string&#34; behavior: empty string counts as set, so `${VAR:-default}` uses empty string, not default
+   - Invalid input schema tools: restructured documentation significantly
+   - New section &#34;Tools whose input schema the API refuses&#34;: Claude Code now resends request with tool declared without parameters (graceful degradation). Before v2.1.300, it failed with 400 error.
+   - Feature flag fetching behavior clarified more
+
+5. **vs-code.md** - Added a new error message to the troubleshooting table: &#34;The Claude Code program for this computer, the &lt;build&gt; build, could not be found&#34;
+
+Let me summarize the themes and impact.</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/desktop.html" class="page-link">desktop.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/devcontainer.html" class="page-link">devcontainer.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/iam.html" class="page-link">iam.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+9</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+18</span>
+                            <span class="removed">-12</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/vs-code.html" class="page-link">vs-code.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">02:32 EST</div>
