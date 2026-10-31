@@ -118,9 +118,555 @@
 
         <header>
             <h1>Changes on 2026-10-30</h1>
-            <p class="meta">32 total changes in 1 run</p>
+            <p class="meta">68 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">21:22 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 总体摘要
+本次更新主要将文档状态术语从“GA”统一调整为“Stable”，显著重构了 Claude Desktop 中 SSH 命令连接的生命周期管理逻辑，移除了 Amazon Bedrock Converse API 中关于 PDF 视觉分析的引用限制，并澄清了代码执行工具与 Web 搜索结合时的异步处理机制。
+
+### 关键主题
+*   **术语标准化**: 将所有页面的功能状态从 `status: ga` 更新为 `status: stable`，涵盖 Vision、Citations、Structured Outputs、Bash Tool 等核心功能。
+*   **Desktop SSH 机制重大变更**: 重写了 `sshHostCommands` 的行为逻辑，明确区分“创建另一台机器”与“替换主机”，新增详细的“停止使用机器”步骤，以防止后台自动连接已废弃的实例，从而避免安全风险和意外计费。
+*   **Bedrock PDF 限制放宽**: 移除了关于 Amazon Bedrock Converse API 必须启用引用 才能进行 PDF 视觉分析（图表、布局）的重要警告与限制说明。
+*   **代码执行与异步结果**: 深入阐明了 `code_execution_20260120` 版本的 REPL 状态持久化机制，以及 `encrypted_code_execution_result` 在代码调用 Web 搜索时的异步返回行为。
+*   **引用与结构化数据**: 提供了新的模式，指导开发者如何在不兼容严格 JSON Schema 的情况下，通过文本行解析获取带引用的结构化数据。
+*   **速率限制提升**: 提高了起始层 模型的 RPM（每分钟请求数）限制，从 1,000 提升至 4,000。
+
+### 影响级别
+**Medium (中)**
+*   **理由**: 虽然大部分更改是术语和说明性更新，但 Claude Desktop 的 SSH 连接管理逻辑发生了实质性变化，涉及资源清理和防误连。此外，Bedrock PDF 限制的移除意味着开发者可以简化相关集成逻辑。开发者需要关注这些变更以优化现有配置和代码。
+
+### 开发者行动项
+*   **更新 Desktop SSH 管理流程**: 如果使用 `sshHostCommands`，请务必阅读新的“停止使用机器”部分，并按照步骤归档旧会话，以彻底断开与旧机器的连接。
+*   **审查 Bedrock PDF 集成**: 检查在 Amazon Bedrock 上使用 Converse API 的代码，移除不必要的引用强制开启逻辑，现在无需引用即可进行完整的 PDF 视觉分析。
+*   **利用速率限制提升**: 更新应用端的限流配置或监控阈值，起始层用户现在享有 4 倍于之前的并发请求配额。
+*   **调整代码执行处理逻辑**: 若使用代码执行工具配合 Web 搜索，需正确处理 `encrypted_code_execution_result` 块，该结果会在后续请求中返回，而非当前响应。
+*   **采用新的引用提取模式**: 如需结构化数据且需要引用来源，请参考 Citations 文档新增的“Get structured data with citations”指南，避免使用不兼容的 JSON 输出配置。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Output Format:** Markdown, single batch analysis, concise, insightful.
+    *   **Content:** 36 changed pages (diffs provided for a subset).
+    *   **Language:** Chinese.
+    *   **Sections required:**
+        1.  Overall Summary (1-2 sentences).
+        2.  Key Themes (bullets).
+        3.  Impact Level (Low/Medium/High/Breaking) with reasoning.
+        4.  Action Items (max 5 bullets).
+
+2.  **Analyze the Diffs (Page by Page):**
+
+    *   **`desktop.md`**:
+        *   *Change:* Major rewrites regarding &#34;Replace the host&#34; vs. &#34;Create another machine&#34;.
+        *   *Details:* New logic for handling multiple machines from a single `sshHostCommands` entry. Old sessions on previous machines remain active. New section &#34;Stop using a machine&#34; to prevent Desktop from auto-connecting to old machines. Updated warnings about host key checking and persistence.
+        *   *Why it matters:* It changes how SSH connections via commands are managed, specifically around lifecycle and stopping background connections. It seems to support keeping multiple machines alive per entry better, or clarifying the flow of creating new ones while preserving old ones.
+
+    *   **`api/messages.md` &amp; `api/messages/count_tokens.md` &amp; `api/messages/batches/create.md`**:
+        *   *Change:* Updated descriptions for `CodeExecutionTool20260120` and `EncryptedCodeExecutionResultBlock`.
+        *   *Details:* Clarified that REPL state persistence applies with programmatic tool calling. Explained `encrypted_code_execution_result` is used when code calls web search and is returned in a later request.
+        *   *Why it matters:* Developers using code execution with web search need to handle the asynchronous encrypted result block properly.
+
+    *   **`api/beta/files/upload.md`**:
+        *   *Change:* Added `&#34;experimental-claude-tag-2026-10-21&#34;` to purpose list.
+        *   *Why it matters:* New experimental feature for tagging.
+
+    *   **`api/rate-limits.md`**:
+        *   *Change:* Updated limits for Start tier (Fable 5.x, Opus 5.5, Sonnet 5.5, Haiku 5.5 increased RPM from 1k to 4k). Added note about Rate Limits API allowing setting workspace limits. Fixed HTML superscript formatting.
+        *   *Why it matters:* Better performance/higher quotas for users on the Start tier.
+
+    *   **`api/service-tiers.md`, `build-with-claude/vision.md`, `build-with-claude/pdf-support.md`, `build-with-claude/extended-thinking.md`, `build-with-claude/streaming.md`, `build-with-claude/prompt-caching.md`, `build-with-claude/batch-processing.md`, `build-with-claude/citations.md`, `build-with-claude/search-results.md`, `build-with-claude/structured-outputs.md`, `build-with-claude/effort.md`, `build-with-claude/files.md`, `build-with-claude/working-with-messages.md`, `agents-and-tools/tool-use/implement-tool-use.md`, `agents-and-tools/tool-use/bash-tool.md`**:
+        *   *Change:* `status: ga` -&gt; `status: stable`.
+        *   *Why it matters:* Terminology change. &#34;GA&#34; (Generally Available) is now &#34;Stable&#34;. Indicates maturity/stability but the functionality hasn&#39;t changed (mostly).
+
+    *   **`build-with-claude/pdf-support.md`**:
+        *   *Change:* Removed specific &#34;Amazon Bedrock PDF support&#34; section detailing the Converse API constraint regarding citations being required for visual analysis. Simplified platform table.
+        *   *Why it matters:* It looks like the specific Bedrock Converse API limitation (requiring citations for visual PDF analysis) might have been lifted or is no longer the primary focus/documented limitation. The diff removes the &#34;Important&#34; warning about citations being required for visual PDF analysis on Bedrock.
+
+    *   **`build-with-claude/citations.md`**:
+        *   *Change:* Added section &#34;Get structured data with citations&#34;. Removed &#34;Incompatible with structured outputs&#34; note (wait, checking... actually `structured-outputs.md` still says incompatible, but `citations.md` adds a way to get *structured data* - not `output_config.format` - by parsing text lines).
+        *   *Why it matters:* Provides a pattern/workaround to get JSON-like data *with* citations by parsing text lines, bypassing the incompatibility with strict JSON schema modes (`output_config.format`).
+
+    *   **`build-with-claude/structured-outputs.md`**:
+        *   *Change:* Updated incompatibility warning to point to the new &#34;Get structured data with citations&#34; section in `citations.md`.
+
+    *   **`build-with-claude/claude-on-amazon-bedrock.md`**:
+        *   *Change:* Simplified PDF support section, removed the citation requirement warning.
+
+    *   **`build-with-claude/prompt-engineering/*.md`**:
+        *   *Change:* Updated medication dosing block header to include more models (Fable, Opus, Sonnet versions).
+
+3.  **Synthesize Themes:**
+
+    *   **Terminology Shift:** `ga` is now `stable`. Consistency across docs.
+    *   **Desktop SSH Lifecycle:** Significant change in how Claude Desktop handles SSH command connections, specifically regarding creating new machines vs replacing hosts, and how to stop connections to old machines.
+    *   **Code Execution &amp; Web Search:** Clarification on encrypted code execution results and REPL persistence.
+    *   **Bedrock PDF &amp; Citations:** Removal of warnings about Bedrock Converse API requiring citations for visual PDF analysis.
+    *   **Citations &amp; Structured Data:** New guidance on extracting structured data with citations (workaround for JSON mode incompatibility).
+    *   **Rate Limits:** Increased RPM limits for Start tier models.
+
+4.  **Draft the Analysis (Internal Monologue/Rough Draft):**
+
+    *   *Summary:* This batch updates the terminology from GA to Stable, clarifies code execution behavior with web search, simplifies Bedrock PDF constraints, and significantly refines SSH connection management in Claude Desktop.
+    *   *Themes:* Terminology update (GA-&gt;Stable), Desktop SSH lifecycle management changes, Code execution clarifications, Bedrock PDF relaxation, Rate limit increases.
+    *   *Impact:* Medium. Terminology is low impact, but Desktop SSH changes affect configuration usage. Bedrock PDF changes affect implementation logic. Rate limits are positive changes.
+    *   *Actions:* Check Desktop SSH config for new &#34;Stop using a machine&#34; logic. Update Bedrock PDF code if relying on the old citation constraint. Use new &#34;structured data with citations&#34; pattern if needed. Update rate limit expectations.
+
+5.  **Refine and Translate to Chinese:**
+
+    *   *Summary:* 本次更新主要将“GA”术语统一为“Stable”，显著优化了 Claude Desktop 中 SSH 命令连接的生命周期管理，澄清了代码执行与 Web 搜索结合时的行为，并移除了 Amazon Bedrock Converse API 中 PDF 视觉分析需强制开启引用的限制。
+    *   *Themes:*
+        *   **术语标准化**: 将 `status: ga` 全面替换为 `status: stable`，涉及 Vision, Citations, Structured Outputs 等多个核心功能。
+        *   **Desktop SSH 机制变更**: 重写了 `sshHostCommands` 的连接逻辑，区分“创建另一台机器”与“替换主机”，并新增了停止使用机器的指南，以防止 Desktop 自动重连已废弃的实例。
+        *   **Bedrock PDF 限制放宽**: 移除了关于 Bedrock Converse API 必须启用引用 才能进行 PDF 视觉分析（如图表识别）的警告与限制说明。
+        *   **代码执行澄清**: 明确了 `code_execution_20260120` 的 REPL 状态持久化机制，以及 `encrypted_code_execution_result` 在异步 Web 搜索场景下的使用细节。
+        *   **引用与结构化数据**: 新增指南，演示如何在不兼容 JSON Schema 的严格模式下，通过解析文本行来获取带引用的结构化数据。
+        *   **速率限制提升**: 起始层 的 RPM 限制显著提升（部分模型从 1,000 提升至 4,000）。
+    *   *Impact:* **Medium** (中)。虽然主要是文档措辞和说明更新，但 Desktop SSH 的行为变更涉及后台资源管理，Bedrock PDF 限制的移除可能影响现有代码逻辑，建议开发者关注。
+    *   *Action Items:*
+        *   **检查 Desktop 配置**: 如果使用 `sshHostCommands`，请查阅新的“停止使用机器”部分，确保正确管理后台实例，避免意外连接或计费。
+        *   **审查 Bedrock PDF 集成**: 如果之前为了在 Bedrock Converse API 中启用 PDF 视觉分析而强制开启了引用，现在可以根据新文档评估是否移除该限制。
+        *   **利用速率限制更新**: 更新内部配额监控脚本或预期，起始层模型现在支持更高的并发请求量。
+        *   **采用引用新模式**: 如需在提取结构化数据时保留引用来源，参考 Citations 文档新增的“Get structured data with citations”模式。
+
+6.  **Final Polish (Markdown formatting):** Ensure headers and bullet points are clean.
+
+    *   *Self-Correction during drafting:* Make sure to emphasize that Desktop changes are about preventing lingering connections (money saving/security).
+    *   *Check:* Did I miss the `experimental-claude-tag`? It&#39;s minor, might skip from top themes but good for completeness. The &#34;medication dosing&#34; prompt update is very minor, ignore for high-level summary.
+
+7.  **Final Output Generation** (matches the thought process above).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/desktop.html" class="page-link">desktop.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+31</span>
+                            <span class="removed">-12</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/messages.html" class="page-link">api/messages.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+42</span>
+                            <span class="removed">-13</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/messages/count_tokens.html" class="page-link">api/messages/count_tokens.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/messages/batches/create.html" class="page-link">api/messages/batches/create.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/beta/files/upload.html" class="page-link">api/beta/files/upload.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/rate-limits.html" class="page-link">api/rate-limits.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+27</span>
+                            <span class="removed">-27</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/service-tiers.html" class="page-link">api/service-tiers.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/vision.html" class="page-link">build-with-claude/vision.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/pdf-support.html" class="page-link">build-with-claude/pdf-support.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+9</span>
+                            <span class="removed">-32</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/extended-thinking.html" class="page-link">build-with-claude/extended-thinking.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            <span class="removed">-7</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/streaming.html" class="page-link">build-with-claude/streaming.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-8</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-caching.html" class="page-link">build-with-claude/prompt-caching.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            <span class="removed">-7</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/batch-processing.html" class="page-link">build-with-claude/batch-processing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/context-windows.html" class="page-link">build-with-claude/context-windows.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/citations.html" class="page-link">build-with-claude/citations.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+28</span>
+                            <span class="removed">-10</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/search-results.html" class="page-link">build-with-claude/search-results.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-8</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/structured-outputs.html" class="page-link">build-with-claude/structured-outputs.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+9</span>
+                            <span class="removed">-9</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/effort.html" class="page-link">build-with-claude/effort.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            <span class="removed">-7</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/files.html" class="page-link">build-with-claude/files.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/working-with-messages.html" class="page-link">build-with-claude/working-with-messages.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-8</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-on-amazon-bedrock.html" class="page-link">build-with-claude/claude-on-amazon-bedrock.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/prompting-tools.html" class="page-link">build-with-claude/prompt-engineering/prompting-tools.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/claude-prompting-best-practices.html" class="page-link">build-with-claude/prompt-engineering/claude-prompting-best-practices.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/implement-tool-use.html" class="page-link">agents-and-tools/tool-use/implement-tool-use.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-8</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/bash-tool.html" class="page-link">agents-and-tools/tool-use/bash-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            <span class="removed">-7</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/text-editor-tool.html" class="page-link">agents-and-tools/tool-use/text-editor-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            <span class="removed">-7</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/computer-use-tool.html" class="page-link">agents-and-tools/tool-use/computer-use-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/web-search-tool.html" class="page-link">agents-and-tools/tool-use/web-search-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/web-fetch-tool.html" class="page-link">agents-and-tools/tool-use/web-fetch-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-7</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/code-execution-tool.html" class="page-link">agents-and-tools/tool-use/code-execution-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/memory-tool.html" class="page-link">agents-and-tools/tool-use/memory-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-8</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/tool-search-tool.html" class="page-link">agents-and-tools/tool-use/tool-search-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+9</span>
+                            <span class="removed">-9</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/fine-grained-tool-streaming.html" class="page-link">agents-and-tools/tool-use/fine-grained-tool-streaming.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            <span class="removed">-7</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/programmatic-tool-calling.html" class="page-link">agents-and-tools/tool-use/programmatic-tool-calling.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/agent-skills/overview.html" class="page-link">agents-and-tools/agent-skills/overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+56</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">17:19 EST</div>
