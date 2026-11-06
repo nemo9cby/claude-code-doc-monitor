@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026-11-06 - Documentation Changes</title>
+    <style>
+        :root {
+            --bg-color: #1a1a2e;
+            --card-bg: #16213e;
+            --text-color: #eee;
+            --accent: #0f3460;
+            --add-text: #4ade80;
+            --del-text: #f87171;
+            --time-color: #60a5fa;
+        }
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg-color: #f5f5f5;
+                --card-bg: #fff;
+                --text-color: #333;
+                --accent: #e0e0e0;
+                --add-text: #155724;
+                --del-text: #721c24;
+                --time-color: #2563eb;
+            }
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+        .container { max-width: 800px; margin: 0 auto; }
+        header { margin-bottom: 2rem; }
+        h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+        .meta { color: #888; }
+        .batch { margin-bottom: 2rem; }
+        .batch-header {
+            color: var(--time-color);
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--accent);
+        }
+        .page-list { list-style: none; }
+        .page-item {
+            background: var(--card-bg);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .page-item:hover { background: var(--accent); }
+        .page-link {
+            color: var(--text-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .page-summary { color: #888; font-size: 0.9rem; }
+        .added { color: var(--add-text); }
+        .removed { color: var(--del-text); }
+        a { color: #60a5fa; }
+        .back-link { margin-bottom: 1rem; display: inline-block; }
+        .page-item-content { flex: 1; }
+        .page-analysis {
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: 0.25rem;
+        }
+        .source-section {
+            margin-bottom: 1.5rem;
+        }
+        .source-header {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: #8b5cf6;
+        }
+        .batch-analysis {
+            background: var(--card-bg);
+            border-left: 3px solid #22c55e;
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            margin: 0.75rem 0 1rem 0;
+        }
+        .batch-analysis h4 {
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+        .batch-analysis-content {
+            white-space: pre-wrap;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        .reasoning-section {
+            margin-top: 1rem;
+            padding-top: 0.75rem;
+            border-top: 1px dashed var(--accent);
+            font-size: 0.85rem;
+            color: #888;
+        }
+        .reasoning-section summary {
+            cursor: pointer;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../../../index.html" class="back-link">&larr; All reports</a>
+
+        <header>
+            <h1>Changes on 2026-11-06</h1>
+            <p class="meta">6 total changes in 1 run</p>
+        </header>
+
+        
+        <div class="batch">
+            <div class="batch-header">02:34 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 整体摘要
+此次更新将 CLI 版本升级至 **v2.7.1**，重点深化了 Hooks 对 Monitor 工具及认证错误的处理逻辑，明确了子代理在请求被标记时的模型切换行为（可能直接失败），并修改了 VS Code 扩展在集成终端中的自动安装策略。
+
+### 关键变更点
+*   **Hooks 与 Monitor 工具的交互**：`Bash` 匹配器现在也会触发由 Monitor 工具启动的 shell 命令（需 v2.1.314+）。如果 Hook 仅使用 `Bash` 匹配器，其对 Monitor 命令的 `allow` 和 `updatedInput` 控制将无效；若需完全控制，必须使用 `Bash|Monitor` 或 `.*` 匹配器。
+*   **子代理降级策略变更**：当子代理请求被标记时，若配置为“Ask each time”，子代理现在会直接返回失败（`Agent terminated early`），而非暂停询问。若需自动切换模型，必须在 `/config` 中选择“Switch automatically”。
+*   **认证失败通知**：新增 `auth_storage_failure` 通知类型，用于处理登录成功但凭证存储失败的场景（需 v2.1.288+）。
+*   **VS Code 扩展安装逻辑**：从 v2.1.318 开始，在 VS Code 集成终端中启动 `claude` 不再会自动重新安装已卸载的扩展，除非显式配置。
+*   **Compaction 增强**：`PreCompact` 事件的标准输出现在会被用作摘要生成的指令。
+
+### 影响等级：中等
+**理由**：虽然主要是文档更新，但涉及关键的运行时行为变更。特别是 Hooks 对 Monitor 命令的触发逻辑变更，可能导致现有的安全 Hook 意外拦截 Monitor 操作；子代理在被标记请求下的失败行为变更，也会直接影响依赖子代理的自动化工作流稳定性。
+
+### 开发者行动建议
+*   **审查 Hooks 配置**：检查使用 `Bash` 匹配器的 `PreToolUse` 或 `PermissionRequest` Hooks，确认其逻辑是否适用于 Monitor 命令，必要时将匹配器更新为 `Bash|Monitor`。
+*   **更新 CLI**：将 `ant CLI` 升级至 v2.7.1 以获得最新功能和修复。
+*   **调整子代理降级策略**：如果你的工作流依赖子代理处理可能被标记的请求，请检查 `/config` 中的“Switch models when a message is flagged”设置，建议选择“Switch automatically”以防止子代理直接崩溃。
+*   **处理认证错误**：利用新增的 `auth_storage_failure` 通知类型，补充针对凭证存储错误的监控和日志逻辑。
+*   **VS Code 扩展管理**：如果你在集成终端中卸载了 VS Code 扩展并希望保持卸载状态，请确认不需要更改 `autoInstallIdeExtension` 设置（新版本默认不再自动重装）。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Task:** Analyze a batch of 6 changed pages (`hooks.md`, `hooks-guide.md`, `model-config.md`, `vs-code.md`, `get-started.md`, `api/client-sdks.md`).
+    *   **Output Format:** Markdown with 4 specific sections: Overall Summary, Key Themes, Impact Level with reasoning, Action Items (max 5).
+    *   **Language:** Chinese.
+
+2.  **Analyze the Diff for Each Page:**
+
+    *   **hooks.md (+20 / -9):**
+        *   *Change 1:* Documentation update regarding `Bash` matchers and Monitor commands.
+        *   *Detail:* Clarifies that `PreToolUse`/`PermissionRequest` hooks with a `Bash` matcher now also run on shell commands started with the **Monitor tool** (requires v2.1.314).
+        *   *Nuance:* Explains behavior differences. `Bash` matcher triggers for Monitor calls, but `allow`/`updatedInput` don&#39;t affect Monitor unless the matcher explicitly includes Monitor (e.g., `Bash|Monitor`).
+        *   *Change 2:* New notification type `auth_storage_failure` added to the `Notification` event table.
+        *   *Change 3:* Clarified stdout behavior for `PreCompact` event (stdout becomes instructions for compaction summary).
+        *   *Change 4:* Minor text fixes (e.g., &#34;only for&#34; -&gt; &#34;for&#34;, &#34;single if rule matches only one tool&#34; -&gt; &#34;single if rule names one tool&#34;).
+
+    *   **hooks-guide.md (+4 / -3):**
+        *   *Change 1:* Added `auth_storage_failure` to the notification matchers table.
+        *   *Change 2:* Updated version requirement for `auth_storage_failure` (requires v2.1.288 or later).
+        *   *Change 3:* Updated `Notification` event table to include `auth_storage_failure`.
+
+    *   **model-config.md (+6 / -1):**
+        *   *Change 1:* Refinement on flagged request handling in subagents (Agent tool).
+        *   *Detail:* Claude Code no longer pauses to ask when a subagent request is flagged.
+        *   *Behavior:* If &#34;Switch automatically&#34; is chosen (or default), it switches to the fallback model. If &#34;Ask each time&#34; is chosen, the subagent *fails* instead of asking.
+        *   *Context:* Previously (before v2.1.318), it might have automatically re-run regardless or handled differently.
+        *   *Requirement:* To allow subagents to switch models automatically, the user must select &#34;Switch automatically&#34; in `/config`.
+
+    *   **vs-code.md (+9 / -3):**
+        *   *Change 1:* Auto-install behavior change (v2.1.318).
+        *   *Detail:* `claude` in the integrated terminal no longer auto-installs the VS Code extension if you uninstall it (pre-2.1.318 behavior was to auto-install).
+        *   *Change 2:* Clarified instructions on preventing re-installation of the extension (settings, env vars).
+        *   *Context:* If you uninstall the extension, `claude` (external terminal `/ide`) might still re-install it unless explicitly disabled.
+
+    *   **get-started.md (+2 / -2):**
+        *   *Change 1:* Version bump from `2.7.0` to `2.7.1` in installation snippets.
+
+    *   **api/client-sdks.md (+1 / -1):**
+        *   *Change 1:* Version bump for `ant CLI` from `2.7.0` to `2.7.1`.
+
+3.  **Synthesize and Structure the Analysis:**
+
+    *   **Overall Summary:**
+        The update primarily introduces version 2.7.1, refines hook behavior regarding the Monitor tool and authentication failures, changes how subagents handle flagged requests (model switching), and modifies VS Code extension auto-installation logic.
+
+    *   **Key Themes:**
+        *   **Hooks Expansion:** New `auth_storage_failure` notification and deepened integration with the Monitor tool (Bash matchers now hit Monitor commands).
+        *   **Subagent Behavior:** Specific logic change for flagged requests within subagents (fail vs. switch).
+        *   **VS Code Integration:** Removal of automatic extension re-installation in the integrated terminal (since v2.1.318).
+        *   **Version Bump:** CLI updated to v2.7.1.
+
+    *   **Impact Level:**
+        *   *Reasoning:* The Monitor tool interaction change and the subagent flagged request behavior are significant logic shifts that could break existing hook expectations or workflows relying on &#34;Ask each time&#34; prompts inside subagents. The VS Code change stops a &#34;nuisance&#34; auto-install, which is a behavioral change but generally positive or neutral.
+        *   *Verdict:* **Medium**. It&#39;s not breaking the API structure, but it changes runtime logic significantly for hooks and subagents.
+
+    *   **Action Items:**
+        *   Update CLI to v2.7.1.
+        *   Check `PreToolUse`/`PermissionRequest` hooks relying on `Bash` matchers to ensure they don&#39;t accidentally block Monitor commands if not intended.
+        *   Review `/config` settings regarding &#34;Switch models when a message is flagged&#34; if using subagents (Agent tool), as &#34;Ask each time&#34; now causes subagent failures.
+        *   Update hook logic if you were waiting for `auth_storage_failure`.
+
+4.  **Drafting the Response (Internal Monologue &amp; Translation to Chinese):**
+
+    *   *Summary:* 此次更新将 CLI 版本升级至 2.7.1，重点增强了 Hooks 对 Monitor 工具和认证失败的处理能力，调整了子代理在请求被标记时的模型切换行为，并修改了 VS Code 扩展的自动安装逻辑。
+    *   *Themes:*
+        *   Hooks 功能增强：`Bash` 匹配器现在也会触发 Monitor 命令；新增 `auth_storage_failure` 通知类型；`PreCompact` 事件的标准输出现在会影响摘要生成。
+        *   子代理行为变更：当子代理请求被标记时，若设置为“每次询问”，现在会直接导致失败而非暂停询问。
+        *   VS Code 集成调整：v2.1.318 版本起，集成终端不再自动重新安装已卸载的 VS Code 扩展。
+    *   *Impact:* Medium. （理由：Hooks 的行为逻辑变更较大，特别是 Monitor 命令的拦截；子代理的降级策略改变会影响错误处理流程。）
+    *   *Action Items:*
+        *   升级 CLI 至 v2.7.1。
+        *   检查现有的 Hooks 配置，特别是使用 `Bash` 匹配器的规则，确保不会意外干扰 Monitor 命令。
+        *   如果使用了子代理且遇到被标记请求，请检查 `/config` 中的“Switch models when a message is flagged”设置，因为“Ask each time”现在会导致子代理失败。
+        *   利用新的 `auth_storage_failure` 通知来完善认证错误处理逻辑。
+
+5.  **Final Review:** Check against constraints (Concise, Insightful, Markdown, Chinese).
+
+    *   *Check:* Did I mention the specific Monitor logic? Yes. Did I mention the subagent failure mode? Yes. Did I mention the version bump? Yes.
+    *   *Tone:* Professional, developer-focused.
+
+6.  **Final Output Generation.** (Proceed to generate output based on step 4).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+20</span>
+                            <span class="removed">-9</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/model-config.html" class="page-link">model-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/vs-code.html" class="page-link">vs-code.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+9</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/get-started.html" class="page-link">get-started.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/client-sdks.html" class="page-link">api/client-sdks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
+        
+    </div>
+</body>
+</html>
