@@ -118,9 +118,340 @@
 
         <header>
             <h1>Changes on 2026-11-05</h1>
-            <p class="meta">7 total changes in 2 runs</p>
+            <p class="meta">27 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">19:40 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">## 文档变更批量分析
+
+### 1. 总体概要
+
+本次更新涵盖 20 个页面，核心变化包括：**Claude Haiku 3.5 从所有定价/速率限制/工具表中移除**、**ant CLI 升级至 2.7.0（Go 依赖升至 1.26.10）**、以及多项行为语义澄清（`max_uses` 改为按 turn 计数、thinking 清除默认值变更、容器过期策略明确为 30 天）。
+
+### 2. 关键主题
+
+- **Claude Haiku 3.5 全面退役**：从定价、速率限制、prompt caching、batch、tool use、Vertex AI 等所有表格中移除，速率限制中 Haiku 3.5 将 `cache_read_input_tokens` 计入 ITPM 的特殊规则也被删除，现在统一为 cache reads 不计入 ITPM
+- **ant CLI 2.7.0 发布**：Go 最低版本要求从 1.25 提升至 1.26.10
+- **`max_uses` 语义从&#34;per request&#34;改为&#34;per turn&#34;**：turn 可跨多个请求（如 `pause_turn` 后续请求），失败调用也计入限制，code execution 中超限将终止执行而非返回错误
+- **thinking 清除策略默认值变更**：包含 `clear_thinking_20251015` 但未设 `keep` 时，默认从模型特定值改为统一 `{type: &#34;thinking_turns&#34;, value: 1}`；N 现在计入进行中的 turn 和无 thinking 的 turn
+- **程序化工具调用容器过期策略澄清**：容器 30 天后过期，空闲约 5 分钟后被 checkpoint，可在 30 天窗口内恢复；`expires_at` 是更短的滚动值
+- **SDK 覆盖 Admin API**：客户端 SDK 描述新增&#34;also cover most of the Admin API&#34;
+- **代码示例批量更新**：`max_tokens` 从 1024 改为 4096；PHP/Ruby 使用模型常量替代字符串字面量；Java 示例去除 class 包装改用 `IO.println`；Ruby `system:` → `system_:`
+- **终端通知机制重构**：SSH/tmux 下需显式设置 `preferredNotifChannel`；tmux 下 progress bar 不再传到外层终端
+- **Slack 集成上下文收集澄清**：Claude 仅收集&#34;你的消息和它自己的&#34;，队友的上下文需手动粘贴
+- **Computer use 参考实现仓库**：从 `anthropics/anthropic-quickstarts` 更名为 `anthropics/claude-quickstarts`
+- **`thinking_tokens` 字段描述简化**：移除&#34;Computed by re-tokenizing the raw reasoning text&#34;措辞
+- **Microsoft Foundry 不支持 user profile endpoints**：需改用 Claude API 创建
+
+### 3. 影响等级：**Medium**
+
+**理由**：Haiku 3.5 移除对仍使用该模型的开发者有实际影响；`max_uses` 语义变更为按 turn 计数改变了限流行为；thinking 清除默认值变更在跨模型代码中可能导致不同的上下文管理行为；Go 依赖升级影响从源码安装的用户。无 breaking API 变更，但行为语义的澄清意味着部分开发者之前的理解可能有误。
+
+### 4. 开发者行动项
+
+- **迁移离开 Haiku 3.5**：如仍在使用，立即迁移至 Haiku 4.5+，因定价/支持已全面移除
+- **审查 `max_uses` 使用**：web_search/web_fetch 的 `max_uses` 现按 turn 计数（turn 可跨多请求），且失败调用也计入限额，需确认现有配置在新语义下是否仍合理
+- **升级 Go 至 1.26.10+**：如通过 `go install` 构建 ant CLI，需更新 Go 版本；或直接使用 2.7.0 预编译二进制
+- **检查 thinking 清除策略**：若代码依赖 `clear_thinking_20251015` 的模型特定默认值，现在显式包含该策略时默认为 `value: 1`（而非 Opus 4.5+ 等模型的 &#34;all&#34;），需显式设置 `keep`
+- **更新 tmux/SSH 通知配置**：设置 `preferredNotifChannel` 为本地终端类型（`&#34;iterm2&#34;`/`&#34;kitty&#34;`/`&#34;ghostty&#34;`），否则通知将无法到达本地机器</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">Let me analyze all the documentation changes across these 20 pages and provide a comprehensive summary.
+
+Key changes I&#39;m seeing:
+
+1. **Claude Haiku 3.5 removed** - It&#39;s been removed from pricing tables, rate limit tables, prompt caching pricing, batch processing, tool use overview, Vertex AI, and other places. This is a significant deprecation.
+
+2. **CLI version bump** - `ant` CLI updated from 2.6.0 to 2.7.0, and Go requirement changed from 1.25 to 1.26.10.
+
+3. **Slack integration context gathering refined** - Context gathering description clarified: Claude now gathers context from &#34;your messages and its own&#34; (not all messages), and you need to paste teammate&#39;s text explicitly. Use cases simplified.
+
+4. **Terminal notification changes** - Significant changes to how notifications work with SSH/tmux. Now requires `preferredNotifChannel` setting for SSH. Progress bar mentions removed from tmux section.
+
+5. **thinking_tokens description simplified** - Removed &#34;Computed by re-tokenizing the raw reasoning text&#34; from the thinking_tokens field description across the Messages API docs.
+
+6. **SDK now covers Admin API** - Client SDKs description updated to say they &#34;also cover most of the Admin API.&#34;
+
+7. **Rate limits simplification** - Claude Haiku 3.5 special case removed (it counted cache_read_input_tokens toward ITPM). Now it&#39;s stated uniformly: cache reads don&#39;t count toward ITPM.
+
+8. **Context editing - thinking block clearing** - Significant changes to `clear_thinking_20251015` strategy. Default is now `{type: &#34;thinking_turns&#34;, value: 1}` when the strategy is included without `keep`. N now counts the turn in progress and turns without thinking blocks.
+
+9. **Code examples updated** - max_tokens changed from 1024 to 4096 in many tool examples. Model references changed from string literals to constants (e.g., `Model::CLAUDE_OPUS_5_5`). Java examples simplified (removed class wrapper, `System.out.println` → `IO.println`). Ruby `system:` → `system_:`.
+
+10. **max_uses clarified** - For web_search and web_fetch, `max_uses` now applies per turn (not per request). Turn can span multiple requests. Failed searches/fetches count against the limit. Code execution exceeding limit causes the code execution run to end with an error.
+
+11. **response_inclusion clarified** - For web_search and web_fetch, the description of `response_inclusion` was updated. It now says token usage is unaffected.
+
+12. **Computer use tool** - Reference implementation GitHub URL changed from `anthropics/anthropic-quickstarts` to `anthropics/claude-quickstarts`. Various wording improvements.
+
+13. **Programmatic tool calling** - Container expiration clarified: containers expire 30 days after creation, checkpointed after ~5 min of inactivity, can be restored within 30-day window.
+
+14. **Ruby SDK workaround removed** - The SDK-636 workaround comment in code-execution-tool was removed.
+
+15. **Agent Skills** - Sharing model simplified. claude.ai individual sharing removed from the list. &#34;Plugins&#34; → &#34;plugins&#34; (lowercase).
+
+16. **Microsoft Foundry** - Added note about user profile endpoints not supported.
+
+17. **Various wording/style improvements** throughout - more concise language, consistent formatting.
+
+18. **Prompt caching** - Java examples simplified. Ruby `system:` → `system_:`. Various wording changes.
+
+Let me categorize the impact:
+
+- Claude Haiku 3.5 removal: Medium impact for developers still using it
+- CLI version bump: Low-Medium impact
+- max_uses now per-turn: Medium impact - behavior change
+- thinking_tokens description change: Low impact (just docs, not behavior)
+- Context editing thinking defaults: Medium impact - behavior change when strategy is included
+- Container 30-day expiration: Low-Medium impact - important info for programmatic tool calling</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slack.html" class="page-link">slack.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            <span class="removed">-9</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/terminal-config.html" class="page-link">terminal-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/get-started.html" class="page-link">get-started.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/about-claude/pricing.html" class="page-link">about-claude/pricing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/messages.html" class="page-link">api/messages.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-12</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/client-sdks.html" class="page-link">api/client-sdks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/rate-limits.html" class="page-link">api/rate-limits.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+67</span>
+                            <span class="removed">-73</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-caching.html" class="page-link">build-with-claude/prompt-caching.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+110</span>
+                            <span class="removed">-116</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/batch-processing.html" class="page-link">build-with-claude/batch-processing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/context-editing.html" class="page-link">build-with-claude/context-editing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+22</span>
+                            <span class="removed">-21</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-on-vertex-ai.html" class="page-link">build-with-claude/claude-on-vertex-ai.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-in-microsoft-foundry.html" class="page-link">build-with-claude/claude-in-microsoft-foundry.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/overview.html" class="page-link">agents-and-tools/tool-use/overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+15</span>
+                            <span class="removed">-11</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/computer-use-tool.html" class="page-link">agents-and-tools/tool-use/computer-use-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+14</span>
+                            <span class="removed">-14</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/web-search-tool.html" class="page-link">agents-and-tools/tool-use/web-search-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+12</span>
+                            <span class="removed">-18</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/web-fetch-tool.html" class="page-link">agents-and-tools/tool-use/web-fetch-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+11</span>
+                            <span class="removed">-17</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/code-execution-tool.html" class="page-link">agents-and-tools/tool-use/code-execution-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/tool-search-tool.html" class="page-link">agents-and-tools/tool-use/tool-search-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+22</span>
+                            <span class="removed">-22</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/programmatic-tool-calling.html" class="page-link">agents-and-tools/tool-use/programmatic-tool-calling.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+13</span>
+                            <span class="removed">-15</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/agent-skills/overview.html" class="page-link">agents-and-tools/agent-skills/overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+9</span>
+                            <span class="removed">-11</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">14:22 EST</div>

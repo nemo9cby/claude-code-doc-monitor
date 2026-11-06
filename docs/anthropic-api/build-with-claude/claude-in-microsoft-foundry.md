@@ -630,6 +630,7 @@ Claude Fable 5.1, Claude Fable 5, Claude Opus 5.5, Claude Opus 5, Claude Opus 4.
 * Models API
 * Message Batches API
 * Server-side fallback (the [`fallbacks` parameter](https://platform.claude.com/docs/en/build-with-claude/refusals-and-fallback#server-side-fallback); use the [client-side fallback pattern](https://platform.claude.com/docs/en/build-with-claude/refusals-and-fallback#client-side-fallback) instead)
+* User profile endpoints (`/v1/user_profiles`; [create profiles on the Claude API](https://platform.claude.com/docs/en/manage-claude/user-profiles#before-you-begin) instead)
 
 ### Additional features not supported when hosted on Azure
 
