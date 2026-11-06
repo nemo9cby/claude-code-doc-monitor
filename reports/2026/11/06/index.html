@@ -118,9 +118,247 @@
 
         <header>
             <h1>Changes on 2026-11-06</h1>
-            <p class="meta">6 total changes in 1 run</p>
+            <p class="meta">13 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">16:13 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 总体概要
+本次更新（对应 v2.1.319）重点增强了 MCP（Model Context Protocol）的连接稳定性和协议协商机制，细化了在非交互模式下“延迟工具调用”失败时的处理逻辑，并改进了网络证书加载的错误诊断能力。
+
+### 关键主题
+*   **MCP 稳健性增强**：引入了协议协商失败的 7 天缓存机制（可通过配置绕过），优化了云端会话中工具可见性的排查指南，并增加了 MCP 任务的后台处理支持。
+*   **延迟调用与恢复逻辑**：针对 `PreToolUse` 钩子中的 `defer` 机制，新增了当恢复会话时工具不可用（如 MCP 服务器断开）的具体处理流程，并引入 `CLAUDE_CODE_DROP_UNAVAILABLE_DEFERRED_TOOL` 环境变量以允许丢弃悬空调用。
+*   **网络与权限控制**：新增了自定义 CA 证书加载失败的详细警告信息，提供了禁用特性开关的功能，并新增了设置以自动拒绝权限提示而非等待输入，提升了无头运行模式的健壮性。
+*   **SDK 功能扩展**：官方客户端 SDK 现已明确支持 **Claude Managed Agents**。
+
+### 影响等级
+**中**
+虽然此次更新主要是行为细化、错误处理增强和新配置项的引入，并未包含破坏性 API 变更，但 MCP 协议协商中新增的“失败后 7 天内不再询问”的行为变化值得开发者注意，以免误解为连接故障。此外，工具不可用时的恢复逻辑变化对构建自定义 Agent 的开发者有直接影响。
+
+### 开发者行动项
+1.  **排查工具可用性**：若在云端会话中发现 MCP 工具数量不匹配，请检查工具名称是否超过 128 字符或被 `.claude/settings.json` 中的拒绝规则拦截。
+2.  **绕过 MCP 协商缓存**：如果您刚刚升级了 MCP 服务器，请设置 `MCP_PROTOCOL_NEGOTIATION=auto` 以强制 Claude Code 重新协商，否则可能会因之前的失败记录被缓存 7 天而无法连接。
+3.  **处理无头模式下的悬空调用**：在编写 Agent SDK 或自定义 UI 时，若恢复会话时工具不可用，利用 `CLAUDE_CODE_DROP_UNAVAILABLE_DEFERRED_TOOL=1` 来优雅地丢弃未完成的调用，而非让程序卡住。
+4.  **利用新设置提升自动化**：对于完全自动化的终端任务，使用 `permissions.denyInsteadOfPrompting` 设置来阻止权限提示弹窗，确保流程不被中断。
+5.  **诊断网络问题**：关注启动日志中关于 `NODE_EXTRA_CA_CERTS` 的新警告信息，以快速定位自签名证书加载不完整导致的连接失败问题。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Input:** A batch of 7 documentation pages with diffs.
+    *   **Output format:** Markdown, Chinese language (requested).
+    *   **Sections:** Overall Summary, Key Themes, Impact Level, Action Items.
+
+2.  **Analyze the Diff Content (Page by Page):**
+
+    *   **Page: `hooks.md` (+22 / -9)**
+        *   *Topic:* `&#34;defer&#34;` behavior in hooks, specifically `PreToolUse` and `PostToolUse`.
+        *   *Changes:*
+            *   Clarified when `&#34;defer&#34;` is ignored (interactive sessions, multiple tool calls).
+            *   Added specific behavior for &#34;Resume when a deferred tool is unavailable&#34;. Introduces `CLAUDE_CODE_DROP_UNAVAILABLE_DEFERRED_TOOL` env var.
+            *   Clarified `deferred_tool_use` field content.
+            *   Simplified the general flow explanation.
+            *   Added a section about `PostToolUse` after an interrupt (truncated in diff, but visible context).
+        *   *Implication:* Better handling of edge cases when tools become unavailable between sessions. Better control for headless/programmatic usage.
+
+    *   **Page: `mcp.md` (+8 / -2)**
+        *   *Topic:* Model Context Protocol (MCP) tools and negotiation.
+        *   *Changes:*
+            *   New section &#34;Tool counts in a cloud session&#34;. Explains why Claude might not see all tools (deny rules, name length &gt;128 chars, visibility settings).
+            *   Updated `MCP_PROTOCOL_NEGOTIATION` behavior. If unset, Claude can skip asking a stdio server for 7 days after a failure. Setting `auto` forces a retry sooner for upgraded servers.
+        *   *Implication:* Troubleshooting missing tools in cloud sessions is now easier. Understanding the &#34;caching&#34; of protocol negotiation failures is important for server developers.
+
+    *   **Page: `network-config.md` (+4 / -0)**
+        *   *Topic:* CA Certificates (`NODE_EXTRA_CA_CERTS`).
+        *   *Changes:*
+            *   Added warnings for when the cert file can&#39;t be loaded fully (&#34;used only the certificates that it could read&#34;, &#34;ignored all...&#34;).
+            *   Explains that skipped certs might still work if in the CA store.
+        *   *Implication:* Debugging SSL/TLS issues with custom certs is easier due to specific warning messages.
+
+    *   **Page: `setup.md` (+7 / -4)**
+        *   *Topic:* Installation commands.
+        *   *Changes:*
+            *   Repetition of `theme={null}` in code blocks (looks like a documentation rendering artifact/bug fix, not a code change). The actual command strings are the same (`curl ...`, `irm ...`, etc.).
+        *   *Implication:* Likely a formatting fix in the doc generator. Low impact on functionality.
+
+    *   **Page: `api/client-sdks.md` (+3 / -3)**
+        *   *Topic:* Client SDKs overview.
+        *   *Changes:*
+            *   Added &#34;Claude Managed Agents&#34; to SDK coverage.
+            *   Updated text regarding API versioning and migration.
+            *   Minor copy edits.
+        *   *Implication:* SDKs now officially cover Managed Agents.
+
+    *   **Page: `build-with-claude/prompt-caching.md` (+1 / -1)**
+        *   *Topic:* Prompt caching.
+        *   *Changes:*
+            *   Changed &#34;eliminates&#34; to &#34;can reduce/lowers&#34; latency penalty.
+        *   *Implication:* Managing expectations; pre-warming isn&#39;t a magic bullet, but helps.
+
+    *   **Page: `CHANGELOG.md.md` (+147 / -0)**
+        *   *Topic:* Version 2.1.319 Release Notes.
+        *   *Changes:*
+            *   **Major Changes:**
+                *   Auto mode behavior changes (telemetry/flags off).
+                *   MCP tasks in terminal (backgrounding).
+                *   `permissions.denyInsteadOfPrompting` setting.
+                *   `CLAUDE_CODE_DISABLE_FEATURE_FLAGS`.
+                *   Various fixes (MCP connection, NFS issues, HEAD file conflict).
+        *   *Implication:* This is the source of truth for many changes in the other docs (e.g., the MCP fixes, the new environment variables).
+
+3.  **Synthesize and Structure:**
+
+    *   **Summary:** The update (v2.1.319) focuses heavily on refining MCP integration, handling tool availability in deferred sessions, and improving error handling for network configurations. It also introduces several new environment variables and settings for controlling permissions and background tasks.
+    *   **Key Themes:**
+        *   *MCP (Model Context Protocol) Robustness:* Better handling of protocol negotiation, task backgrounding, and cloud session tool visibility.
+        *   *Tool Defer/Resume Logic:* Specific handling for when tools become unavailable during a deferred session (`CLAUDE_CODE_DROP_UNAVAILABLE_DEFERRED_TOOL`).
+        *   *Network &amp; Auth Debugging:* Warnings for CA certs and feature flag control.
+        *   *Permissions &amp; Automation:* New settings to deny prompts automatically and control background tasks.
+    *   **Impact Level:** Medium. While many changes are clarifications or minor bug fixes, the changes to &#34;defer&#34; behavior, MCP protocol negotiation caching, and new environment variables (feature flags, auto mode) could affect existing workflows or debugging efforts. It&#39;s not &#34;breaking&#34; in the traditional API-breaking sense, but behavior changes (like skipping asking a server for 7 days) are significant.
+    *   **Action Items:**
+        *   Review the new `CLAUDE_CODE_DROP_UNAVAILABLE_DEFERRED_TOOL` if using headless flows with MCP.
+        *   Check for `NODE_EXTRA_CA_CERTS` warnings if encountering SSL issues.
+        *   Set `MCP_PROTOCOL_NEGOTIATION=auto` if upgrading MCP servers immediately.
+        *   Explore `permissions.denyInsteadOfPrompting` for unattended automation.
+        *   Update SDK knowledge regarding &#34;Claude Managed Agents&#34; support.
+
+4.  **Drafting the Output (in Chinese):**
+
+    *   *Summary:* 本次更新（v2.1.319）主要优化了 MCP（模型上下文协议）的连接稳定性与协议协商机制，细化了“延迟工具调用”在工具不可用时的处理逻辑，并增强了网络证书加载的故障排查能力。
+    *   *Themes:*
+        *   MCP 增强：改进了协议协商缓存、后台任务处理及云端会话中的工具可见性。
+        *   工具调用与恢复：明确了当工具在会话恢复期间不可用时的行为，并引入了新的环境变量。
+        *   网络与权限控制：增加了证书加载警告、特性开关控制及自动拒绝权限提示的设置。
+    *   *Impact:* Medium（中）。主要是行为细化、错误处理增强和配置项新增。虽然有协议协商缓存的行为变化（7天），但主要是为了提升稳定性。
+    *   *Action Items:*
+        *   检查 `NODE_EXTRA_CA_CERTS` 相关的警告日志以排查网络问题。
+        *   若 MCP 服务器刚升级，设置 `MCP_PROTOCOL_NEGOTIATION=auto` 以绕过协商缓存。
+        *   在非交互式会话中，利用 `CLAUDE_CODE_DROP_UNAVAILABLE_DEFERRED_TOOL` 处理缺失工具。
+        *   利用 `permissions.denyInsteadOfPrompting` 提升自动化脚本的健壮性。
+        *   了解客户端 SDK 现已支持 Claude Managed Agents。
+
+5.  **Refining the Content:**
+    *   Ensure the distinction between &#34;defer&#34; logic changes and MCP changes is clear.
+    *   Highlight the 7-day skip logic in MCP protocol negotiation as it&#39;s a subtle but important behavior change.
+    *   Mention the Changelog confirms the version number.
+
+6.  **Final Polish (Markdown):** Apply the requested structure.
+
+    *   *Self-Correction during drafting:* The `setup.md` changes were just formatting noise (`theme={null}` repetition). I should ignore them in the analysis or mention them as formatting fixes. The `api/client-sdks.md` change about Managed Agents is small but good to know for developers using the SDKs. The `hooks.md` change is the most significant developer-facing logic change.
+
+7.  **Final Output Generation** (Translating thoughts to the final Chinese response).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+22</span>
+                            <span class="removed">-9</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/network-config.html" class="page-link">network-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/setup.html" class="page-link">setup.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/client-sdks.html" class="page-link">api/client-sdks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-caching.html" class="page-link">build-with-claude/prompt-caching.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+147</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">02:34 EST</div>
