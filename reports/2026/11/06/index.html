@@ -118,9 +118,160 @@
 
         <header>
             <h1>Changes on 2026-11-06</h1>
-            <p class="meta">13 total changes in 2 runs</p>
+            <p class="meta">15 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">20:31 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 文档变更分析
+
+**1. Overall Summary**
+本次文档更新重点完善了 Claude Desktop 在企业/托管环境下的配置逻辑，明确了本地 MDM 策略对服务器端设置的覆盖权，同时修复了安装指南中的语法冗余错误。
+
+**2. Key Themes**
+*   **管理设置优先级升级**: 明确了“最高优先级 MDM 策略”或“本地托管设置文件”的优先级高于“服务器托管设置”。这主要影响 Remote Control 自动连接及特定功能开关（如浏览器工具、移动模拟器）。
+*   **增强的安全管控**: 新增了针对“托管计算机”的 Remote Control 关闭指南，强调应通过 MDM 或机器级配置强制禁用功能，并警告不应使用用户级注册表 (`HKCU`) 来实施这些策略。
+*   **版本依赖**: 新的设置优先级逻辑及部分策略键值要求 Claude Desktop 版本在 **v4.4212.0** 或更高。
+*   **文档清理**: 移除了 `setup.md` 中代码块标记里大量重复且无效的 `theme={null}` 属性，修复了潜在的渲染问题。
+
+**3. Impact Level**
+**Medium**
+**Reasoning**: 尽管 `setup.md` 仅涉及格式清理，但 `desktop.md` 中的配置逻辑变更对管理员和开发者至关重要。如果此前依赖“服务器托管设置”来覆盖本地策略，新的规则（本地最高优先级 MDM &gt; 服务器设置）将直接改变现有的部署行为和安全边界。
+
+**4. Action items for developers**
+*   **检查 MDM 策略优先级**: 如果您通过 MDM 管理设备，请确认 `remoteControlAtStartup` 等键值已置于“最高优先级”的策略文件中，以确保本地设置能成功覆盖服务器端配置。
+*   **升级客户端版本**: 将 Claude Desktop 更新至 **v4.4212.0** 或更高版本，以启用新的设置层级解析和强制禁用逻辑。
+*   **修正注册表用法**: 避免使用用户级注册表 (`HKCU`) 来设置 `disableBrowserExternalNavigation`、`remoteControlAtStartup` 等策略，应改用机器级 MDM 或托管配置文件 (`managed settings file`)。
+*   **审查 Remote Control 默认行为**: 确认新的会话自动连接逻辑（UI 设置 &gt; 用户设置 &gt; 托管设置 &gt; 组织默认值）符合您的团队安全预期。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request**:
+    *   Role: World-class programmer analyzing documentation changes.
+    *   Format: Markdown, concise, insightful.
+    *   Content: Two pages (`desktop.md`, `setup.md`).
+    *   Focus: What matters to developers.
+    *   Language: Chinese.
+
+2.  **Analyze `desktop.md` Diff**:
+    *   *Context*: Documentation for &#34;Remote Control&#34; connection settings and &#34;Managed Settings&#34; behavior.
+    *   *Change 1 (Remote Control logic)*:
+        *   *Old*: New sessions connect automatically if the setting is on OR if `remoteControlAtStartup` is set. &#34;Follows&#34; implies a hierarchy but wasn&#39;t explicit about overrides.
+        *   *New*: New sessions connect automatically unless `remoteControlAtStartup` is explicitly `false` in *managed settings*. There&#39;s a clearer hierarchy: UI setting -&gt; User setting -&gt; Managed setting -&gt; Org Default.
+    *   *Change 2 (Keep sessions off other devices)*:
+        *   Added a new bullet for managed devices: &#34;Desktop sessions on computers you manage&#34;.
+        *   Logic: Setting `remoteControlAtStartup` to `false` in a &#34;highest-ranked MDM policy or managed settings file&#34; overrides server-managed settings.
+        *   Constraint: Don&#39;t use `HKCU` (registry) for this.
+        *   Scope: Requires v4.4212.0 or later.
+    *   *Change 3 (Managed Settings Precedence)*:
+        *   Added a paragraph at the end of the table (or near the table) regarding `browserExternalPageTools`, `disableMobileSimulatorTools`, `disableBrowserExternalNavigation`.
+        *   Logic: If these are turned off in the *highest-ranked* MDM policy, they stay off even if server-managed settings allow them.
+        *   Constraint: Don&#39;t use `HKCU` registry value.
+        *   Scope: Requires v4.4212.0 or later.
+    *   *Theme*: Enhanced control for administrators/managed environments, clarifying that local/Machine-level MDM policies override server-side settings, specifically for Remote Control and specific feature toggles.
+
+3.  **Analyze `setup.md` Diff**:
+    *   *Context*: Installation commands for various platforms (curl, PowerShell, CMD, Homebrew, WinGet).
+    *   *Change*: Massive removal of ` theme={null}` repetition in code block definitions.
+    *   *Theme*: Fixing a markdown syntax glitch (likely a rendering bug where a theme attribute was duplicated ad nauseam). No functional change to the software, just documentation cleanup.
+
+4.  **Synthesize**:
+
+    *   **Overall Summary**: Documentation updates clarify the hierarchy of managed settings, specifically how local machine policies override server-side defaults for Remote Control and feature flags in Desktop environments, while fixing formatting glitches in setup instructions.
+
+    *   **Key Themes**:
+        *   *Managed Settings Precedence*: Clarification that highest-ranked MDM policies/managed settings files take precedence over server-managed settings for specific features (Remote Control, browser tools, mobile simulator).
+        *   *Enterprise/MDM Control*: Explicit instructions for administrators on how to strictly enforce &#34;off&#34; states for features, avoiding user-level registry keys (`HKCU`).
+        *   *Version Requirements*: New behaviors require Claude Desktop v4.4212.0 or later.
+        *   *Formatting Cleanup*: Removal of erroneous duplicate attributes in code blocks on the setup page.
+
+    *   **Impact Level**: Medium.
+        *   *Reasoning*: While `setup.md` is low impact (cleanup only), `desktop.md` contains significant logic changes regarding how security policies are applied. This affects how administrators configure the software to ensure compliance and prevent remote access. If you are relying on server-managed settings to override local MDM, this update reveals that won&#39;t work anymore (or clarifies that local MDM wins).
+
+    *   **Action Items**:
+        *   Review MDM configurations: If you manage devices via MDM, ensure `remoteControlAtStartup` is set in the highest-ranked policy if you want to prevent auto-connection, as this now overrides server settings.
+        *   Update Desktop Version: Upgrade to Claude Desktop v4.4212.0 or later to utilize the new precedence logic for managed settings.
+        *   Check Registry Usage: Avoid using `HKCU` (user-level registry) for policies like `disableBrowserExternalNavigation` or `remoteControlAtStartup`; use machine-level MDM or managed files instead.
+        *   Verify Remote Control Defaults: Confirm how the hierarchy (UI &gt; User &gt; Managed &gt; Default) applies to your specific deployment scenario.
+
+5.  **Drafting the Response (in Chinese)**:
+
+    *   *Summary*: 本次更新主要阐明了 Claude Desktop 中管理设置的优先级规则，明确本地 MDM 策略优先于服务器端设置，同时修复了安装文档中的格式错误。
+    *   *Themes*: 管理设置优先级 (MDM &gt; Server), 版本依赖 (v4.4212.0+), 格式清理.
+    *   *Impact*: Medium. (Changes affect configuration logic for admins).
+    *   *Action Items*: Review MDM policies, Update to latest version, Avoid HKCU for specific keys, Check remote control logic.
+
+6.  **Refining the &#34;Action Items&#34; and &#34;Key Themes&#34;**:
+    *   Make sure to mention that this is specifically for &#34;managed&#34; environments or developers configuring the tool for teams.
+    *   Highlight the &#34;Remote Control&#34; aspect as that&#39;s the most prominent functional change.
+
+7.  **Final Polish (Markdown)**:
+    *   Check against constraints: concise, insightful, markdown, Chinese.
+
+    *(Self-Correction during drafting)*: The `setup.md` change is purely cosmetic. I should treat `desktop.md` as the &#34;meat&#34; of the update. The logic change in `desktop.md` is about *strict enforcement* by local machine policies.
+
+    Let&#39;s structure the output.
+
+    **Overall Summary**:
+    本次文档更新重点完善了 Claude Desktop 在企业/托管环境下的配置逻辑，明确了本地 MDM 策略对服务器端设置的覆盖权，并修复了安装指南中的语法冗余错误。
+
+    **Key Themes**:
+    *   **管理设置优先级升级**: 明确了“最高优先级 MDM 策略”可覆盖“服务器托管设置”对于 Remote Control 及特定功能开关的控制权。
+    *   **增强的安全管控**: 新增了针对“托管计算机”的 Remote Control 关闭指南，强调使用 MDM 而非用户级注册表 (`HKCU`) 来强制禁用功能。
+    *   **版本依赖**: 新的优先级逻辑和部分策略键值要求 Claude Desktop 版本在 v4.4212.0 或更高。
+    *   **文档清理**: 移除了 `setup.md` 代码块中大量重复且无效的 `theme={null}` 属性。
+
+    **Impact Level**: Medium
+    **Reasoning**: 虽然 `setup.md` 仅涉及格式修复，但 `desktop.md` 中的配置逻辑变更对管理员和开发者至关重要。如果依赖服务器端设置来覆盖本地策略，新的优先级规则（本地 MDM 胜出）将直接影响现有部署策略的有效性。
+
+    **Action items for developers**:
+    *   **检查 MDM 策略**: 如果您通过 MDM 管理设备，请确认 `remoteControlAtStartup` 等键值已置于最高优先级的策略文件中，以确保本地设置能覆盖服务器配置。
+    *   **升级客户端**: 将 Claude Desktop 更新至 v4.4212.0 或更高版本，以支持新的设置优先级和强制禁用逻辑。
+    *   **修正注册表用法**: 避免使用用户级注册表 (`HKCU`) 来设置 `disableBrowserExternalNavigation` 或 `remoteControlAtStartup` 等策略，改用机器级 MDM 或托管配置文件。
+    *   **审查 Remote Control 行为**: 确认新的会话自动连接逻辑（UI 设置 &gt; 用户设置 &gt; 托管设置 &gt; 组织默认值）符合您的安全预期。
+
+8.  **Final Review**: Looks good. Matches the persona and the analysis.</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/desktop.html" class="page-link">desktop.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/setup.html" class="page-link">setup.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">16:13 EST</div>
