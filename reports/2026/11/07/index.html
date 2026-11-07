@@ -118,9 +118,162 @@
 
         <header>
             <h1>Changes on 2026-11-07</h1>
-            <p class="meta">1 total change in 1 run</p>
+            <p class="meta">4 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">14:48 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 文档变更分析
+
+**1. Overall Summary**
+此次更新主要修复了 Hooks 文档中关于 `ExitPlanMode` 等交互式工具自动批准的“隐形失败”原因，并放宽了 MCP 服务器在处理任务响应时的字段校验严格度，提升了向后兼容性。
+
+**2. Key Themes**
+*   **Hooks 强制参数要求:** 明确指出在自动批准 `ExitPlanMode` 和 `AskUserQuestion` 等交互工具时，必须在响应中包含 `updatedInput` 字段，否则批准会被忽略并继续弹窗。
+*   **代码示例修正:** 将 Hook 示例中的 `echo` 命令替换为 `jq` 命令，演示如何正确传递 `tool_input` 到 `updatedInput` 中。
+*   **MCP 容错性提升:** MCP 任务响应中的时间戳字段（`createdAt`, `lastUpdatedAt`, `ttlMs`）在较新客户端中变为可选，且 `pollIntervalMs` 现在可以接受 `null` 值。
+
+**3. Impact Level**
+**Medium**
+*   **Reasoning:** 对于 Hooks 部分，如果你之前尝试编写自动批准脚本却失败（仍然收到提示），这是一个关键的修复，解决了开发者困惑。对于 MCP 部分，这是一个非破坏性的宽松变更，降低了服务器实现的复杂度。
+
+**4. Action Items for Developers**
+*   **检查 Hook 脚本:** 如果你正在使用 `PermissionRequest` Hooks 自动批准 `ExitPlanMode` 或 `AskUserQuestion`，请更新你的脚本逻辑，确保将原始的 `tool_input` 通过 `updatedInput` 字段回传，否则自动批准无效。
+*   **参考新代码示例:** 使用文档中提供的 `jq` 命令结构来更新你的 Hook 配置。
+*   **优化 MCP 服务器逻辑:** 如果你维护 MCP 服务器，可以简化任务响应逻辑，不再强制生成所有时间戳字段（针对 v2.1.317 及以上版本的客户端）。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Input:** A batch of 3 changed pages (`hooks.md`, `hooks-guide.md`, `mcp.md`) with diffs.
+    *   **Output Format:** Markdown, specific structure (Summary, Key Themes, Impact Level, Action Items).
+    *   **Language:** Chinese.
+
+2.  **Analyze Page 1: `hooks.md` (Hooks Reference)**
+    *   *Change:* In the `PermissionRequest` decision table, specifically the `updatedInput` field description.
+    *   *Before:* &#34;Modifies the tool&#39;s input parameters... re-evaluated against deny and ask rules.&#34;
+    *   *After:* Same as before, but adds: &#34;`AskUserQuestion` and `ExitPlanMode` need this field`&#34; with a link to `#allow-with-updatedinput`.&#34;
+    *   *Meaning:* It clarifies that when auto-approving specific interactive tools (like `ExitPlanMode` or `AskUserQuestion`), you *must* include the `updatedInput` field in the JSON response. You can&#39;t just return `behavior: &#34;allow&#34;`.
+
+3.  **Analyze Page 2: `hooks-guide.md` (Hooks Guide)**
+    *   *Change 1:* In the section about skipping approval dialogs (specifically regarding `ExitPlanMode`).
+    *   *Before:* Explains that `PermissionRequest` hooks need to output JSON with `behavior: &#34;allow&#34;`.
+    *   *After:* Adds a warning: &#34;For a tool that requires user interaction, such as `ExitPlanMode`, the allow also needs `updatedInput`, or Claude Code ignores it and still shows the prompt.&#34;
+    *   *Change 2:* Updates the `command` example for the hook.
+    *   *Before:* `echo &#39;{&#34;hookSpecificOutput&#34;: ... {&#34;decision&#34;: {&#34;behavior&#34;: &#34;allow&#34;}}}&#39;`
+    *   *After:* `jq -c &#39;{... updatedInput: .tool_input ...}&#39;`. It now pipes `tool_input` back into the decision.
+    *   *Change 3:* Updates the example for switching session mode (`acceptEdits`).
+    *   *Before:* A large raw JSON block.
+    *   *After:* A concise `jq` command line string, explicitly including `updatedInput: .tool_input`.
+    *   *Meaning:* The documentation now explicitly shows *how* to pass the input back. It clarifies that without `updatedInput`, auto-approval fails for interactive tools.
+
+4.  **Analyze Page 3: `mcp.md` (Model Context Protocol)**
+    *   *Change 1:* Text clarification regarding error handling in task responses.
+    *   *Before:* &#34;Claude gets the tool error... Claude gets the same error when taskId... is missing.&#34;
+    *   *After:* &#34;The call fails with the tool error... The call fails the same way if your answer has no taskId...&#34;. It&#39;s mostly wording cleanup.
+    *   *Change 2:* Table updates for task fields.
+    *   *Row `createdAt`, `lastUpdatedAt`, `ttlMs`:* Adds &#34;Required by the tasks extension&#34;.
+    *   *Row `pollIntervalMs`:* Changes &#34;Optional, but not `null`&#34; to &#34;Optional. ... Claude Code uses 2000 when the field is absent or `null`&#34;. It now accepts `null`.
+    *   *Change 3:* Added a note paragraph below the table.
+    *   *Content:* &#34;Claude Code accepts a task answer that omits `createdAt`, `lastUpdatedAt`, or `ttlMs`, or that sets `pollIntervalMs` to `null`. Before v2.1.317, the call failed...&#34;.
+    *   *Meaning:* This is a relaxation of strictness. Newer Claude Code versions (post v2.1.317) are more lenient regarding specific task fields (`createdAt`, etc.), making backward compatibility easier or handling optional fields more gracefully. It clarifies version-specific behavior.
+
+5.  **Synthesize Overall Themes:**
+    *   **Theme 1:** Hooks and Permissions (from `hooks.md` and `hooks-guide.md`). Specifically, the requirement to forward `updatedInput` when auto-approving interactive tools (`ExitPlanMode`).
+    *   **Theme 2:** MCP Task Flexibility (from `mcp.md`). Relaxing requirements on timestamp fields and `pollIntervalMs` for task responses.
+
+6.  **Determine Impact Level:**
+    *   *Hooks:* If you were trying to implement an auto-approval hook for `ExitPlanMode` based on the old docs, your code likely failed because you missed the `updatedInput` requirement. This is a **High** impact for those implementing advanced hooks, as it explains why their previous attempts might have failed silently (prompt still showing up).
+    *   *MCP:* This is about leniency. It makes it easier to write MCP servers because you don&#39;t have to strictly generate timestamps if you don&#39;t want to (for newer clients), and handling `null` for polling is now clearer. It&#39;s a **Low/Medium** impact improvement.
+    *   *Overall:* Since the Hooks change fixes a &#34;silent failure&#34; scenario where the prompt still appears (which is confusing), I&#39;d lean towards **Medium** impact, but arguably **High** for developers currently struggling with `ExitPlanMode` auto-approval. Let&#39;s go with **Medium** generally, but critical for that specific use case.
+
+7.  **Draft Action Items (in Chinese):**
+    *   Update hooks configuration to include `updatedInput` when allowing `ExitPlanMode` or `AskUserQuestion`.
+    *   Review existing `PermissionRequest` hooks if they aren&#39;t working as expected.
+    *   For MCP servers, note that certain timestamp fields are now treated as optional (backward compat note).
+
+8.  **Draft the Response (Internal Draft in Chinese):**
+
+    *   *Summary:* 文档更新主要集中在 Hooks 的权限请求机制（特别是 `ExitPlanMode` 的自动批准）以及 MCP 服务器任务响应的宽容度变化。
+    *   *Themes:*
+        *   Hooks: 明确了 `ExitPlanMode` 等交互工具在自动批准时必须包含 `updatedInput` 字段。
+        *   MCP: 放宽了任务响应中部分字段的必填要求（如时间戳），并明确了 `pollIntervalMs` 的处理逻辑。
+    *   *Impact:* Medium (中等). 主要是修复了 Hook 自动批准功能的潜在失败原因，并降低了 MCP 服务器的实现复杂度。
+    *   *Action Items:*
+        *   修改 Hook 配置中的 JSON 输出，确保包含 `.tool_input` 映射的 `updatedInput`。
+        *   理解 MCP 任务响应中时间戳字段现在是可选的（在较新客户端中）。
+
+9.  **Refine based on &#34;World-class programmer&#34; persona:**
+    *   Keep it concise.
+    *   Use technical terms correctly.
+    *   Focus on &#34;What broke?&#34; or &#34;What got better?&#34;.
+
+    *Refined Action Items:*
+    1.  **Hooks:** If you have a `PermissionRequest` hook for `ExitPlanMode` or `AskUserQuestion`, update your logic to pass `updatedInput` (mirroring `.tool_input`), otherwise the auto-approval will be ignored.
+    2.  **MCP:** If maintaining an MCP server, note that omitting timestamps (`createdAt`, etc.) is now accepted by newer Claude Code clients, simplifying backwards compatibility.
+    3.  **MCP:** Update code to handle or omit `pollIntervalMs` as `null` safely.
+
+10. **Final Polish (translating thoughts to the requested Chinese markdown output):**
+
+    *   *Summary:* 文档主要修正了 Hooks 中关于交互式工具（如 `ExitPlanMode`）自动批准的必填字段要求，并放宽了 MCP 任务响应的校验规则。
+    *   *Themes:* Strictness in Hooks (require `updatedInput`), Flexibility in MCP (optional timestamps).
+    *   *Impact:* Medium. Hooks change is critical for specific workflows; MCP change is a helpful relaxation.
+    *   *Actions:* Update hook scripts for `updatedInput`. Adjust MCP server validation logic.
+
+11. **Constructing Final Output** (Proceeding to generate response).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-10</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">03:10 EST</div>
