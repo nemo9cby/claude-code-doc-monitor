@@ -118,9 +118,256 @@
 
         <header>
             <h1>Changes on 2026-11-09</h1>
-            <p class="meta">45 total changes in 1 run</p>
+            <p class="meta">58 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">21:29 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更批量分析
+
+## 1. 总体概要
+
+本次更新涵盖 CLI 别名新增、权限与安全设置增强、Hook 终端通知的 tmux/screen 兼容性修正、模型拼写错误检测功能文档化，以及多个模型能力说明的补充和澄清。
+
+## 2. 关键主题
+
+- **CLI 易用性**：`claude remote-control` 新增别名 `claude rc`；`--permission-prompt-tool` 补充了返回值规范的文档链接
+- **权限与安全**：新增 `permissions.denyInsteadOfPrompting` 设置（v2.1.319+），即使受管理源设为 `false` 也生效；子代理在 `bypassPermissions` 下的权限提示行为补充说明
+- **Hook 终端通知修正**：`terminalSequence` 字段**不再原生支持 tmux/GNU screen**，需额外配置；新增限制——后台 Hook（`async`/`asyncRewake`）不可使用该字段；新增 tmux 3.3+ 和 GNU screen 的配置指南
+- **模型容错**：新增&#34;拼写错误模型名&#34;的启动建议功能文档（`did you mean?` 提示），帮助开发者快速定位配置错误
+- **沙箱故障排查**：新增从子目录启动时 git `index.lock` 错误的排查说明
+- **模型能力澄清**：Fable 5.2 / Mythos 5.2 在 `high` effort 及以上时几乎每次回复前都会思考；Google Cloud Anthropic managed 补充 Mythos 5.2 的 effort 支持；Fable usage-credits 提示不再排除 Enterprise 组织计费用户
+- **GitHub Actions**：新增 `Repository creation: Read and write` 权限要求
+
+## 3. 影响级别：**Medium**
+
+理由：无破坏性变更，但 Hook 终端通知行为在 tmux/screen 环境下发生了**功能回退**（原先声称可用，现需额外配置），可能影响已有 Hook 脚本；新增的 `denyInsteadOfPrompting` 安全设置和模型拼写检测对运维和开发者体验有实际改善。
+
+## 4. 开发者行动项
+
+- **如果你在 tmux/GNU screen 中使用 Hook 终端通知**：按新文档配置 `allow-passthrough on`（tmux 3.3+）或确保窗口可见（GNU screen），否则通知将失效
+- **检查 Hook 脚本中的 `async`/`asyncRewake`**：后台 Hook 不再支持 `terminalSequence` 字段，需移除这些标志或改用同步执行
+- **利用 `claude rc` 缩短命令**：`claude remote-control` 现有别名 `claude rc`，可简化脚本和别名配置
+- **关注 `permissions.denyInsteadOfPrompting`**（v2.1.319+）：如需在非交互场景中直接拒绝而非提示权限，可启用此设置；注意它优先于受管理源配置
+- **从仓库子目录启动时遇 git `index.lock` 错误**：改为从仓库根目录或 worktree 根目录启动 Claude Code</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">Let me analyze the documentation changes across all 13 pages and provide a concise batch analysis.
+
+Let me go through each change:
+
+1. **cli-reference.md**: 
+   - `claude remote-control` now has an alias `claude rc`
+   - `Claude.ai` changed to `claude.ai` (case fix)
+   - `--permission-prompt-tool` now links to docs about what the tool must return
+
+2. **costs.md**: Clarification on gateway spend limits - cap resets only if above $0
+
+3. **desktop.md**: Clarification on worktree edits when Desktop is disconnected - reworded for clarity
+
+4. **github-actions.md**: Added &#34;Repository creation: Read and write&#34; permission
+
+5. **hooks.md**: 
+   - Removed claim that terminalSequence works in tmux/GNU screen
+   - Added limit: doesn&#39;t work from background hooks (async/asyncRewake)
+   - Added dedicated section for tmux/GNU screen setup
+   - Changed &#34;on screen&#34; to &#34;open&#34;
+   - Updated example to use Ghostty/Warp instead of tmux
+
+6. **hooks-guide.md**: Expanded note about mod override conditions - added `managed-mcp.json` file condition
+
+7. **model-config.md**: 
+   - Removed &#34;Enterprise plans with org billing don&#39;t see the prompt&#34; for Fable usage-credits
+   - Improved mistyped model name docs - added &#34;did you mean?&#34; suggestion feature
+   - New section &#34;Fix a mistyped model name&#34;
+
+8. **sandboxing.md**: New troubleshooting section for git `index.lock` error when starting from subdirectory
+
+9. **settings.md**: New `permissions.denyInsteadOfPrompting` setting that&#39;s honored even when managed source sets false
+
+10. **sub-agents.md**: Added note about checking &#34;actions no mode auto-approves&#34; when subagent asks for permission in bypassPermissions
+
+11. **effort.md**: Added Mythos 5.2 to Google Cloud Anthropic managed availability
+
+12. **prompting-tools.md &amp; claude-prompting-best-practices.md**: Added note that Fable 5.2 and Mythos 5.2 think before almost every reply at `high` effort and above
+
+Key themes:
+- CLI improvements (alias, better error messages)
+- Hook/terminal notification fixes and clarifications (tmux/screen handling)
+- New security/permission settings
+- Model name typo detection
+- Sandbox troubleshooting
+- Model capability clarifications (thinking behavior, effort availability)</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/cli-reference.html" class="page-link">cli-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/costs.html" class="page-link">costs.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/desktop.html" class="page-link">desktop.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/github-actions.html" class="page-link">github-actions.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+9</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/model-config.html" class="page-link">model-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sandboxing.html" class="page-link">sandboxing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/effort.html" class="page-link">build-with-claude/effort.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/prompting-tools.html" class="page-link">build-with-claude/prompt-engineering/prompting-tools.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/claude-prompting-best-practices.html" class="page-link">build-with-claude/prompt-engineering/claude-prompting-best-practices.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">14:34 EST</div>
