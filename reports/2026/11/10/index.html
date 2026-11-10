@@ -118,9 +118,174 @@
 
         <header>
             <h1>Changes on 2026-11-10</h1>
-            <p class="meta">31 total changes in 2 runs</p>
+            <p class="meta">38 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">18:51 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更分析
+
+## 1. 总体摘要
+
+本次文档更新主要涉及**安全收紧**（云环境默认网络降级、`safety_event` 遥测事件弃用、网关需转发 `Authorization`）以及**可观测性架构调整**（用 `tool_decision` 替代 `safety_event` 监控安全事件），同时包含若干行为澄清和一个疑似文档构建缺陷。
+
+## 2. 关键主题
+
+- **安全默认值收紧**：新云环境默认网络访问从 **Trusted** 降为 **Limited**
+- **遥测事件弃用**：`claude_code.safety_event` 在 v2.1.312 起停止发送，安全监控需迁移到 `tool_decision` 事件
+- **网关认证要求增强**：转发至 Anthropic 的网关现需同时转发 `Authorization` 头和 `anthropic-beta` 中的 OAuth capability
+- **MCP 命名细化**：官方市场插件的远程服务器名称以 `plugin_&lt;plugin&gt;_&lt;server&gt;` 格式明文呈现，非官方来源统一为 `&#34;custom&#34;`
+- **设置管理行为变化**：Server-managed settings 改为&#34;跟随成员而非设备&#34;，`paths` 字段规则在附加目录中不加载
+- **疑似文档构建 bug**：`quickstart.md` 中 `theme={null}` 被重复约 100 次
+
+## 3. 影响等级：**Medium**
+
+- **安全/合规团队**受影响最大——`safety_event` 弃用意味着现有监控看板和告警规则必须迁移到 `tool_decision`
+- **网关运维人员**需更新代理逻辑以转发 `Authorization` 头
+- **云环境用户**需注意新环境默认网络更受限，可能需要手动调整
+- 无 Breaking API 变更，但遥测数据结构变化对下游消费者有实质影响
+
+## 4. 开发者行动项
+
+1. **迁移安全监控**：如果你的告警/看板依赖 `safety_event`，立即迁移到查询 `tool_decision`（`decision=&#34;reject&#34;`, `source=&#34;hook&#34;` 等），v2.1.312+ 将不再有 `safety_event`
+2. **更新 LLM 网关配置**：确保自定义网关在转发到 Anthropic 时同时转发 `Authorization` 头和 `anthropic-beta` OAuth capability
+3. **审查云环境网络策略**：新建的 Default 环境网络访问为 **Limited** 而非 Trusted，如需更开放访问需手动配置
+4. **适配 MCP 遥测解析**：v2.1.312+ 起官方插件远程服务器名以 `plugin_&lt;plugin&gt;_&lt;server&gt;` 格式出现，更新日志解析逻辑
+5. **注意附加目录规则加载**：通过 `CLAUDE_MD_DIRS` 加载的附加目录中，设置了 `paths` 字段的规则将被跳过</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">Let me analyze these documentation changes across 7 pages.
+
+1. **claude-code-on-the-web.md**: Default environment changed from &#34;Trusted&#34; network access to &#34;Limited&#34; network access. This is a security tightening change.
+
+2. **llm-gateway.md**: Gateways forwarding to Anthropic must now forward both `Authorization` and OAuth capability in `anthropic-beta`, not just OAuth capability. This is an additional requirement for gateway implementations.
+
+3. **memory.md**: When using additional directory via env var, rules with a `paths` field are now excluded. This is a behavioral clarification/refinement.
+
+4. **monitoring-usage.md**: Major changes:
+   - `mcp_server.name` now shows plugin remote server names verbatim (v2.1.312+) as `plugin_&lt;plugin&gt;_&lt;server&gt;`
+   - `mcp_tool.name` can read `&#34;custom&#34;` when `mcp_server.name` shows a plugin name
+   - `safety_event` is being deprecated/removed in v2.1.312+
+   - `tool_decision` now has `classifier_verdict` info
+   - Security mapping table updated to reflect safety_event deprecation
+   - Hook-related queries now split between `hook_execution_complete` and `tool_decision`
+
+5. **quickstart.md**: Bizarre change - `theme={null}` repeated ~100 times in code blocks. This looks like a bug/regression in the documentation generation system.
+
+6. **sandboxing.md**: Server-managed settings now &#34;follow the member, not the device&#34; instead of &#34;apply to all users in the organization&#34;. This is a behavioral change.
+
+7. **settings.md**: Minor wording change - removed &#34;and your file is unchanged&#34; from the configuration error description for `claude -p` runs.
+
+Key themes:
+- Security tightening (default network access downgraded, safety_event deprecated, Authorization forwarding required)
+- Observability changes (safety_event removal, new MCP server/tool naming)
+- A possible docs build bug (quickstart.md theme attributes)
+
+Impact: Medium - the safety_event deprecation affects monitoring dashboards, the network access change affects cloud environment defaults, and the gateway Authorization requirement affects custom gateway implementations.
+
+Action items:
+1. Update monitoring dashboards that rely on `safety_event` to use `tool_decision` instead (v2.1.312+)
+2. If you run an LLM gateway to Anthropic, ensure it forwards `Authorization` headers
+3. Be aware that new cloud environments default to &#34;Limited&#34; (not &#34;Trusted&#34;) network access
+4. If you use `CLAUDE.md` additional directories, note that `paths`-specific rules are excluded
+5. Update MCP server name parsing logic for the new `plugin_&lt;plugin&gt;_&lt;server&gt;` format</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/claude-code-on-the-web.html" class="page-link">claude-code-on-the-web.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/llm-gateway.html" class="page-link">llm-gateway.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/memory.html" class="page-link">memory.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+15</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/quickstart.html" class="page-link">quickstart.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sandboxing.html" class="page-link">sandboxing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">13:24 EST</div>
