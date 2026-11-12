@@ -118,9 +118,174 @@
 
         <header>
             <h1>Changes on 2026-11-11</h1>
-            <p class="meta">44 total changes in 1 run</p>
+            <p class="meta">47 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">20:48 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### Overall Summary
+本次更新主要包含两方面的改进：一是在 Claude Desktop 中引入了新的管理设置，允许更细粒度控制 SSH/WSL 会话中的脚本执行；二是为处理支付、账号及财务数据的 AI 代理提供了标准化的安全提示工程指南。
+
+### Key Themes
+*   **细粒度安全控制：** 桌面端更新解耦了“远程预览脚本”与“外部浏览”的禁用逻辑，允许管理员在阻止远程脚本的同时保留用户访问外部网站的能力。
+*   **金融自动化安全防护：** 针对涉及资金操作和敏感数据的 AI 代理，新增了严格的系统提示词模板，明确禁止自主发起支付并规范财务数据的处理流程。
+*   **版本兼容性策略：** 强调了新管理设置对 Claude Desktop 版本的依赖（v5.1231.0+），并提供了针对旧版本的降级处理方案。
+
+### Impact Level
+**Medium**
+
+*   **Reasoning:** 桌面端改动属于功能增强，虽然引入了新设置，但旧设置依然有效（尽管行为更宽泛），不构成破坏性变更。提示词方面的更新属于“强推荐”的最佳实践，对于构建金融类应用的开发者至关重要，但对于不涉及敏感数据的通用应用影响较小。
+
+### Action Items for Developers
+1.  **更新桌面端管理策略：** 如果您之前使用 `disableBrowserExternalNavigation` 主要是为了防止远程脚本执行，请切换至新的 `disableRemotePreviewScripts` 设置，以免误伤用户的外部浏览功能；同时确保客户端升级至 v5.1231.0 或更高版本。
+2.  **集成金融安全提示词：** 若您的 AI 代理涉及支付、账号管理或财务报表处理，请务必将文档中提供的 `Payments, account numbers, and financial records` 代码块原样添加到系统提示词中。
+3.  **实施人工审批兜底：** 文档明确提示词仅作为指导而非强制执行，因此必须确保所有能触发资金转移的工具调用都需经过人工审批流程。
+4.  **验证脚本阻断效果：** 在应用新配置后，通过查看 HTML 预览上方的提示文本（&#34;This preview doesn&#39;t run scripts&#34; vs &#34;This preview doesn&#39;t load anything from the web&#34;）来确认策略是否正确生效。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer, documentation expert.
+    *   **Task:** Analyze 3 documentation changes as a single batch.
+    *   **Format:** Markdown.
+    *   **Language:** Chinese (as requested: &#34;请用中文回复&#34;).
+    *   **Requirements:** Concise, insightful, focus on developer needs.
+    *   **Structure:**
+        1.  Overall Summary (1-2 sentences).
+        2.  Key Themes (bullets).
+        3.  Impact Level (Low/Medium/High/Breaking) with reasoning.
+        4.  Action Items (max 5 bullets).
+
+2.  **Analyze the Source Data (3 pages):**
+
+    *   **Page 1: `desktop.md`**
+        *   *Context:* Managing SSH/WSL previews and security settings in Claude Desktop.
+        *   *Change:* Introduction of a new managed setting `disableRemotePreviewScripts`.
+        *   *Behavior:* It specifically stops scripts in HTML previews (SSH/WSL) *without* blocking external browsing (unlike the old setting `disableBrowserExternalNavigation`).
+        *   *Requirements:* Requires Claude Desktop v5.1231.0 or later.
+        *   *Compatibility Note:* If using older versions, the old key `disableBrowserExternalNavigation` is still needed, but that blocks external sites too.
+        *   *Configuration details:* Clarifies where keys are read (local machine, not remote/WSL/policyHelper).
+        *   *Verification:* Added instructions on how to check if scripts are running based on the notice text.
+
+    *   **Page 2: `build-with-claude/prompt-engineering/prompting-tools.md`**
+        *   *Context:* Prompt engineering for tools, specifically handling sensitive data/financials.
+        *   *Change:* Added a new section &#34;Payments, account numbers, and financial records&#34;.
+        *   *Content:* Anthropic recommends adding a specific block of text to the system prompt for agents handling payments or customer records.
+        *   *Function:* Prevents full PII copying, prevents autonomous payment initiation (even if user says yes), ensures financial data integrity (don&#39;t alter official records), and prevents impersonation/hiding absence.
+        *   *Constraint:* This is a guideline/prompt block, not hard enforcement. Tool approval is still recommended.
+
+    *   **Page 3: `build-with-claude/prompt-engineering/claude-prompting-best-practices.md`**
+        *   *Context:* General prompt engineering best practices.
+        *   *Change:* Added the exact same section &#34;Payments, account numbers, and financial records&#34; as Page 2.
+        *   *Significance:* Anthropic is pushing this specific safety pattern across multiple documentation sections.
+
+3.  **Synthesize the Analysis (Drafting in Chinese):**
+
+    *   *Overall Summary:* This update introduces a new security control for Claude Desktop to granularly block scripts in remote previews, and adds a strongly recommended prompt engineering guideline for handling financial data and PII in agents.
+        *   *Translation:* 本次更新引入了针对 Claude Desktop 的新安全控制，用于在远程预览中细粒度阻止脚本，并添加了针对 AI 代理处理金融数据和敏感信息的强推荐提示工程指南。
+
+    *   *Key Themes:*
+        *   **Security &amp; Compliance:** Both changes focus on security. One is a config setting for the IDE/Editor, the other is a prompt instruction for AI agents.
+        *   **Granularity:** The desktop change splits &#34;block scripts&#34; from &#34;block external browsing&#34; (previously bundled).
+        *   **Financial Safety:** The prompt change specifically targets financial automation risks (payments, account numbers).
+        *   *Drafting bullets:*
+            *   安全与合规性增强：涵盖了 IDE 配置层面的安全控制和 AI 代理层面的敏感数据处理指南。
+            *   细粒度权限控制：桌面端更新解耦了“远程预览脚本”与“外部浏览”的禁用逻辑。
+            *   金融自动化安全：新增针对处理支付、账号和财务记录的标准化系统提示块，防止未经授权的金融操作。
+
+    *   *Impact Level:* **Medium**.
+        *   *Reasoning:*
+            *   Desktop change is an enhancement/new feature, but backward compatible (using old setting still works, though less granular).
+            *   Prompt change is a &#34;best practice&#34; recommendation, not a forced API change. However, for developers building financial agents, it&#39;s critical.
+        *   *Refining:* It&#39;s not &#34;Breaking&#34;. It&#39;s high importance for specific use cases (enterprise security/FinTech), but &#34;Medium&#34; generally.
+
+    *   *Action Items:*
+        *   For Admins/Desktop users: Update managed settings if you need to block scripts but allow browsing. Check version requirements (v5.1231.0+).
+        *   For Agent Devs: Copy the new prompt block into system prompts for agents handling payments/PII.
+        *   Implementation: Ensure tools for payments require human approval (as the prompt alone isn&#39;t enough).
+
+4.  **Refining the Content (Self-Correction):**
+
+    *   *Check:* Did I mention the version requirement for the desktop change? Yes, important.
+    *   *Check:* Did I clarify that the prompt block is just guidance? Yes.
+    *   *Check:* Is the Chinese natural and professional?
+    *   *Drafting the Output:*
+
+    *   **Summary:** 本次更新主要包含两个方面的改进：一是在 Claude Desktop 中引入了新的管理设置，允许更细粒度地控制 SSH/WSL 会话中的脚本执行；二是为处理支付、账号及财务数据的 AI 代理提供了标准化的安全提示指南。
+
+    *   **Themes:**
+        *   **企业级安全控制：** 新的 `disableRemotePreviewScripts` 设置实现了安全策略的解耦（阻断脚本但不禁止浏览）。
+        *   **金融与隐私保护：** 针对涉及敏感财务数据的 AI 代理，新增了严格的系统提示词模板，防止数据泄露和未经授权的支付。
+        *   **版本兼容性要求：** 强调了新功能对 Claude Desktop 版本的依赖（v5.1231.0+）及旧版兼容方案。
+
+    *   **Impact Level:** **Medium**
+        *   *Reasoning:* 桌面端改动是功能增强，非破坏性变更；提示词改动属于“强推荐”的最佳实践，对于构建金融类应用的开发者至关重要，但对通用应用影响较小。
+
+    *   **Action Items:**
+        *   **更新管理配置：** 如果需要在 SSH/WSL 预览中禁用脚本但保留外部浏览能力，请将 `disableBrowserExternalNavigation` 替换为 `disableRemotePreviewScripts`，并确保桌面端版本为 v5.1231.0 或更高。
+        *   **采纳金融安全提示词：** 若您的 AI 代理涉及支付或处理敏感财务数据，请将文档中提供的 `Payments, account numbers, and financial records` 代码块完整复制到系统提示词中。
+        *   **实施人工审批机制：** 提示词仅作指引，必须确保任何能触发资金转移的工具调用都需经过人工二次审批。
+
+5.  **Final Polish:** Ensure formatting matches the requested markdown style.</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/desktop.html" class="page-link">desktop.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+11</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/prompting-tools.html" class="page-link">build-with-claude/prompt-engineering/prompting-tools.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+10</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-engineering/claude-prompting-best-practices.html" class="page-link">build-with-claude/prompt-engineering/claude-prompting-best-practices.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+10</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">14:57 EST</div>
