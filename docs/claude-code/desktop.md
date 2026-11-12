@@ -2123,7 +2123,14 @@ Replace the placeholder with your claude.ai organization ID, shown in [claude.ai
 >
 > Check the `forceLoginOrgUUID` value before you deploy it. If the ID isn't your organization's, people in your organization can't use Claude Desktop unless they also belong to an organization with that ID. To recover, deploy the correct ID and have them restart Claude Desktop.
 
-If you set `forceLoginMethod` and `forceLoginOrgUUID` in Claude Code's [managed settings](https://code.claude.com/docs/en/managed-settings.md), you don't change the Claude Desktop sign-in screen.
+If you set `forceLoginMethod` and `forceLoginOrgUUID` in Claude Code's [managed settings](https://code.claude.com/docs/en/managed-settings.md), you don't change the Claude Desktop sign-in screen. A person can still use Claude Desktop with their own Claude API key or [Claude Console account](https://claude.com/docs/third-party/claude-desktop/claude-api#which-devices-offer-the-claude-api-account-sign-in), and run Code tab sessions that way.
+
+To stop that, also deploy `forceLoginOrgUUID` in the Claude Desktop policy (in `HKLM` on Windows), with your claude.ai organization ID. Unless the policy itself [selects the Claude API](https://claude.com/docs/third-party/claude-desktop/claude-api#choose-an-authentication-approach), Claude Desktop stops using a person's own API key or Console account at the app's next launch.
+
+Check two cases before you deploy it:
+
+* **Claude Console organizations**: don't deploy `forceLoginOrgUUID` on its own with a Claude Console organization's ID, or you'd lock your people out of Claude Desktop. See [Which devices offer the Claude API account sign-in](https://claude.com/docs/third-party/claude-desktop/claude-api#which-devices-offer-the-claude-api-account-sign-in) instead.
+* **Enterprise Admin Console**: if it delivers your computers' Claude Desktop configuration, update them to Claude Desktop v2.37337.0 or later first, because earlier versions ignore it once this key is set. See [Keep a device on its managed profile](https://claude.com/docs/third-party/claude-desktop/admin-console#keep-a-device-on-its-managed-profile).
 
 ### Network access requirements
 
