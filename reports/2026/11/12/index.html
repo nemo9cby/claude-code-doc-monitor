@@ -118,9 +118,275 @@
 
         <header>
             <h1>Changes on 2026-11-12</h1>
-            <p class="meta">15 total changes in 2 runs</p>
+            <p class="meta">25 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">18:05 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 总体概述
+本次文档更新简化了 Alpine Linux 的安装流程，澄清了 Amazon Bedrock Mantle 与网关相关的错误处理策略，并显著更新了 Beta API 文件上传的 Headers（新增多项并标记旧版为废弃）。此外，v2.1.323 版本发布了“代码模式”等实验性功能，并增强了插件系统的版本控制。
+
+### 核心变更要点
+*   **API 兼容性（重要）：** 重新整理了 API Beta Headers，大量旧版 Header（如 `files-api-2025-04-14`, `prompt-caching-2024-07-31`）被标记为 **Deprecated**，并新增了涵盖 2025-2026 年功能的新 Header 标识。
+*   **平台支持扩展：** 简化了 Alpine Linux 上的安装步骤；解除了 Claude Sonnet 5.5 仅支持 Global Standard 部署的限制，现在支持 Azure 的 US Data Zone。
+*   **安全性与脚本健壮性：** 更新了 Hooks 文档中的 Shell 命令示例，摒弃了不安全的 `xargs` 用法，改用变量赋值加引号的方式，以正确处理包含空格或特殊字符的文件路径。
+*   **功能增强：** 新增实验性的“代码模式”、`.docx` 文件支持、插件版本兼容性检查（`engines[&#34;claude-code&#34;]`）以及更详细的 Bash 权限通配符警告。
+
+### 影响等级
+**高**
+
+**理由：**
+1.  API Beta Headers 的弃用和新增属于破坏性变更，直接依赖旧版 Header 的应用需要立即进行迁移适配。
+2.  插件系统引入了版本约束机制，未更新的插件可能无法加载或安装。
+3.  Bedrock 错误处理指南的更新影响了混合使用 Mantle 和 Invoke API 的用户排查问题的流程。
+
+### 开发者行动项
+1.  **更新 API 调用：** 检查并移除代码中已废弃的 Beta Headers（如 `files-api-2025-04-14`），遵循官方迁移指南升级至新的响应格式。
+2.  **升级插件配置：** 在 `plugin.json` 中添加 `engines[&#34;claude-code&#34;]` 字段，以确保插件与指定版本的 Claude Code 兼容。
+3.  **审查 Shell 脚本：** 参照最新的 Hooks 文档，检查自定义脚本中的文件路径处理逻辑，避免使用不安全的 `xargs` 管道，改用变量赋值方式。
+4.  **排查 Bedrock 配置：** 如果在通过网关使用 Bedrock 时遇到 400 错误，请查阅更新后的文档区分“网关模式”与“非网关模式”的解决方案。
+5.  **测试 Alpine 安装：** 在基于 musl 的系统（如 Alpine）上重新验证安装流程，新版本不再需要手动配置 `USE_BUILTIN_RIPGREP`。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Understand the Goal:** The user wants a concise analysis of documentation changes in markdown, using Chinese, covering 10 changed pages. The focus is on what matters to developers (world-class programmer persona).
+
+2.  **Analyze Each Page:**
+
+    *   **Page: amazon-bedrock.md**
+        *   *Change:* Clarified conditions for running Mantle alongside Invoke API. Specifically added &#34;If you connect without a gateway&#34;. Updated error handling for 400 errors (model ID not on Mantle) to distinguish between &#34;Without a gateway&#34; and &#34;Through a gateway&#34;.
+        *   *Dev Impact:* If using Mantle/Bedrock, the docs now explicitly distinguish gateway vs. non-gateway setups for error handling. It clarifies that Mantle has a separate model lineup.
+        *   *Takeaway:* Important for Bedrock users to troubleshoot 400 errors correctly based on their connection type.
+
+    *   **Page: hooks.md**
+        *   *Change:* Shell command safety improvement. `jq -r .worktree_path | xargs rm -rf` changed to `p=$(jq -er .worktree_path) &amp;&amp; rm -rf -- &#34;$p&#34;`.
+        *   *Dev Impact:* Prevents issues with filenames containing spaces or special characters. `xargs` without proper quoting can be dangerous (splitting on spaces). The new approach is safer.
+        *   *Takeaway:* Security/Robustness improvement in hook examples.
+
+    *   **Page: hooks-guide.md**
+        *   *Change:* Similar to hooks.md. `xargs` removed, variables used directly with quotes. Added `--ignore-unknown` to prettier command.
+        *   *Dev Impact:* Safer shell scripting for file paths. `--ignore-unknown` prevents Prettier errors on non-code files.
+        *   *Takeaway:* Adopt these safer hook patterns for file operations.
+
+    *   **Page: interactive-mode.md**
+        *   *Change:* Updated description of `Shift+Tab` (Cycle permission modes). Refined order of modes. Added &#34;At the plan approval prompt, it approves the plan&#34;.
+        *   *Dev Impact:* Clarifies keyboard shortcuts, specifically how Shift+Tab behaves during plan approval.
+        *   *Takeaway:* UX clarification.
+
+    *   **Page: quickstart.md**
+        *   *Change:* Removed massive amounts of redundant `theme={null}` attributes in code blocks.
+        *   *Dev Impact:* This looks like a bug fix or cleanup of the markdown rendering syntax. No functional change to the tool itself, just the doc source.
+        *   *Takeaway:* Irrelevant to dev workflow, just doc maintenance.
+
+    *   **Page: setup.md**
+        *   *Change:* Simplified Alpine Linux setup. Removed instructions for manually adding community repo and setting `USE_BUILTIN_RIPGREP=0`. Now just requires `bash` and `curl`. Added `bash` to `apk add` command in the APK section.
+        *   *Dev Impact:* Easier setup on Alpine. The tool seemingly handles dependencies better now (or docs reflect a change in requirements). The explicit ripgrep config removal suggests the tool might bundle it or handle it differently now.
+        *   *Takeaway:* Alpine setup is simpler.
+
+    *   **Page: troubleshooting.md**
+        *   *Change:* Removed cross-reference to the Alpine setup section (since it was simplified).
+        *   *Dev Impact:* Consistency with the setup.md changes.
+        *   *Takeaway:* Doc consistency.
+
+    *   **Page: api/beta/files/upload.md**
+        *   *Change:* Massive reorganization of Beta headers.
+            *   Old headers moved to &#34;Deprecated&#34; or removed context.
+            *   New headers added (dates range from 2025 to late 2026).
+            *   Marked many old ones (like `prompt-caching-2024-07-31`, `pdfs-2024-09-25`, etc.) as Deprecated.
+        *   *Dev Impact:* **Breaking/Important**. Developers using the Beta API with files upload need to check if they are sending deprecated headers. Specifically `files-api-2025-04-14` is deprecated and requires migration. `skills-2025-10-02` is deprecated.
+        *   *Takeaway:* API compatibility changes. Review Beta headers usage.
+
+    *   **Page: build-with-claude/claude-in-microsoft-foundry.md**
+        *   *Change:* Removed a note saying &#34;Claude Sonnet 5.5 supports only Global Standard deployments.&#34; Removed restriction on Region scope selection for Sonnet 5.5.
+        *   *Dev Impact:* Claude Sonnet 5.5 is now available in US Data Zone (Azure hosted).
+        *   *Takeaway:* Expanded availability for Sonnet 5.5 on Azure.
+
+    *   **Page: CHANGELOG.md.md**
+        *   *Change:* Version 2.1.323.
+        *   *Key Points:*
+            *   **New Feature:** Code Mode (experimental JS tool calling).
+            *   **Plugin System:** Plugin version constraints, `engines[&#34;claude-code&#34;]`, TypeScript validation.
+            *   **Settings:** `CLAUDE_CODE_AUTO_MODE_MODEL`.
+            *   **File Support:** `.docx` support in Artifacts.
+            *   **Fixes:** Memory spikes, auth/sign-in issues, background session management, Bedrock error messages, Alpine Linux setup changes (echoing setup.md).
+            *   **Security/Safety:** Fixing Bash allow rules with wildcards (e.g., `PORT=*`), improved file path handling in hooks.
+
+3.  **Synthesize and Structure (Chinese):**
+
+    *   **Overall Summary:** This batch updates Alpine Linux setup, refines Amazon Bedrock integration (Mantle), introduces new Beta API headers (deprecating old ones), expands Sonnet 5.5 availability on Azure, and releases version 2.1.323 with new features like Code Mode and improved plugin validation.
+    *   **Key Themes:**
+        *   *Platform Availability:* Alpine Linux setup simplified; Claude Sonnet 5.5 now supports Azure Data Zones.
+        *   *API Compatibility:* Beta API headers reorganized; many old headers marked deprecated (breaking potential).
+        *   *Safety &amp; Scripting:* Hook examples updated for safer shell scripting (handling file paths); fixes for Bash permission wildcards.
+        *   *Feature Updates:* New &#34;Code Mode&#34; (experimental), stricter plugin versioning, and `.docx` support.
+    *   **Impact Level:** Medium to High (High if you use the Beta API).
+        *   *Reasoning:* API header deprecations are critical. Plugin engine changes affect plugin authors. Bedrock error clarity helps debugging.
+    *   **Action Items:**
+        *   Check and update Beta API headers (remove deprecated ones like `files-api-2025-04-14`).
+        *   Review Bedrock Mantle error handling docs if using gateways.
+        *   Update plugin `plugin.json` to include `engines[&#34;claude-code&#34;]`.
+        *   Adopt safer shell patterns in hooks (avoid `xargs` for file paths).
+
+4.  **Refine Language (Chinese):**
+    *   Ensure technical terms like &#34;Beta headers&#34;, &#34;Mantle&#34;, &#34;Gateway&#34; are handled correctly.
+    *   Tone: Professional, concise.
+
+    *Drafting the content:*
+    *   Summary: 此次更新主要涉及 Alpine Linux 安装流程的简化、Amazon Bedrock Mantle 集成的说明更新、API Beta Headers 的重大调整（包含弃用项）、Sonnet 5.5 在 Azure 的可用性扩展，以及 v2.1.323 版本的新功能发布。
+    *   Themes: 平台兼容性, API 稳定性, 安全性与脚本, 功能增强.
+    *   Impact: High (API changes).
+    *   Actions: API migration, Docs review for Bedrock, Plugin update.
+
+5.  **Final Polish:** Check against the provided diffs.
+    *   Hooks changes are about `jq` and `xargs` safety. Correct.
+    *   Bedrock changes are about 400 errors and gateways. Correct.
+    *   API page has a huge list of new headers and deprecated old ones. Correct.
+    *   Changelog mentions Code Mode and Plugin engines. Correct.
+
+    *Result construction looks good.*</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/amazon-bedrock.html" class="page-link">amazon-bedrock.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/interactive-mode.html" class="page-link">interactive-mode.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/quickstart.html" class="page-link">quickstart.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/setup.html" class="page-link">setup.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-8</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/troubleshooting.html" class="page-link">troubleshooting.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/beta/files/upload.html" class="page-link">api/beta/files/upload.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-in-microsoft-foundry.html" class="page-link">build-with-claude/claude-in-microsoft-foundry.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+297</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">12:51 EST</div>

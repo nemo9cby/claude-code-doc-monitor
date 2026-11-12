@@ -3335,7 +3335,7 @@ Claude Code passes the path returned by WorktreeCreate as `worktree_path` in the
         "hooks": [
           {
             "type": "command",
-            "command": "bash -c 'jq -r .worktree_path | xargs rm -rf'"
+            "command": "bash -c 'p=$(jq -er .worktree_path) && rm -rf -- \"$p\"'"
           }
         ]
       }

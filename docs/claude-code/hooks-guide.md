@@ -50,7 +50,7 @@ If your settings file already has a `hooks` key, add `Notification` as a sibling
     "PostToolUse": [
       {
         "matcher": "Edit|Write",
-        "hooks": [{ "type": "command", "command": "jq -r '.tool_input.file_path' | xargs npx prettier --write" }]
+        "hooks": [{ "type": "command", "command": "f=$(jq -r '.tool_input.file_path') && npx prettier --write --ignore-unknown \"$f\"" }]
       }
     ],
     "Notification": [
@@ -221,7 +221,7 @@ This hook uses the `PostToolUse` event with an `Edit|Write` matcher, so it runs 
         "hooks": [
           {
             "type": "command",
-            "command": "jq -r '.tool_input.file_path' | xargs npx prettier --write"
+            "command": "f=$(jq -r '.tool_input.file_path') && npx prettier --write --ignore-unknown \"$f\""
           }
         ]
       }

@@ -512,7 +512,7 @@ claude --model anthropic.claude-haiku-4-5
 
 ### Run Mantle alongside the Invoke API
 
-The models available to you on Mantle may not include every model you use today. Setting both `CLAUDE_CODE_USE_BEDROCK` and `CLAUDE_CODE_USE_MANTLE` lets Claude Code call both endpoints from the same session. Model IDs that match the Mantle format are routed to Mantle, and all other model IDs go to the Amazon Bedrock Invoke API.
+The models available to you on Mantle may not include every model you use today. If you connect without a gateway, set both `CLAUDE_CODE_USE_BEDROCK` and `CLAUDE_CODE_USE_MANTLE` to call Mantle and the Invoke API from the same session. Model IDs that match the Mantle format are routed to Mantle, and all other model IDs go to the Amazon Bedrock Invoke API.
 
 ```bash theme={null}
 export CLAUDE_CODE_USE_BEDROCK=1
@@ -618,7 +618,12 @@ What a `403` from the Mantle endpoint means depends on whether the error names a
 * If the error names a `bedrock-mantle:` action, grant your IAM identity that action.
 * If the error names no action and your credentials are valid, your AWS account has not been granted access to the model you requested. Contact your AWS account team to request access.
 
-A `400` that names the model ID means that model isn't served on Mantle. Mantle has its own model lineup separate from the standard Amazon Bedrock catalog, so inference profile IDs such as `us.anthropic.claude-sonnet-4-6` don't work. Use a Mantle-format ID, or enable [both endpoints](#run-mantle-alongside-the-invoke-api) so Claude Code sends inference profile IDs to the Invoke API.
+A `400` that names the model ID means that model isn't served on Mantle. Mantle has its own model lineup separate from the standard Amazon Bedrock catalog, so inference profile IDs such as `us.anthropic.claude-sonnet-4-6` don't work.
+
+To clear the error:
+
+* **Without a gateway**: use a [Mantle-format ID](#select-a-mantle-model) that Mantle serves, or [run Mantle alongside the Invoke API](#run-mantle-alongside-the-invoke-api) to send IDs in other formats to that API.
+* **Through a gateway**: ask its operator which model IDs to use.
 
 ## Additional resources
 
