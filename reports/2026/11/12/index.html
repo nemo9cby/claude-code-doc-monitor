@@ -118,9 +118,294 @@
 
         <header>
             <h1>Changes on 2026-11-12</h1>
-            <p class="meta">1 total change in 1 run</p>
+            <p class="meta">15 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">12:51 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 总体摘要
+
+本次文档更新重点介绍了**自托管 Claude Managed Agents** 的新功能，并正式定义了 API 的**流量限制**机制以处理突发流量。此外，还针对 5.2 和 5.5 系列模型（特别是思考块保留、结构化输出和 Computer Use 工具）进行了详细的行为澄清和最佳实践更新。
+
+### 关键主题
+
+*   **新的部署选项**：引入了“自托管 Claude Managed Agents”，允许企业在自有基础设施上托管完整的 Agent 服务（API、循环、存储和沙箱）。
+*   **速率限制逻辑变更**：正式引入 **Ramp limits（流量限制）** 替代之前的“加速限制”概念。即便在常规 RPM/ITPM/OTPM 限制内，流量突增也会触发 429 错误，并携带特定的 `ramp_limit_exceeded` 错误码。
+*   **模型行为精细化**：针对 Claude Fable 5.2/Mythos 5.2 和 Opus 5.5/Sonnet 5.5 提供了更细致的上下文管理、思考块保留和 `effort` 参数设置的指导。
+*   **代码示例增强**：改进了结构化输出的示例（特别是处理字典类型时的陷阱），并更新了 Computer Use 在处理长会话截图时的上下文压缩建议。
+*   **错误处理与链接更新**：多处更新了关于思考块修改错误的解释，并修复了部分过期的文档链接。
+
+### 影响等级：**中等**
+
+**理由**：虽然大部分内容是文档润色和澄清，但 **Ramp limits** 的正式引入对高并发或流量突增的应用具有直接影响。如果代码未处理新的 `ramp_limit_exceeded` 错误码，可能会在扩容时遇到意外的 429 错误。自托管 Agent 则是新功能，属于可选的高级特性。
+
+### 开发者行动项
+
+1.  **更新错误处理逻辑**：在 API 客户端中检查 429 错误的 `error.details.error_code`，专门捕获 `ramp_limit_exceeded`，并实现渐进式流量重试策略。
+2.  **调整扩容策略**：在需要发送大量请求（如批处理或冷启动）时，采用渐进式增加流量的方式，避免触发 Ramp limits。
+3.  **审查结构化输出代码**：如果在使用 `dict` (Python) 或 `z.record()` (TypeScript) 处理已知键，请改为使用嵌套模型，以确保 Claude 能正确填充属性。
+4.  **优化长会话管理**：对于使用 Computer Use 的 Agent，在处理大量截图时，参考“按需压缩”策略以保护上下文窗口，特别是在使用 5.2/5.5 模型时。
+5.  **评估自托管需求**：如果对数据驻留或基础设施控制有严格要求，联系销售团队了解自托管 Claude Managed Agents 的定价和方案。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Input:** Diff for 14 documentation pages (Markdown format).
+    *   **Task:** Analyze as a single batch, summarize what changed and why it matters.
+    *   **Output Format:** Markdown (Concise, insightful).
+    *   **Language:** Chinese (as requested: &#34;请用中文回复&#34;).
+    *   **Specific Structure:**
+        1.  Overall Summary (1-2 sentences).
+        2.  Key Themes (bullets).
+        3.  Impact Level (Low/Medium/High/Breaking) with reasoning.
+        4.  Action Items for Developers (bullets, max 5).
+
+2.  **Analyze the Content (Page by Page/Diff Analysis):**
+
+    *   **about-claude/pricing.md:** Added a note about contacting sales for pricing of &#34;self-hosted Claude Managed Agents&#34;. This suggests a new feature or tier availability.
+    *   **api/rate-limits.md:** Significant update. Introduced &#34;Ramp limits&#34; (formerly acceleration limits?). Explains that sharp increases in usage cause 429s even under standard RPM/ITPM/OTPM. Defines how ramp limits work (step-up behavior) and how to handle errors (`error_code: ramp_limit_exceeded`). Updated headers table (truncated in diff, implies structure updates).
+    *   **api/errors.md:** Updated 400 and 429 error descriptions. Added reference to &#34;Ramp limits&#34; in 429 description. Refined language for &#34;Thinking blocks cannot be modified&#34; errors, adding references to prefix checks and troubleshooting. Removed warning about acceleration limits (replaced by Ramp limits link).
+    *   **build-with-claude/overview.md:** Added &#34;Self-hosted Claude Managed Agents&#34; to the feature table. This is a new key capability.
+    *   **build-with-claude/text-generation.md:** Same as above (added Self-hosted Claude Managed Agents link).
+    *   **build-with-claude/extended-thinking.md:** Copy editing mostly. Clarified migration to adaptive thinking. Updated links to thinking/troubleshooting pages. Clarified behavior differences.
+    *   **build-with-claude/streaming.md:** Updated description of `message_start` and `content_block_delta` events. Fixed a link regarding `preserved-thinking-controls`. Clarified that some blocks arrive with no deltas.
+    *   **build-with-claude/prompt-caching.md:** Copy editing/clarifications. Removed &#34;The simplest way&#34; (changed to &#34;One way&#34;). Updated notes about 1-hour cache duration. Refined the invalidation table (truncated).
+    *   **build-with-claude/batch-processing.md:** Copy editing. Clarified result availability and scoping. Updated phrasing about error handling and billing (&#34;You aren&#39;t billed...&#34; instead of &#34;You will not be...&#34;). Updated streaming logic descriptions.
+    *   **build-with-claude/context-windows.md:** Refined the explanation of which models preserve thinking blocks in context (listed specific models like Fable 5.2, Mythos 5.2, etc.). Clarified that tool results need the thinking block included.
+    *   **build-with-claude/context-editing.md:** Updated description of models with preserved thinking (referencing new link). Updated phrasing for &#34;simplest way&#34; to &#34;one way&#34;. Refined edge case description for compaction.
+    *   **build-with-claude/structured-outputs.md:** Major additions.
+        *   Added warnings about `dict` (Python) and `z.record()` (TS) being empty properties unless keys are known. Suggests nested models for known keys.
+        *   Improved C# examples.
+        *   Improved Ruby examples.
+        *   Improved Go examples.
+        *   **Crucial change:** Expanded the Invoice example to include `line_items` with specific properties (`description`, `quantity`, `unit_price`) instead of a generic `additionalProperties: false` object. This provides a better example of structured output for complex schemas.
+    *   **build-with-claude/effort.md:** Refined text for Claude Fable 5.2, Mythos 5.2, Opus 5.5, and Sonnet 5.5 regarding `max_tokens` recommendations and specific behavior notes (e.g., Sonnet 5.5 `between_tools` behavior). Improved readability of the advice.
+    *   **agents-and-tools/tool-use/computer-use-tool.md:**
+        *   Copy editing &#34;Specify simple...&#34; -&gt; &#34;Specify well-defined...&#34;.
+        *   Updated screenshot history management advice.
+        *   **Crucial change:** Updated advice for managing screenshots on newer models (Fable/Mythos/Opus/Sonnet 5.5). Instead of just &#34;resize,&#34; suggests using &#34;on-demand compaction&#34; (`build-with-claude/compaction-on-demand`).
+        *   Updated migration note for `computer_20251124` specifically mentioning Claude Opus 5.5.
+
+3.  **Synthesize Key Themes:**
+    *   **Self-hosted Agents:** Explicit mention of self-hosting the entire service.
+    *   **Rate Limiting Changes (Ramp Limits):** A new concept replacing/refining &#34;acceleration limits&#34;. This is a major operational change.
+    *   **Model Behavior Updates:** Specific details on how 5.2 and 5.5 models handle thinking blocks, effort, and context preservation.
+    *   **Structured Outputs Improvements:** Better examples and warnings about dictionary types.
+    *   **Computer Use/Context Management:** New strategies (compaction) for handling long-running agents and screenshots.
+
+4.  **Determine Impact Level:**
+    *   **Ramp Limits:** This affects anyone scaling up traffic suddenly. It requires code changes to handle the specific error code (`ramp_limit_exceeded`). This is significant.
+    *   **Self-hosted Agents:** New feature, high impact for enterprise/infra teams, but existing API users unaffected unless they opt in.
+    *   **Structured Outputs/Examples:** Improvements, generally low impact unless developers were hitting the specific `dict` issue.
+    *   **Overall:** The introduction of &#34;Ramp limits&#34; is the most potentially breaking or operationally impactful change for high-volume users.
+
+    *   *Verdict:* **Medium/High**. While mostly documentation clarifications, the explicit definition of &#34;Ramp limits&#34; and the specific handling of 429s for them is critical for production stability. The &#34;Self-hosted&#34; announcement is a major new product feature.
+
+5.  **Draft Action Items:**
+    *   Handle the new `ramp_limit_exceeded` error code in API clients.
+    *   Check for ramp limits when scaling traffic.
+    *   Update integration for Computer Use if migrating to Opus 5.5.
+    *   Review Structured Output usage regarding `dict`/`z.record` usage.
+    *   Investigate &#34;Self-hosted Claude Managed Agents&#34; if strict infra control is needed.
+
+6.  **Drafting the Response (in Chinese):**
+
+    *   *Summary:* The documentation highlights the introduction of Self-hosted Claude Managed Agents and the formalization of &#34;Ramp limits&#34; (replacing acceleration limits) for API rate limiting. It also provides significant clarifications on thinking block preservation, structured output examples, and computer use best practices for newer 5.2/5.5 models.
+    *   *Themes:*
+        *   **New Deployment Option:** Self-hosting the full Managed Agents stack.
+        *   **Rate Limiting Logic:** Introduction of &#34;Ramp limits&#34; to handle traffic spikes.
+        *   **Model Specifics:** Deep dives into behavior for 5.2/5.5 models (thinking, effort, context).
+        *   **Code Quality:** Better examples for Structured Outputs and Computer Use.
+    *   *Impact:* Medium. The ramp limit change requires handling a new specific error code to avoid unexpected 429s. Self-hosting is a major new feature but opt-in.
+    *   *Action Items:*
+        *   Update error handling to detect `error.details.error_code === &#34;ramp_limit_exceeded&#34;`.
+        *   Implement gradual traffic ramp-up strategies to avoid hitting ramp limits.
+        *   Review Structured Output code if using dynamic keys (`dict`/`record`).
+        *   Use &#34;on-demand compaction&#34; for long-running Computer Use sessions.
+        *   Check pricing/contact sales for Self-hosted Managed Agents.
+
+7.  **Refining the Output:**
+    *   Make sure the terminology is accurate (e.g., translating &#34;Ramp limits&#34; correctly or keeping it with explanation).
+    *   Ensure the tone is professional and insightful.
+
+    *Self-Correction during drafting:* I noticed the diff for `structured-outputs.md` shows the example being expanded from a generic object to one with specific properties for `line_items`. This is a documentation quality improvement, not a breaking change, but it helps developers understand the feature better. The &#34;Ramp limits&#34; is the real technical change developers need to care about.
+
+8.  **Final Polish (Markdown):**
+    (Proceeding to generate the Chinese response based on these points.)</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/about-claude/pricing.html" class="page-link">about-claude/pricing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/rate-limits.html" class="page-link">api/rate-limits.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+36</span>
+                            <span class="removed">-22</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/errors.html" class="page-link">api/errors.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+14</span>
+                            <span class="removed">-12</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/overview.html" class="page-link">build-with-claude/overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/text-generation.html" class="page-link">build-with-claude/text-generation.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/extended-thinking.html" class="page-link">build-with-claude/extended-thinking.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/streaming.html" class="page-link">build-with-claude/streaming.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-caching.html" class="page-link">build-with-claude/prompt-caching.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+20</span>
+                            <span class="removed">-22</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/batch-processing.html" class="page-link">build-with-claude/batch-processing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+17</span>
+                            <span class="removed">-17</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/context-windows.html" class="page-link">build-with-claude/context-windows.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+11</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/context-editing.html" class="page-link">build-with-claude/context-editing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/structured-outputs.html" class="page-link">build-with-claude/structured-outputs.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+220</span>
+                            <span class="removed">-73</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/effort.html" class="page-link">build-with-claude/effort.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+24</span>
+                            <span class="removed">-14</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/computer-use-tool.html" class="page-link">agents-and-tools/tool-use/computer-use-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-7</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">04:07 EST</div>
