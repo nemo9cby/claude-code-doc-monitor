@@ -118,9 +118,284 @@
 
         <header>
             <h1>Changes on 2026-11-13</h1>
-            <p class="meta">4 total changes in 1 run</p>
+            <p class="meta">14 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">15:14 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更分析摘要
+
+### 1. Overall Summary (整体摘要)
+本次更新主要集中在 **Code Mode 与 Hooks 的深度集成**、**企业级权限管理的细化**以及**超时逻辑的澄清**。文档新增了对 Code Mode 输出拦截、MDM 策略中 Cowork 会话归属、Skills 中 Git 命令的安全限制以及程序化工具调用超时机制的说明。
+
+### 2. Key Themes (关键主题)
+
+*   **Code Mode 与 Hooks 的交互增强**
+    *   Hooks 现在支持拦截和阻止 Code Mode 的代码输出 (`command`, `http`, `mcp_tool` hooks)。
+    *   细化了 `onFailure` 行为说明，特别是在 Code Mode 下 `PreToolUse` 超时或失败时的处理逻辑。
+
+*   **MDM 策略与 Provider 限制的明确**
+    *   明确了 Desktop 的 Cowork 会话在 `allowedProviders` 中被归类为 `&#34;anthropic&#34;`。
+    *   如果企业的 MDM 策略未包含 `&#34;anthropic&#34;`，将导致本地 Cowork 会话被拒绝访问。
+
+*   **安全性与权限控制的收紧**
+    *   **Skills/Slash Commands**: 在未经验证的 Git 文件夹（如 bare repos 或 worktrees）中，Claude Code 将忽略 `allowed-tools` 设置，拒绝执行包含 `git` 的 Bash 命令，以防止潜在的安全风险。
+
+*   **超时与生命周期逻辑的修正**
+    *   **Programmatic Tool Calling**: 澄清了 `expires_at` 时间戳并非超时截止点。实际的内部代码超时（约 4 分钟）远早于 `expires_at`，开发者不应依赖该时间戳来规划任务时长。
+
+*   **配置与安装优化**
+    *   **OTEL**: `OTEL_EXPORTER_OTLP_PROTOCOL` 现在对 HTTP/HTTPS 端点默认采用 `http/protobuf` 协议（需 v2.1.323+）。
+    *   **NPM**: 安装命令更新为明确使用 `@latest` 标签。
+
+### 3. Impact Level (影响等级)
+**Medium (中)**
+
+**Reasoning**:
+虽然大部分更改是文档澄清和默认行为优化，不会直接破坏现有代码 API，但以下内容可能导致现有工作流意外失败：
+1.  企业 MDM 策略若未配置 `&#34;anthropic&#34;`，将直接阻断用户的 Cowork 会话。
+2.  依赖 `expires_at` 控制程序化工具调用时长的开发者可能会遇到超时错误。
+3.  在特定 Git 环境下使用 Skills 的用户可能会发现 Git 命令突然被拦截。
+
+### 4. Action Items for Developers (开发者行动建议)
+
+*   **更新 MDM 策略**: 如果组织使用 `allowedProviders` 限制访问，请务必将 `&#34;anthropic&#34;` 加入列表，否则用户的 Cowork 会话将无法运行。
+*   **审查 Skills 中的 Git 命令**: 检查在 bare repository 或未验证的 Git 文件夹中运行的 Skills，确保不会因 `allowed-tools` 被忽略而导致命令中断。
+*   **调整超时处理逻辑**: 在实现程序化工具调用时，**不要**将 `expires_at` 作为最终截止时间，应在 4 分钟内完成工具执行以避免超时。
+*   **检查 Hooks 配置**: 如果使用 Hooks 控制 Code Mode，请更新配置以处理新的输出拦截和失败阻塞场景。
+*   **验证 OTLP 配置**: 验证 OpenTelemetry 导出配置，确保新的默认协议 (`http/protobuf`) 符合预期。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Understand the Goal**: The user wants a concise, insightful analysis of documentation changes across 10 specific pages in markdown format, using Chinese. The persona is a world-class programmer/analyst.
+
+2.  **Analyze the Input (Page by Page)**:
+
+    *   **`hooks.md`**:
+        *   *Change*: Updated `onFailure` description. Clarified &#34;continue&#34; vs &#34;block&#34;. Added notes linking `PreToolUse` timeouts and failures to specific behaviors in &#34;Code Mode&#34; (links added).
+        *   *Change*: Added a note about Code Mode output being withheld by a hook. Added a note about `UserPromptSubmit` triggering on Code Mode output.
+        *   *Change*: Updated `reason` field description in JSON output (specifically for Code Mode output being blocked).
+        *   *Impact*: Significant integration points between Hooks and Code Mode. Clarifies behavior, likely breaking changes or fixes for edge cases involving these modes.
+
+    *   **`hooks-guide.md`**:
+        *   *Change*: Updated HTTP hook failure logic to align with &#34;block the action&#34; concepts, removing ambiguity about when `onFailure` is needed.
+        *   *Impact*: Clarification of behavior consistency.
+
+    *   **`llm-gateway.md`**:
+        *   *Change*: Added a Note about `allowedProviders`. Specifically, Desktop Cowork sessions count as `&#34;anthropic&#34;` provider. If `&#34;anthropic&#34;` isn&#39;t in the allowed list in MDM policies, the session gets refused.
+        *   *Impact*: Crucial for IT/Admins managing deployments. Policy misconfiguration risk.
+
+    *   **`monitoring-usage.md`**:
+        *   *Change*: `OTEL_EXPORTER_OTLP_PROTOCOL` now defaults to `http/protobuf` for http/https endpoints (v2.1.323+). Mentioned debugging via `/status` for values with spaces.
+        *   *Impact*: Easier configuration for OpenTelemetry, reduces setup friction.
+
+    *   **`setup.md`**:
+        *   *Change*: Weird artifact: `theme={null}` repeated 10 times in code blocks. Likely a build glitch in the source or a specific formatting update. Ignore functional change, just formatting.
+        *   *Change*: `npm install` command updated to `npm install -g @anthropic-ai/claude-code@latest`. Clarified `EBADENGINE` warning behavior.
+        *   *Impact*: Ensures latest version via npm.
+
+    *   **`skills.md` &amp; `slash-commands.md`**:
+        *   *Change*: Clarified permission logic for &#34;injected commands&#34; in skills. Added specific limits: Deny/Ask rules override, Managed-only rules ignored context, and *new* behavior: ignoring `allowed-tools` for unverified Git folders (commands containing `git`).
+        *   *Impact*: Security tightening. Skills/Slash commands might fail unexpectedly in bare repos or unverified git folders if they try to run git commands.
+
+    *   **`third-party-integrations.md`**:
+        *   *Change*: Same note as `llm-gateway.md` regarding `allowedProviders` and Cowork sessions counting as `&#34;anthropic&#34;`.
+        *   *Impact*: Admin/Policy configuration.
+
+    *   **`build-with-claude/claude-in-microsoft-foundry.md`**:
+        *   *Change*: Updated text regarding Azure hosting vs Anthropic hosting. Removed specific model names (like &#34;Claude Fable 5.2&#34; - likely placeholder or old names) and linked to dynamic lists. Clarified data egress (Azure hosting keeps data in Azure).
+        *   *Impact*: Content update reflecting actual product availability and data residency.
+
+    *   **`agents-and-tools/tool-use/programmatic-tool-calling.md`**:
+        *   *Change*: Clarified timeout logic. `expires_at` is *not* the deadline; the internal code timeout (~4 mins) happens *before* `expires_at`.
+        *   *Impact*: Bug fix/Prevention. Developers relying on `expires_at` to gauge how long they have to respond will time out if they wait that long.
+
+3.  **Synthesize Key Themes**:
+    *   **Code Mode Integration**: Several `hooks.md` changes relate to &#34;Code Mode&#34;. Hooks can now withhold output or block based on it.
+    *   **Policy/Provider Management**: `allowedProviders` logic now includes Cowork sessions as `&#34;anthropic&#34;`.
+    *   **Permission &amp; Git Security**: Skills/Slash commands now have stricter rules for `git` commands in unverified folders.
+    *   **Timeout Clarification**: Programmatic tool calling timeout vs expiration timestamp clarified.
+    *   **Telemetry Defaults**: OTLP protocol now has a sensible default.
+
+4.  **Determine Impact Level**:
+    *   *High/Breaking?* Not exactly breaking APIs, but potentially breaking existing workflows.
+        *   Skills relying on `git` commands in specific folder structures might stop working.
+        *   MDM policies might block Cowork sessions if not updated.
+        *   Tool calling logic relying on `expires_at` for timing will fail.
+    *   *Medium*: Most changes are clarifications or &#34;safety&#34; improvements that might catch people off guard but don&#39;t destroy the core API surface.
+    *   *Verdict*: **Medium to High** depending on usage depth. The `allowedProviders` and Skill/Git changes are &#34;gotchas&#34; that could break production setups without obvious error messages. I&#39;ll lean towards **Medium-High** but present it as **Medium** with specific high-impact caveats.
+
+5.  **Draft Action Items**:
+    *   Update MDM policies (`allowedProviders`) to include `&#34;anthropic&#34;` if using Cowork.
+    *   Review Skills/Slash commands using injected `git` commands in unverified repos.
+    *   Adjust programmatic tool calling timeouts (don&#39;t wait for `expires_at`).
+    *   Review Hook configurations for new Code Mode interactions.
+
+6.  **Translate and Format (Chinese)**:
+
+    *   *Summary*: 聚焦于 Code Mode 集成、权限管理细化及超时逻辑澄清。
+    *   *Themes*:
+        *   Code Mode 与 Hooks 的深度集成（输出拦截、失败处理）。
+        *   MDM 策略与 Provider 限制（Cowork 会话归属）。
+        *   安全性增强（Skills 中的 Git 命令权限收紧）。
+        *   超时机制澄清（程序化工具调用）。
+    *   *Impact*: Medium. 主要是行为澄清和安全性补丁，但可能会破坏现有的配置或边缘用例（如 MDM 策略和 Skills 中的 Git 命令）。
+    *   *Action Items*:
+        *   检查 `allowedProviders` 配置。
+        *   审查 Skills/Slash Commands 中的 Git 命令。
+        *   调整程序化工具调用的超时处理逻辑。
+        *   注意 OTLP 协议的新默认值。
+
+7.  **Refine the Output**:
+    *   Ensure the &#34;theme={null}&#34; weirdness in `setup.md` is ignored or treated as noise (it is noise).
+    *   Emphasize the `allowedProviders` change because it&#39;s critical for enterprise users.
+    *   Emphasize the `expires_at` change because it prevents hard-to-debug timeouts.
+
+8.  **Final Polish (Markdown)**:
+    *   Structure: Summary -&gt; Themes -&gt; Impact -&gt; Actions.
+
+**(Self-Correction during drafting)**:
+*Initial thought*: The `setup.md` change looks weird with the repeated `theme={null}`.
+*Correction*: I shouldn&#39;t flag this as a major feature. It&#39;s likely a docs generator artifact. I will focus on the `@latest` npm change which is minor.
+*Focus*: The `skills.md` change about &#34;Unverified Git folders&#34; is significant for users working in worktrees or bare repos. I must highlight that.
+
+9.  **Final Output Generation**. (Proceed to generate Chinese response based on these points).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/llm-gateway.html" class="page-link">llm-gateway.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/setup.html" class="page-link">setup.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/third-party-integrations.html" class="page-link">third-party-integrations.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-in-microsoft-foundry.html" class="page-link">build-with-claude/claude-in-microsoft-foundry.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+25</span>
+                            <span class="removed">-25</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/programmatic-tool-calling.html" class="page-link">agents-and-tools/tool-use/programmatic-tool-calling.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">07:47 EST</div>
