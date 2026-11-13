@@ -118,9 +118,281 @@
 
         <header>
             <h1>Changes on 2026-11-12</h1>
-            <p class="meta">25 total changes in 3 runs</p>
+            <p class="meta">36 total changes in 4 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">23:42 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">## 文档变更分析
+
+### 1. 总体摘要
+本次文档更新重点优化了错误处理与回退机制的说明，明确了 Hook 的触发边界，修正了特定平台（如 Azure Foundry、Linux、Apple Terminal）的配置细节，并调整了插件加载失败时的模型切换逻辑。
+
+### 2. 关键主题
+*   **模型回退逻辑明确化**：重写了 Amazon Bedrock 和 Google Vertex AI 的“模型中途被禁用”说明，清晰列出了回退失效的具体场景（如固定版本、推理配置文件 ARN），并补充了通过 `/model` 命令手动恢复的操作指引。
+*   **Hook 触发行为界定**：明确指出 `ConfigChange` Hook 仅在直接编辑配置文件时触发，服务端托管设置（MDM/Console）、会话内保存的权限或模型变更均不会触发该 Hook。
+*   **容错性增强**：更改了 `PreModelSwitch` Hook 的行为——当插件或 Hook 加载失败时，不再阻止模型切换，允许开发者在排查插件问题的同时继续工作。
+*   **平台细节修正与清理**：
+    *   **Azure Foundry**：更新了 RBAC 角色名称（`Azure AI User` → `Foundry User`），并简化了自定义角色的文档引用。
+    *   **Linux/WSL2**：强调沙箱文件系统规则必须指向已存在的路径才有效。
+    *   **终端兼容性**：从支持 `Shift+Enter` 的终端列表中移除了 Apple Terminal。
+*   **监控参数规范**：明确了监控标签中 `=` 字符必须进行百分号编码（`%3D`）的规范。
+
+### 3. 影响级别：低至中
+*   **理由**：大部分变更为文档澄清和去除了过时或不准确的信息（如 Apple Terminal 支持）。唯一值得注意的行为变更是 `PreModelSwitch` Hook 的加载失败策略，该变更实际上是“放宽了限制”（允许切换而非阻止），而非破坏性变更。总体上降低了开发者的困惑并提升了系统的鲁棒性。
+
+### 4. 开发者行动项
+*   **审查 PreModelSwitch Hook 预期**：如果你的组织配置了模型切换 Hook，请注意现在的行为是“插件加载失败时允许切换”，而非报错阻塞。如需排查失败原因，使用 `/plugin` 查看错误标签或查看 Debug 日志。
+*   **Bedrock/Vertex 用户**：阅读更新后的“模型中途被禁用”章节，了解当模型不可用时如何使用 `/model` 快速切换到可用模型继续工作。
+*   **检查 ConfigChange Hook 逻辑**：确认你的安全审计逻辑没有依赖那些现在已知不会触发 Hook 的配置变更（如 MDM 下发的策略或会话内的 `/permissions` 保存）。
+*   **Foundry 用户**：更新你的 RBAC 相关文档或脚本，使用新的角色名称 `Foundry User`（旧称 `Azure AI User`）。
+*   **Linux 沙箱用户**：在配置 `sandbox.filesystem` 读写路径时，确保目标目录已预先创建，否则规则不生效。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Input:** A batch of 11 documentation diffs (Markdown files).
+    *   **Output Language:** Chinese.
+    *   **Format:** Markdown (Overall Summary, Key Themes, Impact Level, Action Items).
+    *   **Constraint:** Concise, insightful, developer-focused.
+
+2.  **Analyze the Diffs (Page by Page):**
+
+    *   **`amazon-bedrock.md` &amp; `google-vertex-ai.md` (Similar changes):**
+        *   *Change:* Rewrote the section &#34;When a model is disabled mid-session&#34;.
+        *   *Before:* Dense paragraphs explaining fallback logic (tier switching vs. specific version vs. inference profile ARN).
+        *   *After:* Clearer introduction. List of failure conditions (bullets). Added instruction on how to recover manually (`/model` command + `s`). Clarified that `403` maps to &#34;AWS auth failed&#34;.
+        *   *Theme:* Improved clarity on model fallback behavior and error recovery.
+
+    *   **`hooks.md`:**
+        *   *Change:* Refined the `ConfigChange` hook description.
+        *   *Before:* Mentioned server-managed settings, macOS prefs, Windows registry don&#39;t trigger hooks (mixed in the first paragraph).
+        *   *After:* Moved the exceptions (server-managed, session-specific saves like &#34;Yes don&#39;t ask again&#34;, `/permissions`, `/model`) into a clear list of &#34;Changes that take effect without running hooks&#34;. Added note about WSL inheriting settings.
+        *   *Theme:* Clarifying when `ConfigChange` hooks actually fire.
+
+    *   **`hooks-guide.md`:**
+        *   *Change:* Minor wording tweak (&#34;appends each change&#34; -&gt; &#34;appends each event&#34;).
+        *   *Theme:* Precision.
+
+    *   **`interactive-mode.md`:**
+        *   *Change 1:* Removed &#34;Apple Terminal&#34; from the list of terminals that natively support Shift+Enter.
+        *   *Change 2:* Removed the specific detail about maintaining vim mode/cursor position when toggling transcript viewer (`Ctrl+O`).
+        *   *Change 3:* Removed a note about &#34;Accepting a match... takes effect immediately, even while loading history&#34;.
+        *   *Theme:* Removing outdated or misleading UI behavior details. (Apple Terminal likely doesn&#39;t support the specific protocol, or the behavior described in other sections changed/is unreliable).
+
+    *   **`microsoft-foundry.md`:**
+        *   *Change:* Simplified RBAC configuration.
+        *   *Before:* Listed default roles (`Azure AI User`, `Cognitive Services User`) and provided a large JSON block for a custom role.
+        *   *After:* Mentions `Foundry User` (renamed from `Azure AI User`) and refers users to external docs for custom roles instead of showing a JSON snippet.
+        *   *Theme:* Simplification and acknowledging naming changes (Azure AI User -&gt; Foundry User).
+
+    *   **`model-config.md`:**
+        *   *Change:* Rewrote `PreModelSwitch` hook behavior on failure.
+        *   *Before:* If hooks couldn&#39;t be checked (e.g., plugin failed), Claude Code *refused* the switch.
+        *   *After:* If a plugin or its hooks fail to load, you can *still* switch models (failed hooks simply don&#39;t run). Only older versions (&lt; 2.1.323) refuse the switch. Added troubleshooting steps (`/plugin` Errors tab, debug logs).
+        *   *Theme:* Relaxed behavior: Failed plugins shouldn&#39;t block model switching anymore. Better troubleshooting guidance.
+
+    *   **`monitoring-usage.md`:**
+        *   *Change:* Added rule for `=` character in tag values.
+        *   *Before:* &#34;Special characters... must be percent-encoded&#34;.
+        *   *After:* &#34;...and an `=` inside a value must be written as `%3D`&#34;.
+        *   *Theme:* Specific encoding rule addition.
+
+    *   **`sandboxing.md`:**
+        *   *Change 1:* Linux/WSL2: Filesystem entries for non-existent paths have no effect (create path first).
+        *   *Change 2:* Refined `filesystem.disabled` precedence rules. Removed some explanatory fluff (e.g., &#34;so a checked-out project can&#39;t switch...&#34;).
+        *   *Theme:* Platform-specific sandbox behavior clarification and cleanup of documentation prose.
+
+    *   **`settings.md`:**
+        *   *Change:* Refined the description of when `ConfigChange` hooks run.
+        *   *Before:* &#34;not for managed settings that arrive...&#34;.
+        *   *After:* &#34;for direct edits to settings files...&#34;.
+        *   *Theme:* Consistency with `hooks.md` changes regarding hook triggers.
+
+    *   **`terminal-config.md`:**
+        *   *Change:* Removed &#34;Apple Terminal&#34; from the Shift+Enter support table.
+        *   *Theme:* Consistency with `interactive-mode.md`.
+
+3.  **Synthesize and Structure:**
+
+    *   **Overall Summary:** This batch primarily focuses on clarifying edge-case behaviors (model fallbacks, hooks, sandboxing), simplifying configuration instructions (Foundry RBAC), and correcting specific feature support details (Apple Terminal).
+    *   **Key Themes:**
+        *   **Fallback &amp; Recovery:** clearer docs on what happens when a model is lost during a session and how to recover manually.
+        *   **Hook Behavior Clarification:** Explicitly listing when `ConfigChange` hooks do *not* fire (managed settings, session saves).
+        *   **Resilience over Hard Blocking:** Changed logic so that failing to load a plugin/hook doesn&#39;t necessarily block model switching anymore (allows switching despite plugin errors).
+        *   **Platform/OS Specifics:** Linux/WSL2 sandbox path requirements, Azure role renaming.
+        *   **UI Corrections:** Removing Apple Terminal from &#34;Shift+Enter&#34; support list.
+
+    *   **Impact Level:** Low to Medium.
+        *   *Reasoning:* Most changes are documentation clarifications or removals of incorrect info. The behavior change regarding PreModelSwitch hooks (allowing switch on plugin failure) is the most significant functional change described, but it actually *relaxes* restrictions rather than breaking workflows. The sandbox path note on Linux is useful but minor.
+
+    *   **Action Items for Developers:**
+        *   If using `PreModelSwitch` hooks, update your understanding of failure behavior (switches proceed if hooks fail to load).
+        *   If on Bedrock/Vertex, review the updated &#34;model disabled&#34; workflow to understand manual recovery (`/model`).
+        *   If using Azure Foundry, note the role rename (`Azure AI User` -&gt; `Foundry User`).
+        *   If using `ConfigChange` hooks, verify expectations regarding managed settings triggers.
+        *   If using Apple Terminal, stop expecting `Shift+Enter` to work natively for newlines.
+
+4.  **Drafting the Response (in Chinese):**
+
+    *   *Summary:* 本次更新主要改进了文档的清晰度，重点阐述了模型降级回退机制、Hook 触发时机以及特定平台（如 Azure Foundry、Linux）的配置细节，同时移除了关于 Apple Terminal 终端支持的不准确描述。
+    *   *Themes:*
+        *   模型回退与恢复逻辑明确化
+        *   Hook 触发条件的精确界定
+        *   容错性调整：插件加载失败不再阻止模型切换
+        *   平台特定修正：Azure 角色重命名、Linux 沙箱路径、终端支持列表
+    *   *Impact:* Low to Medium. 文档为主，`PreModelSwitch` 行为变更属于松绑，非破坏性。
+    *   *Action Items:*
+        *   关注 `PreModelSwitch` 行为变更：插件加载失败时允许切换。
+        *   Bedrock/Vertex 用户：了解模型被禁用后的手动恢复方法 (`/model` + `s`)。
+        *   `ConfigChange` 用户：明确哪些配置变更不会触发 Hook。
+        *   Foundry 用户：注意角色名称更新。
+        *   Apple Terminal 用户：注意 `Shift+Enter` 支持情况。
+
+5.  **Final Polish:** Ensure markdown formatting is clean and tone is professional. (Self-correction: Ensure the distinction between &#34;AWS authentication failed&#34; message vs the actual 403 handling is captured succinctly).
+
+6.  **Final Output Generation** (matches the drafted Chinese response).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/amazon-bedrock.html" class="page-link">amazon-bedrock.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/google-vertex-ai.html" class="page-link">google-vertex-ai.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/interactive-mode.html" class="page-link">interactive-mode.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/microsoft-foundry.html" class="page-link">microsoft-foundry.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-10</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/model-config.html" class="page-link">model-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sandboxing.html" class="page-link">sandboxing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/settings.html" class="page-link">settings.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/terminal-config.html" class="page-link">terminal-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">18:05 EST</div>

@@ -349,11 +349,16 @@ For aliases, version prefixes, and `modelOverrides` entries, see [Pin models for
 
 ### When a model is disabled mid-session
 
-If your account loses access to the model your session is running on, for example because an administrator disables it in your Amazon Bedrock account, Claude Code switches the session to another model instead of failing each request, and shows `Switched to <fallback> because <model> is not available`. It tries the same models as the startup fallback: earlier versions of the same tier first and, for an Opus session with no Opus version available, the default Sonnet model.
+When Amazon Bedrock rejects your session's model as unavailable to your account, Claude Code switches your session to another model, and you can keep working. You see a message that starts with `Switched to <fallback> because <model> is not available`. This happens, for example, when an administrator disables the model or the newest model isn't yet available to your account.
 
-The switch applies only to a tier you haven't pinned, the same condition as the startup fallback. A session on a specific version you picked, or on an [application inference profile ARN](#map-each-model-version-to-an-inference-profile), keeps its model and, without a fallback model chain, the request fails instead. In [auto mode](https://code.claude.com/docs/en/permission-modes.md#enable-auto-mode-on-bedrock-agent-platform-or-foundry), Claude Code switches only to a model auto mode supports on Amazon Bedrock. If none of those models is available either, the request fails with [AWS authentication failed](https://code.claude.com/docs/en/errors.md#aws-authentication-failed) and a hint to enable the model.
+If you configured a [fallback model chain](https://code.claude.com/docs/en/model-config.md#fallback-model-chains), Claude Code switches to your configured fallback instead. Without a chain, the request fails in cases such as these:
 
-A [fallback model chain](https://code.claude.com/docs/en/model-config.md#fallback-model-chains) you configure replaces the tier switch: on these refusals Claude Code switches to your configured fallback instead. To have refused requests fail rather than switch, set [`CLAUDE_CODE_DISABLE_MODEL_ACCESS_FALLBACK=1`](https://code.claude.com/docs/en/env-vars). A fallback chain you configured still switches on these refusals; remove the chain as well if you want every refused request to fail.
+* Your session is on a pinned model, a specific version you picked, or an [application inference profile ARN](#map-each-model-version-to-an-inference-profile)
+* None of the [models Claude Code tries](#startup-model-checks) is available. In [auto mode](https://code.claude.com/docs/en/permission-modes.md#enable-auto-mode-on-bedrock-agent-platform-or-foundry), Claude Code only switches to a model auto mode supports on Amazon Bedrock.
+
+To keep working, run `/model` in the session and press `s` on a model your account can use, which leaves your default unchanged. A `403` shows as [AWS authentication failed](https://code.claude.com/docs/en/errors.md#aws-authentication-failed).
+
+To have rejected requests fail instead of switching, set [`CLAUDE_CODE_DISABLE_MODEL_ACCESS_FALLBACK=1`](https://code.claude.com/docs/en/env-vars). If you configured a fallback model chain, remove it as well, because Claude Code still moves to that fallback.
 
 ## Cross-region inference profile prefixes
 
