@@ -118,9 +118,227 @@
 
         <header>
             <h1>Changes on 2026-11-14</h1>
-            <p class="meta">13 total changes in 1 run</p>
+            <p class="meta">24 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">10:28 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># Claude Code 文档变更分析
+
+## 总体摘要
+此次文档更新主要聚焦于合规性限制（HIPAA/ZDR 对 Chrome 集成的影响）、模型配置优化（新增 Google Cloud 托管模型支持、1M 上下文窗口默认行为）、技能系统行为澄清，以及权限控制持久化选项的说明。
+
+## 关键主题
+
+- **合规性与访问控制**：明确了启用 Zero Data Retention (ZDR) 的组织无法在 Claude Code 中使用 Chrome 集成；新增 HIPAA/ZDR 专属章节
+- **模型平台支持**：新增 &#34;Claude Models on Google Cloud (Anthropic managed)&#34; 平台支持，更新默认模型版本（Sonnet 5.5、Haiku 5.5）
+- **上下文窗口行为**：Microsoft Foundry 无法识别部署名称时默认使用 1M 窗口（而非 200K），移除了硬编码默认值的描述
+- **权限控制持久化**：新增 `permissions.denyInsteadOfPrompting` 设置，用于跨会话拒绝权限提示，替代单次 `--permission-prompts none` 标志
+- **技能系统精细化**：阐明技能描述加载时机（仅在调用时加载）、同步技能的 shell 命令执行限制、以及技能名称匹配规则（必须为独立无标点单词）
+
+## 影响等级
+**中**
+
+此次更新主要是澄清和文档完善，未引入破坏性变更。但部分默认行为（如 Foundry 的 1M 窗口默认值）和技能加载行为的变化可能需要开发者调整配置和预期。
+
+## 开发者行动项
+
+- **ZDR 环境用户**：若组织启用了 Zero Data Retention，知晓 `/chrome` 在 Claude Code 中将不可用
+- **Microsoft Foundry 用户**：检查部署名称映射，若无法识别模型将默认使用 1M 窗口，可能需显式配置
+- **技能/命令维护者**：若需阻止 Claude 自动调用旧命令，添加 `disable-model-invocation: true` 到 frontmatter
+- **自动化脚本**：若需持久化无提示运行，使用 `permissions.denyInsteadOfPrompting` 设置替代单次标志
+- **Google Cloud 用户**：确认使用的是 Agent Platform（Google 管理）还是 Anthropic 托管版本，参考对应文档</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">让我分析这11个文档页面的变更。
+
+**Page 1: chrome.md**
+- 变更：将 HIPAA 和 Zero Data Retention 相关的 Chrome 集成限制信息移到了一个新的独立章节 &#34;Chrome availability with HIPAA or zero data retention&#34;
+- 新增：明确说明如果组织启用了 ZDR（零数据保留），Chrome 集成在 Claude Code 中不可用
+- 影响：开发者需要了解在特定合规环境下 Chrome 集成的限制
+
+**Page 2: google-vertex-ai.md**
+- 变更：添加了一个 NOTE，区分 Google Cloud&#39;s Agent Platform（Google 管理）和 Claude Models on Google Cloud（Anthropic 管理）
+- 影响：澄清了两种不同的 Google Cloud 集成方式，避免混淆
+
+**Page 3: headless.md**
+- 变更：修正了关于后台子代理命令的描述
+- 新增：关于 `--permission-prompts none` 标志的持久性说明，推荐使用 `permissions.denyInsteadOfPrompting` 设置
+- 影响：开发者可以更好地理解如何在无交互运行时处理权限提示
+
+**Page 4: mcp.md**
+- 变更：修正了停止 MCP 任务时重连服务器的描述，使其更清晰
+- 影响：轻微改进，让开发者理解如何正确停止后台任务
+
+**Page 5: microsoft-foundry.md**
+
+
+- 变更：优化了 1M token 上下文窗口的描述，添加了 NOTE 说明如何让 Claude Code 识别模型
+- 新增：明确指出如果无法匹配部署名称到模型，默认使用 1M 窗口
+- 影响：开发者需要确保正确配置部署名称以获得 1M 上下文
+
+我发现这次文档变更主要关注集成细节和配置优化。文档团队致力于提供更清晰、更精确的技术指导，帮助开发者更好地理解和使用不同的集成方式。
+
+关键更新包括模型兼容性、权限管理和上下文窗口配置。特别是在 Google Cloud 和 Microsoft Foundry 集成上，文档提供了更详细的模型识别和配置建议。
+
+对于跨会话的权限控制，系统引入了 `permissions.denyInsteadOfPrompting` 设置，并新增了对 Sonnet 5.5 模型的支持。远程控制功能也得到增强，支持交互式终端会话的设备响应。
+
+服务器管理设置现在在特定条件下（如 Claude Tag 或自托管运行器）将不被传递，这提供了更精细的配置控制。
+
+默认模型解析规则保持不变，但在 v2.1.280 版本后有了新的规范。
+
+自动模式支持方面，Claude Code 将自动跳过不兼容的模型，确保平滑的用户体验。
+
+我会继续完善配置细节，为开发者提供更清晰的技术指导。
+
+通过明确环境变量覆盖规则和简化自定义命令到技能的迁移流程，可以显著降低使用复杂性。技能上下文和模型调用控制的细化将帮助开发者更精确地管理 AI 交互。
+
+这次更新虽然是渐进性的改进，但为开发者提供了更多灵活性和控制力。
+
+对于零数据保留环境的开发者，需要特别关注 ZDR 模式下的功能限制。同时，技能更新和模型配置变更也要求相应地调整实践。
+
+主要行动包括检查 `claude-opus-4` 模型的自动解析，以及根据会话类型优化技能描述加载策略。对于 Google Cloud 用户，建议仔细确认使用的是正确的服务类型。</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/chrome.html" class="page-link">chrome.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/google-vertex-ai.html" class="page-link">google-vertex-ai.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/headless.html" class="page-link">headless.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/microsoft-foundry.html" class="page-link">microsoft-foundry.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/model-config.html" class="page-link">model-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+23</span>
+                            <span class="removed">-11</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/skills.html" class="page-link">skills.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+12</span>
+                            <span class="removed">-10</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/slash-commands.html" class="page-link">slash-commands.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+12</span>
+                            <span class="removed">-10</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/statusline.html" class="page-link">statusline.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/third-party-integrations.html" class="page-link">third-party-integrations.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">03:28 EST</div>
