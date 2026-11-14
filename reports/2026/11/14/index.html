@@ -118,9 +118,205 @@
 
         <header>
             <h1>Changes on 2026-11-14</h1>
-            <p class="meta">24 total changes in 2 runs</p>
+            <p class="meta">32 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">15:18 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更分析
+
+## 整体摘要
+本次更新主要聚焦于 Hooks 行为的澄清与精确化、Jupyter Notebook 编辑支持，以及多云模型配置的回退机制说明。文档质量得到提升，修复了可能导致开发者误用的描述。
+
+## 关键主题
+- **Hooks 行为精确化**：澄清了 JSON 解析规则、`continue` 字段不会阻止 `PreToolUse`、以及 `PostToolUse` 仅能重写成功调用结果等关键细节
+- **Jupyter Notebook 支持**：新增了 `NotebookEdit` 工具的使用说明，包括编辑前需手动保存及无需重启内核等行为特性
+- **模型配置回退机制**：明确了 Amazon Bedrock、Google Cloud 和 Microsoft Foundry 在默认模型不可用时的回退行为差异
+- **措辞一致性**：统一了 Bash 命令匹配的描述（从 &#34;determine&#34; 改为 &#34;split&#34;），并修正了多处示例的准确性
+
+## 影响级别
+**Medium**（中等）
+
+**理由**：
+1. Hooks 的行为澄清（如 `continue` 字段不会阻止工具调用）可能影响现有 Hook 配置的逻辑正确性
+2. Jupyter Notebook 支持属于新功能说明，对工作流有实际影响
+3. 其余主要为文档精确度提升，虽不涉及行为变更，但对开发者理解和调试至关重要
+
+## 开发者行动项
+- 检查依赖 `continue: false` 来阻止 `PreToolUse` 的 Hook，确保同时返回 `permissionDecision: &#34;deny&#34;`
+- 编辑 Jupyter Notebook 前确保手动保存，因为 `autosave` 不会在 `NotebookEdit` 前触发
+- 在 Microsoft Foundry 部署中固定特定模型版本，避免因默认模型不可用导致请求失败或静默切换
+- 审查依赖 `PostToolUse` 重写结果的逻辑，确保仅针对成功调用，失败调用需通过 `PostToolUseFailure` 处理
+- 若 Hooks 脚本路径依赖项目根目录，更新配置使用 `&#34;${CLAUDE_PROJECT_DIR}&#34;` 变量</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">用户希望我分析一批文档变更，并提供简洁、深刻的分析。我需要从开发者的角度分析这些更改。
+
+让我逐个查看这些页面：
+
+1. **hooks.md**（+10/-11行）：
+   - &#34;destructive shell commands&#34; -&gt; &#34;rm -rf commands&#34;（更具体的示例）
+   - &#34;determine which commands the Bash input runs&#34; -&gt; &#34;split the Bash input into subcommands&#34;（更精确的技术描述）
+   - 命令脚本路径更新，使用 `${CLAUDE_PROJECT_DIR}`
+   - 关于 JSON 解析输出的澄清， stdout 解析规则的详细解释
+   - `continue` 字段的行为澄清（它不会阻止 PreToolUse）
+   - `suppressOutput` 字段已过时/无影响
+   - PostToolUse 重写仅在成功调用时有效，PostToolUseFailure 无法重写结果
+
+2. **hooks-guide.md**（+8/-12行）：
+   - 简化了退出码行为描述，改为引用主文档
+   - &#34;Log every Bash command&#34; -&gt; &#34;Log successful Bash commands&#34;（精确度修正）
+   - 与 hooks.md 类似的关于 Bash 子命令分割的措辞变更
+   - 简化了非阻塞错误行为的描述
+
+3. **interactive-mode.md**（+4/-2行）：
+   - 阐明了移除不可见字符时的行为
+   - 增加了关于两种不同通知类型的详细信息
+
+4. **microsoft-foundry.md**（+2/-1行）：
+   - 阐明了模型版本固定
+   - 增加了关于当默认模型不可用时会发生什么的细节（切换到旧模型或失败）
+
+5. **model-config.md**（+3/-1行）：
+   - 阐明了不同提供商（Bedrock、Google Cloud、Microsoft Foundry）的模型回退行为
+
+6. **monitoring-usage.md**（+2/-0行）：
+   - 增加了关于第三方插件 `$.model` 调用的 `marketplace.name` 属性的细节
+
+7. **terminal-config.md**（+1/-1行）：
+   - 关于不可见字符清理的行为进行了小幅澄清
+
+8. **vs-code.md**（+9/-1行）：
+   - 增加了 Jupyter notebook 支持文档
+   - 阐明了 NotebookEdit 行为（重写源码，清除输出，无需内核重启）
+   - autosave 设置的澄清
+   - 增加了一个触发新建会话的条件
+
+总体观察：
+- 大部分更改都是文档澄清和精确度提升
+- hooks.md 中有重要的行为澄清（`continue` 字段，JSON 解析，PostToolUse 重写规则）
+- 新增了 Jupyter notebook 支持（新功能）
+- 模型提供程序行为澄清
+
+让我用中文按要求的格式进行分析。
+
+**影响水平**：中等
+- 大多数更改都是文档精确度提升（低影响）
+- Jupyter notebook 支持（中等影响 - 新功能）
+- 某些 Hooks 行为的澄清可能对开发人员很重要（中等影响）
+
+**需要开发者采取的行动**：
+- 检查依赖 `continue: false` 来阻止 PreToolUse 的 hooks
+- 对于 NotebookEdit，在编辑前保存 Jupyter notebooks
+- 如果依赖特定的回退行为，请审查模型配置</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+10</span>
+                            <span class="removed">-11</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks-guide.html" class="page-link">hooks-guide.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-12</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/interactive-mode.html" class="page-link">interactive-mode.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/microsoft-foundry.html" class="page-link">microsoft-foundry.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/model-config.html" class="page-link">model-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/terminal-config.html" class="page-link">terminal-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/vs-code.html" class="page-link">vs-code.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+9</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">10:28 EST</div>
