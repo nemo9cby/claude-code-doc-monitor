@@ -118,9 +118,389 @@
 
         <header>
             <h1>Changes on 2026-11-17</h1>
-            <p class="meta">3 total changes in 1 run</p>
+            <p class="meta">21 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">14:31 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 文档变更分析
+
+#### 1. 总体摘要
+本次更新涉及 18 个页面，核心内容包括所有主要语言 SDK 的版本升级、身份验证凭证过期时回退机制的重要澄清，以及插件清单对版本兼容性支持的增强。
+
+#### 2. 关键主题
+*   **SDK 版本全面升级**：Java、Python、TypeScript、C#、Go、PHP 及 Ruby SDK 均发布了新版本（例如 Java 升级至 3.10.0），建议开发者尽快更新依赖。
+*   **身份验证与凭证回退逻辑**：重写了 IAM 中关于登录过期的文档。明确指出当主凭证（如 claude.ai 登录）过期时，如果存在其他已保存的凭证（如 `ant auth login` profile），请求会自动切换使用备用凭证，这直接提升了长时间运行会话的容错能力。
+*   **插件清单增强**：插件开发者现可在 `manifest.json` 中添加 `engines` 字段，指定兼容的 Claude Code 版本范围，防止插件在不兼容的版本上运行。
+*   **行为澄清与文案优化**：
+    *   阐明了在非交互模式下（`claude -p`），MCP 资源提及保持纯文本，不会自动解析。
+    *   修正了 `--allowedTools` 前缀匹配的说明（例如 `Bash(git diff *)`）。
+    *   调整了 Sub-agent Memory 的描述建议，强调存储“用户偏好和修正”而非单纯的“架构决策”。
+*   **新增 Beta Headers**：API 文档中添加了 `&#34;user-profiles-billing-2026-10-01&#34;` 标头。
+
+#### 3. 影响等级：Medium (中等)
+*   **理由**：虽然大部分变更为文案润色，但 SDK 的全面升级属于常规维护必需项。身份验证回退行为的澄清对生产环境中运行长时间任务（如 Agent 视图会话）的稳定性有直接影响。插件的 `engines` 字段虽非破坏性变更，但对未来的插件兼容性管理至关重要。
+
+#### 4. 开发者行动项
+*   **更新依赖**：检查并更新项目中所有 Anthropic SDK 至最新版本（Java 3.10.0, Python 2.10.0 等）。
+*   **审查身份验证配置**：如果你运行长时间的后台任务，确认配置了备用凭证（如 `ant auth login`），以便在主登录过期时无缝切换。
+*   **更新插件清单**：插件作者应考虑在 manifest 中添加 `engines` 字段，明确支持的 Claude Code 版本范围，以利用新的版本检查机制。
+*   **注意非交互模式限制**：在使用脚本或 CI 管道通过 `claude -p` 调用时，注意 MCP 资源引用不会自动展开，需调整代码逻辑。
+*   **检查权限规则**：若使用了复杂的 `--allowedTools` 通配符规则，请根据新文档确认前缀匹配行为是否符合预期。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Format:** Markdown.
+    *   **Content:** Summary of 18 changed pages (diffs provided).
+    *   **Focus:** What matters to developers (concise, insightful).
+    *   **Language:** Chinese.
+
+2.  **Review the Diffs (Page by Page):**
+
+    *   `cli-reference.md`:
+        *   `auto-mode defaults`: Clarified that rules are &#34;built into Claude Code&#34; (slight wording tweak).
+        *   `--bare`: Clarified &#34;skip auto-discovery of your hooks and of...&#34; (added &#34;your&#34; and rephrased for clarity).
+
+    *   `common-workflows.md`:
+        *   MCP resources: Removed a sentence about fetching data using @server:resource format (consolidation?).
+        *   Pipe scripts: Removed &#34;Stdin and stdout work like any Unix tool&#34; (simplification).
+
+    *   `data-usage.md`:
+        *   Microsoft Foundry: Refined data processing description for Azure deployments (referencing a specific section instead of restating the details).
+
+    *   `headless.md`:
+        *   Pipe data: Removed &#34;like any other command-line tool&#34; (consistency with common-workflows).
+        *   `--allowedTools`: Clarified prefix matching behavior (`Bash(git diff *)`).
+
+    *   `hooks.md`:
+        *   HTTP hook allowlists: Renamed section to &#34;Limit HTTP hooks&#34;. Clarified that `allowedHttpHookUrls` works across merged lists. Refined explanation of where to set these settings (managed vs. any settings file).
+
+    *   `iam.md`:
+        *   Login expiration: Major restructure.
+            *   Clarified the 3-day warning behavior.
+            *   New section &#34;After the login expires&#34;.
+            *   New logic: Requests might *fail* OR *use another credential* (e.g., `ant auth login` profile) if available. This is a behavior change/clarification regarding fallback credentials.
+            *   Updated `/status` output description.
+            *   Refined behavior for unattended sessions (Remote Control disconnects, Agent View stops if *no* other credential exists).
+
+    *   `mcp.md`:
+        *   Tool output: Simplified the tip about limits (refers to a specific section).
+        *   Output warning: Clarified *where* the warning appears (transcript viewer).
+        *   Resources: Added a note that with `claude -p`, resource mentions stay plain text (meaning they don&#39;t auto-resolve/expand in non-interactive mode?).
+
+    *   `memory.md`:
+        *   Glob syntax: Moved/clarified the explanation of escaping `[`. Moved it to before the brace expansion section for better flow. Updated the escape example slightly.
+
+    *   `monitoring-usage.md`:
+        *   `classifier_category`: Refined the condition for when this attribute appears (emphasizes &#34;Claude Code recognizes that name&#34;).
+        *   `classifier_category` (second occurrence): Updated text to reference the specific conditions.
+
+    *   `plugins-reference.md`:
+        *   `engines`: Added a new field `engines` for plugin manifests to specify compatible Claude Code versions (semver range). Requires v2.1.323+. Important for plugin authors.
+
+    *   `sub-agents.md`:
+        *   `memory`: Refined description of what to store. Changed &#34;codebase patterns, debugging insights, and architectural decisions&#34; to &#34;your preferences, your corrections, and project decisions&#34;. Updated the example instruction to focus on &#34;review preferences and corrections&#34;.
+        *   Instructions: Updated example text to focus on &#34;team&#39;s preferences, project constraints, and reasons behind decisions&#34;.
+
+    *   `troubleshooting.md`:
+        *   Safe mode: Removed &#34;It disables all customizations for the session&#34; (simplification).
+
+    *   `get-started.md`, `build-with-claude/claude-on-vertex-ai.md`, `build-with-claude/claude-in-microsoft-foundry.md`, `agents-and-tools/mcp-connector.md`:
+        *   All updated Java SDK dependency version from `3.9.0` to `3.10.0`.
+
+    *   `api/client-sdks.md`:
+        *   Updated version table:
+            *   Python: 2.9.0 -&gt; 2.10.0
+            *   TypeScript: 1.9.0 -&gt; 1.10.0
+            *   C#: 13.9.0 -&gt; 13.10.0
+            *   Go: 2.10.0 -&gt; 2.11.0
+            *   Java: 3.9.0 -&gt; 3.10.0
+            *   PHP: 1.9.0 -&gt; 1.10.0
+            *   Ruby: 2.9.0 -&gt; 2.10.0
+
+    *   `api/beta/files/upload.md`:
+        *   Added `&#34;user-profiles-billing-2026-10-01&#34;` to the list of beta headers.
+
+3.  **Synthesize Themes:**
+
+    *   **SDK Updates:** Massive batch update for SDKs (Java, Python, TS, C#, Go, PHP, Ruby). This is the most visible change.
+    *   **Behavior Clarifications (IAM/Security):** Significant reworking of how login expiration works, specifically the fallback to other credentials (like `ant auth login`) and how unattended sessions handle this.
+    *   **Plugin Development:** Added `engines` field for version compatibility.
+    *   **Sub-agents &amp; Memory:** Shifted focus of &#34;memory&#34; examples from &#34;architectural decisions&#34; to &#34;user preferences/corrections&#34;.
+    *   **Documentation Refinement:** General tightening of wording, removing redundant analogies (&#34;like any other tool&#34;), and fixing/improving explanations of complex features (MCP resources, hooks, `--allowedTools`).
+
+4.  **Determine Impact Level:**
+
+    *   *Low to Medium.*
+    *   SDK updates are standard maintenance.
+    *   The IAM change is a behavioral clarification (Credential fallback) which is important for users managing multiple auth methods, but likely a correction of existing behavior or minor feature addition rather than a breaking change.
+    *   Plugin `engines` field is additive.
+    *   Most other changes are copy edits.
+
+5.  **Drafting the Response (Internal Monologue/Translation):**
+
+    *   *Summary:* 18 pages updated. Mainly SDK version bumps (Java 3.10.0, etc.), clarifications on authentication credential fallbacks during expiration, and plugin manifest enhancements.
+    *   *Themes:*
+        *   SDK Updates: Across all languages.
+        *   Auth/Expiration: Better handling of multiple credentials when one expires.
+        *   Plugin Ecosystem: Versioning support.
+        *   Doc Polish: Wording improvements.
+    *   *Impact:* Medium. Why? SDK updates are routine but necessary. The auth fallback logic is a critical behavioral detail for production users. The plugin field is a new requirement for future compatibility.
+    *   *Action Items:*
+        *   Update SDK versions.
+        *   Check IAM settings if you rely on credential fallback.
+        *   Plugin authors: update manifest.
+
+6.  **Final Polish (Chinese):**
+
+    *   **Summary:** 本次更新涵盖 18 个页面，主要包括 SDK 版本的全面升级、身份验证凭证过期处理机制的澄清，以及插件清单文件的增强。
+    *   **Themes:**
+        *   SDK 版本升级.
+        *   身份验证与凭证回退.
+        *   插件清单支持版本约束 (`engines` 字段).
+        *   文案与逻辑澄清.
+    *   **Impact:** Medium. (Reason: SDK updates are standard maintenance, but the clarification on auth fallback is critical for production stability. The plugin `engines` field is a non-breaking but necessary addition for forward compatibility.)
+    *   **Action Items:**
+        *   Upgrade SDK dependencies.
+        *   Review auth behavior for long-running sessions.
+        *   Update plugin manifests.
+
+7.  **Refining the Output Structure:** Ensure it matches the requested Markdown format.
+
+    *   *Self-Correction during drafting:* The diff on `iam.md` is actually quite significant regarding *behavior*. It explicitly says requests *can use another credential* if the current one expires. This prevents downtime if a backup credential is configured. I should highlight this.
+
+8.  **Final Output Generation** (Translating thoughts to the final markdown response).
+
+    *   *Check:* Did I catch the MCP resource mention change? Yes, plain text in non-interactive mode. That&#39;s a &#34;gotcha&#34; fix.
+    *   *Check:* Did I catch the memory change? Yes, focus on &#34;preferences/corrections&#34;.
+
+    *Proceeding to generate the response.*</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/cli-reference.html" class="page-link">cli-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/common-workflows.html" class="page-link">common-workflows.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/data-usage.html" class="page-link">data-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/headless.html" class="page-link">headless.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/iam.html" class="page-link">iam.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/memory.html" class="page-link">memory.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+6</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/troubleshooting.html" class="page-link">troubleshooting.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/get-started.html" class="page-link">get-started.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/beta/files/upload.html" class="page-link">api/beta/files/upload.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/client-sdks.html" class="page-link">api/client-sdks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            <span class="removed">-7</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-on-vertex-ai.html" class="page-link">build-with-claude/claude-on-vertex-ai.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-in-microsoft-foundry.html" class="page-link">build-with-claude/claude-in-microsoft-foundry.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/mcp-connector.html" class="page-link">agents-and-tools/mcp-connector.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">05:01 EST</div>
