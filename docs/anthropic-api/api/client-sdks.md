@@ -67,7 +67,7 @@ Each major version of a client SDK sends one [API version](https://platform.clau
 | Go         | `2.10.0`       | [`github.com/anthropics/anthropic-sdk-go/v2`](https://pkg.go.dev/github.com/anthropics/anthropic-sdk-go/v2) |
 | Java       | `3.9.0`        | [`com.anthropic:anthropic-java`](https://central.sonatype.com/artifact/com.anthropic/anthropic-java)        |
 | PHP        | `1.9.0`        | [`anthropic-ai/sdk`](https://packagist.org/packages/anthropic-ai/sdk)                                       |
-| Ruby       | `2.8.0`        | [`anthropic` on RubyGems](https://rubygems.org/gems/anthropic)                                              |
+| Ruby       | `2.9.0`        | [`anthropic` on RubyGems](https://rubygems.org/gems/anthropic)                                              |
 
 The same versions are available as JSON at `https://platform.claude.com/docs/sdk-versions.json`.
 
