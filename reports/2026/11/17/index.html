@@ -118,9 +118,209 @@
 
         <header>
             <h1>Changes on 2026-11-17</h1>
-            <p class="meta">21 total changes in 2 runs</p>
+            <p class="meta">28 total changes in 3 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">20:59 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### 1. Overall Summary (整体概要)
+本次文档更新将 CLI 版本提升至 **v2.11.0 (Changelog v2.1.327)**，核心在于修复大量影响稳定性的 Bug（如会话数据丢失、远程控制误删文件、MCP 配置损坏等），并明确了权限拒绝和监控日志中“策略”与“规则”的术语区分。
+
+### 2. Key Themes (核心主题)
+*   **稳定性与数据安全修复:** 修复了远程控制模式可能删除 `.env` 等文件、会话恢复时消息丢失、MCP 配置被意外删除等严重问题。
+*   **权限与监控术语演进:** 在 `hooks.md` 和 `monitoring-usage.md` 中，将分类器返回的结果正式扩展为“策略”或“规则”，并细化了拒绝原因的描述。
+*   **企业级管理增强:** 新增了组织版本限制 (`requiredMaximumVersion`) 的故障排查指南，以及通过 `attributionProject` 设置计费组的功能。
+*   **版本同步:** 更新了快速开始文档和 SDK 表格中的 CLI 版本号。
+
+### 3. Impact Level (影响级别: High)
+**理由:** 虽然文档改动看似主要是版本号和术语调整，但 CHANGELOG 揭示了大量针对**数据丢失、应用崩溃和工作流中断**的关键修复（例如：修复了远程控制删除 git-ignored 文件、修复了会话恢复时的消息回滚问题、修复了代理配置导致的启动失败）。对于生产环境或长期运行的会话，此次升级至关重要。
+
+### 4. Action Items for Developers (开发者行动建议)
+*   **升级 CLI:** 立即升级至 `v2.11.0`，以避免会话数据丢失和远程控制文件删除等已知 Bug。
+*   **更新日志解析:** 如果依赖 `classifier_category` 或 `reason` 字段进行监控或审计，请更新解析逻辑以支持新增的“策略”类型。
+*   **检查组织设置:** 如果遇到“版本超过组织限制”的错误，需联系管理员调整 `requiredMaximumVersion`。
+*   **审查 MCP 配置:** 之前使用 `claude mcp add/remove` 可能导致配置文件键值丢失，建议检查 `.mcp.json` 的完整性。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer.
+    *   **Task:** Analyze documentation changes as a single batch.
+    *   **Format:** Markdown, concise, insightful analysis in Chinese.
+    *   **Input:** 7 pages of diffs (`desktop.md`, `hooks.md`, `monitoring-usage.md`, `setup.md`, `get-started.md`, `api/client-sdks.md`, `CHANGELOG.md.md`).
+    *   **Output Structure:**
+        1.  Overall Summary (1-2 sentences).
+        2.  Key Themes (bullets).
+        3.  Impact Level (Low/Medium/High/Breaking) with reasoning.
+        4.  Action Items for developers (max 5 bullets).
+
+2.  **Analyze the Diffs Page by Page:**
+
+    *   **`desktop.md`:** Added troubleshooting for &#34;Claude Code is newer than the maximum version allowed&#34;. This relates to managed settings (`requiredMaximumVersion`).
+    *   **`hooks.md`:** Updated the `reason` field documentation for permission denials. It now mentions &#34;policies&#34; explicitly alongside rules, and clarifies different scenarios (no verdict, classifier unavailable, server checks failing).
+    *   **`monitoring-usage.md`:** Updated `classifier_category` attribute documentation. It now includes &#34;policy&#34; alongside &#34;built-in rule&#34;. Clarified versioning history (v2.1.323 added policy support).
+    *   **`setup.md`:**
+        *   Weird change: Added multiple `theme={null}` to code blocks. Likely a doc generator artifact or linting fix, functionally irrelevant.
+        *   Updated version constraints text regarding `requiredMinimumVersion` and `requiredMaximumVersion` (removed a redundant sentence about updates respecting the ceiling).
+    *   **`get-started.md`:** Updated example code `VERSION=2.10.0` to `VERSION=2.11.0`.
+    *   **`api/client-sdks.md`:** Updated `ant CLI` version from `2.10.0` to `2.11.0`.
+    *   **`CHANGELOG.md.md`:** This is the gold mine. Version `2.1.327`.
+        *   *Features:* Confirmation before GitHub app install, stdin JSON for MCP config, `/status` improvements, billing group attribution, TUI classic mode.
+        *   *Fixes:* Remote Control worktree deletion bug, self-hosted runners deleting `GIT_CONFIG_GLOBAL` dir, MCP config corruption, export overwriting, background session persistence, auto mode PowerShell wildcard fixes, nested `claude` token handling, session resume crashes, compaction bugs, proxy handling (`https_proxy`), remote MCP reconnection logic, etc.
+        *   *Crucial Fixes:* Fixed crashes, data loss (session messages), and permission handling.
+
+3.  **Synthesize the Analysis:**
+
+    *   **Summary:** The update bumps versions to 2.11.0/2.1.327, focusing heavily on stability (fixing crashes, session loss, and remote control issues) and refining permission/monitoring terminology to include &#34;policies.&#34;
+    *   **Key Themes:**
+        *   *Version Bump &amp; Updates:* CLI version updated to 2.11.0.
+        *   *Policy Terminology:* Documentation now consistently distinguishes between &#34;policies&#34; and &#34;rules&#34; in the context of classifiers and permission denials.
+        *   *Enterprise/Managed Settings:* Added troubleshooting for version limits (`requiredMaximumVersion`) and billing group attribution.
+        *   *Stability &amp; Bug Fixes:* Extensive fixes in the changelog regarding session resume, remote control, MCP configuration, and proxy handling.
+        *   *UX Improvements:* `/status` enhancements and `/tui classic` alias.
+    *   **Impact Level:**
+        *   *Medium to High.* Why? The changelog lists numerous fixes for crashes, data loss (deleted files/lost messages), and broken MCP configurations. These are critical for developer workflow stability. The terminology changes in hooks/monitoring might affect monitoring integrations.
+    *   **Action Items:**
+        *   Update CLI version to 2.11.0.
+        *   Check monitoring/hook logic to handle the new &#34;policy&#34; classification in denials.
+        *   Review managed settings if encountering version errors.
+        *   Be aware of the fixes for remote control and MCP config to avoid potential data loss in previous versions.
+
+4.  **Drafting the Response (in Chinese):**
+
+    *   *Summary:* 本次更新将 CLI 版本提升至 2.11.0，主要修复了大量涉及会话恢复、远程控制和 MCP 配置的稳定性问题，并细化了权限拒绝（Denials）相关的文档术语，明确区分了“策略”与“规则”。
+    *   *Key Themes:*
+        *   **稳定性增强:** 修复了会话恢复时的数据丢失、远程控制模式删除文件、MCP 配置损坏等多个关键 Bug。
+        *   **术语规范化:** 在权限拒绝和监控日志中，引入了“策略”概念，明确区分策略与内置规则的分类。
+        *   **企业级管理:** 新增了组织版本限制（`requiredMaximumVersion`）的错误排查指引及计费组归档支持。
+        *   **版本升级:** CLI 及相关文档同步更新至 v2.11.0。
+    *   *Impact Level:* **High** (High reasoning: While &#34;features&#34; seem mild, the changelog reveals extensive fixes for crashes and data loss scenarios, such as remote control deleting git-ignored files and session message corruption. Upgrading is strongly recommended).
+    *   *Action Items:*
+        *   升级 CLI 至 v2.11.0 以获得关键 Bug 修复。
+        *   若使用监控或 Hooks，更新解析逻辑以适应新增的“策略”分类。
+        *   检查组织管理的版本限制设置，避免因版本过低导致启动失败。
+
+5.  **Refining the Output:**
+
+    *   Make it punchy. &#34;World-class programmer&#34; tone.
+    *   Ensure the &#34;Impact&#34; justification is solid. The &#34;High&#34; rating is justified by the data loss/corruption fixes in the changelog.
+    *   Formatting: Markdown.
+
+6.  **Final Polish (Self-Correction during drafting):**
+    *   *Correction:* The `setup.md` diff with `theme={null}` repeats looks like noise. I should ignore that or mention it briefly as a doc artifact fix, but it doesn&#39;t impact code. I&#39;ll focus on the version constraint text change there.
+    *   *Correction:* The `monitoring-usage.md` change mentions v2.1.323 for policy support, but the current changelog is v2.1.327. This implies the docs are catching up or clarifying recent changes. It&#39;s important for developers parsing logs.
+
+7.  **Final Output Generation** (similar to the drafted Chinese text).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/desktop.html" class="page-link">desktop.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/setup.html" class="page-link">setup.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/get-started.html" class="page-link">get-started.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/client-sdks.html" class="page-link">api/client-sdks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code GitHub</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code-github/CHANGELOG.md.html" class="page-link">CHANGELOG.md.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+173</span>
+                            
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">14:31 EST</div>
