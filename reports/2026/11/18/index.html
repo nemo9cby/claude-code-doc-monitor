@@ -118,9 +118,503 @@
 
         <header>
             <h1>Changes on 2026-11-18</h1>
-            <p class="meta">16 total changes in 1 run</p>
+            <p class="meta">48 total changes in 2 runs</p>
         </header>
 
+        
+        <div class="batch">
+            <div class="batch-header">19:55 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content">### Overall Summary
+本次更新主要集中在 API 错误处理的详细化、Google Cloud 平台的功能扩展，以及 CLI、IAM 和配置管理的优化。核心变化包括新增大量具体的 API 错误码、移除了自动压缩窗口的硬性上限，并完善了 Claude apps gateway 的登录与遥测支持。
+
+### Key Themes
+
+*   **API 错误处理增强**：为 Messages API、Batches API 和 Files Upload API 新增了大量详细的错误码（如 `compaction_*`, `thread_*`, `cmek_key_*` 等），取代了通用的 HTTP 错误，极大地提升了调试精度。
+*   **平台支持扩展**：Context Editing、Citations、Web Search Results、Bash 工具和 Text Editor 工具现已正式支持 **Claude Models on Google Cloud (Anthropic managed)** 平台。
+*   **配置限制放宽**：移除了 `autoCompactWindow` 参数的 1M tokens 上限限制，现在仅要求 `100000` 或更多；非交互模式（如 Desktop/SDK）下的 `HTTPS_PROXY` 配置变得更宽容（v2.1.327+）。
+*   **认证与可观测性改进**：新增 `OTEL_RESOURCE_INCLUDE_HOST` 环境变量以便在遥测中识别主机（v2.1.326+）；明确了 Gateway 登录在 CLI 和 VS Code 中的具体流程及版本要求；细化了 MCP 服务器的重连与重试逻辑。
+
+### Impact Level
+**Medium**
+
+**Reasoning:**
+1.  **调试体验提升**：新增的 API 错误码对开发者诊断复杂问题（如压缩失败、线程状态错误、CMEK 密钥问题）至关重要，虽然不破坏代码，但改变了错误处理逻辑。
+2.  **行为变更**：移除 `autoCompactWindow` 上限属于行为变更，允许更大的上下文压缩窗口，可能影响资源使用策略。
+3.  **功能扩展**：对 Google Cloud (Anthropic managed) 的支持扩大了功能覆盖范围，属于增量功能更新。
+
+### Action Items for Developers
+
+1.  **更新错误处理逻辑**：检查您的 API 集成代码，利用新文档中详细的 `error.details.error_code`（如 `compaction_block_misplaced` 或 `thread_unsupported_request`）来替代通用的 HTTP 状态码处理。
+2.  **利用新的配置灵活性**：如果您之前受限于 1M tokens 的自动压缩窗口上限，现在可以调整配置以支持更大的上下文范围。
+3.  **启用主机识别遥测**：如果您需要区分不同机器的运行会话，请在环境变量中设置 `OTEL_RESOURCE_INCLUDE_HOST=1`（需 v2.1.326+）。
+4.  **审查凭证获取顺序**：如果您使用 Workload Identity Federation (WIF) 或复杂的 IAM 配置，请查阅 `iam.md` 中更新的凭证源优先级说明（特别是 API Key 与 Profile 的交互）。
+5.  **更新 VS Code 扩展文档**：如果您的团队使用 Claude apps gateway，请指导用户在 VS Code 中（v2.1.316+）使用新的“Sign in to Cloud gateway”流程，而不是终端命令。</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">1.  **Analyze the Request:**
+    *   **Role:** World-class programmer analyzing documentation changes.
+    *   **Task:** Analyze a batch of 32 documentation pages (though the prompt provides diffs for only about 20 distinct files, some are truncated like `overview.md`, `text-generation.md`).
+    *   **Output Format:** Concise, insightful analysis in Markdown.
+    *   **Language:** Chinese (as requested: &#34;请用中文回复&#34;).
+    *   **Structure:** Overall Summary, Key Themes, Impact Level, Action Items.
+
+2.  **Scan and Analyze Individual Diffs:**
+
+    *   `cli-reference.md`: Added specific instructions for `claude auth login` regarding gateway sign-in requirements (v2.1.316+).
+    *   `hooks.md`: Updated `behavior` field description for hooks, clarifying that they can&#39;t override deny rules unless modded. Added a reference link.
+    *   `iam.md`: Updated &#34;Cloud gateway&#34; section to include VS Code sign-in. Clarified credential sourcing order (profiles, federation, active profile vs API key login). Updated the rank table column.
+    *   `mcp.md`: Refined MCP reconnection logic. Added details about &#34;still retrying&#34; vs. &#34;not retrying&#34; states in notifications. Extended retry duration (up to a day for some).
+    *   `model-config.md`: Changed auto-compact window validation. Removed the upper limit (was 100K-1M, now 100K+). Clarified warning message logic.
+    *   `monitoring-usage.md`: Added `OTEL_RESOURCE_INCLUDE_HOST` env var for telemetry (v2.1.326+). Added troubleshooting section for missing host attributes. Updated Desktop SSH telemetry guidance.
+    *   `network-config.md`: Added note about v2.1.327+ tolerating `HTTPS_PROXY` without `http://` in non-interactive contexts (Desktop/SDK/cron).
+    *   `sub-agents.md`: Updated `autoCompactWindow` description to remove the upper limit (100K+).
+    *   `vs-code.md`: Added &#34;Sign in to a Claude apps gateway&#34; section. Added troubleshooting entry for the &#34;Login is managed...&#34; error.
+    *   `about-claude/pricing.md`: Clarified regional pricing multipliers. Clarified Managed Agents billing (CCUs). Reordered links slightly.
+    *   `api/messages.md`: Added a large &#34;Errors&#34; section detailing specific error codes (`compaction_*`, `claude_code_*`, `cmek_*`, `thread_*`, etc.).
+    *   `api/messages/count_tokens.md`: Similar large &#34;Errors&#34; section added.
+    *   `api/messages/batches/create.md`: Added &#34;Errors&#34; section.
+    *   `api/models/list.md`: Added &#34;Errors&#34; section.
+    *   `api/beta/files/upload.md`: Added &#34;Errors&#34; section (includes `storage_quota_exceeded`).
+    *   `api/rate-limits.md`: Clarified that default workspace spend limits on certain platforms might not count/stop usage (Console, Managed Agents, Code/Desktop with Console account).
+    *   `build-with-claude/overview.md` (Truncated): Formatting changes to feature table.
+    *   `build-with-claude/text-generation.md` (Truncated): Formatting changes.
+    *   `build-with-claude/vision.md`: Minor text clarification on image size limits.
+    *   `build-with-claude/prompt-caching.md`: Clarified workspace isolation rules (noted platform differences).
+    *   `build-with-claude/context-editing.md`: Added &#34;Claude Models on Google Cloud (Anthropic managed)&#34; to the beta status list.
+    *   `build-with-claude/citations.md`: Added &#34;Claude Models on Google Cloud (Anthropic managed)&#34; to the stable status list.
+    *   `build-with-claude/search-results.md`: Added &#34;Claude Models on Google Cloud (Anthropic managed)&#34; to the stable status list.
+    *   `agents-and-tools/tool-use/bash-tool.md`: Added &#34;Claude Models on Google Cloud (Anthropic managed)&#34; to the stable status list.
+    *   `agents-and-tools/tool-use/text-editor-tool.md`: Added &#34;Claude Models on Google Cloud (Anthropic managed)&#34; to the stable status list.
+
+3.  **Synthesize Key Themes:**
+
+    *   **Platform Support Expansion:** &#34;Claude Models on Google Cloud (Anthropic managed)&#34; is now officially supported for context editing, citations, search results, bash tool, and text editor tool.
+    *   **Enhanced Error Handling &amp; Debugging:** Massive addition of detailed error codes (like `compaction_*`, `thread_*`, `cmek_*`) to API documentation (`messages`, `batches`, etc.). This is crucial for debugging.
+    *   **Telemetry &amp; Observability:** Introduction of `OTEL_RESOURCE_INCLUDE_HOST` for better machine identification in telemetry.
+    *   **Configuration &amp; Behavior Refinements:**
+        *   `autoCompactWindow` upper limit removed (now just 100K+).
+        *   MCP reconnection behavior clarified (retry logic).
+        *   Proxy configuration relaxed for non-interactive sessions.
+    *   **Authentication Flow Updates:** Specifics on Gateway sign-in for CLI (v2.1.316) and VS Code extensions.
+    *   **Permissions &amp; IAM:** Clarified hierarchy of hooks vs deny rules and credential source priority.
+
+4.  **Determine Impact Level:**
+
+    *   **Reasoning:** Most changes are clarifications or feature additions (new platform support). The removal of the upper limit on `autoCompactWindow` is a minor breaking/behavior change but generally positive (allows more control). The addition of specific error codes is highly beneficial for developers but doesn&#39;t break existing code. The new telemetry env var is opt-in.
+    *   **Verdict:** **Medium**. The API error documentation updates and the removal of the compact window upper limit are significant for stability and debugging, though not necessarily &#34;breaking&#34; in the traditional sense. The new platform support is a standard expansion.
+
+5.  **Formulate Action Items:**
+
+    *   *Action 1:* Review error codes in API docs to improve error handling in your SDKs/integrations.
+    *   *Action 2:* Update `autoCompactWindow` configs if you were hitting the old 1M limit.
+    *   *Action 3:* Check telemetry setup if you need machine identification (`OTEL_RESOURCE_INCLUDE_HOST`).
+    *   *Action 4:* Be aware of credential sourcing changes in IAM docs if using complex auth setups.
+    *   *Action 5:* Update docs/README if you support Google Cloud (Anthropic managed) to list new supported features (citations, etc.).
+
+6.  **Drafting the Response (in Chinese):**
+
+    *   *Overall Summary:* 此次更新主要集中在 API 错误处理的详细化、Google Cloud (Anthropic managed) 平台的功能扩展，以及 CLI/VS Code 的认证和配置优化。
+    *   *Key Themes:*
+        *   **API 错误码细化**: 增加了大量的具体错误码（如 `compaction_*`, `thread_*` 等），便于精准定位问题。
+        *   **平台支持扩展**: Context Editing, Citations, Bash 工具等现已稳定支持 Claude Models on Google Cloud (Anthropic managed)。
+        *   **配置与监控**: 移除了 `autoCompactWindow` 的上限限制，新增了遥测中的主机标识功能。
+        *   **认证与连接**: 明确了 Gateway 登录流程、MCP 重试机制及非交互模式下的代理配置宽容度。
+    *   *Impact Level:* Medium.
+    *   *Action Items:* (Translate the points from step 5).
+
+7.  **Refining the Output:**
+
+    *   Ensure &#34;Claude Models on Google Cloud (Anthropic managed)&#34; is cited correctly.
+    *   Highlight the v2.1.326/327 version requirements where they appear (telemetry/proxy).
+    *   Check formatting (Markdown).
+
+    *(Self-Correction during drafting)*: Make sure to mention the `autoCompactWindow` change clearly, as it removes a previously hard limit. Also, the credential source ranking in `iam.md` is a subtle but important clarification for admins/devs using WIF.
+
+8.  **Final Polish (Mental Check against &#34;Concise, insightful analysis&#34;):**
+    *   The summary is tight.
+    *   Themes capture the breadth.
+    *   Impact is justified.
+    *   Action items are actionable.
+
+    (Proceed to generate output).</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/cli-reference.html" class="page-link">cli-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/hooks.html" class="page-link">hooks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/iam.html" class="page-link">iam.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-5</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/model-config.html" class="page-link">model-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/monitoring-usage.html" class="page-link">monitoring-usage.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+27</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/network-config.html" class="page-link">network-config.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sub-agents.html" class="page-link">sub-agents.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/vs-code.html" class="page-link">vs-code.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+9</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/about-claude/pricing.html" class="page-link">about-claude/pricing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+12</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/messages.html" class="page-link">api/messages.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+126</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/messages/count_tokens.html" class="page-link">api/messages/count_tokens.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+35</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/messages/batches/create.html" class="page-link">api/messages/batches/create.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+11</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/models/list.html" class="page-link">api/models/list.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/beta/files/upload.html" class="page-link">api/beta/files/upload.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+13</span>
+                            
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/rate-limits.html" class="page-link">api/rate-limits.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/overview.html" class="page-link">build-with-claude/overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+23</span>
+                            <span class="removed">-22</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/text-generation.html" class="page-link">build-with-claude/text-generation.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+23</span>
+                            <span class="removed">-22</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/vision.html" class="page-link">build-with-claude/vision.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/prompt-caching.html" class="page-link">build-with-claude/prompt-caching.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+7</span>
+                            <span class="removed">-8</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/context-editing.html" class="page-link">build-with-claude/context-editing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/citations.html" class="page-link">build-with-claude/citations.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/search-results.html" class="page-link">build-with-claude/search-results.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-6</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/bash-tool.html" class="page-link">agents-and-tools/tool-use/bash-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/text-editor-tool.html" class="page-link">agents-and-tools/tool-use/text-editor-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/computer-use-tool.html" class="page-link">agents-and-tools/tool-use/computer-use-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+9</span>
+                            <span class="removed">-7</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/web-search-tool.html" class="page-link">agents-and-tools/tool-use/web-search-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/tool-search-tool.html" class="page-link">agents-and-tools/tool-use/tool-search-tool.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+10</span>
+                            <span class="removed">-9</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/fine-grained-tool-streaming.html" class="page-link">agents-and-tools/tool-use/fine-grained-tool-streaming.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+5</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/tool-use/programmatic-tool-calling.html" class="page-link">agents-and-tools/tool-use/programmatic-tool-calling.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/agent-skills/overview.html" class="page-link">agents-and-tools/agent-skills/overview.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+11</span>
+                            <span class="removed">-10</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/mcp-connector.html" class="page-link">agents-and-tools/mcp-connector.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-7</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
         
         <div class="batch">
             <div class="batch-header">13:42 EST</div>
