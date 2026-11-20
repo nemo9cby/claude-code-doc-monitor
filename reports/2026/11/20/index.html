@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026-11-20 - Documentation Changes</title>
+    <style>
+        :root {
+            --bg-color: #1a1a2e;
+            --card-bg: #16213e;
+            --text-color: #eee;
+            --accent: #0f3460;
+            --add-text: #4ade80;
+            --del-text: #f87171;
+            --time-color: #60a5fa;
+        }
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg-color: #f5f5f5;
+                --card-bg: #fff;
+                --text-color: #333;
+                --accent: #e0e0e0;
+                --add-text: #155724;
+                --del-text: #721c24;
+                --time-color: #2563eb;
+            }
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+        .container { max-width: 800px; margin: 0 auto; }
+        header { margin-bottom: 2rem; }
+        h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+        .meta { color: #888; }
+        .batch { margin-bottom: 2rem; }
+        .batch-header {
+            color: var(--time-color);
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--accent);
+        }
+        .page-list { list-style: none; }
+        .page-item {
+            background: var(--card-bg);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .page-item:hover { background: var(--accent); }
+        .page-link {
+            color: var(--text-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .page-summary { color: #888; font-size: 0.9rem; }
+        .added { color: var(--add-text); }
+        .removed { color: var(--del-text); }
+        a { color: #60a5fa; }
+        .back-link { margin-bottom: 1rem; display: inline-block; }
+        .page-item-content { flex: 1; }
+        .page-analysis {
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: 0.25rem;
+        }
+        .source-section {
+            margin-bottom: 1.5rem;
+        }
+        .source-header {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: #8b5cf6;
+        }
+        .batch-analysis {
+            background: var(--card-bg);
+            border-left: 3px solid #22c55e;
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            margin: 0.75rem 0 1rem 0;
+        }
+        .batch-analysis h4 {
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+        .batch-analysis-content {
+            white-space: pre-wrap;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        .reasoning-section {
+            margin-top: 1rem;
+            padding-top: 0.75rem;
+            border-top: 1px dashed var(--accent);
+            font-size: 0.85rem;
+            color: #888;
+        }
+        .reasoning-section summary {
+            cursor: pointer;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../../../index.html" class="back-link">&larr; All reports</a>
+
+        <header>
+            <h1>Changes on 2026-11-20</h1>
+            <p class="meta">9 total changes in 1 run</p>
+        </header>
+
+        
+        <div class="batch">
+            <div class="batch-header">11:49 EST</div>
+            
+            <div class="batch-analysis">
+                <h4>🤖 AI Batch Analysis</h4>
+                <div class="batch-analysis-content"># 文档变更分析
+
+## 1. 整体概览
+
+本次变更涵盖 SDK 全面版本升级、沙箱安全行为重大改进（从删除改为隔离重命名）、MCP 认证流程调整，以及插件文档的简化与澄清。
+
+## 2. 关键主题
+
+- **SDK 全线升级**：所有 8 个官方 SDK（Python、TypeScript、Go、Java、C#、PHP、Ruby、ant CLI）同步发布新版本，Java 生态（含 Vertex AI、Microsoft Foundry、MCP 连接器）统一从 3.11.0 升至 3.12.0
+- **沙箱安全机制改进**：`objects`/`refs` 文件夹不再被直接删除，而是重命名为 `&lt;name&gt;.claude-sandbox-quarantine-&lt;hex&gt;` 并保留内容，大幅降低数据丢失风险；最低版本要求从 v2.1.307 提升至 v2.1.315
+- **MCP 认证流程变化**：服务器需要重新认证时不再自动停止重试，改为仅报告 `needs-auth` 状态；新增&#34;先用 `claude mcp list` 确认服务器存在&#34;的前置步骤
+- **插件验证放宽**：`homepage` 字段不再因 URL 解析失败而阻止插件加载
+- **沙箱代理凭据澄清**：新增对 `HTTPS_PROXY` 中 `srt`/`srt.` 开头用户名的说明，帮助开发者区分内置代理凭据与自有凭据
+- **Anthropic 托管环境例外**：`failIfUnavailable` 在 Anthropic 托管环境中不再阻止会话启动
+
+## 3. 影响等级：**中等**
+
+**理由**：SDK 版本升级属于常规维护，影响可控；沙箱行为变更虽然向后兼容（重命名优于删除），但改变了故障恢复流程，开发者需要了解新的隔离文件命名规则；MCP 认证流程调整可能影响依赖自动重试行为的自动化脚本。
+
+## 4. 开发者行动项
+
+- **升级 Claude Code 至 v2.1.315+**：获取沙箱隔离重命名机制，避免文件夹内容被意外删除
+- **升级所有 SDK 至最新版本**：特别是 Java 生态（3.12.0），以及 Python（2.12.0）、TypeScript（1.12.0）、Go（2.13.0）
+- **检查 MCP 认证相关代码**：如果依赖 `needs-auth` 状态后的自动停止行为，需调整为主动检测和处理
+- **了解沙箱隔离文件恢复流程**：查找 `.claude-sandbox-quarantine-&lt;hex&gt;` 后缀的文件夹，移除 `HEAD` 文件后可恢复原名
+- **审查代理配置中的凭据**：区分内置沙箱代理凭据（`srt` 用户名 + localhost）与自有凭据，避免误判</div>
+                
+                <details class="reasoning-section">
+                    <summary>💭 Model Reasoning</summary>
+                    <div class="batch-analysis-content">让我仔细分析这些文档变更，提炼出对开发者真正重要的信息。
+
+1. **整体概览**
+9个页面发生了变更，涉及多个方面：版本号更新、沙箱行为改进、MCP错误处理澄清、插件文档简化等。
+
+2. **逐页分析**
+
+**discover-plugins.md** (+2/-2)
+- 删除了&#34;press y&#34;和&#34;press u&#34;的按键提示
+- 说明：移除了具体的按键绑定说明，可能是因为UI交互方式发生了变化，或者按键不再固定
+
+**mcp.md** (+2/-2)
+- 第一处：删除了&#34;or it is already retrying after a failed attempt&#34;的说明，简化了错误条件描述
+- 第二处：重大改变——原来要求&#34;Claude Code stops retrying&#34;，现在改为只报告状态为needs-auth；增加了&#34;如果`claude mcp list`显示服务器&#34;的前提条件；恢复了Agent SDK重连的说明
+- 说明：MCP服务器的认证流程发生了变化，不再自动停止重试
+
+**plugins-reference.md** (+1/-1)
+- homepage字段：删除了&#34;or the plugin fails to load&#34;
+- 说明：homepage字段不再进行严格验证，无效URL不会导致插件加载失败
+
+**sandboxing.md** (+18/-10) - 这是最重要的变更
+- 多处重要改动：
+  1. **objects/refs文件夹行为改变**：从直接删除改为重命名为`&lt;name&gt;.claude-sandbox-quarantine-&lt;hex&gt;`，保留内容
+  2. **版本要求更新**：从v2.1.307更新到v2.1.315
+  3. **新增代理凭据说明**：解释了HTTPS_PROXY中`srt`用户名的含义
+  4. **failIfUnavailable行为变化**：在Anthropic托管环境中，会话可以仍然启动
+  5. **macOS git SSH失败描述变化**：从&#34;失败&#34;改为&#34;可能失败&#34;
+  6. 恢复文件夹的详细说明
+
+**get-started.md** (+4/-4)
+- ant CLI版本从2.12.0更新到2.12.1
+- anthropic-java从3.11.0更新到3.12.0
+
+**api/client-sdks.md** (+8/-8)
+- 所有SDK版本号更新：
+  - ant CLI: 2.12.0 → 2.12.1
+  - Python: 2.11.0 → 2.12.0
+  - TypeScript: 1.11.0 → 1.12.0
+  - C#: 13.11.0 → 13.12.0
+  - Go: 2.12.0 → 2.13.0
+  - Java: 3.11.0 → 3.12.0
+  - PHP: 1.11.0 → 1.12.0
+  - Ruby: 2.11.0 → 2.12.0
+
+**claude-on-vertex-ai.md** (+3/-3)
+- anthropic-java和anthropic-java-vertex从3.11.0更新到3.12.0
+
+**claude-in-microsoft-foundry.md** (+3/-3)
+- anthropic-java和anthropic-java-foundry从3.11.0更新到3.12.0
+
+**mcp-connector.md** (+3/-3)
+- anthropic-java和anthropic-java-mcp从3.11.0更新到3.12.0
+
+3. **关键主题归纳**
+- SDK全面版本升级
+- 沙箱行为重大改进（保护性增强）
+- MCP认证流程调整
+- 插件验证放宽
+- 文档简化和澄清
+
+4. **影响等级评估**
+- 沙箱行为变更影响中等偏高（改变了文件夹处理方式，但向后兼容性较好，因为现在是重命名而非删除）
+- SDK版本升级影响中等（需要开发者主动升级）
+- MCP认证流程变化影响中等
+- 其他文档澄清影响低
+- 总体：中等影响
+
+5. **开发者行动项**
+- 升级SDK到最新版本
+- 了解沙箱新的隔离机制（文件夹重命名而非删除）
+- 如果使用MCP，了解认证流程的变化
+- 如果开发插件，homepage不再严格验证
+- 如果使用Claude Code v2.1.315以下版本，考虑升级以获得更好的沙箱保护</div>
+                </details>
+                
+            </div>
+            
+            
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Claude Code</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/discover-plugins.html" class="page-link">discover-plugins.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/mcp.html" class="page-link">mcp.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+2</span>
+                            <span class="removed">-2</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/plugins-reference.html" class="page-link">plugins-reference.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+1</span>
+                            <span class="removed">-1</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="claude-code/sandboxing.html" class="page-link">sandboxing.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+18</span>
+                            <span class="removed">-10</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            <div class="source-section">
+                <h3 class="source-header">📚 Anthropic API</h3>
+                <ul class="page-list">
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/get-started.html" class="page-link">get-started.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+4</span>
+                            <span class="removed">-4</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/api/client-sdks.html" class="page-link">api/client-sdks.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+8</span>
+                            <span class="removed">-8</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-on-vertex-ai.html" class="page-link">build-with-claude/claude-on-vertex-ai.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/build-with-claude/claude-in-microsoft-foundry.html" class="page-link">build-with-claude/claude-in-microsoft-foundry.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                    <li class="page-item">
+                        <div class="page-item-content">
+                            <a href="anthropic-api/agents-and-tools/mcp-connector.html" class="page-link">agents-and-tools/mcp-connector.md</a>
+                            
+                        </div>
+                        <span class="page-summary">
+                            <span class="added">+3</span>
+                            <span class="removed">-3</span>
+                        </span>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+            
+        </div>
+        
+    </div>
+</body>
+</html>
